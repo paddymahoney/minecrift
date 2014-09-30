@@ -4,6 +4,8 @@ import net.minecraft.util.Session;
 import java.io.*;
 import java.net.*;
 
+import org.json.JSONObject; // JAR available at http://mvnrepository.com/artifact/org.json/json/20140107
+
 public class SessionID
 {
     public static final Session GetSSID(String username, String password)
@@ -18,13 +20,21 @@ public class SessionID
         if (response == null || response.isEmpty())
             return null;
 
+        // **** JSON parsing courtesy of ssewell ****
+        // Create a parsable JSON object from our response string
+        JSONObject jsonRepsonse = new JSONObject(response);
+
+        // Obtain our current profile (which contains the user ID and name
+        JSONObject jsonSelectedProfile = jsonRepsonse.getJSONObject("selectedProfile");
+
         // Session ID = "token:<accessToken>:<profile ID>"
         // Username will probably *not be an email address
-        String[] pieces = response.split("\"");
-        String sessionID = "token:" + pieces[3] + ":" + pieces[13];    // TODO: Get these values based on json field name, not just index location (which may change and then be invalid!)
-        String userName = pieces[17];
-        String profileName = null;
-        Session session = new Session(userName, profileName, sessionID, "legacy");   // TODO: May need to use something other than null ProfileName
+        String accessToken = jsonRepsonse.getString("accessToken");
+        String id = jsonSelectedProfile.getString("id");
+        String sessionID = "token:" + jsonRepsonse.getString("accessToken") + ":" + jsonSelectedProfile.getString("id");
+        String userName = jsonSelectedProfile.getString("name");
+
+        Session session = new Session(userName, id, accessToken, "legacy");
         return session;
     }
 

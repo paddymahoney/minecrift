@@ -42,9 +42,12 @@ and SixenseJava is in com/sixense.
 
 To run Minecrift in your dev env you will need to:
 
-  Delete META-INF dir within minecrift/mcp908/jars/versions/1.7.10/1.7.10.jar otherwise
+  - Delete META-INF dir within minecrift/mcp908/jars/versions/1.7.10/1.7.10.jar otherwise
   you get a SecurityException on Minecrift startup
-  Merge in the assets directory from .minecraft into the minecrift/assets dir.
+  - Merge in the assets directory from .minecraft into the minecrift/assets dir.
+  - To allow testing on Multiplayer servers, launch via Start.main, and add your Mojang account
+    program arguments:
+       --username <username> --password <password>
 
 - Run build.sh (or build.bat) to create a release installer. Run the release installer to
   test the reobfuscated changes in the Minecraft launcher.

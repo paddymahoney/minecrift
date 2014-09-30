@@ -1,3 +1,2 @@
-@echo off
-REM.\mcp\runtime\bin\python\python_mcp getchanges.py
+echo Building patches...
 python getchanges.py
