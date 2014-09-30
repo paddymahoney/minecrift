@@ -9,6 +9,10 @@
       "name": "optifine:OptiFine:1.7.10_HD_U_A4"
     },
     {
+      "name": "org.json:json:20140107",
+      "url":  "http://central.maven.org/maven2/"
+    },
+    {
       "name": "net.minecraftforge:forge:1.7.10-10.13.0.1180",
       "url": "http://files.minecraftforge.net/maven/"
     },	

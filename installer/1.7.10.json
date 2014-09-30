@@ -9,6 +9,10 @@
       "name": "optifine:OptiFine:1.7.10_HD_U_A4"
     },
     {
+      "name": "org.json:json:20140107",
+      "url":  "http://central.maven.org/maven2/"
+    },
+    {
       "name": "net.minecraft:launchwrapper:1.7"
     },
     {
