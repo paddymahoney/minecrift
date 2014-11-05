@@ -197,7 +197,9 @@ def _process_file(src_file):
         args = args[:-2]
         
         return match.group(0).replace(match.group('arguments'), args)
-    buf = _REGEXP['abstract'].sub(abstract_match, buf)
+    
+    if src_file.find("ChunkRenderDispatcher") == -1:
+        buf = _REGEXP['abstract'].sub(abstract_match, buf)
 
     with open(tmp_file, 'w') as fh:
         fh.write(buf)
