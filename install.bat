@@ -1,3 +1,3 @@
 @echo off
-python install.py
+python install.py %*
 

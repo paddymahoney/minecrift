@@ -13,6 +13,7 @@ from applychanges import applychanges, apply_patch
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 preferredarch = ''
+nomerge = False
 
 try:
     WindowsError
@@ -70,7 +71,6 @@ def download_file(url, target, md5=None):
                     print 'Download of %s failed md5 check, deleting' % name
                     os.remove(target)
                     return False
-            print 'Done'
         except Exception as e:
             print e
             print 'Download of %s failed, download it manually from \'%s\' to \'%s\'' % (target, url, target)
@@ -146,7 +146,8 @@ def download_deps( mcp_dir, download_mc ):
     flat_native_dir = os.path.join(base_dir,"lib",mc_version,"natives",native)
     mkdir_p( flat_lib_dir )
     mkdir_p( flat_native_dir )
-        
+     
+    # Get minecrift json file
     json_file = os.path.join(versions,mc_version+".json")
     source_json_file = os.path.join("installer",mc_version+".json")
     print 'Updating json: copying %s to %s' % (source_json_file, json_file)
@@ -347,15 +348,20 @@ def main(mcp_dir):
     print 'Using base dir: %s' % base_dir
     print 'Using mcp dir: %s (use -m <mcp-dir> to change)' % mcp_dir
     print 'Preferred architecture: %sbit - preferring %sbit native extraction (use -a 32 or -a 64 to change)' % (preferredarch, preferredarch)
-    print("Downloading dependencies...")
+    if nomerge is True:
+        print 'NO Optifine merging'
+    print("\nDownloading dependencies...")
     download_deps( mcp_dir, True )
 
-    print("Applying Optifine...")
-    optifine = os.path.join(mcp_dir,"jars","libraries","optifine","OptiFine",of_json_name,"OptiFine-"+of_json_name+".jar" )
-    minecraft_jar = os.path.join( mcp_dir,"jars","versions",mc_version,mc_version+".jar")
-    print ' Merging\n  %s\n into\n  %s' % (optifine, minecraft_jar)
-    zipmerge( minecraft_jar, optifine )
-
+    if nomerge == False:
+        print("Applying Optifine...")
+        optifine = os.path.join(mcp_dir,"jars","libraries","optifine","OptiFine",of_json_name,"OptiFine-"+of_json_name+".jar" )
+        minecraft_jar = os.path.join( mcp_dir,"jars","versions",mc_version,mc_version+".jar")
+        print ' Merging\n  %s\n into\n  %s' % (optifine, minecraft_jar)
+        zipmerge( minecraft_jar, optifine )
+    else:
+        print("Skipping Optifine merge...")
+    
     print("Decompiling...")
     src_dir = os.path.join(mcp_dir, "src","minecraft")
     if os.path.exists( src_dir ):
@@ -378,6 +384,7 @@ def main(mcp_dir):
 
 if __name__ == '__main__':
     parser = OptionParser()
+    parser.add_option('-o', '--no-optifine', dest='nomerge', default=False, action='store_true', help='If specified, no optifine merge will be carried out')
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
     parser.add_option('-a', '--architecture', action='store', dest='arch', help='Architecture to use (\'32\' or \'64\'); prefer 32 or 64bit dlls', default=None)
     options, _ = parser.parse_args()
@@ -390,6 +397,8 @@ if __name__ == '__main__':
             
     if preferredarch is '':
         preferredarch = osArch()
+        
+    nomerge = options.nomerge
     
     if not options.mcp_dir is None:
         main(os.path.abspath(options.mcp_dir))
