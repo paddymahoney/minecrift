@@ -4,22 +4,14 @@ import platform
 import shutil, tempfile, json
 import errno
 import platform
-
+from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
-
 from applychanges import applychanges, apply_patch
 
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
-mc_version = "1.8"
-of_version = "1.8.0_HD_U_A5"
-minecrift_version_num = "1.8.0"
-minecrift_build = "PRE1"
-of_file_extension = ".jar"
-of_file_md5 = "57c48d49e442d3922bb43595a08f9c89"
-mcp_version = "mcp910-pre1"
 preferredarch = ''
 
 try:
@@ -50,14 +42,28 @@ def get_md5(file):
 
 def download_file(url, target, md5=None):
     name = os.path.basename(target)
-
-    if not os.path.isfile(target):
+    download = True
+    if not is_non_zero_file(target):
+        download = True
+    elif not md5 == None and not md5 == "":
+        if not get_md5(target) == md5:
+            print 'File Exists but bad MD5!: %s [MD5:%s]' % ( os.path.basename(target), get_md5(target) )
+            os.remove(target)
+            download = True
+        else:
+            print 'File Exists: %s [MD5:%s]' % ( os.path.basename(target), get_md5(target) )
+            download = False
+    else:
+        print 'File Exists: %s' % os.path.basename(target)
+        download = False 
+        
+    if download is True:
         print 'Downloading: %s' % os.path.basename(target)
         try:
             with open(target,"wb") as tf:
                 res = urllib2.urlopen(urllib2.Request( url, headers = {"User-Agent":"Mozilla/5.0"}))
                 tf.write( res.read() )
-            if not md5 == None:
+            if not md5 == None and not md5 == "":
                 if not get_md5(target) == md5:
                     print 'Download of %s failed md5 check, deleting' % name
                     os.remove(target)
@@ -67,8 +73,7 @@ def download_file(url, target, md5=None):
             print e
             print 'Download of %s failed, download it manually from \'%s\' to \'%s\'' % (target, url, target)
             return False
-    else:
-        print 'File Exists: %s' % os.path.basename(target)
+
     return True
 
 def download_native(url, folder, name):
@@ -134,19 +139,20 @@ def download_deps( mcp_dir ):
     print 'Updating json: copying %s to %s' % (source_json_file, json_file)
     shutil.copy(source_json_file,json_file)
     
-
-    optifine_dir = os.path.join(jars,"libraries","optifine","OptiFine",of_version )
-    mkdir_p( optifine_dir )
+    # Use optifine json name for destination dir and jar names
+    optifine_dest_dir = os.path.join(jars,"libraries","optifine","OptiFine",of_json_name )
+    mkdir_p( optifine_dest_dir )
 
     print 'Checking Optifine...'
-    optifine_jar = "OptiFine-"+of_version+".jar"
-    optifine_file = os.path.join( optifine_dir, optifine_jar )
+    optifine_jar = "OptiFine-"+of_json_name+".jar"
+    optifine_dest_file = os.path.join( optifine_dest_dir, optifine_jar )
+ 
     download_optifine = False
     optifine_md5 = ''
-    if not is_non_zero_file( optifine_file ):
+    if not is_non_zero_file( optifine_dest_file ):
         download_optifine = True
     else:
-        optifine_md5 = get_md5( optifine_file )
+        optifine_md5 = get_md5( optifine_dest_file )
         print 'Optifine md5: %s' % optifine_md5
         if optifine_md5 != of_file_md5:
             download_optifine = True
@@ -155,13 +161,19 @@ def download_deps( mcp_dir ):
             print 'MD5 good!'
     
     if download_optifine: 
-        optifine_url = "http://optifine.net/download.php?f=OptiFine_"+of_version+of_file_extension
+        # Use optifine filename for URL
+        optifine_url = "http://optifine.net/download.php?f=OptiFine_"+of_file_name+of_file_extension
         print 'Downloading Optifine...'
-        if not download_file( optifine_url, optifine_file, of_file_md5 ):
+        if not download_file( optifine_url, optifine_dest_file, of_file_md5 ):
             print 'FAILED to download Optifine!'
             sys.exit(1)
         else:
-            shutil.copy(optifine_file,os.path.join(flat_lib_dir, os.path.basename(optifine_file)))
+            shutil.copy(optifine_dest_file,os.path.join(flat_lib_dir, os.path.basename(optifine_dest_file)))
+            
+    if of_file_md5 == "":
+        optifine_md5 = get_md5( optifine_dest_file )
+        print 'Optifine md5: %s' % optifine_md5
+        sys.exit(0)
 
     json_obj = []
     with open(json_file,"rb") as f:
@@ -238,8 +250,13 @@ def download_deps( mcp_dir ):
     repo = "https://s3.amazonaws.com/Minecraft.Download/"
     jar_file = os.path.join(versions,mc_version+".jar")
     jar_url = repo + "versions/"+mc_version+"/"+mc_version+".jar"
-    download_file( jar_url, jar_file )
+    download_file( jar_url, jar_file, mc_file_md5 )
     shutil.copy(jar_file,os.path.join(flat_lib_dir, os.path.basename(jar_file))) 
+	
+    if mc_file_md5 == "":
+        mc_md5 = get_md5( jar_file )
+        print '%s md5: %s' % ( os.path.basename(jar_file), mc_md5 )
+        sys.exit(0)	
 
 def extractnatives( lib, jars, file, copydestdir ):
     if "natives" in lib:
@@ -320,7 +337,7 @@ def main(mcp_dir):
     download_deps( mcp_dir )
 
     print("Applying Optifine...")
-    optifine = os.path.join(mcp_dir,"jars","libraries","optifine","OptiFine",of_version,"OptiFine-"+of_version+".jar" )
+    optifine = os.path.join(mcp_dir,"jars","libraries","optifine","OptiFine",of_json_name,"OptiFine-"+of_json_name+".jar" )
     minecraft_jar = os.path.join( mcp_dir,"jars","versions",mc_version,mc_version+".jar")
     print ' Merging\n  %s\n into\n  %s' % (optifine, minecraft_jar)
     zipmerge( minecraft_jar, optifine )

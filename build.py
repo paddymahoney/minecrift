@@ -2,8 +2,11 @@ import os, os.path, sys, json, datetime, StringIO
 import shutil, tempfile,zipfile, fnmatch
 from optparse import OptionParser
 import subprocess, shlex
-
-from install import download_deps, download_native, download_file, mkdir_p, mc_version, mcp_version, minecrift_version_num, minecrift_build
+from tempfile import mkstemp
+from shutil import move
+from os import remove, close
+from install import download_deps, download_native, download_file, mkdir_p
+from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, forge_version
 
 try:
     WindowsError
@@ -79,17 +82,47 @@ def create_install(mcp_dir):
         version = minecrift_build
 
     version = minecrift_version_num+"-"+version
+    
+    # Replace version info in installer.java
+    print "Updating installer versions..."
+    installer_java_file = os.path.join("installer","Installer.java")
+    replacelineinfile( installer_java_file, "private static final String MC_VERSION",     "    private static final String MC_VERSION     = \"%s\";\n" % minecrift_version_num );
+    replacelineinfile( installer_java_file, "private static final String OF_FILE_NAME",   "    private static final String OF_FILE_NAME   = \"%s\";\n" % of_file_name );
+    replacelineinfile( installer_java_file, "private static final String OF_JSON_NAME",   "    private static final String OF_JSON_NAME   = \"%s\";\n" % of_json_name );
+    replacelineinfile( installer_java_file, "private static final String OF_MD5",         "    private static final String OF_MD5         = \"%s\";\n" % of_file_md5 );
+    replacelineinfile( installer_java_file, "private static final String OF_VERSION_EXT", "    private static final String OF_VERSION_EXT = \"%s\";\n" % of_file_extension );
+    replacelineinfile( installer_java_file, "private static final String FORGE_VERSION",  "    private static final String FORGE_VERSION  = \"%s\";\n" % forge_version );
+
+    # Build installer.java
+    print "Recompiling Installer.java..."
+    subprocess.Popen( 
+        cmdsplit("javac \"%s\"" % os.path.join(base_dir,installer_java_file)), 
+            cwd=os.path.join(base_dir,"installer"),
+            bufsize=-1).communicate()
 	
     artifact_id = "minecrift-"+version
     installer_id = artifact_id+"-installer"
     installer = os.path.join( installer_id+".jar" ) 
     shutil.copy( os.path.join("installer","installer.jar"), installer )
     with zipfile.ZipFile( installer,'a', zipfile.ZIP_DEFLATED) as install_out: #append to installer.jar
+    
+        # Add newly compiled class files
+        for f in os.listdir("installer"):
+            if os.path.isfile(os.path.join("installer",f)) and f.endswith('.class'):
+                print "Adding %s..." % f
+                install_out.writestr(f, f)
+            
+        # Add json files
         install_out.writestr( "version.json", process_json("", version))
         install_out.writestr( "version-forge.json", process_json("-forge", version))
         install_out.writestr( "version-nohydra.json", process_json("-nohydra", version))
         install_out.writestr( "version-forge-nohydra.json", process_json("-forge-nohydra", version))
+        
+        # Add version jar - this contains all the changed files (effectively minecrift.jar). A mix
+        # of obfuscated and non-obfuscated files.
         install_out.writestr( "version.jar", in_mem_zip.read() )
+        
+        # Add the version info
         install_out.writestr( "version", artifact_id+":"+version )
 
     print("Creating Installer exe...")
@@ -104,6 +137,25 @@ def create_install(mcp_dir):
             bufsize=-1).communicate()
     os.unlink( "launch4j.xml" )
 
+def replacelineinfile(file_path, pattern, subst):
+    #Create temp file
+    fh, abs_path = mkstemp()
+    new_file = open(abs_path,'w')
+    old_file = open(file_path)
+    for line in old_file:
+        if pattern in line:
+            new_file.write(subst)
+        else:
+            new_file.write(line)
+    #close temp file
+    new_file.close()
+    close(fh)
+    old_file.close()
+    #Remove original file
+    remove(file_path)
+    #Move new file
+    move(abs_path, file_path)    
+    
 def main(mcp_dir):
     print 'Using mcp dir: %s' % mcp_dir
     print 'Using base dir: %s' % base_dir

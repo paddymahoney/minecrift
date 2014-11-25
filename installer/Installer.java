@@ -37,14 +37,15 @@ public class Installer extends JPanel  implements PropertyChangeListener
 {
 	private static final long serialVersionUID = -562178983462626162L;
 
-	private static final String MC_VERSION     = "1.7.10";
-
+    /* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
+    private static final String MC_VERSION     = "1.8.0";
     private static final String OF_LIB_PATH    = "libraries/optifine/OptiFine/";
-	private static final String OF_VERSION     = "1.7.10_HD_U_A4";
-	private static final String OF_MD5         = "FF3FD4C98E267D9D9EEB1296EDFBA5AA";
-    private static final String OF_VERSION_EXT = "jar";
-
+    private static final String OF_FILE_NAME   = "1.8.0_HD_U_A5";
+    private static final String OF_JSON_NAME   = "1.8_HD_U_A5";
+    private static final String OF_MD5         = "57c48d49e442d3922bb43595a08f9c89";
+    private static final String OF_VERSION_EXT = ".jar";
     private static final String FORGE_VERSION  = "10.13.0.1180";
+    /* END OF DO NOT RENAME */
 
 	private InstallTask task;
     private static ProgressMonitor monitor;
@@ -76,9 +77,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
             boolean deleted = false;
 
 			try {
-			    File fod = new File(targetDir,OF_LIB_PATH+OF_VERSION);
+			    File fod = new File(targetDir,OF_LIB_PATH+OF_JSON_NAME);
 			    fod.mkdirs();
-			    File fo = new File(fod,"OptiFine-"+OF_VERSION+".jar");
+			    File fo = new File(fod,"OptiFine-"+OF_JSON_NAME+".jar");
 
 			    // Attempt to get the Optifine MD5
                 String optOnDiskMd5 = GetMd5(fo);
@@ -105,7 +106,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 // Need to attempt download...
                 FileOutputStream fos = new FileOutputStream(fo);
                 try {
-                    String surl = "http://optifine.net/download.php?f=OptiFine_" + OF_VERSION + "." + OF_VERSION_EXT;
+                    String surl = "http://optifine.net/download.php?f=OptiFine_" + OF_FILE_NAME + "." + OF_VERSION_EXT;
                     URL url = new URL(surl);
                     ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                     long bytes = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
@@ -400,7 +401,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
             if (!downloadedOptifine) {
                 finalMessage = "Installed (but failed to download OptiFine). Restart Minecraft and Edit Profile->Use Version minecrift-" + version + mod +
-                        "\nPlease download and install Optifine " + OF_VERSION + "from https://optifine.net/downloads before attempting to play.";
+                        "\nPlease download and install Optifine " + OF_FILE_NAME + "from https://optifine.net/downloads before attempting to play.";
             }
             else {
                 finalMessage = "Installed Successfully! Restart Minecraft and Edit Profile->Use Version minecrift-" + version + mod;

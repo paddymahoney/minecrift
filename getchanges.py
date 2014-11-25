@@ -4,8 +4,8 @@ import os, os.path, sys
 import shutil, glob, fnmatch
 import subprocess, logging, shlex, re
 from optparse import OptionParser
-
-from install import mcp_version
+from minecriftversion import mcp_version, minecrift_version_num, minecrift_build
+from build import replacelineinfile
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -16,6 +16,7 @@ def cmdsplit(args):
 
 def create_patch( target_dir, src_file, mod_file, label, patch_file ):
     
+    print "Checking patch status for %s..." % src_file
     if os.name == 'nt':
         diff = os.path.abspath(os.path.join(base_dir, 'bin', 'diff.exe'))
     else:
@@ -64,6 +65,11 @@ def main(mcp_dir):
             if mod_file[-4:]!="java":
                 continue
 
+            if file_ == "Minecraft.java":
+                # Update Minecrift version
+                print "Updating Minecraft.java Minecrift version: [Minecrift %s %s] %s" % ( minecrift_version_num, minecrift_build, org_file ) 
+                replacelineinfile( mod_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Minecrift %s %s\";\n" % (minecrift_version_num, minecrift_build) );
+                
             if os.path.exists(org_file):
                 patch_file = os.path.join(patch_dir,file_+".patch")
                 label = pkg.replace("\\","/") + "/" + file_ #patch label always has "/"
