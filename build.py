@@ -161,7 +161,7 @@ def main(mcp_dir):
     print 'Using base dir: %s' % base_dir
     
     print("Refreshing dependencies...")
-    download_deps( mcp_dir )
+    download_deps( mcp_dir, False )
     
     sys.path.append(mcp_dir)
     os.chdir(mcp_dir)

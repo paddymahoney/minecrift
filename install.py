@@ -44,6 +44,8 @@ def download_file(url, target, md5=None):
     name = os.path.basename(target)
     download = True
     if not is_non_zero_file(target):
+        if os.path.isfile(target):
+            os.remove(target)
         download = True
     elif not md5 == None and not md5 == "":
         if not get_md5(target) == md5:
@@ -72,6 +74,8 @@ def download_file(url, target, md5=None):
         except Exception as e:
             print e
             print 'Download of %s failed, download it manually from \'%s\' to \'%s\'' % (target, url, target)
+            if os.path.isfile(target):
+                os.remove(target)
             return False
 
     return True
@@ -89,19 +93,28 @@ def download_native(url, folder, name):
 def is_non_zero_file(fpath):  
     return True if os.path.isfile(fpath) and os.path.getsize(fpath) > 0 else False
     
-def download_deps( mcp_dir ):
+def download_deps( mcp_dir, download_mc ):
+
+    mcp_exists = True
     if not os.path.exists(mcp_dir+"/runtime/commands.py "):
-        download_file( "http://mcp.ocean-labs.de/files/archive/"+mcp_version+".zip", mcp_version+".zip" )
+        mcp_exists = False
         try:
-            os.mkdir( mcp_dir )
-            mcp_zip = zipfile.ZipFile( mcp_version+".zip" )
-            mcp_zip.extractall( mcp_dir )
-            import stat
-            astyle = os.path.join(mcp_dir,"runtime","bin","astyle-osx")
-            st = os.stat( astyle )
-            os.chmod(astyle, st.st_mode | stat.S_IEXEC)
+            mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
+            if os.path.exists( mcp_zip_file ):
+                os.mkdir( mcp_dir )
+                mcp_zip = zipfile.ZipFile( mcp_zip_file )
+                mcp_zip.extractall( mcp_dir )
+                import stat
+                astyle = os.path.join(mcp_dir,"runtime","bin","astyle-osx")
+                st = os.stat( astyle )
+                os.chmod(astyle, st.st_mode | stat.S_IEXEC)
+                mcp_exists = True
         except:
             pass
+            
+    if mcp_exists = False:
+        print "No % directory or zip file found. Please copy the %.zip file into %s and re-run the command." % (mcp_dir, mcp_dir, base_dir)
+        exit(1)
             
     print("Patching mcp.cfg. Ignore \"FAILED\" hunks")
     apply_patch( mcp_dir, os.path.join("mcppatches", "mcp.cfg.patch"), os.path.join(mcp_dir,"conf"))
@@ -247,16 +260,17 @@ def download_deps( mcp_dir ):
         print 'ERROR: %s' % e
         raise
 
-    repo = "https://s3.amazonaws.com/Minecraft.Download/"
-    jar_file = os.path.join(versions,mc_version+".jar")
-    jar_url = repo + "versions/"+mc_version+"/"+mc_version+".jar"
-    download_file( jar_url, jar_file, mc_file_md5 )
-    shutil.copy(jar_file,os.path.join(flat_lib_dir, os.path.basename(jar_file))) 
-	
-    if mc_file_md5 == "":
-        mc_md5 = get_md5( jar_file )
-        print '%s md5: %s' % ( os.path.basename(jar_file), mc_md5 )
-        sys.exit(0)	
+    if download_mc = True:
+        repo = "https://s3.amazonaws.com/Minecraft.Download/"
+        jar_file = os.path.join(versions,mc_version+".jar")
+        jar_url = repo + "versions/"+mc_version+"/"+mc_version+".jar"
+        download_file( jar_url, jar_file, mc_file_md5 )
+        shutil.copy(jar_file,os.path.join(flat_lib_dir, os.path.basename(jar_file))) 
+        
+        if mc_file_md5 == "":
+            mc_md5 = get_md5( jar_file )
+            print '%s md5: %s' % ( os.path.basename(jar_file), mc_md5 )
+            sys.exit(0)	
 
 def extractnatives( lib, jars, file, copydestdir ):
     if "natives" in lib:
@@ -334,7 +348,7 @@ def main(mcp_dir):
     print 'Using mcp dir: %s (use -m <mcp-dir> to change)' % mcp_dir
     print 'Preferred architecture: %sbit - preferring %sbit native extraction (use -a 32 or -a 64 to change)' % (preferredarch, preferredarch)
     print("Downloading dependencies...")
-    download_deps( mcp_dir )
+    download_deps( mcp_dir, True )
 
     print("Applying Optifine...")
     optifine = os.path.join(mcp_dir,"jars","libraries","optifine","OptiFine",of_json_name,"OptiFine-"+of_json_name+".jar" )
