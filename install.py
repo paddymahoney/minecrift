@@ -100,6 +100,13 @@ def download_deps( mcp_dir ):
     apply_patch( mcp_dir, os.path.join("mcppatches", "mcp.cfg.patch"), os.path.join(mcp_dir,"conf"))
     print("Patching fffix.py. Ignore \"FAILED\" hunks")
     apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
+    
+    client_md5 = os.path.join("mcppatches","client.md5")
+    target_client_md5 = os.path.join(mcp_dir,"temp","client.md5")
+    if not os.path.exists(target_client_md5):
+        mkdir_p( os.path.join(mcp_dir,"temp") )
+        print 'Updating client.md5: copying %s to %s' % (client_md5, target_client_md5)
+        shutil.copy(client_md5,target_client_md5)
 
     jars = os.path.join(mcp_dir,"jars")
 
