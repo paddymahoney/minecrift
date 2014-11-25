@@ -3,7 +3,7 @@ import shutil, tempfile,zipfile, fnmatch
 from optparse import OptionParser
 import subprocess, shlex
 
-from install import download_deps, download_native, download_file, mkdir_p, mc_version, mcp_version
+from install import download_deps, download_native, download_file, mkdir_p, mc_version, mcp_version, minecrift_version_num, minecrift_build
 
 try:
     WindowsError
@@ -76,9 +76,9 @@ def create_install(mcp_dir):
     elif os.getenv("BUILD_NUMBER"):
         version = "b"+os.getenv("BUILD_NUMBER")
     else:
-        version = "PRE4"
+        version = minecrift_build
 
-    version = mc_version+"-"+version
+    version = minecrift_version_num+"-"+version
 	
     artifact_id = "minecrift-"+version
     installer_id = artifact_id+"-installer"

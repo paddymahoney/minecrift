@@ -15,6 +15,8 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 
 mc_version = "1.8"
 of_version = "1.8.0_HD_U_A5"
+minecrift_version_num = "1.8.0"
+minecrift_build = "PRE1"
 of_file_extension = ".jar"
 of_file_md5 = "57c48d49e442d3922bb43595a08f9c89"
 mcp_version = "mcp910-pre1"
