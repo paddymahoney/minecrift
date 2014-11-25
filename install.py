@@ -112,8 +112,8 @@ def download_deps( mcp_dir, download_mc ):
         except:
             pass
             
-    if mcp_exists = False:
-        print "No % directory or zip file found. Please copy the %.zip file into %s and re-run the command." % (mcp_dir, mcp_dir, base_dir)
+    if mcp_exists == False:
+        print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_dir, mcp_dir, base_dir)
         exit(1)
             
     print("Patching mcp.cfg. Ignore \"FAILED\" hunks")
@@ -248,9 +248,9 @@ def download_deps( mcp_dir, download_mc ):
             else:
                 file = os.path.join(jars,"libraries",url.replace("/",os.sep))
                 mkdir_p(os.path.dirname(file))
-                download_file( repo + url, file )
-                shutil.copy(file,os.path.join(flat_lib_dir, os.path.basename(file)))  
-                extractnatives( lib, jars, file, flat_native_dir )
+                if download_file( repo + url, file ) == True:
+                    shutil.copy(file,os.path.join(flat_lib_dir, os.path.basename(file)))  
+                    extractnatives( lib, jars, file, flat_native_dir )
                 
             newlibs.append( lib )
         json_obj['libraries'] = newlibs
@@ -260,7 +260,7 @@ def download_deps( mcp_dir, download_mc ):
         print 'ERROR: %s' % e
         raise
 
-    if download_mc = True:
+    if download_mc == True:
         repo = "https://s3.amazonaws.com/Minecraft.Download/"
         jar_file = os.path.join(versions,mc_version+".jar")
         jar_url = repo + "versions/"+mc_version+"/"+mc_version+".jar"
