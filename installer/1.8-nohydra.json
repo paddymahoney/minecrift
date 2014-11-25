@@ -241,7 +241,7 @@
       }
     },
     {
-      "name": "de.fruitfly.ovr:JRift:0.4.2.1",
+      "name": "de.fruitfly.ovr:JRift:0.4.3.0",
         "url": "http://repo.minecraft-vr.com/"
     },
     {
@@ -253,7 +253,7 @@
         "url": "http://central.maven.org/maven2/"
     },
     {
-      "name": "de.fruitfly.ovr:JRiftLibrary:0.4.2.1",
+      "name": "de.fruitfly.ovr:JRiftLibrary:0.4.3.0",
         "url": "http://repo.minecraft-vr.com/",
       "natives": {
         "linux": "natives-linux",
