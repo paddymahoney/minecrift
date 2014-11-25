@@ -95,8 +95,11 @@ def download_deps( mcp_dir ):
             os.chmod(astyle, st.st_mode | stat.S_IEXEC)
         except:
             pass
-        print("Patching mcp.cfg. ignore \"FAILED\" hunks")
-        apply_patch( mcp_dir, "mcp.cfg.patch", os.path.join(mcp_dir,"conf"))
+            
+    print("Patching mcp.cfg. Ignore \"FAILED\" hunks")
+    apply_patch( mcp_dir, os.path.join("mcppatches", "mcp.cfg.patch"), os.path.join(mcp_dir,"conf"))
+    print("Patching fffix.py. Ignore \"FAILED\" hunks")
+    apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
 
     jars = os.path.join(mcp_dir,"jars")
 
