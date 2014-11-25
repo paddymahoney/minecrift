@@ -1,0 +1,48 @@
+--- a/net/minecraft/client/model/ModelBiped.java
++++ b/net/minecraft/client/model/ModelBiped.java
+@@ -91,7 +91,10 @@
+             float var8 = 2.0F;
+             GlStateManager.scale(1.5F / var8, 1.5F / var8, 1.5F / var8);
+             GlStateManager.translate(0.0F, 16.0F * p_78088_7_, 0.0F);
+-            this.bipedHead.render(p_78088_7_);
++			/** MINECRIFT */
++            if (_renderHead)
++        	this.bipedHead.render(p_78088_7_);
++			/** END MINECRIFT */
+             GlStateManager.popMatrix();
+             GlStateManager.pushMatrix();
+             GlStateManager.scale(1.0F / var8, 1.0F / var8, 1.0F / var8);
+@@ -101,22 +104,33 @@
+             this.bipedLeftArm.render(p_78088_7_);
+             this.bipedRightLeg.render(p_78088_7_);
+             this.bipedLeftLeg.render(p_78088_7_);
++			/** MINECRIFT */
++            if (_renderHeadWear)
+             this.bipedHeadwear.render(p_78088_7_);
++			/** END MINECRIFT */
+         }
+         else
+         {
++            /** MINECRIFT */
++            GlStateManager.translate(0.0F, 0.0F, vrOffset );
+             if (p_78088_1_.isSneaking())
+             {
+                 GlStateManager.translate(0.0F, 0.2F, 0.0F);
+             }
++            if (_renderHead)
+ 
+             this.bipedHead.render(p_78088_7_);
++			/** END MINECRIFT */
+             this.bipedBody.render(p_78088_7_);
+             this.bipedRightArm.render(p_78088_7_);
+             this.bipedLeftArm.render(p_78088_7_);
+             this.bipedRightLeg.render(p_78088_7_);
+             this.bipedLeftLeg.render(p_78088_7_);
++            /** MINECRIFT */
++            if (_renderHeadWear)
+             this.bipedHeadwear.render(p_78088_7_);
++            GlStateManager.translate(0.0F, 0.0F, -vrOffset );
++			/** END MINECRIFT */
+         }
+ 
+         GlStateManager.popMatrix();

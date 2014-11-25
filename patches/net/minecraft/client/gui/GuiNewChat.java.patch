@@ -1,0 +1,33 @@
+--- a/net/minecraft/client/gui/GuiNewChat.java
++++ b/net/minecraft/client/gui/GuiNewChat.java
+@@ -3,6 +3,8 @@
+ import com.google.common.collect.Lists;
+ import java.util.Iterator;
+ import java.util.List;
++
++import com.mtbs3d.minecrift.settings.VRSettings;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.GlStateManager;
+ import net.minecraft.entity.player.EntityPlayer;
+@@ -49,10 +51,19 @@
+                     var3 = true;
+                 }
+ 
++                /** MINECRIFT **/
++                if (!Minecraft.getMinecraft().vrSettings.chatFadeAway)
++                    var3 = true;
+                 float var7 = this.getChatScale();
+-                int var8 = MathHelper.ceiling_float_int((float)this.getChatWidth() / var7);
++                int chatWidthPixels = this.getChatWidth() ;
++                int chatFullHeightPixels = calculateChatboxHeight(this.mc.gameSettings.chatHeightFocused);
++                int var8 = MathHelper.ceiling_float_int((float)chatWidthPixels/ var7);
++                ScaledResolution res = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
++                int offsetX =  (int)(VRSettings.inst.chatOffsetX*(res.getScaledWidth()  - chatWidthPixels -2 ));
++                int offsetY = -(int)(VRSettings.inst.chatOffsetY*(res.getScaledHeight() - chatFullHeightPixels -20 ));
+                 GlStateManager.pushMatrix();
+-                GlStateManager.translate(2.0F, 20.0F, 0.0F);
++                GlStateManager.translate(2.0F + offsetX, 20.0F + offsetY, 0.0F);
++                /** END MINECRIFT **/
+                 GlStateManager.scale(var7, var7, 1.0F);
+                 int var9;
+                 int var11;

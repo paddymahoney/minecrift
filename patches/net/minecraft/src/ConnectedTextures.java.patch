@@ -4,7 +4,7 @@
          }
          else
          {
--            switch (ConnectedTextures.NamelessClass804130912.$SwitchMap$net$minecraft$util$EnumFacing[facing.ordinal()])
+-            switch (ConnectedTextures.NamelessClass315080346.$SwitchMap$net$minecraft$util$EnumFacing[facing.ordinal()])
 +            switch (ConnectedTextures.NamelessClass1259640830.$SwitchMap$net$minecraft$util$EnumFacing[facing.ordinal()])
              {
                  case 1:
@@ -13,7 +13,7 @@
          }
      }
  
--    static class NamelessClass804130912
+-    static class NamelessClass315080346
 +    static class NamelessClass1259640830
      {
          static final int[] $SwitchMap$net$minecraft$util$EnumFacing = new int[EnumFacing.values().length];

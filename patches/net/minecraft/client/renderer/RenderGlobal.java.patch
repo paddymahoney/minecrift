@@ -1,6 +1,23 @@
 --- a/net/minecraft/client/renderer/RenderGlobal.java
 +++ b/net/minecraft/client/renderer/RenderGlobal.java
-@@ -195,7 +195,6 @@
+@@ -19,6 +19,8 @@
+ import javax.vecmath.Vector3d;
+ import javax.vecmath.Vector3f;
+ import javax.vecmath.Vector4f;
++
++import com.mtbs3d.minecrift.settings.VRSettings;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.BlockChest;
+ import net.minecraft.block.BlockEnderChest;
+@@ -45,6 +47,7 @@
+ import net.minecraft.client.renderer.culling.Frustrum;
+ import net.minecraft.client.renderer.culling.ICamera;
+ import net.minecraft.client.renderer.entity.RenderManager;
++import net.minecraft.client.renderer.entity.RenderPlayer;
+ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+ import net.minecraft.client.renderer.texture.TextureManager;
+ import net.minecraft.client.renderer.texture.TextureMap;
+@@ -195,7 +198,6 @@
      public Entity renderedEntity;
      public Set chunksToResortTransparency = new LinkedHashSet();
      public Set chunksToUpdateForced = new LinkedHashSet();
@@ -8,7 +25,84 @@
  
      public RenderGlobal(Minecraft mcIn)
      {
-@@ -2307,15 +2306,10 @@
+@@ -660,7 +662,10 @@
+             boolean oldFancyGraphics = this.mc.gameSettings.fancyGraphics;
+             this.mc.gameSettings.fancyGraphics = Config.isDroppedItemsFancy();
+             RenderGlobal.ContainerLocalRenderInformation var33;
+-
++            /** MINECRIFT */
++			Entity thePlayer = null;
++            RenderPlayer renderPlayer = (RenderPlayer)this.mc.getRenderManager().getEntityRenderObject(this.mc.thePlayer);
++            /** END MINECRIFT */
+             while (var321.hasNext())
+             {
+                 var33 = (RenderGlobal.ContainerLocalRenderInformation)var321.next();
+@@ -684,19 +689,32 @@
+ 
+                         if (var30 == this.mc.func_175606_aa() && this.mc.gameSettings.thirdPersonView == 0 && !teClass || var30.posY >= 0.0D && var30.posY < 256.0D && !this.theWorld.isBlockLoaded(new BlockPos(var30)))
+                         {
+-                            continue;
+-                        }
++                            /** MINECRIFT */
++                            boolean skipRender = true;
++
++							if (this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_FULL)
++                                skipRender = false;
+ 
+-                        ++this.countEntitiesRendered;
++                            if (skipRender)
++                                continue;
++
++                            thePlayer = var30;
++                            /** END MINECRIFT */
++                        }
+ 
+                         if (var30.getClass() == EntityItemFrame.class)
+                         {
+                             var30.renderDistanceWeight = 0.06D;
+                         }
+-
+-                        this.renderedEntity = var30;
+-                        this.field_175010_j.renderEntitySimple(var30, partialTicks);
+-                        this.renderedEntity = null;
++                        /** MINECRIFT */
++                        if (var30 != thePlayer) // EXPERIMENTAL: Delay player render - see end of this function
++                        {
++                            ++this.countEntitiesRendered;
++                            this.renderedEntity = var30;
++                            this.field_175010_j.renderEntitySimple(var30, partialTicks);
++                            this.renderedEntity = null;
++                        }
++                        /** END MINECRIFT */
+                     }
+ 
+                     if (!var34 && var30 instanceof EntityWitherSkull)
+@@ -778,6 +796,24 @@
+                 }
+             }
+ 
++            /** MINECRIFT EXPERIMENTAL */
++			// Render crosshair...
++            this.mc.entityRenderer.func_175072_h(); // Disable lightmap
++            this.mc.entityRenderer.renderCrosshairAtDepth();
++            this.mc.entityRenderer.func_180436_i(); // Enable lightmap
++
++            // ...and now render the player
++            if (thePlayer != null) 
++            {
++                ++this.countEntitiesRendered;
++                this.renderedEntity = thePlayer;
++                renderPlayer.setVR(true,this.mc.vrSettings.renderHeadWear, this.mc.vrSettings.renderPlayerOffset);
++                this.field_175010_j.renderEntitySimple(thePlayer, partialTicks);
++                renderPlayer.setVR(false,true,0.0F);
++                this.renderedEntity = null;
++            }
++			/** END MINECRIFT EXPERIMENTAL */
++
+             this.func_174969_t();
+             this.mc.entityRenderer.func_175072_h();
+             this.mc.mcProfiler.endSection();
+@@ -2307,15 +2343,10 @@
              var18.addCrashSectionCallable("Position", new Callable()
              {
                  private static final String __OBFID = "CL_00000955";
@@ -24,7 +118,7 @@
              });
              throw new ReportedException(var17);
          }
-@@ -2778,7 +2772,6 @@
+@@ -2778,7 +2809,6 @@
          final Set field_178035_c;
          final int field_178032_d;
          private static final String __OBFID = "CL_00002534";
@@ -32,7 +126,7 @@
  
          private ContainerLocalRenderInformation(RenderChunk p_i46248_2_, EnumFacing p_i46248_3_, int p_i46248_4_)
          {
-@@ -2798,7 +2791,6 @@
+@@ -2798,7 +2828,6 @@
      {
          static final int[] field_178037_a = new int[VertexFormatElement.EnumUseage.values().length];
          private static final String __OBFID = "CL_00002535";

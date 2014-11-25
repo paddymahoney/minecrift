@@ -8,7 +8,35 @@
  
      public Profiler()
      {
-@@ -239,7 +238,6 @@
+@@ -107,8 +106,13 @@
+             if (this.profilingEnabled)
+             {
+                 long var1 = System.nanoTime();
+-                long var3 = ((Long)this.timestampList.remove(this.timestampList.size() - 1)).longValue();
+-                this.sectionList.remove(this.sectionList.size() - 1);
++                long var3 = 0;
++                /** MINECRIFT */
++                if (this.timestampList.size() > 0)
++                    var3 = ((Long)this.timestampList.remove(this.timestampList.size() - 1)).longValue();
++                if (this.sectionList.size() > 0)
++                    this.sectionList.remove(this.sectionList.size() - 1);
++                /** END MINECRIFT */
+                 long var5 = var1 - var3;
+ 
+                 if (this.profilingMap.containsKey(this.profilingSection))
+@@ -119,8 +123,9 @@
+                 {
+                     this.profilingMap.put(this.profilingSection, Long.valueOf(var5));
+                 }
+-
+-                if (var5 > 100000000L)
++                /** MINECRIFT */
++                if (var3 > 0 && var5 > 100000000L)
++                /** END MINECRIFT */
+                 {
+                     logger.warn("Something\'s taking too long! \'" + this.profilingSection + "\' took aprox " + (double)var5 / 1000000.0D + " ms");
+                 }
+@@ -239,7 +244,6 @@
          public double field_76330_b;
          public String field_76331_c;
          private static final String __OBFID = "CL_00001498";

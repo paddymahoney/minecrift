@@ -1,0 +1,40 @@
+--- a/net/minecraft/client/gui/GuiOverlayDebug.java
++++ b/net/minecraft/client/gui/GuiOverlayDebug.java
+@@ -6,6 +6,8 @@
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map.Entry;
++
++import de.fruitfly.ovr.OculusRift;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.properties.IProperty;
+ import net.minecraft.block.state.IBlockState;
+@@ -124,8 +126,11 @@
+                 case 4:
+                     var4 = "Towards positive X";
+             }
+-
+-            ArrayList var5 = Lists.newArrayList(new String[] {"Minecraft 1.8 (" + this.mc.func_175600_c() + "/" + ClientBrandRetriever.getClientModName() + ")", this.mc.debug, this.mc.renderGlobal.getDebugInfoRenders(), this.mc.renderGlobal.getDebugInfoEntities(), "P: " + this.mc.effectRenderer.getStatistics() + ". T: " + this.mc.theWorld.getDebugLoadedEntities(), this.mc.theWorld.getProviderName(), "", String.format("XYZ: %.3f / %.5f / %.3f", new Object[]{Double.valueOf(this.mc.func_175606_aa().posX), Double.valueOf(this.mc.func_175606_aa().getEntityBoundingBox().minY), Double.valueOf(this.mc.func_175606_aa().posZ)}), String.format("Block: %d %d %d", new Object[]{Integer.valueOf(var1.getX()), Integer.valueOf(var1.getY()), Integer.valueOf(var1.getZ())}), String.format("Chunk: %d %d %d in %d %d %d", new Object[]{Integer.valueOf(var1.getX() & 15), Integer.valueOf(var1.getY() & 15), Integer.valueOf(var1.getZ() & 15), Integer.valueOf(var1.getX() >> 4), Integer.valueOf(var1.getY() >> 4), Integer.valueOf(var1.getZ() >> 4)}), String.format("Facing: %s (%s) (%.1f / %.1f)", new Object[]{var3, var4, Float.valueOf(MathHelper.wrapAngleTo180_float(var2.rotationYaw)), Float.valueOf(MathHelper.wrapAngleTo180_float(var2.rotationPitch))})});
++            
++            /** MINECRIFT **/
++            ArrayList var5 = Lists.newArrayList(new String[] {this.mc.minecriftVerString + ", " + OculusRift.getVersionString() + " (" + this.mc.func_175600_c() + "/" + ClientBrandRetriever.getClientModName() +
++            /** END MINECRIFT **/
++            ")", this.mc.debug, this.mc.renderGlobal.getDebugInfoRenders(), this.mc.renderGlobal.getDebugInfoEntities(), "P: " + this.mc.effectRenderer.getStatistics() + ". T: " + this.mc.theWorld.getDebugLoadedEntities(), this.mc.theWorld.getProviderName(), "", String.format("XYZ: %.3f / %.5f / %.3f", new Object[]{Double.valueOf(this.mc.func_175606_aa().posX), Double.valueOf(this.mc.func_175606_aa().getEntityBoundingBox().minY), Double.valueOf(this.mc.func_175606_aa().posZ)}), String.format("Block: %d %d %d", new Object[]{Integer.valueOf(var1.getX()), Integer.valueOf(var1.getY()), Integer.valueOf(var1.getZ())}), String.format("Chunk: %d %d %d in %d %d %d", new Object[]{Integer.valueOf(var1.getX() & 15), Integer.valueOf(var1.getY() & 15), Integer.valueOf(var1.getZ() & 15), Integer.valueOf(var1.getX() >> 4), Integer.valueOf(var1.getY() >> 4), Integer.valueOf(var1.getZ() >> 4)}), String.format("Facing: %s (%s) (%.1f / %.1f)", new Object[]{var3, var4, Float.valueOf(MathHelper.wrapAngleTo180_float(var2.rotationYaw)), Float.valueOf(MathHelper.wrapAngleTo180_float(var2.rotationPitch))})});
+ 
+             if (this.mc.theWorld != null && this.mc.theWorld.isBlockLoaded(var1))
+             {
+@@ -147,10 +152,12 @@
+                 var5.add(String.format("Local Difficulty: %.2f (Day %d)", new Object[] {Float.valueOf(var7.func_180168_b()), Long.valueOf(this.mc.theWorld.getWorldTime() / 24000L)}));
+             }
+ 
+-            if (this.mc.entityRenderer != null && this.mc.entityRenderer.isShaderActive())
++            /** MINECRIFT */
++            if (this.mc.entityRenderer != null && this.mc.entityRenderer.isShaderActive() && this.mc.shaderGroup[this.mc.currentEye.value()] != null)
+             {
+-                var5.add("Shader: " + this.mc.entityRenderer.getShaderGroup().getShaderGroupName());
++                var5.add("Shader: " + this.mc.shaderGroup[this.mc.currentEye.value()].getShaderGroupName());
+             }
++            /** END MINECRIFT */
+ 
+             if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && this.mc.objectMouseOver.func_178782_a() != null)
+             {

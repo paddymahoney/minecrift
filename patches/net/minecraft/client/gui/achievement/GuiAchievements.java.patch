@@ -1,0 +1,23 @@
+--- a/net/minecraft/client/gui/achievement/GuiAchievements.java
++++ b/net/minecraft/client/gui/achievement/GuiAchievements.java
+@@ -2,6 +2,8 @@
+ 
+ import java.io.IOException;
+ import java.util.Random;
++
++import com.mtbs3d.minecrift.control.GuiScreenNavigator;
+ import net.minecraft.block.Block;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.gui.GuiButton;
+@@ -109,8 +111,9 @@
+         else
+         {
+             int var4;
+-
+-            if (Mouse.isButtonDown(0))
++            /** MINECRIFT **/
++            if (Mouse.isButtonDown(0) || GuiScreenNavigator.selectDepressed)
++            /** END MINECRIFT **/
+             {
+                 var4 = (this.width - this.field_146555_f) / 2;
+                 int var5 = (this.height - this.field_146557_g) / 2;

@@ -1,0 +1,34 @@
+--- a/net/minecraft/src/Config.java
++++ b/net/minecraft/src/Config.java
+@@ -1244,6 +1244,7 @@
+ 
+     public static void checkDisplaySettings()
+     {
++        /** MINECRIFT *  // Dont allow changes to the display...
+         if (getAntialiasingLevel() > 0)
+         {
+             int samples = getAntialiasingLevel();
+@@ -1298,6 +1299,7 @@
+                 }
+             }
+         }
++        ** END MINECRIFT */
+     }
+ 
+     private static ByteBuffer readIconImage(File par1File) throws IOException
+@@ -1320,6 +1322,7 @@
+ 
+     public static void checkDisplayMode()
+     {
++        /** MINECRIFT *  // Dont allow changes to the display...
+         try
+         {
+             if (minecraft.isFullScreen())
+@@ -1397,6 +1400,7 @@
+         {
+             var6.printStackTrace();
+         }
++        ** END MINECRIFT */
+     }
+ 
+     private static void updateFramebufferSize()

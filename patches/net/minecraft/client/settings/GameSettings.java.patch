@@ -16,7 +16,30 @@
  
      public GameSettings(Minecraft mcIn, File p_i46326_2_)
      {
-@@ -3068,7 +3066,6 @@
+@@ -682,7 +680,9 @@
+         if (p_74306_1_ == GameSettings.Options.ENABLE_VSYNC)
+         {
+             this.enableVsync = !this.enableVsync;
+-            Display.setVSyncEnabled(this.enableVsync);
++			/** MINECRIFT *  // Don't update Vsync - need to be on
++            Display.setVSyncEnabled(this.enableVsync); 
++			** END MINECRIFT */
+         }
+ 
+         if (p_74306_1_ == GameSettings.Options.USE_VBO)
+@@ -2855,8 +2855,10 @@
+ 
+     public void updateVSync()
+     {
++		/** MINECRIFT * // Don't update - needs to be on
+         Display.setVSyncEnabled(this.enableVsync);
+-    }
++		** END MINECRIFT */ 
++	}
+ 
+     private void updateWaterOpacity()
+     {
+@@ -3068,7 +3070,6 @@
          private static final String __OBFID = "CL_00000653";
  
          private static final GameSettings.Options[] $VALUES$ = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, FRAMERATE_LIMIT, FBO_ENABLE, RENDER_CLOUDS, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, USE_VBO, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR, BLOCK_ALTERNATIVES, REDUCED_DEBUG_INFO, FOG_FANCY, FOG_START, MIPMAP_TYPE, LOAD_FAR, PRELOADED_CHUNKS, CLOUDS, CLOUD_HEIGHT, TREES, RAIN, ANIMATED_WATER, ANIMATED_LAVA, ANIMATED_FIRE, ANIMATED_PORTAL, AO_LEVEL, LAGOMETER, AUTOSAVE_TICKS, BETTER_GRASS, ANIMATED_REDSTONE, ANIMATED_EXPLOSION, ANIMATED_FLAME, ANIMATED_SMOKE, WEATHER, SKY, STARS, SUN_MOON, CHUNK_UPDATES, CHUNK_UPDATES_DYNAMIC, TIME, CLEAR_WATER, SMOOTH_WORLD, VOID_PARTICLES, WATER_PARTICLES, RAIN_SPLASH, PORTAL_PARTICLES, POTION_PARTICLES, PROFILER, DRIPPING_WATER_LAVA, BETTER_SNOW, FULLSCREEN_MODE, ANIMATED_TERRAIN, SWAMP_COLORS, RANDOM_MOBS, SMOOTH_BIOMES, CUSTOM_FONTS, CUSTOM_COLORS, SHOW_CAPES, CONNECTED_TEXTURES, AA_LEVEL, AF_LEVEL, ANIMATED_TEXTURES, NATURAL_TEXTURES, CHUNK_LOADING, HELD_ITEM_TOOLTIPS, DROPPED_ITEMS, LAZY_CHUNK_LOADING, CUSTOM_SKY, FAST_MATH, FAST_RENDER, TRANSLUCENT_BLOCKS};
@@ -24,7 +47,7 @@
  
          public static GameSettings.Options getEnumOptions(int p_74379_0_)
          {
-@@ -3088,12 +3085,12 @@
+@@ -3088,12 +3089,12 @@
              return null;
          }
  
@@ -40,7 +63,7 @@
          {
              this.enumString = p_i45004_3_;
              this.enumFloat = p_i45004_4_;
-@@ -3164,7 +3161,6 @@
+@@ -3164,7 +3165,6 @@
      {
          static final int[] optionIds = new int[GameSettings.Options.values().length];
          private static final String __OBFID = "CL_00000652";

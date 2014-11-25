@@ -1,0 +1,13 @@
+--- a/net/minecraft/client/gui/GuiButton.java
++++ b/net/minecraft/client/gui/GuiButton.java
+@@ -84,6 +84,10 @@
+             mc.getTextureManager().bindTexture(buttonTextures);
+             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+             this.hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
++            /** MINECRIFT **/
++            if (mouseX > Minecraft.getMinecraft().displayWidth)
++                mouseX -= Minecraft.getMinecraft().displayWidth;
++			/** END MINECRIFT **/
+             int var5 = this.getHoverState(this.hovered);
+             GlStateManager.enableBlend();
+             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
