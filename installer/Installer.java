@@ -38,13 +38,14 @@ public class Installer extends JPanel  implements PropertyChangeListener
 	private static final long serialVersionUID = -562178983462626162L;
 
     /* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
-    private static final String MC_VERSION     = "1.8.0";
-    private static final String OF_LIB_PATH    = "libraries/optifine/OptiFine/";
-    private static final String OF_FILE_NAME   = "1.8.0_HD_U_A5";
-    private static final String OF_JSON_NAME   = "1.8_HD_U_A5";
-    private static final String OF_MD5         = "57c48d49e442d3922bb43595a08f9c89";
-    private static final String OF_VERSION_EXT = ".jar";
-    private static final String FORGE_VERSION  = "10.13.0.1180";
+    private static final String MINECRAFT_VERSION = "1.8";
+    private static final String MC_VERSION        = "1.8.0";
+    private static final String OF_LIB_PATH       = "libraries/optifine/OptiFine/";
+    private static final String OF_FILE_NAME      = "1.8.0_HD_U_A5";
+    private static final String OF_JSON_NAME      = "1.8_HD_U_A5";
+    private static final String OF_MD5            = "57c48d49e442d3922bb43595a08f9c89";
+    private static final String OF_VERSION_EXT    = ".jar";
+    private static final String FORGE_VERSION     = "10.13.0.1180";
     /* END OF DO NOT RENAME */
 
 	private InstallTask task;
@@ -183,12 +184,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
         }
 
 		private boolean SetupMinecraftAsLibrary() {
-			File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MC_VERSION );
+			File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MINECRAFT_VERSION );
 			lib_dir.mkdirs();
-			File lib_file = new File(lib_dir,"Minecraft-"+MC_VERSION+".jar");
+			File lib_file = new File(lib_dir,"Minecraft-"+MINECRAFT_VERSION+".jar");
 			if( lib_file.exists() && lib_file.length() > 4500000 )return true; //TODO: should md5sum it here, I suppose
 			try {
-				ZipInputStream input_jar = new ZipInputStream(new FileInputStream(new File(targetDir,"versions/"+MC_VERSION+"/"+MC_VERSION+".jar")));
+				ZipInputStream input_jar = new ZipInputStream(new FileInputStream(new File(targetDir,"versions/"+MINECRAFT_VERSION+"/"+MINECRAFT_VERSION+".jar")));
 				ZipOutputStream lib_jar= new ZipOutputStream(new FileOutputStream(lib_file));
 				
 				ZipEntry ze = null;
@@ -371,7 +372,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
             monitor.setProgress(50);
             monitor.setNote("Setting up Minecrift as a library...");
-			finalMessage = "Failed: Couldn't setup Minecrift "+MC_VERSION+" as library. Have you run "+MC_VERSION+" at least once yet?";
+			finalMessage = "Failed: Couldn't setup Minecrift "+MC_VERSION+" as library. Have you run "+MINECRAFT_VERSION+" at least once yet?";
 			sleep(800);
 			if(!SetupMinecraftAsLibrary())
 			{

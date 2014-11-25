@@ -86,12 +86,13 @@ def create_install(mcp_dir):
     # Replace version info in installer.java
     print "Updating installer versions..."
     installer_java_file = os.path.join("installer","Installer.java")
-    replacelineinfile( installer_java_file, "private static final String MC_VERSION",     "    private static final String MC_VERSION     = \"%s\";\n" % minecrift_version_num );
-    replacelineinfile( installer_java_file, "private static final String OF_FILE_NAME",   "    private static final String OF_FILE_NAME   = \"%s\";\n" % of_file_name );
-    replacelineinfile( installer_java_file, "private static final String OF_JSON_NAME",   "    private static final String OF_JSON_NAME   = \"%s\";\n" % of_json_name );
-    replacelineinfile( installer_java_file, "private static final String OF_MD5",         "    private static final String OF_MD5         = \"%s\";\n" % of_file_md5 );
-    replacelineinfile( installer_java_file, "private static final String OF_VERSION_EXT", "    private static final String OF_VERSION_EXT = \"%s\";\n" % of_file_extension );
-    replacelineinfile( installer_java_file, "private static final String FORGE_VERSION",  "    private static final String FORGE_VERSION  = \"%s\";\n" % forge_version );
+    replacelineinfile( installer_java_file, "private static final String MINECRAFT_VERSION", "    private static final String MINECRAFT_VERSION = \"%s\";\n" % mc_version );
+    replacelineinfile( installer_java_file, "private static final String MC_VERSION",        "    private static final String MC_VERSION        = \"%s\";\n" % minecrift_version_num );
+    replacelineinfile( installer_java_file, "private static final String OF_FILE_NAME",      "    private static final String OF_FILE_NAME      = \"%s\";\n" % of_file_name );
+    replacelineinfile( installer_java_file, "private static final String OF_JSON_NAME",      "    private static final String OF_JSON_NAME      = \"%s\";\n" % of_json_name );
+    replacelineinfile( installer_java_file, "private static final String OF_MD5",            "    private static final String OF_MD5            = \"%s\";\n" % of_file_md5 );
+    replacelineinfile( installer_java_file, "private static final String OF_VERSION_EXT",    "    private static final String OF_VERSION_EXT    = \"%s\";\n" % of_file_extension );
+    replacelineinfile( installer_java_file, "private static final String FORGE_VERSION",     "    private static final String FORGE_VERSION     = \"%s\";\n" % forge_version );
 
     # Build installer.java
     print "Recompiling Installer.java..."
@@ -107,10 +108,10 @@ def create_install(mcp_dir):
     with zipfile.ZipFile( installer,'a', zipfile.ZIP_DEFLATED) as install_out: #append to installer.jar
     
         # Add newly compiled class files
-        for f in os.listdir("installer"):
-            if os.path.isfile(os.path.join("installer",f)) and f.endswith('.class'):
-                print "Adding %s..." % f
-                install_out.writestr(f, f)
+        for afile in os.listdir("installer"):
+            if os.path.isfile(os.path.join("installer",afile)) and afile.endswith('.class'):
+                print "Adding %s..." % afile
+                install_out.write(os.path.join("installer",afile), afile)
             
         # Add json files
         install_out.writestr( "version.json", process_json("", version))
