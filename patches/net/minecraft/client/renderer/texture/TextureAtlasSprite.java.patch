@@ -1,0 +1,29 @@
+--- a/net/minecraft/client/renderer/texture/TextureAtlasSprite.java
++++ b/net/minecraft/client/renderer/texture/TextureAtlasSprite.java
+@@ -35,7 +35,6 @@
+     private static String field_176606_q = "builtin/compass";
+     private static final String __OBFID = "CL_00001062";
+     private int indexInMap = -1;
+-    private static final String __OBFID = "CL_00001062";
+ 
+     protected TextureAtlasSprite(String p_i1282_1_)
+     {
+@@ -365,7 +364,6 @@
+                     var7.addCrashSectionCallable("Frame sizes", new Callable()
+                     {
+                         private static final String __OBFID = "CL_00001063";
+-                        private static final String __OBFID = "CL_00001063";
+                         public String call()
+                         {
+                             StringBuilder var1 = new StringBuilder();
+@@ -386,10 +384,6 @@
+ 
+                             return var1.toString();
+                         }
+-                        public Object call() throws Exception
+-                        {
+-                            return this.call();
+-                        }
+                     });
+                     throw new ReportedException(var6);
+                 }

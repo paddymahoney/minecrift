@@ -1,0 +1,79 @@
+--- a/net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.java
++++ b/net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.java
+@@ -36,7 +36,6 @@
+     private final Queue field_178524_h = Queues.newArrayDeque();
+     private final ChunkRenderWorker field_178525_i;
+     private static final String __OBFID = "CL_00002463";
+-    private static final String __OBFID = "CL_00002463";
+ 
+     public ChunkRenderDispatcher()
+     {
+@@ -107,7 +106,6 @@
+             var2.func_178539_a(new Runnable()
+             {
+                 private static final String __OBFID = "CL_00002462";
+-                private static final String __OBFID = "CL_00002462";
+                 public void run()
+                 {
+                     ChunkRenderDispatcher.this.field_178519_d.remove(var2);
+@@ -202,37 +200,35 @@
+     public boolean func_178509_c(RenderChunk p_178509_1_)
+     {
+         p_178509_1_.func_178579_c().lock();
+-        boolean var4;
++        boolean var3;
+ 
+         try
+         {
+             final ChunkCompileTaskGenerator var2 = p_178509_1_.func_178582_e();
+-            boolean var3;
+ 
+-            if (var2 == null)
++            if (var2 != null)
+             {
+-                var3 = true;
+-                return var3;
++                var2.func_178539_a(new Runnable()
++                {
++                    private static final String __OBFID = "CL_00002461";
++                    public void run()
++                    {
++                        ChunkRenderDispatcher.this.field_178519_d.remove(var2);
++                    }
++                });
++                var3 = this.field_178519_d.offer(var2);
++                boolean var4 = var3;
++                return var4;
+             }
+ 
+-            var2.func_178539_a(new Runnable()
+-            {
+-                private static final String __OBFID = "CL_00002461";
+-                private static final String __OBFID = "CL_00002461";
+-                public void run()
+-                {
+-                    ChunkRenderDispatcher.this.field_178519_d.remove(var2);
+-                }
+-            });
+-            var3 = this.field_178519_d.offer(var2);
+-            var4 = var3;
++            var3 = true;
+         }
+         finally
+         {
+             p_178509_1_.func_178579_c().unlock();
+         }
+ 
+-        return var4;
++        return var3;
+     }
+ 
+     public ListenableFuture func_178503_a(final EnumWorldBlockLayer p_178503_1_, final WorldRenderer p_178503_2_, final RenderChunk p_178503_3_, final CompiledChunk p_178503_4_)
+@@ -256,7 +252,6 @@
+             ListenableFutureTask var5 = ListenableFutureTask.create(new Runnable()
+             {
+                 private static final String __OBFID = "CL_00002460";
+-                private static final String __OBFID = "CL_00002460";
+                 public void run()
+                 {
+                     ChunkRenderDispatcher.this.func_178503_a(p_178503_1_, p_178503_2_, p_178503_3_, p_178503_4_);

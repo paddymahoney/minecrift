@@ -1,0 +1,32 @@
+--- a/net/minecraft/client/Minecraft.java
++++ b/net/minecraft/client/Minecraft.java
+@@ -420,12 +420,11 @@
+                     }
+ 
+                     this.displayCrashReport(this.crashReporter);
+-                    return;
+                 }
+             }
+             catch (MinecraftError var12)
+             {
+-                ;
++                break;
+             }
+             catch (ReportedException var13)
+             {
+@@ -433,6 +432,7 @@
+                 this.freeMemory();
+                 logger.fatal("Reported exception thrown!", var13);
+                 this.displayCrashReport(var13.getCrashReport());
++                break;
+             }
+             catch (Throwable var14)
+             {
+@@ -440,6 +440,7 @@
+                 this.freeMemory();
+                 logger.fatal("Unreported exception thrown!", var14);
+                 this.displayCrashReport(var2);
++                break;
+             }
+             finally
+             {

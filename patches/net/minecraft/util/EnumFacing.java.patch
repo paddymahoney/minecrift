@@ -1,0 +1,51 @@
+--- a/net/minecraft/util/EnumFacing.java
++++ b/net/minecraft/util/EnumFacing.java
+@@ -38,7 +38,6 @@
+     private static final EnumFacing[] HORIZONTALS = new EnumFacing[4];
+     private static final Map NAME_LOOKUP = Maps.newHashMap();
+     private static final String __OBFID = "CL_00001201";
+-    private static final String __OBFID = "CL_00001201";
+ 
+     private EnumFacing(int indexIn, int oppositeIn, int horizontalIndexIn, String nameIn, EnumFacing.AxisDirection axisDirectionIn, EnumFacing.Axis axisIn, Vec3i directionVecIn)
+     {
+@@ -362,9 +361,8 @@
+         private static final String __OBFID = "CL_00002321";
+ 
+         private static final EnumFacing.Axis[] $VALUES$ = new EnumFacing.Axis[]{X, Y, Z};
+-        private static final String __OBFID = "CL_00002321";
+ 
+-        private Axis(String p_i46390_1_, int p_i46390_2_, String p_i46015_1_, int p_i46015_2_, String name, EnumFacing.Plane plane)
++        private Axis(String p_i46395_1_, int p_i46395_2_, String p_i46015_1_, int p_i46015_2_, String name, EnumFacing.Plane plane)
+         {
+             this.name = name;
+             this.plane = plane;
+@@ -436,9 +434,8 @@
+         private static final String __OBFID = "CL_00002320";
+ 
+         private static final EnumFacing.AxisDirection[] $VALUES$ = new EnumFacing.AxisDirection[]{POSITIVE, NEGATIVE};
+-        private static final String __OBFID = "CL_00002320";
+ 
+-        private AxisDirection(String p_i46393_1_, int p_i46393_2_, String p_i46014_1_, int p_i46014_2_, int offset, String description)
++        private AxisDirection(String p_i46396_1_, int p_i46396_2_, String p_i46014_1_, int p_i46014_2_, int offset, String description)
+         {
+             this.offset = offset;
+             this.description = description;
+@@ -462,9 +459,8 @@
+         private static final String __OBFID = "CL_00002319";
+ 
+         private static final EnumFacing.Plane[] $VALUES$ = new EnumFacing.Plane[]{HORIZONTAL, VERTICAL};
+-        private static final String __OBFID = "CL_00002319";
+ 
+-        private Plane(String p_i46381_1_, int p_i46381_2_, String p_i46013_1_, int p_i46013_2_) {}
++        private Plane(String p_i46397_1_, int p_i46397_2_, String p_i46013_1_, int p_i46013_2_) {}
+ 
+         public EnumFacing[] facings()
+         {
+@@ -506,7 +502,6 @@
+         static final int[] FACING_LOOKUP;
+         static final int[] PLANE_LOOKUP = new int[EnumFacing.Plane.values().length];
+         private static final String __OBFID = "CL_00002322";
+-        private static final String __OBFID = "CL_00002322";
+ 
+         static {
+             try {

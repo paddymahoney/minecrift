@@ -1,0 +1,26 @@
+--- a/net/minecraft/client/renderer/WorldRenderer.java
++++ b/net/minecraft/client/renderer/WorldRenderer.java
+@@ -36,7 +36,6 @@
+     private boolean isDrawing;
+     private int bufferSize;
+     private static final String __OBFID = "CL_00000942";
+-    private static final String __OBFID = "CL_00000942";
+ 
+     public WorldRenderer(int p_i46275_1_)
+     {
+@@ -538,7 +537,6 @@
+         private final int field_179017_d;
+         private final VertexFormat field_179018_e;
+         private static final String __OBFID = "CL_00002568";
+-        private static final String __OBFID = "CL_00002568";
+ 
+         public State(int[] p_i46274_2_, int p_i46274_3_, int p_i46274_4_, VertexFormat p_i46274_5_)
+         {
+@@ -573,7 +571,6 @@
+     {
+         static final int[] field_178959_a = new int[VertexFormatElement.EnumUseage.values().length];
+         private static final String __OBFID = "CL_00002569";
+-        private static final String __OBFID = "CL_00002569";
+ 
+         static
+         {

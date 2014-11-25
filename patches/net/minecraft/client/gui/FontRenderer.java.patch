@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/gui/FontRenderer.java
++++ b/net/minecraft/client/gui/FontRenderer.java
+@@ -107,7 +107,6 @@
+     public ResourceLocation locationFontTextureBase;
+     public boolean enabled = true;
+     public float scaleFactor = 1.0F;
+-    private static final String __OBFID = "CL_00000660";
+ 
+     public FontRenderer(GameSettings p_i1035_1_, ResourceLocation p_i1035_2_, TextureManager p_i1035_3_, boolean p_i1035_4_)
+     {

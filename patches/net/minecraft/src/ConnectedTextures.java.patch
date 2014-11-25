@@ -1,0 +1,20 @@
+--- a/net/minecraft/src/ConnectedTextures.java
++++ b/net/minecraft/src/ConnectedTextures.java
+@@ -272,7 +272,7 @@
+         }
+         else
+         {
+-            switch (ConnectedTextures.NamelessClass804130912.$SwitchMap$net$minecraft$util$EnumFacing[facing.ordinal()])
++            switch (ConnectedTextures.NamelessClass1259640830.$SwitchMap$net$minecraft$util$EnumFacing[facing.ordinal()])
+             {
+                 case 1:
+                     return 0;
+@@ -1747,7 +1747,7 @@
+         }
+     }
+ 
+-    static class NamelessClass804130912
++    static class NamelessClass1259640830
+     {
+         static final int[] $SwitchMap$net$minecraft$util$EnumFacing = new int[EnumFacing.values().length];
+ 

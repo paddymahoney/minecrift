@@ -1,0 +1,18 @@
+--- a/net/minecraft/client/renderer/block/model/FaceBakery.java
++++ b/net/minecraft/client/renderer/block/model/FaceBakery.java
+@@ -16,7 +16,6 @@
+     private static final double field_178418_a = 1.0D / Math.cos(0.39269908169872414D) - 1.0D;
+     private static final double field_178417_b = 1.0D / Math.cos((Math.PI / 4D)) - 1.0D;
+     private static final String __OBFID = "CL_00002490";
+-    private static final String __OBFID = "CL_00002490";
+ 
+     public BakedQuad func_178414_a(Vector3f posFrom, Vector3f posTo, BlockPartFace face, TextureAtlasSprite sprite, EnumFacing facing, ModelRotation modelRotationIn, BlockPartRotation partRotation, boolean uvLocked, boolean shade)
+     {
+@@ -392,7 +391,6 @@
+         static final int[] field_178400_a;
+         static final int[] field_178399_b = new int[EnumFacing.Axis.values().length];
+         private static final String __OBFID = "CL_00002489";
+-        private static final String __OBFID = "CL_00002489";
+ 
+         static
+         {

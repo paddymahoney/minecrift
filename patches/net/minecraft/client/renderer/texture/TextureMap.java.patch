@@ -1,0 +1,52 @@
+--- a/net/minecraft/client/renderer/texture/TextureMap.java
++++ b/net/minecraft/client/renderer/texture/TextureMap.java
+@@ -41,7 +41,6 @@
+     private int mipmapLevels;
+     private final TextureAtlasSprite missingImage;
+     private static final String __OBFID = "CL_00001058";
+-    private static final String __OBFID = "CL_00001058";
+ 
+     public TextureMap(String p_i46099_1_)
+     {
+@@ -217,41 +216,26 @@
+                     var341.addCrashSectionCallable("Sprite name", new Callable()
+                     {
+                         private static final String __OBFID = "CL_00001059";
+-                        private static final String __OBFID = "CL_00001059";
+                         public String call()
+                         {
+                             return var281.getIconName();
+                         }
+-                        public Object call() throws Exception
+-                        {
+-                            return this.call();
+-                        }
+                     });
+                     var341.addCrashSectionCallable("Sprite size", new Callable()
+                     {
+                         private static final String __OBFID = "CL_00001060";
+-                        private static final String __OBFID = "CL_00001060";
+                         public String call()
+                         {
+                             return var281.getIconWidth() + " x " + var281.getIconHeight();
+                         }
+-                        public Object call() throws Exception
+-                        {
+-                            return this.call();
+-                        }
+                     });
+                     var341.addCrashSectionCallable("Sprite frames", new Callable()
+                     {
+                         private static final String __OBFID = "CL_00001061";
+-                        private static final String __OBFID = "CL_00001061";
+                         public String call()
+                         {
+                             return var281.getFrameCount() + " frames";
+                         }
+-                        public Object call() throws Exception
+-                        {
+-                            return this.call();
+-                        }
+                     });
+                     var341.addCrashSection("Mipmap levels", Integer.valueOf(this.mipmapLevels));
+                     throw new ReportedException(var311);

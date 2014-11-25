@@ -1,0 +1,42 @@
+--- a/net/minecraft/client/renderer/RenderGlobal.java
++++ b/net/minecraft/client/renderer/RenderGlobal.java
+@@ -195,7 +195,6 @@
+     public Entity renderedEntity;
+     public Set chunksToResortTransparency = new LinkedHashSet();
+     public Set chunksToUpdateForced = new LinkedHashSet();
+-    private static final String __OBFID = "CL_00000954";
+ 
+     public RenderGlobal(Minecraft mcIn)
+     {
+@@ -2307,15 +2306,10 @@
+             var18.addCrashSectionCallable("Position", new Callable()
+             {
+                 private static final String __OBFID = "CL_00000955";
+-                private static final String __OBFID = "CL_00000955";
+                 public String call()
+                 {
+                     return CrashReportCategory.getCoordinateInfo(p_180442_3_, p_180442_5_, p_180442_7_);
+                 }
+-                public Object call() throws Exception
+-                {
+-                    return this.call();
+-                }
+             });
+             throw new ReportedException(var17);
+         }
+@@ -2778,7 +2772,6 @@
+         final Set field_178035_c;
+         final int field_178032_d;
+         private static final String __OBFID = "CL_00002534";
+-        private static final String __OBFID = "CL_00002534";
+ 
+         private ContainerLocalRenderInformation(RenderChunk p_i46248_2_, EnumFacing p_i46248_3_, int p_i46248_4_)
+         {
+@@ -2798,7 +2791,6 @@
+     {
+         static final int[] field_178037_a = new int[VertexFormatElement.EnumUseage.values().length];
+         private static final String __OBFID = "CL_00002535";
+-        private static final String __OBFID = "CL_00002535";
+ 
+         static
+         {
