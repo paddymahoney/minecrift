@@ -37,14 +37,16 @@ public class Installer extends JPanel  implements PropertyChangeListener
 {
 	private static final long serialVersionUID = -562178983462626162L;
 
-	private static final String MC_VERSION     = "1.7.10";
-
-    private static final String OF_LIB_PATH    = "libraries/optifine/OptiFine/";
-	private static final String OF_VERSION     = "1.7.10_HD_U_A4";
-	private static final String OF_MD5         = "FF3FD4C98E267D9D9EEB1296EDFBA5AA";
-    private static final String OF_VERSION_EXT = "jar";
-
-    private static final String FORGE_VERSION  = "10.13.0.1180";
+    /* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
+    private static final String MINECRAFT_VERSION = "";
+    private static final String MC_VERSION        = "";
+    private static final String OF_LIB_PATH       = "libraries/optifine/OptiFine/";
+    private static final String OF_FILE_NAME      = "";
+    private static final String OF_JSON_NAME      = "";
+    private static final String OF_MD5            = "";
+    private static final String OF_VERSION_EXT    = ".jar";
+    private static final String FORGE_VERSION     = "";
+    /* END OF DO NOT RENAME */
 
 	private InstallTask task;
     private static ProgressMonitor monitor;
@@ -76,9 +78,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
             boolean deleted = false;
 
 			try {
-			    File fod = new File(targetDir,OF_LIB_PATH+OF_VERSION);
+			    File fod = new File(targetDir,OF_LIB_PATH+OF_JSON_NAME);
 			    fod.mkdirs();
-			    File fo = new File(fod,"OptiFine-"+OF_VERSION+".jar");
+			    File fo = new File(fod,"OptiFine-"+OF_JSON_NAME+".jar");
 
 			    // Attempt to get the Optifine MD5
                 String optOnDiskMd5 = GetMd5(fo);
@@ -105,7 +107,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 // Need to attempt download...
                 FileOutputStream fos = new FileOutputStream(fo);
                 try {
-                    String surl = "http://optifine.net/download.php?f=OptiFine_" + OF_VERSION + "." + OF_VERSION_EXT;
+                    String surl = "http://optifine.net/download.php?f=OptiFine_" + OF_FILE_NAME + "." + OF_VERSION_EXT;
                     URL url = new URL(surl);
                     ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                     long bytes = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
@@ -182,12 +184,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
         }
 
 		private boolean SetupMinecraftAsLibrary() {
-			File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MC_VERSION );
+			File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MINECRAFT_VERSION );
 			lib_dir.mkdirs();
-			File lib_file = new File(lib_dir,"Minecraft-"+MC_VERSION+".jar");
+			File lib_file = new File(lib_dir,"Minecraft-"+MINECRAFT_VERSION+".jar");
 			if( lib_file.exists() && lib_file.length() > 4500000 )return true; //TODO: should md5sum it here, I suppose
 			try {
-				ZipInputStream input_jar = new ZipInputStream(new FileInputStream(new File(targetDir,"versions/"+MC_VERSION+"/"+MC_VERSION+".jar")));
+				ZipInputStream input_jar = new ZipInputStream(new FileInputStream(new File(targetDir,"versions/"+MINECRAFT_VERSION+"/"+MINECRAFT_VERSION+".jar")));
 				ZipOutputStream lib_jar= new ZipOutputStream(new FileOutputStream(lib_file));
 				
 				ZipEntry ze = null;
@@ -370,7 +372,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
             monitor.setProgress(50);
             monitor.setNote("Setting up Minecrift as a library...");
-			finalMessage = "Failed: Couldn't setup Minecrift "+MC_VERSION+" as library. Have you run "+MC_VERSION+" at least once yet?";
+			finalMessage = "Failed: Couldn't setup Minecrift "+MC_VERSION+" as library. Have you run "+MINECRAFT_VERSION+" at least once yet?";
 			sleep(800);
 			if(!SetupMinecraftAsLibrary())
 			{
@@ -400,7 +402,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
             if (!downloadedOptifine) {
                 finalMessage = "Installed (but failed to download OptiFine). Restart Minecraft and Edit Profile->Use Version minecrift-" + version + mod +
-                        "\nPlease download and install Optifine " + OF_VERSION + "from https://optifine.net/downloads before attempting to play.";
+                        "\nPlease download and install Optifine " + OF_FILE_NAME + "from https://optifine.net/downloads before attempting to play.";
             }
             else {
                 finalMessage = "Installed Successfully! Restart Minecraft and Edit Profile->Use Version minecrift-" + version + mod;

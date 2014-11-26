@@ -2,6 +2,7 @@ import os, os.path, sys, tempfile, re
 import shutil, fnmatch
 import subprocess, shlex
 from optparse import OptionParser
+from minecriftversion import mc_version, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -80,4 +81,4 @@ if __name__ == '__main__':
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
         applychanges(os.path.abspath('..'))
     else:
-        applychanges(os.path.abspath('mcp908'))
+        applychanges(os.path.abspath(mcp_version))
