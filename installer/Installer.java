@@ -84,12 +84,17 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 			    // Attempt to get the Optifine MD5
                 String optOnDiskMd5 = GetMd5(fo);
-                System.out.println(optOnDiskMd5 == null ? fo.getCanonicalPath() + " MD5: N/A" : fo.getCanonicalPath() + " MD5: " + optOnDiskMd5);
+                System.out.println(optOnDiskMd5 == null ? fo.getCanonicalPath() : fo.getCanonicalPath() + " MD5: " + optOnDiskMd5);
 
                 // Test MD5
-                if (optOnDiskMd5 == null || !optOnDiskMd5.equalsIgnoreCase(OF_MD5)) {
+                if (optOnDiskMd5 == null)
+                {
+                    // Just continue...
+                    System.out.println("Optifine not found - downloading");
+                }
+                else if (!optOnDiskMd5.equalsIgnoreCase(OF_MD5)) {
                     // Bad copy. Attempt delete just to make sure.
-                    System.out.println("Optifine MD5 bad - re-downloading");
+                    System.out.println("Optifine MD5 bad - downloading");
 
                     try {
                         deleted = fo.delete();
@@ -100,14 +105,15 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 }
                 else {
                     // A good copy!
-                    System.out.println("Optifine MD5 good!");
+                    System.out.println("Optifine MD5 good! " + OF_MD5);
                     return true;
                 }
 
                 // Need to attempt download...
                 FileOutputStream fos = new FileOutputStream(fo);
                 try {
-                    String surl = "http://optifine.net/download.php?f=OptiFine_" + OF_FILE_NAME + "." + OF_VERSION_EXT;
+                    String surl = "http://optifine.net/download.php?f=OptiFine_" + OF_FILE_NAME + OF_VERSION_EXT;
+                    System.out.println(surl);
                     URL url = new URL(surl);
                     ReadableByteChannel rbc = Channels.newChannel(url.openStream());
                     long bytes = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
@@ -125,6 +131,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 optOnDiskMd5 = GetMd5(fo);
                 if (success == false || optOnDiskMd5 == null || !optOnDiskMd5.equalsIgnoreCase(OF_MD5)) {
                     // No good
+                    if (optOnDiskMd5 != null)
+                        System.out.println("Optifine - bad MD5. Got " + optOnDiskMd5 + ", expected " + OF_MD5);
                     try {
                         deleted = fo.delete();
                     }
