@@ -173,6 +173,12 @@ def main(mcp_dir):
         shutil.rmtree(reobf)
     except OSError:
         pass
+        
+    # Update Minecrift version
+    minecraft_java_file = os.path.join(mcp_dir,'src','minecraft','net','minecraft','client','Minecraft.java')
+    if os.path.exists(minecraft_java_file):
+        print "Updating Minecraft.java with Minecrift version: [Minecrift %s %s] %s" % ( minecrift_version_num, minecrift_build, minecraft_java_file ) 
+        replacelineinfile( minecraft_java_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Minecrift %s %s\";\n" % (minecrift_version_num, minecrift_build) );        
 
     print("Recompiling...")
     from runtime.mcp import recompile_side, reobfuscate_side
