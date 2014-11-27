@@ -6,9 +6,9 @@ package com.mtbs3d.minecrift.gui;
 
 import java.util.List;
 
-import com.mtbs3d.minecrift.MCController;
-import com.mtbs3d.minecrift.MCHydra;
-import com.mtbs3d.minecrift.MCMouse;
+import com.mtbs3d.minecrift.provider.MCController;
+import com.mtbs3d.minecrift.provider.MCHydra;
+import com.mtbs3d.minecrift.provider.MCMouse;
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.settings.VRSettings;
@@ -16,8 +16,6 @@ import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.src.*;
-import net.minecraft.util.StringTranslate;
 
 public class GuiMoveAimSettings extends BaseGuiSettings
 {
@@ -28,35 +26,37 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             VRSettings.VrOptions.DECOUPLE_LOOK_MOVE,
             VRSettings.VrOptions.JOYSTICK_SENSITIVITY,
             VRSettings.VrOptions.MOVEAIM_HYDRA_USE_CONTROLLER_ONE,
-            VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.MOVEMENT_MULTIPLIER,
-            VRSettings.VrOptions.WALK_UP_BLOCKS,
+            VRSettings.VrOptions.MOVEMENT_QUANTISATION,
+            VRSettings.VrOptions.LOCOMOTION_SETTINGS,
     };
     /** An array of all of EnumOption's movement options relevant to the mouse. */
     static VRSettings.VrOptions[] mouseMoveAimOptions = new VRSettings.VrOptions[] {
             VRSettings.VrOptions.KEYHOLE_WIDTH,
             VRSettings.VrOptions.KEYHOLE_HEIGHT,
             VRSettings.VrOptions.DECOUPLE_LOOK_MOVE,
-            VRSettings.VrOptions.PITCH_AFFECTS_CAMERA,
+            VRSettings.VrOptions.MOUSE_AIM_TYPE,
+            VRSettings.VrOptions.CROSSHAIR_HEAD_RELATIVE,
             VRSettings.VrOptions.AIM_PITCH_OFFSET,
+            VRSettings.VrOptions.PITCH_AFFECTS_CAMERA,
             VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.MOVEMENT_MULTIPLIER,
-            VRSettings.VrOptions.WALK_UP_BLOCKS,
+            VRSettings.VrOptions.LOCOMOTION_SETTINGS,
     };
     /** An array of all of EnumOption's movement options relevant to the controller. */
     static VRSettings.VrOptions[] controllerMoveAimOptions = new VRSettings.VrOptions[] {
             VRSettings.VrOptions.KEYHOLE_WIDTH,
             VRSettings.VrOptions.KEYHOLE_HEIGHT,
             VRSettings.VrOptions.DECOUPLE_LOOK_MOVE,
+            VRSettings.VrOptions.JOYSTICK_AIM_TYPE,
+            VRSettings.VrOptions.CROSSHAIR_HEAD_RELATIVE,
+            VRSettings.VrOptions.AIM_PITCH_OFFSET,
             VRSettings.VrOptions.PITCH_AFFECTS_CAMERA,
+            VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.JOYSTICK_SENSITIVITY,
             VRSettings.VrOptions.JOYSTICK_DEADZONE,
-            VRSettings.VrOptions.JOYSTICK_AIM_TYPE,
-            VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.MOVEMENT_MULTIPLIER,
-            VRSettings.VrOptions.WALK_UP_BLOCKS,
+            VRSettings.VrOptions.LOCOMOTION_SETTINGS,
+            VRSettings.VrOptions.MOVEMENT_QUANTISATION,
     };
-	private PluginModeChangeButton pluginModeChangeutton;
+	private PluginModeChangeButton pluginModeChangeButton;
 	private boolean reinit;
 
     public GuiMoveAimSettings(GuiScreen par1GuiScreen,
@@ -72,15 +72,18 @@ public class GuiMoveAimSettings extends BaseGuiSettings
     public void initGui()
     {
         this.buttonList.clear();
-        this.buttonList.add(new GuiButtonEx(202, this.width / 2 - 100, this.height / 6 + 148, "Reset To Defaults"));
-        this.buttonList.add(new GuiButtonEx(200, this.width / 2 - 100, this.height / 6 + 168, "Done"));
+        GuiButtonEx reinit = new GuiButtonEx(ID_GENERIC_REINIT, (this.width / 2) - 100, (this.height / 6) + 168, 100, 20, "Reinit");
+        reinit.enabled = false; // Disabled until LWJGL supports (or has been hacked)
+        this.buttonList.add(reinit);
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, (this.width / 2) - 0, (this.height / 6) + 168, 100, 20, "Defaults"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 188, "Done"));
         if(! ( Minecraft.getMinecraft().lookaimController instanceof MCMouse )  )
         {
-        	this.buttonList.add(new GuiButtonEx(203, this.width / 2 - 100, this.height / 6 + 128, "Remap Controls"));
+        	this.buttonList.add(new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 148, "Remap Controls"));
         }
-        
-        pluginModeChangeutton = new PluginModeChangeButton(201, this.width / 2 - 78, this.height / 6 - 14, (List<IBasePlugin>)(List<?>) PluginManager.thePluginManager.controllerPlugins, this.guivrSettings.controllerPluginID );
-        this.buttonList.add(pluginModeChangeutton);
+
+        pluginModeChangeButton = new PluginModeChangeButton(ID_GENERIC_MODE_CHANGE, this.width / 2 - 78, this.height / 6 - 14, (List<IBasePlugin>)(List<?>) PluginManager.thePluginManager.controllerPlugins, this.guivrSettings.controllerPluginID );
+        this.buttonList.add(pluginModeChangeButton);
 
         VRSettings.VrOptions[] var10;
 
@@ -107,13 +110,7 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                 float maxValue = 1.0f;
                 float increment = 0.01f;
 
-                if (var8 == VRSettings.VrOptions.MOVEMENT_MULTIPLIER)
-                {
-                    minValue = 0.15f;
-                    maxValue = 1.0f;
-                    increment = 0.01f;
-                }
-                else if( var8 == VRSettings.VrOptions.JOYSTICK_SENSITIVITY )
+                if( var8 == VRSettings.VrOptions.JOYSTICK_SENSITIVITY )
                 {
                 	minValue = 0.5f;
                 	maxValue = 10.0f;
@@ -145,15 +142,23 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                 }
 
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
+                slider.enabled = getEnabledState(var8);
                 this.buttonList.add(slider);
             }
             else
             {
                 String keyText = this.guivrSettings.getKeyBinding(var8);
                 GuiSmallButtonEx smallButton = new GuiSmallButtonEx(var8.returnEnumOrdinal(), width, height, var8, keyText);
+                smallButton.enabled = getEnabledState(var8);
                 this.buttonList.add(smallButton);
             }
         }
+    }
+
+    private boolean getEnabledState(VRSettings.VrOptions var8)
+    {
+        String s = var8.getEnumString();
+        return true;
     }
 
     /**
@@ -178,48 +183,70 @@ public class GuiMoveAimSettings extends BaseGuiSettings
 
         if (par1GuiButton.enabled)
         {
-            if (par1GuiButton.id < 200 && par1GuiButton instanceof GuiSmallButtonEx)
-            {
-                this.guivrSettings.setOptionValue(((GuiSmallButtonEx)par1GuiButton).returnVrEnumOptions(), 1);
-                par1GuiButton.displayString = this.guivrSettings.getKeyBinding(VRSettings.VrOptions.getEnumOptions(par1GuiButton.id));
-            }
-            else if (par1GuiButton.id == 200)
+            if (par1GuiButton.id == ID_GENERIC_DONE)
             {
                 this.guivrSettings.saveOptions();
                 this.mc.displayGuiScreen(this.parentGuiScreen);
             }
-            else if (par1GuiButton.id == 201) // Mode Change
+            else if (par1GuiButton.id == ID_GENERIC_MODE_CHANGE) // Mode Change
             {
-            	this.guivrSettings.controllerPluginID = pluginModeChangeutton.getSelectedID();
+            	this.guivrSettings.controllerPluginID = pluginModeChangeButton.getSelectedID();
                 this.guivrSettings.saveOptions();
                 Minecraft.getMinecraft().lookaimController = PluginManager.configureController(this.guivrSettings.controllerPluginID);
             	this.reinit = true;
             }
-            else if (par1GuiButton.id == 202) // Defaults
+            else if (par1GuiButton.id == ID_GENERIC_DEFAULTS) // Defaults
             {
                 if (Minecraft.getMinecraft().lookaimController instanceof MCHydra )
                 {
                     this.guivrSettings.aimKeyholeWidthDegrees = 90f;
-                    this.guivrSettings.keyholeHeadRelative = true;
+                    this.guivrSettings.keyholeHeadRelative = true;  // TODO: This is the same as crosshairHeadRelative? Unify on Hydra fixes.
                     this.guivrSettings.lookMoveDecoupled = false;
                     this.guivrSettings.joystickSensitivity = 3f;
                 }
-                else
+                else if (Minecraft.getMinecraft().lookaimController instanceof MCController )
                 {
-                    this.guivrSettings.aimKeyholeWidthDegrees = 0f;
-                    this.guivrSettings.keyholeHeight = 0f;
-                    this.guivrSettings.keyholeHeadRelative = true;
-                    this.guivrSettings.lookMoveDecoupled = false;
+                    this.guivrSettings.aimKeyholeWidthDegrees = 60f;
+                    this.guivrSettings.keyholeHeight = 50f;
+                    this.guivrSettings.lookMoveDecoupled = true;
                     this.guivrSettings.allowMousePitchInput = false;
+                    this.guivrSettings.crosshairHeadRelative = false;
+                    this.guivrSettings.joystickAimType = 1;
+                    this.guivrSettings.joystickDeadzone = 0.1f;
+                    this.guivrSettings.joystickSensitivity = 3f;
+                }
+                else if (Minecraft.getMinecraft().lookaimController instanceof MCMouse )
+                {
+                    this.guivrSettings.aimKeyholeWidthDegrees = 60f;
+                    this.guivrSettings.keyholeHeight = 50f;
+                    this.guivrSettings.lookMoveDecoupled = true;
+                    this.guivrSettings.allowMousePitchInput = false;
+                    this.guivrSettings.crosshairHeadRelative = false;
+                    this.guivrSettings.mouseKeyholeTight = false;
                 }
                 this.guivrSettings.aimPitchOffset = 0;
                 this.guivrSettings.saveOptions();
                 this.reinit = true;
             }
-            else if (par1GuiButton.id == 203) // Remap
+            else if (par1GuiButton.id == ID_GENERIC_REMAP) // Remap
             {
                 this.guivrSettings.saveOptions();
                 this.mc.displayGuiScreen( new GuiVRControls(this, this.guivrSettings));
+            }
+            else if (par1GuiButton.id == ID_GENERIC_REINIT) // reinitialise controller
+            {
+                this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.initBodyAim();
+            }
+            else if (par1GuiButton.id == VRSettings.VrOptions.LOCOMOTION_SETTINGS.returnEnumOrdinal()) // Remap
+            {
+                this.guivrSettings.saveOptions();
+                this.mc.displayGuiScreen(new GuiLocomotionSettings(this, this.guivrSettings));
+            }
+            else if (par1GuiButton instanceof GuiSmallButtonEx)
+            {
+                this.guivrSettings.setOptionValue(((GuiSmallButtonEx)par1GuiButton).returnVrEnumOptions(), 1);
+                par1GuiButton.displayString = this.guivrSettings.getKeyBinding(VRSettings.VrOptions.getEnumOptions(par1GuiButton.id));
             }
         }
     }
@@ -244,12 +271,22 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                 case JOYSTICK_AIM_TYPE:
                     return new String[] {
                             "How joystick Aiming works.",
-                            "  Keyhole (tight): the crosshair stays in place ",
-                            "     like a mouse cursor",
-                            "  Keyhole (loose): You don't push the crosshair outside",
-                            "     the keyhole, but it stays after turning head back.",
-                            "  Recenter: the crosshair moves back to center when ",
+                            "  Keyhole (tight): The crosshair is not allowed outside ",
+                            "     of the keyhole boundary during head movement and is",
+                            "     'dragged along' if necessary.",
+                            "  Keyhole (loose): The crosshair position is not",
+                            "     affected by head movement.",
+                            "  Recenter: The crosshair moves back to center when ",
                             "     you let off the joystick." } ;
+                case MOUSE_AIM_TYPE:
+                    return new String[] {
+                            "How mouse Aiming works. Only relevant when using keyhole.",
+                            "  Keyhole (tight): The crosshair is not allowed outside ",
+                            "     of the keyhole boundary during head movement and is",
+                            "     'dragged along' if necessary.",
+                            "  Keyhole (loose): The crosshair position is not",
+                            "     affected by head movement."
+                    } ;
                 case DECOUPLE_LOOK_MOVE:
                     return new String[] {
                             "Decouple Movement from Looking - \"Tank mode\"",
@@ -282,12 +319,23 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                             "  If YES, you'll need to move the aiming hydra along",
                             "  with your head in order to prevent counter-rotation.",
                             "  Recommended value: YES"} ;
+                case CROSSHAIR_HEAD_RELATIVE:
+                    return new String[] {
+                            "Determines if the crosshair used for aiming moves ",
+                            "relative to your head or body when a keyhole is used.",
+                            "  If Head, the crosshair will stay still relative to",
+                            "  your head position.",
+                            "  If Body, the crosshair will stay still relative to",
+                            "  your body position." };
                 case PITCH_AFFECTS_CAMERA:
                     return new String[] {
                             "Adjusts whether the mouse can control the camera pitch",
-                            "  OFF: No, the only way to control pitch is your head",
+                            "  OFF: (Recommended) No, the only way to control pitch",
+                            "     is with your head.",
                             "  ON: Yes, moving the mouse up and down will move the",
-                            "     camera up and down", };
+                            "     camera up and down. WARNING: Can be extremely",
+                            "     disorientating for some!",
+                    };
                 case MOVEAIM_HYDRA_USE_CONTROLLER_ONE:
                     return new String[] {
                             "Sets the controller used for move/aim control.",
@@ -295,32 +343,28 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                             "  controller to that used for positional tracking."
                     } ;
                 case AIM_PITCH_OFFSET:
-                return new String[] {
-                        "Vertical Crosshair Offset",
-                        "  If your headset doesn't sit straight on your face,",
-                        "  this setting allows you to set the 'fixed' crosshair",
-                        "  lower or higher than center of the screen.",
-                        "  Recommended value: 0.0"
-                } ;
-                case MOVEMENT_MULTIPLIER:
                     return new String[] {
-                            "Sets a movement multiplier, allowing slower movement",
-                            "than default. This may help reduce locomotion induced",
-                            "simulator sickness.",
-                            "WARNING: May trigger anti-cheat warnings if on a",
-                            "Multiplayer server!!",
-                            "Defaults to 1.0 (no movement adjustment, standard",
-                            "Minecraft movement speed)."
+                            "Vertical Crosshair Offset",
+                            "  If your headset doesn't sit straight on your face,",
+                            "  this setting allows you to set the 'fixed' crosshair",
+                            "  lower or higher than center of the screen.",
+                            "  Recommended value: 0.0"
                     } ;
-                case WALK_UP_BLOCKS:
+                case MOVEMENT_QUANTISATION:
                     return new String[] {
-                            "Allows you to set the ability to walk up blocks without",
-                            "having to jump.",
-                            "WARNING: May trigger anti-cheat warnings if on a",
-                            "Multiplayer server!!",
-                            "  OFF: (default) You will have to jump up blocks.",
-                            "  ON:  You can walk up single blocks. May reduce",
-                            "       locomotion induced simulator sickness for some."
+                            "Determines if/how movement is quantised.",
+                            "  Analogue: (Default) The controller joystick position",
+                            "  will determine your movement speed proportionally.",
+                            "  This setting can cause motion sickness for some but",
+                            "  will give fine control over velocity.",
+                            "  2 Notches, 4 Notches: 2 or 4 different speeds of",
+                            "  movement are allowed, depending upon joystick input.",
+                            "  Digital: Movement is all or nothing!"
+                    } ;
+                case LOCOMOTION_SETTINGS:
+                    return new String[] {
+                            "Configure the locomotion based settings: movement",
+                            "attributes, VR comfort mode etc..."
                     } ;
                 default:
                     return null;
@@ -328,10 +372,15 @@ public class GuiMoveAimSettings extends BaseGuiSettings
         else
             switch(buttonId)
             {
-                case 201:
+                case ID_GENERIC_MODE_CHANGE:
                     return new String[] {
                             "Changes the method for controlling aiming, looking, ",
                             "  and movement."
+                    };
+                case ID_GENERIC_REINIT:
+                    return new String[] {
+                            "Allow reinitialisation or re-detection of the input device.",
+                            "  Not currently working due to a bug in LWJGL."
                     };
                 default:
                     return null;

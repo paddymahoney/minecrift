@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiIngameMenu;
@@ -21,6 +22,7 @@ import net.minecraft.inventory.Slot;
 import org.apache.commons.lang3.tuple.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 
 public class GuiScreenNavigator {
 	public ArrayList<Pair<Integer,Integer>> points = new ArrayList<Pair<Integer,Integer>>();
@@ -30,14 +32,20 @@ public class GuiScreenNavigator {
 	public GuiScreen screen;
 	private GuiScreen parentScreen;
 	private Minecraft mc;
-	
+    public static float aimPitchRate = 0;
+    public static float aimYawRate = 0;
+    public static float aimPitchAdd = 0;
+    public static float aimYawAdd = 0;
+    private int lastGuiCursorOffsetX = -1;
+    private int lastGuiCursorOffsetY = -1;
+
 	private Pair<Integer,Integer> curPoint;
 	private static Field guiLeft = null;
 	private static Field guiTop = null;
 	private static Field keyDownField = null;
 	
-	private boolean selectDepressed = false;
-	private boolean altselectDepressed = false;
+	public static boolean selectDepressed = false;
+    public static boolean altselectDepressed = false;
 	private boolean shiftDepressed;
 	
 	static final int AXIS_PREFERENCE = 5;
@@ -48,6 +56,10 @@ public class GuiScreenNavigator {
 		public GuiControlBinding(String desc) {
 			super("GUI "+desc,"gui."+desc);
 		}
+
+        public GuiControlBinding(String desc, String key) {
+            super("GUI "+desc,"gui."+key);
+        }
 
 		boolean floatActive = false;
 		@Override
@@ -154,6 +166,39 @@ public class GuiScreenNavigator {
 			nav.shift(state);
 		}
 	}
+    public static class GuiCursorAimPitchBinding extends GuiScreenNavigator.GuiControlBinding {
+
+        @Override
+        public boolean isBiAxis() { return true; }
+
+        public GuiCursorAimPitchBinding() {
+            super("Cursor Up/Down","axis.updown");
+        }
+
+        @Override
+        public void setValue(float value) { aimPitchRate = value; }
+
+        @Override
+        public void setState(boolean state) {
+        }
+    }
+     public static class GuiCursorAimYawBinding extends GuiScreenNavigator.GuiControlBinding {
+
+        @Override
+        public boolean isBiAxis() { return true; }
+
+        public GuiCursorAimYawBinding() {
+            super("Cursor Left/Right","axis.leftright");
+        }
+
+        @Override
+        public void setValue(float value) { aimYawRate = value; }
+
+        @Override
+        public void setState(boolean state) {
+        }
+
+    }
 	
 	public GuiScreenNavigator(GuiScreen screen) {
 		mc = Minecraft.getMinecraft();
@@ -210,8 +255,7 @@ public class GuiScreenNavigator {
 		    }
 		    screenclazz = screenclazz.getSuperclass();
         }
-        curPoint = Pair.of(	Mouse.getX() * screen.width / this.mc.displayWidth,
-        					screen.height - Mouse.getY() * screen.height / this.mc.displayHeight - 1);
+        updateCursorPos();
         
         if( slot != null && slot.publicGetSize() > 0 ) {
         	slotIndex = 0;
@@ -234,6 +278,7 @@ public class GuiScreenNavigator {
 			return;
 		}
 		selectDepressed = state;
+        updateCursorPos();
 		if( curPoint != null) {
 			if( keyDownField != null)
 				try {
@@ -248,6 +293,7 @@ public class GuiScreenNavigator {
 
 	public void altselect(boolean state) {
 		altselectDepressed = state;
+        updateCursorPos();
 		if( curPoint != null) {
 			if( keyDownField != null)
 				try {
@@ -272,6 +318,7 @@ public class GuiScreenNavigator {
 
 	public void left() {
 		onSlot = false;
+        updateCursorPos();
         parsePoints();
 		if( curPoint != null ) {
 			Pair<Integer,Integer> nextBest = null;
@@ -291,6 +338,7 @@ public class GuiScreenNavigator {
 
 	public void right() {
 		onSlot = false;
+        updateCursorPos();
         parsePoints();
 		if( curPoint != null ) {
 			Pair<Integer,Integer> nextBest = null;
@@ -317,6 +365,7 @@ public class GuiScreenNavigator {
 			return;
 		}
 		onSlot = false;
+        updateCursorPos();
         parsePoints();
 		if( curPoint != null ) {
 			Pair<Integer,Integer> nextBest = null;
@@ -335,6 +384,7 @@ public class GuiScreenNavigator {
 	}
 
 	public void up() {
+        updateCursorPos();
         parsePoints();
 		if( curPoint != null ) {
 			Pair<Integer,Integer> nextBest = null;
@@ -363,23 +413,27 @@ public class GuiScreenNavigator {
 	}
 
 	private void mouseto() {
-		int mouseGUIX = curPoint.getLeft();
-		int mouseGUIY = curPoint.getRight();
-		
-        int mouseScreenX = (int)(mouseGUIX * mc.displayFBWidth / (float)mc.currentScreen.width );
-        int mouseScreenY = (int)(mc.displayFBHeight / (float)mc.currentScreen.height * (mc.currentScreen.height - mouseGUIY - 1 ) );
-        Mouse.setCursorPosition(mouseScreenX, mouseScreenY);
 
-        int mouseFBX = (int)(mouseScreenX * mc.displayFBWidth / (float)mc.displayWidth );
-        int mouseFBY = (int)(mouseScreenY * mc.displayFBHeight / (float)mc.displayHeight );
-        mc.resetMousePos( mouseFBX, mouseFBY );
-		
+        int mouseFromX = screen.getMouseX();
+        int mouseFromY = screen.getMouseY();
+		int mouseToX = curPoint.getLeft();
+		int mouseToY = curPoint.getRight();
+        int diffX = mouseToX - mouseFromX;
+        int diffY = mouseToY - mouseFromY;
+
+        // Don't use Mouse.setCursorPosition() here - it will screw up second
+        // instances of Minecraft on the same PC
+
+        mc.currentScreen.mouseOffsetX += diffX;
+        mc.currentScreen.mouseOffsetY += diffY;
+        updateCursorPos();
+
 		if(altselectDepressed || selectDepressed ) {
 			if( keyDownField != null)
 				try {
 					((ByteBuffer)keyDownField.get(null)).put(Keyboard.KEY_RSHIFT,(byte) (shiftDepressed?1:0));
 				} catch (Exception e) { }
-			mc.currentScreen.mouseGuiDrag(mouseGUIX, mouseGUIY);
+			mc.currentScreen.mouseGuiDrag(mouseToX, mouseToY);
 		}
 	}
 
@@ -407,4 +461,80 @@ public class GuiScreenNavigator {
         	}
         }
 	}
+
+    protected void updateCursorPos()
+    {
+        if (screen != null)
+            curPoint = Pair.of(screen.getMouseX(), screen.getMouseY());
+    }
+
+    public void guiCursor()
+    {
+        if (this.mc.currentScreen != null && Display.isActive())
+        {
+            getInput(1f);
+
+            int lastx = lastGuiCursorOffsetX;
+            int lasty = lastGuiCursorOffsetY;
+
+            // Start in center of screen the first time through
+            if (mc.currentScreen.mouseOffsetX == -1)
+                lastGuiCursorOffsetX = 0;
+            if (mc.currentScreen.mouseOffsetY == -1)
+                lastGuiCursorOffsetY = 0;
+
+            // Increment offset by deltas
+            lastGuiCursorOffsetX += aimYawAdd;
+            lastGuiCursorOffsetY += aimPitchAdd * (this.mc.gameSettings.invertMouse ? 1f : -1f);
+
+            if (lastx == lastGuiCursorOffsetX && lasty == lastGuiCursorOffsetY)
+                return;
+
+            onSlot = false;
+
+            // Get mouse pos in guiscreen space
+            int x = Mouse.getX() * this.mc.currentScreen.width / this.mc.displayWidth;
+            int y = this.mc.currentScreen.height - Mouse.getY() * this.mc.currentScreen.height / this.mc.displayHeight - 1;
+
+            // Get offset limit values
+            int maxX = (this.mc.currentScreen.width - 1) - x;
+            int maxY = (this.mc.currentScreen.height - 1) - y;
+            int minX = -x;
+            int minY = -y;
+
+            // Restrict values to size of gui screen
+            if (lastGuiCursorOffsetX > maxX) {
+                lastGuiCursorOffsetX = maxX;
+            }
+            else if (lastGuiCursorOffsetX < minX) {
+                lastGuiCursorOffsetX = minX;
+            }
+
+            if (lastGuiCursorOffsetY > maxY) {
+                lastGuiCursorOffsetY = maxY;
+            }
+            else if (lastGuiCursorOffsetY < minY) {
+                lastGuiCursorOffsetY = minY;
+            }
+
+            // Set emulated mouse offsets
+            mc.currentScreen.mouseOffsetX = lastGuiCursorOffsetX;
+            mc.currentScreen.mouseOffsetY = lastGuiCursorOffsetY;
+
+            updateCursorPos();
+            if (selectDepressed || altselectDepressed) {
+                if( keyDownField != null)
+                    try {
+                        ((ByteBuffer)keyDownField.get(null)).put(Keyboard.KEY_RSHIFT,(byte) (shiftDepressed?1:0));
+                    } catch (Exception e) { }
+                mc.currentScreen.mouseGuiDrag(curPoint.getLeft(), curPoint.getRight());
+            }
+        }
+    }
+
+    protected void getInput(float partialTicks)
+    {
+        aimYawAdd = 2 * aimYawRate * VRSettings.inst.joystickSensitivity * partialTicks;
+        aimPitchAdd = 2 * aimPitchRate * VRSettings.inst.joystickSensitivity * partialTicks;
+    }
 }

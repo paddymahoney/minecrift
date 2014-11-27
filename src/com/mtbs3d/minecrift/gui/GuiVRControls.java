@@ -61,7 +61,8 @@ public class GuiVRControls extends BaseGuiSettings {
 		protected void drawSlot(int index, int xPos, int yPos, int height, Tessellator var5, int mousex, int mousey) {
 			String display = "";
 			if( index == currentlyBinding ) {
-				display = "" + EnumChatFormatting.WHITE + "> " + EnumChatFormatting.YELLOW + "??? " + EnumChatFormatting.WHITE + "<";
+                ControlBinding binding = ControlBinding.bindings.get(index);
+				display = binding.getDescription()+": " + EnumChatFormatting.WHITE + "> " + EnumChatFormatting.YELLOW + "??? " + EnumChatFormatting.WHITE + "<";
 			} else { 
 				ControlBinding binding = ControlBinding.bindings.get(index);
 				display = (binding.isValid() ? "" : (""+ EnumChatFormatting.RED )) + binding.getDescription()+": "+binding.boundTo();

@@ -1,4 +1,4 @@
-package com.mtbs3d.minecrift;
+package com.mtbs3d.minecrift.provider;
 
 import com.mtbs3d.minecrift.api.BasePlugin;
 import com.mtbs3d.minecrift.api.IStereoProvider;
@@ -12,10 +12,22 @@ import org.lwjgl.opengl.GL11;
 import java.io.File;
 
 /**
- * Created by StellaArtois on 6/26/2014.
+ * Created by StellaArtois on 26/6/2014.
  */
 public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 {
+    FrameTiming frameTiming = new FrameTiming();
+
+    @Override
+    public String getID() {
+        return "mono";
+    }
+
+    @Override
+    public String getName() {
+        return "Mono [EXPERIMENTAL]";
+    }
+
     @Override
     public void eventNotification(int eventId) {
 
@@ -49,8 +61,10 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public EyeType eyeRenderOrder(int index) {
-        return EyeType.ovrEye_Center;
+    public EyeType eyeRenderOrder(int index)
+    {
+        //return EyeType.ovrEye_Center;
+        return EyeType.ovrEye_Left; // Hack for now
     }
 
     @Override
@@ -70,8 +84,9 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public FrameTiming getFrameTiming() {
-        return null;
+    public FrameTiming getFrameTiming()
+    {
+        return frameTiming;
     }
 
     @Override
@@ -91,7 +106,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 
     @Override
     public String getVersion() {
-        return null;
+        return "1.0";
     }
 
     @Override
@@ -136,13 +151,21 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public void beginFrame() {
-
+    public void beginFrame()
+    {
+        frameTiming = new FrameTiming();
+        frameTiming.ScanoutMidpointSeconds = getCurrentTimeSecs();  // Hack to current for now - doesn't really matter
     }
 
     @Override
     public void endFrame() {
         GL11.glFlush();
         Display.update();
+    }
+
+    @Override
+    public double getCurrentTimeSecs()
+    {
+        return System.nanoTime() / 1000000000d;
     }
 }

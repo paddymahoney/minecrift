@@ -15,8 +15,9 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
             VRSettings.VrOptions.CONFIG_IPD_MODE,
             VRSettings.VrOptions.TOTAL_IPD,
             VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.EYE_RELIEF_PLACEHOLDER,
+            VRSettings.VrOptions.EYE_RELIEF_ADJUST,
+            VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.MAX_FOV,
             VRSettings.VrOptions.FOV_CHANGE,
     };
@@ -27,7 +28,9 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
             VRSettings.VrOptions.CONFIG_IPD_MODE,
             VRSettings.VrOptions.LEFT_HALF_IPD,
             VRSettings.VrOptions.RIGHT_HALF_IPD,
-            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.EYE_RELIEF_PLACEHOLDER,
+            VRSettings.VrOptions.EYE_RELIEF_ADJUST,
+            VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.MAX_FOV,
             VRSettings.VrOptions.FOV_CHANGE,
@@ -46,6 +49,7 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
         this.buttonList.clear();
         this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, this.width / 2 - 100, this.height / 6 + 148, "Reset To Defaults"));
         this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 168, "Done"));
+        String eyeRelief = String.format("Base Eye Relief: %.3fmm ", new Object[] { this.mc.entityRenderer.getBaseEyeRelief() * 1000f });
         VRSettings.VrOptions[] buttons = null;
         if (Minecraft.getMinecraft().vrSettings.useHalfIpds == false)
             buttons = oculusOptionsUseSingleIpd;
@@ -67,17 +71,17 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
                 float maxValue = 1.0f;
                 float increment = 0.01f;
 
-                if (var8 == VRSettings.VrOptions.IPD_SCALE)
+                if (var8 == VRSettings.VrOptions.WORLD_SCALE)
                 {
-                    minValue = -5f;
-                    maxValue = 5f;
+                    minValue = -5.0f;
+                    maxValue = -0.1f;
                     increment = 0.01f;
                 }
-                else if (var8 == VRSettings.VrOptions.EYE_RELIEF)
+                else if (var8 == VRSettings.VrOptions.EYE_RELIEF_ADJUST)
                 {
-                    minValue = -0.25f;
-                    maxValue =  0.25f;
-                    increment = 0.005f;
+                    minValue = -0.035f;
+                    maxValue =  0.035f;
+                    increment = 0.00001f;
                 }
                 else if (var8 == VRSettings.VrOptions.FOV_CHANGE)
                 {
@@ -111,10 +115,19 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
             }
             else
             {
-                GuiSmallButtonEx smallButton = new GuiSmallButtonEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8));
-                smallButton.setEventHandler(this);
-                smallButton.enabled = getEnabledState(var8);
-                this.buttonList.add(smallButton);
+                if (var8 == VRSettings.VrOptions.EYE_RELIEF_PLACEHOLDER)
+                {
+                    GuiSmallButtonEx button = new GuiSmallButtonEx(9999, width, height, var8, eyeRelief);
+                    button.enabled = false;
+                    this.buttonList.add(button);
+                }
+                else
+                {
+                    GuiSmallButtonEx smallButton = new GuiSmallButtonEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8));
+                    smallButton.setEventHandler(this);
+                    smallButton.enabled = getEnabledState(var8);
+                    this.buttonList.add(smallButton);
+                }
             }
         }
     }
@@ -167,6 +180,8 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
                 this.guivrSettings.setMinecraftIpd(this.guivrSettings.getOculusProfileHalfIPD(EyeType.ovrEye_Left), this.guivrSettings.getOculusProfileHalfIPD(EyeType.ovrEye_Right));
                 this.guivrSettings.fovChange = 0f;
                 this.guivrSettings.useMaxFov = false;
+                this.guivrSettings.worldScale = 1f;
+                this.guivrSettings.eyeReliefAdjust = 0f;
 
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 this.reinit = true;
@@ -187,7 +202,6 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
             enumm == VRSettings.VrOptions.MAX_FOV)
         {
             this.mc.reinitFramebuffers = true;
-            this.reinit = true;
         }
 
         if (enumm == VRSettings.VrOptions.CONFIG_IPD_MODE ||
@@ -204,19 +218,75 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
         if( e != null )
             switch(e)
             {
-                // TODO: Tooltips
+            case WORLD_SCALE:
+                return new String[] {
+                        "Scales the size of the world.",
+                        " Adjust this if the blocks do not seem to be one metre",
+                        " in size (i.e change the perception of scale).",
+                        " Miniature world: This can be less nausea inducing.",
+                        " Giant world: A hard core VR experience!",
+                        "NOTE: When playing in a seated position, perceived",
+                        "scale can be improved with a world scale of 133%. Also,",
+                        "sit cross-legged on your chair. Really ;-)",
+                };
+            case EYE_RELIEF_PLACEHOLDER:
+                return new String[] {
+                        "The current un-adjusted eye relief value, as reported",
+                        "from the Oculus Profile.",
+                        "Positive values are towards your face, negative away.",
+                };
+            case EYE_RELIEF_ADJUST:
+                return new String[] {
+                        "Adjusts the eye relief value (the distance of the HMD",
+                        "screen from the center eye position). Positive values",
+                        "are towards your face, negative away.",
+                        " Adjust this if vertical lines do not seem to maintain",
+                        " their position in the world (as you slowly rotate your",
+                        " head from side-to-side; while keeping your gaze fixed",
+                        " on the line).",
+                        " Can account for squashed foam padding on the HMD etc.",
+                };
+            case FOV_CHANGE:
+                return new String[] {
+                        "Adjusts the position of the rendered distortion border.",
+                        " Positive values: reduce the size of the distortion",
+                        "  border, possibly increasing Field-of-View (FOV) at",
+                        "  the expense of increased rendering cost.",
+                        " Negative values: increase the size of the distortion",
+                        "  border, reducing render cost at the expense of a",
+                        "  noticeable reduction in FOV.",
+                };
+            case USE_PROFILE_IPD:
+            case CONFIG_IPD_MODE:
+            case LEFT_HALF_IPD:
+            case RIGHT_HALF_IPD:
+            case TOTAL_IPD:
+                return new String[] {
+                        "Allows adjustment of IPD if not using Oculus profile",
+                        "settings. NOTE: It is STRONGLY RECOMMENDED to use",
+                        "the Oculus Profile settings!!",
+                        " Select total or half IPD configuration.",
+                        " Adjusting the IPD manually may alter in game scale;",
+                        " however various HMD parameters configured by",
+                        " Oculus will not be correct. USE AT YOUR OWN RISK."
+                };
+            case MAX_FOV:
+                return new String[] {
+                        "Toggles use of the default Field-of-View (FOV),",
+                        "or the maximum FOV possible with the specified HMD.",
+                        " Default: Default HMD FOV. A balance of FOV versus",
+                        "          render cost.",
+                        " Maximum: *MAY* enlarge viewable FOV at the expense of",
+                        "          increased rendering cost.",
+                        " NOTE with the DK2, Default and Max are almost",
+                        " identical.",
+                };
             default:
                 return null;
             }
         else
             switch(buttonId)
             {
-//                case 201:
-//                    return new String[] {
-//                            "Open this configuration screen to adjust the Head",
-//                            "  Tracker orientation (direction) settings. ",
-//                            "  Ex: Head Tracking Selection (Hydra/Oculus), Prediction"
-//                    };
             default:
                 return null;
             }

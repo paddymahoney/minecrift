@@ -8,33 +8,37 @@
  import net.minecraft.util.MathHelper;
  import net.minecraft.util.ResourceLocation;
  import net.minecraft.util.StringUtils;
-@@ -35,6 +36,9 @@
+@@ -35,6 +36,12 @@
      private ModelBiped modelArmor;
      private static final String __OBFID = "CL_00001020";
  
-+    /** Minecrift */
-+    private float vrOffset;
++    /** MINECRIFT */
++    public float vrOffset;
++    public boolean _renderHeadwear;
++    public boolean _renderHead;
++    /** END MINECRIFT */
 +
      public RenderPlayer()
      {
          super(new ModelBiped(0.0F), 0.5F);
-@@ -43,6 +47,15 @@
+@@ -43,6 +50,16 @@
          this.modelArmor = new ModelBiped(0.5F);
      }
  
-+    /** Minecrift */
++    /** MINECRIFT */
 +    public void setVR(boolean vrMode, boolean renderHeadWear, float offset) {
 +
 +        vrOffset = vrMode? offset : 0.0F;
 +        this.modelBipedMain.vrOffset = this.modelArmorChestplate.vrOffset = this.modelArmor.vrOffset = vrOffset;
-+        this.modelBipedMain._renderHead = this.modelArmorChestplate._renderHead = this.modelArmor._renderHead = !vrMode;
-+        this.modelBipedMain._renderHeadWear = this.modelArmorChestplate._renderHeadWear = this.modelArmor._renderHeadWear = renderHeadWear;
++        this.modelBipedMain._renderHead = this.modelArmorChestplate._renderHead = this.modelArmor._renderHead = _renderHead = !vrMode;
++        this.modelBipedMain._renderHeadWear = this.modelArmorChestplate._renderHeadWear = this.modelArmor._renderHeadWear = _renderHeadwear = renderHeadWear;
 +    }
++    /** END MINECRIFT */
 +
      /**
       * Queries whether should render the specified pass or not.
       */
-@@ -50,6 +63,15 @@
+@@ -50,6 +67,15 @@
      {
          ItemStack var4 = p_77032_1_.inventory.armorItemInSlot(3 - p_77032_2_);
  
@@ -50,7 +54,7 @@
          if (var4 != null)
          {
              Item var5 = var4.getItem();
-@@ -66,12 +88,32 @@
+@@ -66,12 +92,32 @@
                  var7.bipedLeftArm.showModel = p_77032_2_ == 1;
                  var7.bipedRightLeg.showModel = p_77032_2_ == 2 || p_77032_2_ == 3;
                  var7.bipedLeftLeg.showModel = p_77032_2_ == 2 || p_77032_2_ == 3;
@@ -84,7 +88,7 @@
                  {
                      int var8 = var6.getColor(var4);
                      float var9 = (float)(var8 >> 16 & 255) / 255.0F;
-@@ -125,6 +167,9 @@
+@@ -125,6 +171,9 @@
       */
      public void doRender(AbstractClientPlayer p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
      {
@@ -94,7 +98,7 @@
          GL11.glColor3f(1.0F, 1.0F, 1.0F);
          ItemStack var10 = p_76986_1_.inventory.getCurrentItem();
          this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = var10 != null ? 1 : 0;
-@@ -155,6 +200,9 @@
+@@ -155,6 +204,9 @@
          this.modelArmorChestplate.aimedBow = this.modelArmor.aimedBow = this.modelBipedMain.aimedBow = false;
          this.modelArmorChestplate.isSneak = this.modelArmor.isSneak = this.modelBipedMain.isSneak = false;
          this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = 0;
@@ -104,7 +108,7 @@
      }
  
      /**
-@@ -167,6 +215,12 @@
+@@ -167,20 +219,38 @@
  
      protected void renderEquippedItems(AbstractClientPlayer p_77029_1_, float p_77029_2_)
      {
@@ -117,7 +121,19 @@
          GL11.glColor3f(1.0F, 1.0F, 1.0F);
          super.renderEquippedItems(p_77029_1_, p_77029_2_);
          super.renderArrowsStuckInEntity(p_77029_1_, p_77029_2_);
-@@ -180,7 +234,14 @@
+         ItemStack var3 = p_77029_1_.inventory.armorItemInSlot(3);
+ 
+-        if (var3 != null)
++		/** MINECRIFT */
++        if (var3 != null && _renderHead) 
++		/** END MINECRIFT */
+         {
+             GL11.glPushMatrix();
++            /** MINECRIFT */
++            GL11.glTranslatef(0, 0, vrOffset);
++            /** END MINECRIFT */
+             this.modelBipedMain.bipedHead.postRender(0.0625F);
+             float var4;
  
              if (var3.getItem() instanceof ItemBlock)
              {
@@ -133,7 +149,7 @@
                  {
                      var4 = 0.625F;
                      GL11.glTranslatef(0.0F, -0.25F, 0.0F);
-@@ -241,6 +302,9 @@
+@@ -241,12 +311,18 @@
          }
  
          boolean var21 = p_77029_1_.func_152122_n();
@@ -143,7 +159,16 @@
          float var11;
  
          if (var21 && !p_77029_1_.isInvisible() && !p_77029_1_.getHideCape())
-@@ -291,10 +355,16 @@
+         {
+             this.bindTexture(p_77029_1_.getLocationCape());
+             GL11.glPushMatrix();
++            /** MINECRIFT */
++            GL11.glTranslatef(0, 0, vrOffset);
++            /** END MINECRIFT */
+             GL11.glTranslatef(0.0F, 0.0F, 0.125F);
+             double var23 = p_77029_1_.field_71091_bM + (p_77029_1_.field_71094_bP - p_77029_1_.field_71091_bM) * (double)p_77029_2_ - (p_77029_1_.prevPosX + (p_77029_1_.posX - p_77029_1_.prevPosX) * (double)p_77029_2_);
+             double var27 = p_77029_1_.field_71096_bN + (p_77029_1_.field_71095_bQ - p_77029_1_.field_71096_bN) * (double)p_77029_2_ - (p_77029_1_.prevPosY + (p_77029_1_.posY - p_77029_1_.prevPosY) * (double)p_77029_2_);
+@@ -291,10 +367,16 @@
          }
  
          ItemStack var24 = p_77029_1_.inventory.getCurrentItem();
@@ -156,13 +181,13 @@
 +        if (var24 != null && eventRenderItem)
          {
              GL11.glPushMatrix();
-+            /** Minecrift */
++            /** MINECRIFT */
 +            GL11.glTranslatef(0, 0, vrOffset);
-+            /** end Minecrift */
++            /** END MINECRIFT */
              this.modelBipedMain.bipedRightArm.postRender(0.0625F);
              GL11.glTranslatef(-0.0625F, 0.4375F, 0.0625F);
  
-@@ -310,7 +380,14 @@
+@@ -310,7 +392,14 @@
                  var26 = var24.getItemUseAction();
              }
  
@@ -178,7 +203,7 @@
              {
                  var7 = 0.5F;
                  GL11.glTranslatef(0.0F, 0.1875F, -0.3125F);
-@@ -367,7 +444,11 @@
+@@ -367,7 +456,11 @@
  
              if (var24.getItem().requiresMultipleRenderPasses())
              {
@@ -191,7 +216,7 @@
                  {
                      int var8 = var24.getItem().getColorFromItemStack(var24, var28);
                      var30 = (float)(var8 >> 16 & 255) / 255.0F;
-@@ -389,6 +470,9 @@
+@@ -389,6 +482,9 @@
  
              GL11.glPopMatrix();
          }

@@ -2,11 +2,12 @@
  * Copyright 2013 Mark Browning, StellaArtois
  * Licensed under the LGPL 3.0 or later (See LICENSE.md for details)
  */
-package com.mtbs3d.minecrift;
+package com.mtbs3d.minecrift.provider;
 
 
 import com.mtbs3d.minecrift.api.*;
 
+import com.mtbs3d.minecrift.settings.VRSettings;
 import de.fruitfly.ovr.EyeRenderParams;
 import de.fruitfly.ovr.IOculusRift;
 import de.fruitfly.ovr.OculusRift;
@@ -33,7 +34,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     public static final int CALIBRATE_AT_FIRST_ORIGIN = 2;
     public static final int CALIBRATE_COOLDOWN = 7;
 
-    public static final long COOLDOWNTIME_MS = 1000L;
+    public static final long COOLDOWNTIME_MS = 1500L;
 
     private boolean isCalibrated = false;
     private long coolDownStart = 0L;
@@ -157,7 +158,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
 	@Override
 	public String getName() {
-		return "Oculus";
+		return "Oculus Rift";
 	}
 
 	@Override
@@ -189,36 +190,30 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     @Override
     public Vec3 getCenterEyePosition()
     {
+        VRSettings vr = Minecraft.getMinecraft().vrSettings;
         Vec3 eyePosition = Vec3.createVectorHelper(0, 0, 0);
         if (Minecraft.getMinecraft().vrSettings.usePositionTracking)
         {
-            eyePosition = Vec3.createVectorHelper(ts.HeadPose.ThePose.Position.x * Minecraft.getMinecraft().vrSettings.posTrackDistanceScale,
-                                                  -ts.HeadPose.ThePose.Position.y * Minecraft.getMinecraft().vrSettings.posTrackDistanceScale,
-                                                  ts.HeadPose.ThePose.Position.z * Minecraft.getMinecraft().vrSettings.posTrackDistanceScale);
+            eyePosition = Vec3.createVectorHelper(ts.HeadPose.ThePose.Position.x * vr.posTrackDistanceScale * vr.worldScale,
+                                                  -ts.HeadPose.ThePose.Position.y * vr.posTrackDistanceScale * vr.worldScale,
+                                                  ts.HeadPose.ThePose.Position.z * vr.posTrackDistanceScale * vr.worldScale);
         }
-//        eyePosition.yCoord -= (Minecraft.getMinecraft().vrSettings.getPlayerEyeHeight() - 1.62f);
-//        eyePosition.zCoord += Minecraft.getMinecraft().vrSettings.eyeProtrusion;
-        //eyePosition.rotateAroundY(-yawOffsetRad);
-        // TODO: Rotate around pitch offset
+
         return eyePosition;
     }
 
     @Override
     public Vec3 getEyePosition(EyeType eye)
     {
+        VRSettings vr = Minecraft.getMinecraft().vrSettings;
         Vec3 eyePosition = Vec3.createVectorHelper(0, 0, 0);
         if (Minecraft.getMinecraft().vrSettings.usePositionTracking)
         {
             Vector3f eyePos = super.getEyePos(eye);
-            eyePosition = Vec3.createVectorHelper(eyePos.x * Minecraft.getMinecraft().vrSettings.posTrackDistanceScale,
-                                                  -eyePos.y * Minecraft.getMinecraft().vrSettings.posTrackDistanceScale,
-                                                  eyePos.z * Minecraft.getMinecraft().vrSettings.posTrackDistanceScale);
+            eyePosition = Vec3.createVectorHelper(eyePos.x * vr.posTrackDistanceScale * vr.worldScale,
+                                                  -eyePos.y * vr.posTrackDistanceScale * vr.worldScale,
+                                                  eyePos.z * vr.posTrackDistanceScale * vr.worldScale);
         }
-
-//        eyePosition.yCoord -= (Minecraft.getMinecraft().vrSettings.getPlayerEyeHeight() - 1.62f);
-//        eyePosition.zCoord += Minecraft.getMinecraft().vrSettings.eyeProtrusion;
-        //eyePosition.rotateAroundY(-yawOffsetRad);
-        // TODO: Rotate around pitch offset
 
         return eyePosition;
     }
@@ -257,6 +252,9 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         if (!isInitialized())
             return true;  // Return true if not initialised
 
+        if (!getHMDInfo().IsReal)
+            return true;  // Return true if debug (fake) Rift...
+
         if (type != PluginType.PLUGIN_POSITION)   // Only position provider needs calibrating
             return true;
 
@@ -267,12 +265,23 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 	public String getCalibrationStep(PluginType type)
     {
         String step = "";
+        String newline = "\n";
 
         switch (calibrationStep)
         {
             case CALIBRATE_AWAITING_FIRST_ORIGIN:
             {
-                step = "Look ahead and press SPACEBAR";
+                StringBuilder sb = new StringBuilder();
+                sb.append("HEALTH AND SAFETY WARNING").append(newline).append(newline)
+                        .append("Read and follow all warnings and instructions").append(newline)
+                        .append("included with the Headset before use. Headset").append(newline)
+                        .append("should be calibrated for each user. Not for use by").append(newline)
+                        .append("children under 13. Stop use if you experience any").append(newline)
+                        .append("discomfort or health reactions.").append(newline).append(newline)
+                        .append("More: www.oculus.com/warnings").append(newline).append(newline)
+                        .append("Look ahead and press SPACEBAR to acknowledge").append(newline)
+                        .append("and reset origin.");
+                step = sb.toString();
                 break;
             }
             case CALIBRATE_AT_FIRST_ORIGIN:
@@ -409,37 +418,9 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         return userProfile;
     }
 
-    public EyeRenderParams getEyeRenderParams(int viewPortWidth, int viewPortHeight)
+    @Override
+    public double getCurrentTimeSecs()
     {
-        return null;
-    }
-    public EyeRenderParams getEyeRenderParams(int viewPortX, int viewPortY, int viewPortWidth, int viewPortHeight, float nearClip, float farClip)
-    {
-        return null;
-    }
-    public EyeRenderParams getEyeRenderParams(int viewPortX,
-                                              int viewPortY,
-                                              int viewPortWidth,
-                                              int viewPortHeight,
-                                              float clipNear,
-                                              float clipFar,
-                                              float eyeToScreenDistanceScaleFactor,
-                                              float lensSeparationScaleFactor)
-    {
-        return null;
-    }
-    public EyeRenderParams getEyeRenderParams(int viewPortX,
-                                              int viewPortY,
-                                              int viewPortWidth,
-                                              int viewPortHeight,
-                                              float clipNear,
-                                              float clipFar,
-                                              float eyeToScreenDistanceScaleFactor,
-                                              float lensSeparationScaleFactor,
-                                              float distortionFitX,
-                                              float distortionFitY,
-                                              IOculusRift.AspectCorrectionType aspectCorrectionType)
-    {
-        return null;
+        return getCurrentTimeSeconds();
     }
 }

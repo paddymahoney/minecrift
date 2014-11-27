@@ -61,7 +61,6 @@ public class GuiMinecriftSettings extends BaseGuiSettings
     {
         GuiButtonEx buttonOrigin, buttonRecali;
         this.buttonList.clear();
-        // TODO: Re-enable when mono view working again
         GuiSmallButtonEx useVRButton = new GuiSmallButtonEx(VRSettings.VrOptions.USE_VR.returnEnumOrdinal(), this.width / 2 - 155 + 1 * 160 / 2, this.height / 6 - 14, VRSettings.VrOptions.USE_VR, this.guivrSettings.getKeyBinding(VRSettings.VrOptions.USE_VR));
         useVRButton.enabled = false;
         this.buttonList.add(useVRButton);
@@ -69,7 +68,7 @@ public class GuiMinecriftSettings extends BaseGuiSettings
         buttonRecali = new GuiButtonEx(210, this.width / 2 - 100, this.height / 6 + 148, "Recalibrate...");
         this.buttonList.add(new GuiButtonEx(200, this.width / 2 - 100, this.height / 6 + 168, "Done"));
         VROption[] buttons = null;
-        if (this.mc.renderStereo)
+        if (true)
         {
             buttons = vrOnDeviceList;
             buttonOrigin.enabled = true;
@@ -245,7 +244,7 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             case 211:
                 return new String[] {
                         "Resets the origin point to your current head",
-                        "position."
+                        "position. HOTKEY - F12 or RCtrl-Ret"
                 };
     		default:
     			return null;

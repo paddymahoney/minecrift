@@ -16,6 +16,8 @@ public class GuiOtherHUDSettings extends BaseGuiSettings
             VRSettings.VrOptions.MENU_CROSSHAIR_SCALE,
             VRSettings.VrOptions.CROSSHAIR_OCCLUSION,
             VRSettings.VrOptions.MAX_CROSSHAIR_DISTANCE_AT_BLOCKREACH,
+            VRSettings.VrOptions.CROSSHAIR_SCALES_WITH_DISTANCE,
+            VRSettings.VrOptions.CHAT_FADE_AWAY,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.CHAT_OFFSET_X,
             VRSettings.VrOptions.CHAT_OFFSET_Y,
@@ -23,7 +25,7 @@ public class GuiOtherHUDSettings extends BaseGuiSettings
 
     public GuiOtherHUDSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
         super( guiScreen, guivrSettings );
-        screenTitle = "HUD Overlay / Crosshair Settings";
+        screenTitle = "HUD Overlay/Crosshair/Chat Settings";
     }
 
     /**
@@ -94,6 +96,10 @@ public class GuiOtherHUDSettings extends BaseGuiSettings
                 this.guivrSettings.menuCrosshairScale = 1f;
                 this.guivrSettings.useCrosshairOcclusion = false;
                 this.guivrSettings.maxCrosshairDistanceAtBlockReach = false;
+                this.guivrSettings.crosshairScalesWithDistance = false;
+                this.guivrSettings.chatOffsetX = 0;
+                this.guivrSettings.chatOffsetY = 0.4f;
+                this.guivrSettings.chatFadeAway = true;
 
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 this.reinit = true;
@@ -146,6 +152,23 @@ public class GuiOtherHUDSettings extends BaseGuiSettings
                         "  With Head: The crosshair rolls with your head.",
                         "  With HUD:  The crosshair appears to roll, keeping",
                         "             the same orientation as the HUD."
+                };
+            case CROSSHAIR_SCALES_WITH_DISTANCE:
+                return new String[] {
+                        "Determines if the crosshair will remain a static size,",
+                        "or scale with distance.",
+                        "  Static:   The crosshair will be rendered at the correct",
+                        "            depth, but will always appear the same size.",
+                        "  With Distance: The crosshair will be rendered at the",
+                        "                 correct depth, and scale appropriately",
+                        "                 with distance."
+                };
+            case CHAT_FADE_AWAY:
+                return new String[] {
+                        "Sets the chat persistence mode.",
+                        "  Fades: The chat entries fade away with time.",
+                        "  Stays: A number of the latest chat lines will always",
+                        "         be visible."
                 };
             default:
                 return null;

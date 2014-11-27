@@ -2,19 +2,14 @@
  * Copyright 2013 Mark Browning, StellaArtois
  * Licensed under the LGPL 3.0 or later (See LICENSE.md for details)
  */
-package com.mtbs3d.minecrift;
+package com.mtbs3d.minecrift.render;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.*;
-import org.lwjgl.util.glu.GLU;
 
 public class FBOParams
 {
-    public static final Logger logger = LogManager.getLogger();
-
     protected enum FBO_SUPPORT
     {
         USE_EXT_UNKNOWN,
@@ -26,7 +21,7 @@ public class FBOParams
 
     protected static FBO_SUPPORT fboSupport = FBO_SUPPORT.USE_EXT_UNKNOWN;
 
-	public FBOParams(String fboName, int textureType, int internalFormat, int baseFormat, int bufferType, int fboWidth, int fboHeight ) throws Exception {
+    public FBOParams(String fboName, int textureType, int internalFormat, int baseFormat, int bufferType, int fboWidth, int fboHeight ) throws Exception {
         Minecraft mc = Minecraft.getMinecraft();
         _textureType = textureType;
 
@@ -67,26 +62,26 @@ public class FBOParams
             _depthRenderBufferId = GL30.glGenRenderbuffers();
 
             GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, _frameBufferId);
-            checkGLError("FBO bind framebuffer");
+            mc.checkGLError("FBO bind framebuffer");
 
             GL11.glBindTexture(textureType, _colorTextureId);
-            checkGLError("FBO bind texture");
+            mc.checkGLError("FBO bind texture");
 
             GL11.glEnable(textureType);
             GL11.glTexParameterf(textureType, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
             GL11.glTexParameterf(textureType, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
             GL11.glTexImage2D(textureType, 0, internalFormat, fboWidth, fboHeight, 0, baseFormat, bufferType, (java.nio.ByteBuffer) null);
 
-            System.out.println("[Minecrift] FBO '" + fboName + "': w: " + fboWidth + ", h: " + fboHeight);
+            //System.out.println("[Minecrift] FBO '" + fboName + "': w: " + fboWidth + ", h: " + fboHeight);
 
             GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, textureType, _colorTextureId, 0);
 
-            checkGLError("FBO bind texture framebuffer");
+            mc.checkGLError("FBO bind texture framebuffer");
 
             GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, _depthRenderBufferId);                // bind the depth renderbuffer
             GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL14.GL_DEPTH_COMPONENT24, fboWidth, fboHeight); // get the data space for it
             GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, _depthRenderBufferId);
-            checkGLError("FBO bind depth framebuffer");
+            mc.checkGLError("FBO bind depth framebuffer");
         }
         else
         {
@@ -94,25 +89,25 @@ public class FBOParams
             _depthRenderBufferId = EXTFramebufferObject.glGenRenderbuffersEXT();
 
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, _frameBufferId);
-            checkGLError("FBO bind framebuffer");
+            mc.checkGLError("FBO bind framebuffer");
 
             GL11.glBindTexture(textureType, _colorTextureId);
-            checkGLError("FBO bind texture");
+            mc.checkGLError("FBO bind texture");
 
             GL11.glEnable(textureType);
             GL11.glTexParameterf(textureType, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
             GL11.glTexParameterf(textureType, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
             GL11.glTexImage2D(textureType, 0, internalFormat, fboWidth, fboHeight, 0, baseFormat, bufferType, (java.nio.ByteBuffer) null);
-            System.out.println("[Minecrift] FBO '" + fboName + "': w: " + fboWidth + ", h: " + fboHeight);
+            //System.out.println("[Minecrift] FBO '" + fboName + "': w: " + fboWidth + ", h: " + fboHeight);
 
             EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, textureType, _colorTextureId, 0);
 
-            checkGLError("FBO bind texture framebuffer");
+            mc.checkGLError("FBO bind texture framebuffer");
 
             EXTFramebufferObject.glBindRenderbufferEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, _depthRenderBufferId);                // bind the depth renderbuffer
             EXTFramebufferObject.glRenderbufferStorageEXT(EXTFramebufferObject.GL_RENDERBUFFER_EXT, GL14.GL_DEPTH_COMPONENT24, fboWidth, fboHeight); // get the data space for it
             EXTFramebufferObject.glFramebufferRenderbufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, EXTFramebufferObject.GL_RENDERBUFFER_EXT, _depthRenderBufferId);
-            checkGLError("FBO bind depth framebuffer");
+            mc.checkGLError("FBO bind depth framebuffer");
         }
 
         if (!checkFramebufferStatus())
@@ -121,18 +116,18 @@ public class FBOParams
             System.out.println("[Minecrift] FAILED to create framebuffer!!");
             throw new Exception("Failed to create framebuffer");
         }
-	}
-	
-	public void bindRenderTarget()
-	{
+    }
+
+    public void bindRenderTarget()
+    {
         if (fboSupport == FBO_SUPPORT.USE_GL30)
             GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, _frameBufferId );
         else
             EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, _frameBufferId);
-	}
-	
-	public void bindTexture()
-	{
+    }
+
+    public void bindTexture()
+    {
         OpenGlHelper.setActiveTexture(GL13.GL_TEXTURE0);
         GL11.glBindTexture(_textureType, _colorTextureId);
     }
@@ -147,9 +142,9 @@ public class FBOParams
     {
         return _colorTextureId;
     }
-	
-	public void delete()
-	{
+
+    public void delete()
+    {
         if (_depthRenderBufferId != -1)
         {
             if (fboSupport == FBO_SUPPORT.USE_GL30)
@@ -175,7 +170,7 @@ public class FBOParams
 
             _frameBufferId = -1;
         }
-	}
+    }
 
     // check FBO completeness
     public static boolean checkFramebufferStatus()
@@ -185,7 +180,7 @@ public class FBOParams
         switch(status)
         {
             case ARBFramebufferObject.GL_FRAMEBUFFER_COMPLETE:
-                System.out.println("[Minecrift] Framebuffer complete.");
+                //System.out.println("[Minecrift] Framebuffer complete.");
                 return true;
 
             case ARBFramebufferObject.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
@@ -219,22 +214,6 @@ public class FBOParams
             default:
                 System.out.println("[ERROR] Framebuffer incomplete: Unknown error.");
                 return false;
-        }
-    }
-
-    /**
-     * Checks for an OpenGL error. If there is one, prints the error ID and error string.
-     */
-    public void checkGLError(String par1Str)
-    {
-        int i = GL11.glGetError();
-
-        if (i != 0)
-        {
-            String s1 = GLU.gluErrorString(i);
-            logger.error("########## GL ERROR ##########");
-            logger.error("@ " + par1Str);
-            logger.error(i + ": " + s1);
         }
     }
 

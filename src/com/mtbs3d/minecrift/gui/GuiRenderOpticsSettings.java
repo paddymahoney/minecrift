@@ -4,7 +4,7 @@
  */
 package com.mtbs3d.minecrift.gui;
 
-import com.mtbs3d.minecrift.MCOculus;
+import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.settings.VRSettings;
@@ -23,6 +23,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     private PluginModeChangeButton pluginModeChangeButton;
 
     static VRSettings.VrOptions[] defaultDisplayOptions = new VRSettings.VrOptions[] {
+            //VRSettings.VrOptions.USE_ORTHO_GUI,
+            VRSettings.VrOptions.FSAA,
+            VRSettings.VrOptions.FSAA_SCALEFACTOR,
     };
 
     static VRSettings.VrOptions[] oculusDK2DisplayOptions = new VRSettings.VrOptions[]{
@@ -30,6 +33,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.ENABLE_DIRECT,
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
             VRSettings.VrOptions.MIRROR_DISPLAY,
+            VRSettings.VrOptions.FSAA,
+            VRSettings.VrOptions.FSAA_SCALEFACTOR,
             VRSettings.VrOptions.CHROM_AB_CORRECTION,
             VRSettings.VrOptions.TIMEWARP,
             VRSettings.VrOptions.VIGNETTE,
@@ -45,6 +50,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.ENABLE_DIRECT,
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
             VRSettings.VrOptions.MIRROR_DISPLAY,
+            VRSettings.VrOptions.FSAA,
+            VRSettings.VrOptions.FSAA_SCALEFACTOR,
             VRSettings.VrOptions.CHROM_AB_CORRECTION,
             VRSettings.VrOptions.TIMEWARP,
             VRSettings.VrOptions.VIGNETTE,
@@ -70,12 +77,12 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
 
         // this.screenTitle = var1.translateKey("options.videoTitle");
         this.buttonList.clear();
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 168, "Done"));
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, this.width / 2 - 100, this.height / 6 + 148, "Reset To Defaults"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 180, "Done"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, this.width / 2 - 100, this.height / 6 + 160, "Reset To Defaults"));
 
         pluginModeChangeButton = new PluginModeChangeButton(ID_GENERIC_MODE_CHANGE, this.width / 2 - 78, this.height / 6 - 14, (List<IBasePlugin>)(List<?>) PluginManager.thePluginManager.stereoProviderPlugins, this.guivrSettings.stereoProviderPluginID);
         this.buttonList.add(pluginModeChangeButton);
-        pluginModeChangeButton.enabled = false; // TODO: Allow changes once mono provider working
+        pluginModeChangeButton.enabled = true;
 
         VRSettings.VrOptions[] var10 = null;
         if( Minecraft.getMinecraft().stereoProvider instanceof MCOculus )
@@ -116,6 +123,12 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                     maxValue = 2.5f;
                     increment = 0.1f;
                 }
+                else if (var8 == VRSettings.VrOptions.FSAA_SCALEFACTOR) // TODO: Only 2X is currently scaling GUI correctly (on AUTO gui size only)
+                {
+                    minValue = 1.1f;
+                    maxValue = 2.5f;
+                    increment = 0.1f;
+                }
 
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.setEventHandler(this);
@@ -126,7 +139,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             {
                 if (var8 == VRSettings.VrOptions.HMD_NAME_PLACEHOLDER)
                 {
-                    GuiSmallButtonEx button = new GuiSmallButtonEx(999, width, height, var8, productName);
+                    GuiSmallButtonEx button = new GuiSmallButtonEx(9999, width, height, var8, productName);
                     button.enabled = false;
                     this.buttonList.add(button);
                 }
@@ -165,10 +178,11 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useLowPersistence = true;
                 minecraft.vrSettings.useDynamicPrediction = true;
                 minecraft.vrSettings.renderScaleFactor = 1.1f;
-                minecraft.vrSettings.useDirectRenderMode = false;
-                minecraft.vrSettings.useDisplayMirroring = false;
+                minecraft.vrSettings.useDisplayMirroring = true;
                 minecraft.vrSettings.useDisplayOverdrive = true;
                 minecraft.vrSettings.useHighQualityDistortion = true;
+                minecraft.vrSettings.useFsaa = false;
+                minecraft.vrSettings.fsaaScaleFactor = 1.4f;
 
                 minecraft.reinitFramebuffers = true;
 			    this.guivrSettings.saveOptions();
@@ -177,7 +191,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             {
                 Minecraft.getMinecraft().vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
                 Minecraft.getMinecraft().vrSettings.saveOptions();
+                Minecraft.getMinecraft().stereoProvider.resetRenderConfig();
                 Minecraft.getMinecraft().stereoProvider = PluginManager.configureStereoProvider(Minecraft.getMinecraft().vrSettings.stereoProviderPluginID);
+                minecraft.reinitFramebuffers = true;
                 this.reinit = true;
             }
             else if (par1GuiButton.id == VRSettings.VrOptions.OTHER_RENDER_SETTINGS.returnEnumOrdinal())
@@ -199,7 +215,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 num == VRSettings.VrOptions.ENABLE_DIRECT ||
                 num == VRSettings.VrOptions.LOW_PERSISTENCE ||
                 num == VRSettings.VrOptions.DYNAMIC_PREDICTION ||
-                num == VRSettings.VrOptions.OVERDRIVE_DISPLAY)
+                num == VRSettings.VrOptions.OVERDRIVE_DISPLAY ||
+                num == VRSettings.VrOptions.FSAA)
 	        {
                 minecraft.reinitFramebuffers = true;
 	        }
@@ -222,7 +239,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     @Override
     public void event(int id, VRSettings.VrOptions enumm)
     {
-        if (enumm == VRSettings.VrOptions.RENDER_SCALEFACTOR)
+        if (enumm == VRSettings.VrOptions.RENDER_SCALEFACTOR ||
+            enumm == VRSettings.VrOptions.FSAA_SCALEFACTOR)
         {
             Minecraft.getMinecraft().reinitFramebuffers = true;
         }
@@ -235,6 +253,20 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     	if( e != null )
     	switch(e)
     	{
+        case FSAA:
+            return new String[] {
+                    "Full-Scene AntiAliasing (supersampling)",
+                    "  Recommended: ON; greatly improves visual quality at",
+                    "  the expense of greatly increased rendering cost.",
+                    "  ON:  game is rendered at a higher resolution internally.",
+                    "  OFF: game is rendered at the native resolution.",
+                    "Will only be available if supported by your graphics",
+                    "driver."};
+        case FSAA_SCALEFACTOR:
+            return new String[] {
+                    "Full-Screen AntiAliasing Render Scale",
+                    "  What multiple of native resolution should be rendered?",
+                    "  Recommended value: 4X"};
     	case CHROM_AB_CORRECTION:
     		return new String[] {
     				"Chromatic aberration correction", 
@@ -322,14 +354,13 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 return new String[] {
                         "Configure IPD and FOV border settings."
                 };
-    	// TODO: Add others
     	default:
     		return null;
     	}
     	else
     	switch(buttonId)
     	{
-	    	case 201:
+	    	case ID_GENERIC_DEFAULTS:
 	    		return new String[] {
 	    			"Resets all values on this screen to their defaults"
 	    		};
@@ -342,13 +373,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     {
         String s = var8.getEnumString();
 
-        if( ! (Minecraft.getMinecraft().stereoProvider instanceof MCOculus) )
-        {
-            return true;
-        }
-
-        if (var8 == VRSettings.VrOptions.ENABLE_DIRECT ||
-            var8 == VRSettings.VrOptions.MIRROR_DISPLAY)
+        if (var8 == VRSettings.VrOptions.ENABLE_DIRECT)
         {
             return false;
         }

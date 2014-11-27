@@ -2,7 +2,7 @@
  * Copyright 2013 Mark Browning, StellaArtois
  * Licensed under the LGPL 3.0 or later (See LICENSE.md for details)
  */
-package com.mtbs3d.minecrift;
+package com.mtbs3d.minecrift.provider;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,11 +35,11 @@ import com.mtbs3d.minecrift.settings.VRSettings;
 public class MCController extends BasePlugin implements IBodyAimController
 {
     public static final Logger logger = LogManager.getLogger();
-	float aimOffset = 0.0f;
 	JoystickAim joyAim;
 	boolean hasControllers = false;
 	ControlBinding nextBind = null;
-	
+	Field fieldCreated = null;
+
 	HashMap<String,String> bindingSaves = new HashMap<String,String>();
 	class BindingMap {
 		HashMap<Pair<Integer,Boolean>,ControlBinding> axisBinds = new HashMap<Pair<Integer,Boolean>,ControlBinding>();
@@ -303,6 +304,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 	@Override
 	public boolean init() {
 		try {
+		    setCreated(false);
 			Controllers.create();
 			hasControllers = Controllers.getControllerCount()> 0;
 
@@ -312,7 +314,35 @@ public class MCController extends BasePlugin implements IBodyAimController
 		}
 		return isInitialized();
 	}
-	
+
+    public void setupControllerCreated()
+    {
+        try
+        {
+            if (fieldCreated == null) {
+                fieldCreated = Controllers.class.getDeclaredField("created");
+                fieldCreated.setAccessible(true);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public void setCreated(boolean created)
+    {
+        setupControllerCreated();
+        if (fieldCreated != null)
+        {
+            try {
+                fieldCreated.set(null, (Object) created);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 	@Override
 	public boolean isInitialized() {
 		return hasControllers;
@@ -362,6 +392,13 @@ public class MCController extends BasePlugin implements IBodyAimController
 			}
 		}
 		Controllers.clearEvents();
+
+        // Update the aim / pitch
+        if(JoystickAim.selectedJoystickMode != null)
+            JoystickAim.selectedJoystickMode.update( 1f );
+
+        // Update gui cursor
+        this.screenNavigator.guiCursor();
 	}
 
 	private void saveBindings() {
@@ -470,25 +507,24 @@ public class MCController extends BasePlugin implements IBodyAimController
 
 	@Override
 	public void setBodyYawDegrees(float yawOffset) {
-		this.aimOffset = yawOffset;
+		JoystickAim.setAimYawOffset(yawOffset);
 	}
 
 	@Override
 	public float getBodyPitchDegrees() {
-		if( VRSettings.inst.allowMousePitchInput)
-			return JoystickAim.getAimPitch();
-		return 0.0f;
+    	return JoystickAim.getBodyPitch();
 	}
 
 	@Override
 	public float getAimYaw() {
-		return aimOffset + JoystickAim.getAimYaw();
+		return JoystickAim.getAimYaw();
 	}
 
 	@Override
 	public float getAimPitch() {
 		return JoystickAim.getAimPitch();
 	}
+
 	@Override
 	public void mapBinding(ControlBinding binding) {
 		nextBind = binding;
@@ -496,4 +532,28 @@ public class MCController extends BasePlugin implements IBodyAimController
 
     public void beginFrame() { polledThisFrame = false; }
     public void endFrame() { }
+
+    @Override
+    public double ratchetingYawTransitionPercent()
+    {
+        if (joyAim == null)
+            return -1d;
+
+        return this.joyAim.getYawTransitionPercent();
+    }
+
+    @Override
+    public double ratchetingPitchTransitionPercent()
+    {
+        if (joyAim == null)
+            return -1d;
+
+        return this.joyAim.getPitchTransitionPercent();
+    }
+
+    @Override
+    public boolean initBodyAim()
+    {
+        return init();
+    }
 }

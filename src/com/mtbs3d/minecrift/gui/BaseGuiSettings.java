@@ -23,6 +23,8 @@ public class BaseGuiSettings extends GuiScreen
     public static final int ID_GENERIC_RESETORIGIN = 9002;
     public static final int ID_GENERIC_RECALIBRATE = 9003;
     public static final int ID_GENERIC_DEFAULTS    = 9004;
+    public static final int ID_GENERIC_REMAP       = 9005;
+    public static final int ID_GENERIC_REINIT      = 9006;
 
     private int lastMouseX = 0;
     private int lastMouseY = 0;

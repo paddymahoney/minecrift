@@ -19,66 +19,70 @@
  
  public class Framebuffer
  {
-@@ -20,8 +28,26 @@
+@@ -20,8 +28,28 @@
      public int framebufferFilter;
      private static final String __OBFID = "CL_00000959";
  
--    public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_)
-+    /** Minecrift **/
++    /** MINECRIFT */
 +    public String name;
 +    public boolean genMipMaps = false;
 +    public boolean multiSample = false;
 +    public int multiSampleCount = 0;
 +    public int textureType = GL11.GL_TEXTURE_2D;
++	/** END MINECRIFT */
 +
-+    public Framebuffer(/*String name,*/ int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_)
-+    {
+     public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_)
+     {
++	/** MINECRIFT */
 +        this(p_i45078_1_, p_i45078_2_, p_i45078_3_, false, false, 0);
 +    }
 +
-+    public Framebuffer(/*String name,*/ int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps)
-     {
++    public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps)
++    {
 +        this(p_i45078_1_, p_i45078_2_, p_i45078_3_, generateMipMaps, false, 0);
 +    }
 +
-+    public Framebuffer(/*String name,*/ int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps, boolean multisample, int multisamplecount)
++    public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps, boolean multisample, int multisamplecount)
 +    {
-+        //this.name = name;
++	/** END MINECRIFT */
          this.useDepth = p_i45078_3_;
          this.framebufferObject = -1;
          this.framebufferTexture = -1;
-@@ -31,6 +57,15 @@
+@@ -31,6 +59,15 @@
          this.framebufferColor[1] = 1.0F;
          this.framebufferColor[2] = 1.0F;
          this.framebufferColor[3] = 0.0F;
 +
-+        /** Minecrift **/
++        /** MINECRIFT */
 +        this.genMipMaps = generateMipMaps;
 +        this.multiSample = multisample;
 +        if (this.multiSample) {
 +            this.multiSampleCount = multisamplecount;
 +            this.textureType = GL32.GL_TEXTURE_2D_MULTISAMPLE;
 +        }
-+
++		/** END MINECRIFT */
          this.createBindFramebuffer(p_i45078_1_, p_i45078_2_);
      }
  
-@@ -51,7 +86,6 @@
+@@ -51,7 +88,9 @@
              }
  
              this.createFramebuffer(p_147613_1_, p_147613_2_);
 -            this.checkFramebufferComplete();
++			/** MINECRIFT *
++			this.checkFramebufferComplete();
++			** END MINECRIFT */
              OpenGlHelper.func_153171_g(OpenGlHelper.field_153198_e, 0);
          }
      }
-@@ -97,43 +131,72 @@
+@@ -97,43 +136,79 @@
          }
          else
          {
 -            this.framebufferObject = OpenGlHelper.func_153165_e();
--            this.framebufferTexture = TextureUtil.glGenTextures();
++			/** MINECRIFT */
 +            this.framebufferObject = OpenGlHelper.func_153165_e();      // GL30.glGenFramebuffers()
-+            this.framebufferTexture = TextureUtil.glGenTextures();      // GL11.glGenTextures()
+             this.framebufferTexture = TextureUtil.glGenTextures();
  
              if (this.useDepth)
              {
@@ -130,18 +134,23 @@
 +            this.checkFramebufferComplete();
              this.framebufferClear();
              this.unbindFramebufferTexture();
++			/** END MINECRIFT */
          }
-     }
- 
++		
++    }
++
++	/** MINECRIFT */
 +    public void genMipMaps()
 +    {
 +        GL30.glGenerateMipmap(this.textureType);    // TODO: Minecrift - Check GLContext capabilities
-+    }
-+
+     }
++	/** END MINECRIFT */
+ 
      public void setFramebufferFilter(int p_147607_1_)
      {
          if (OpenGlHelper.isFramebufferEnabled())
          {
++			/** MINECRIFT */
              this.framebufferFilter = p_147607_1_;
 -            GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.framebufferTexture);
 -            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, (float)p_147607_1_);
@@ -157,102 +166,82 @@
 +                GL11.glTexParameterf(this.textureType, GL11.GL_TEXTURE_WRAP_T, 10496.0F);
 +            }
 +            GL11.glBindTexture(this.textureType, 0);
++			/** END MINECRIFT */
          }
      }
  
-@@ -159,6 +222,10 @@
+@@ -159,6 +234,12 @@
              {
                  throw new RuntimeException("GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER");
              }
++			/** MINECRIFT */
 +            else if (var1 == GL30.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE) // TODO: Minecrift - need to handle older OpenGL versions etc
 +            {
 +                throw new RuntimeException("GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
 +            }
++			/** END MINECRIFT */
              else
              {
                  throw new RuntimeException("glCheckFramebufferStatus returned unknown status:" + var1);
-@@ -168,22 +235,26 @@
+@@ -168,18 +249,22 @@
  
      public void bindFramebufferTexture()
      {
-+        //System.out.println("Binding texture of: " + name);
++        /** MINECRIFT */
          if (OpenGlHelper.isFramebufferEnabled())
          {
 -            GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.framebufferTexture);
 +            GL11.glBindTexture(this.textureType, this.framebufferTexture);
          }
++		/** END MINECRIFT */
      }
  
      public void unbindFramebufferTexture()
      {
-+        //System.out.println("Unbinding texture of: " + name);
++		/** MINECRIFT */
          if (OpenGlHelper.isFramebufferEnabled())
          {
 -            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 +            GL11.glBindTexture(this.textureType, 0);
          }
++		/** END MINECRIFT */
      }
  
      public void bindFramebuffer(boolean p_147610_1_)
-     {
-+        //Minecraft.getMinecraft().lastFB = name;
-+        //System.out.println("Binding framebuffer of: " + name);
-         if (OpenGlHelper.isFramebufferEnabled())
-         {
-             OpenGlHelper.func_153171_g(OpenGlHelper.field_153198_e, this.framebufferObject);
-@@ -197,6 +268,8 @@
- 
-     public void unbindFramebuffer()
-     {
-+        //Minecraft.getMinecraft().lastFB = "main";
-+        //System.out.println("Unbinding framebuffer " + name);
-         if (OpenGlHelper.isFramebufferEnabled())
-         {
-             OpenGlHelper.func_153171_g(OpenGlHelper.field_153198_e, 0);
-@@ -213,6 +286,12 @@
+@@ -213,6 +298,13 @@
  
      public void framebufferRender(int p_147615_1_, int p_147615_2_)
      {
-+		/** Minecrift **/
++	/** MINECRIFT */
 +        framebufferRender(0, p_147615_1_, p_147615_2_, 0);
 +    }
 +
 +    public void framebufferRender(int left, int p_147615_1_, int p_147615_2_, int top)
 +    {
++	/** END MINECRIFT */
          if (OpenGlHelper.isFramebufferEnabled())
          {
              GL11.glColorMask(true, true, true, false);
-@@ -224,8 +303,8 @@
+@@ -224,8 +316,10 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glLoadIdentity();
              GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
 -            GL11.glViewport(0, 0, p_147615_1_, p_147615_2_);
 -            GL11.glEnable(GL11.GL_TEXTURE_2D);
++			/** MINECRIFT */
 +            GL11.glViewport(left, top, p_147615_1_, p_147615_2_);
 +            GL11.glEnable(this.textureType);
++			/** END MINECRIFT */
              GL11.glDisable(GL11.GL_LIGHTING);
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glDisable(GL11.GL_BLEND);
-@@ -243,12 +322,14 @@
-             var7.addVertexWithUV((double)var3, (double)var4, 0.0D, (double)var5, 0.0D);
-             var7.addVertexWithUV((double)var3, 0.0D, 0.0D, (double)var5, (double)var6);
-             var7.addVertexWithUV(0.0D, 0.0D, 0.0D, 0.0D, (double)var6);
-+            //System.out.println("framebufferRender of " + name + " -> " + Minecraft.getMinecraft().lastFB);
-             var7.draw();
-             this.unbindFramebufferTexture();
-             GL11.glDepthMask(true);
-             GL11.glColorMask(true, true, true, true);
-         }
-     }
-+	/** end Minecrift **/
- 
-     public void framebufferClear()
-     {
-@@ -265,4 +346,42 @@
+@@ -265,4 +359,44 @@
          GL11.glClear(var1);
          this.unbindFramebuffer();
      }
 +
++	/** MINECRIFT ADDITIONS BELOW */
++	
 +    public void func_153186_a(int p_153186_0_, int p_153186_1_, int p_153186_2_, int p_153186_3_)
 +    {
 +        if (OpenGlHelper.framebufferSupported)

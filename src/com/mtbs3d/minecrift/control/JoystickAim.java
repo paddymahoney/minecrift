@@ -5,23 +5,18 @@
 package com.mtbs3d.minecrift.control;
 
 import com.mtbs3d.minecrift.settings.VRSettings;
-import net.minecraft.client.Minecraft;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 
-public class JoystickAim {
-	static public float aimPitch = 0.0f;
-	static public float aimYaw   = 0.0f;
-	static public float bodyYaw  = 0.0f;
-	static float lastAimPitch = 0.0f;
-	static float lastAimYaw   = 0.0f;
-	static float lastBodyYaw  = 0.0f;
+public class JoystickAim extends Aim {
 
-	static float aimPitchRate = 0.0f;
-	static float aimYawRate = 0.0f;
-	static boolean holdCenter = false;
+    static public float aimPitchRate = 0.0f;
+    static public float aimYawRate = 0.0f;
+    static public float aimPitchAdd = 0f;
+    static public float aimYawAdd = 0f;
 
-	Minecraft mc = Minecraft.getMinecraft();
-	static protected float headYaw;
-	static protected float headPitch;
+    protected int aimType = VRSettings.AIM_TYPE_TIGHT;
+
 	public static class JoyAimPitchBinding extends ControlBinding {
 		
 		@Override
@@ -60,7 +55,7 @@ public class JoystickAim {
 		}
 		
 	}
-	
+
 	public static class JoyAimCenterBinding extends ControlBinding {
 		public JoyAimCenterBinding() {
 			super("Center Aim (hold)","key.aimcenter");
@@ -73,80 +68,25 @@ public class JoystickAim {
 
 		@Override
 		public void setState(boolean state) {
-			holdCenter = state;
+			setHoldCenter(state);
 		}
 	}
 	
 	public static JoystickAim selectedJoystickMode;
 
 	public void update( float partialTicks ) {
-		
-        float aimYawAdd = 2*aimYawRate * VRSettings.inst.joystickSensitivity * partialTicks;
-        float aimPitchAdd = 2*aimPitchRate * VRSettings.inst.joystickSensitivity * partialTicks;
+        getInput(partialTicks);
+        super.updateAim(aimType, aimPitchAdd, aimYawAdd, aimPitchRate, aimYawRate);
+    }
 
-		
-    	headPitch = this.mc.headTracker.getHeadPitchDegrees();
-    	if( holdCenter ) {
-        	aimPitch = headPitch;
-    	} else if( this.mc.vrSettings.keyholeHeight > 0 )
-        {
-        	aimPitch = lastAimPitch + aimPitchAdd;
-        	float keyholeBot = Math.max(-90,headPitch - this.mc.vrSettings.keyholeHeight /2);
-        	float keyholeTop = Math.min(90,headPitch + this.mc.vrSettings.keyholeHeight /2);
-        	if( aimPitch > keyholeTop )
-        		aimPitch = keyholeTop;
-        	if( aimPitch < keyholeBot )
-        		aimPitch = keyholeBot;
-        } else {
-        	aimPitch = lastAimPitch + aimPitchAdd;
-			if( aimPitch > 90.0f )
-				aimPitch = 90.0f;
-			else if( aimPitch < -90.0f )
-				aimPitch = -90.0f;
-        }
+    public void updateTick()
+    {
+        update(1.0f);
+    }
 
-    	headYaw = this.mc.headTracker.getHeadYawDegrees();
-    	if( holdCenter ) {
-        	aimYaw = headYaw;
-    	} else if( this.mc.vrSettings.aimKeyholeWidthDegrees > 0 ) {
-        	float keyholeYawWidth = this.mc.vrSettings.aimKeyholeWidthDegrees/2;
-        	float keyholeYawLeft = headYaw - keyholeYawWidth;
-        	float keyholeYawRight = headYaw + keyholeYawWidth;
-
-            aimYaw = lastAimYaw + aimYawAdd;
-            if( aimYaw > keyholeYawRight )
-            {
-            	bodyYaw = lastBodyYaw + 0.75f*(aimYaw - keyholeYawRight);
-            	aimYaw = keyholeYawRight;
-            }
-            else if( aimYaw < keyholeYawLeft )
-            {
-            	bodyYaw = lastBodyYaw + 0.75f*(aimYaw - keyholeYawLeft);
-            	aimYaw = keyholeYawLeft;
-            }
-        } else {
-        	aimYaw = 0;
-            bodyYaw = lastBodyYaw + aimYawAdd;
-        }
-        bodyYaw %= 360;
-	}
-
-	static public float getAimPitch() {
-		return aimPitch;
-	}
-	
-	static public float getAimYaw() {
-		return bodyYaw + aimYaw;
-	}
-	
-	static public float getBodyYaw() {
-		return bodyYaw;
-	}
-
-	public void updateTick() {
-		update(1.0f);
-		lastAimPitch = aimPitch; 
-		lastAimYaw = aimYaw; 
-		lastBodyYaw = bodyYaw;
-	}
+    protected void getInput(float partialTicks)
+    {
+        aimYawAdd = 2 * aimYawRate * VRSettings.inst.joystickSensitivity * partialTicks;
+        aimPitchAdd = 2 * aimPitchRate * VRSettings.inst.joystickSensitivity * partialTicks;
+    }
 }

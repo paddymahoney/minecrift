@@ -4,10 +4,10 @@
      public boolean sneak;
      private static final String __OBFID = "CL_00000936";
  
-+    /** Minecrift **/
++    /** MINECRIFT */
 +    public float baseMoveStrafe = 0.0F;
 +    public float baseMoveForward = 0.0F;
-+    /** end Minecrift **/
++    /** END MINECRIFT */
 +
      public void updatePlayerMoveState() {}
  }

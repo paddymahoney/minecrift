@@ -2,13 +2,14 @@
  * Copyright 2013 Mark Browning, StellaArtois
  * Licensed under the LGPL 3.0 or later (See LICENSE.md for details)
  */
-package com.mtbs3d.minecrift;
+package com.mtbs3d.minecrift.provider;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import com.mtbs3d.minecrift.api.*;
 import com.mtbs3d.minecrift.control.ControlBinding;
+import com.mtbs3d.minecrift.control.DiscreteAngle;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import com.sixense.utils.enums.EnumControllerDesc;
 import de.fruitfly.ovr.enums.EyeType;
@@ -54,6 +55,9 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	
     private boolean resetOrigin = true;
     private boolean resetOriginRotation = true;
+
+    private DiscreteAngle discreteYaw = new DiscreteAngle();
+    private DiscreteAngle discretePitch = new DiscreteAngle();
 
 	//latest data
 	
@@ -752,4 +756,22 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 
     public void beginFrame() { polledThisFrame = false; }
     public void endFrame() { }
+
+    @Override
+    public double ratchetingYawTransitionPercent()
+    {
+        return -1d;//this.discreteYaw._percent;
+    }
+
+    @Override
+    public double ratchetingPitchTransitionPercent()
+    {
+        return -1d;//this.discretePitch._percent;
+    }
+
+    @Override
+    public boolean initBodyAim()
+    {
+        return init();
+    }
 }

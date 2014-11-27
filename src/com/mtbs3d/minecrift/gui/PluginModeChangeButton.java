@@ -35,13 +35,18 @@ public class PluginModeChangeButton extends GuiSmallButtonEx {
 
         if( result )
         {
-	        //Cycle iterator
-	        if( !iterPlugin.hasNext())
-	        	iterPlugin = pluginList.iterator();
-	    	currentPlugin = iterPlugin.next();
-			displayString = "Mode: "+ currentPlugin.getName();
+            setNextPlugin();
         }
 
         return result;
+    }
+
+    public void setNextPlugin()
+    {
+        //Cycle iterator
+        if( !iterPlugin.hasNext())
+            iterPlugin = pluginList.iterator();
+        currentPlugin = iterPlugin.next();
+        displayString = "Mode: "+ currentPlugin.getName();
     }
 }

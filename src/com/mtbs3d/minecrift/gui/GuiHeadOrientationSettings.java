@@ -6,15 +6,14 @@ package com.mtbs3d.minecrift.gui;
 
 import java.util.List;
 
-import com.mtbs3d.minecrift.MCHydra;
-import com.mtbs3d.minecrift.MCOculus;
+import com.mtbs3d.minecrift.provider.MCHydra;
+import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.util.StringTranslate;
 
 public class GuiHeadOrientationSettings  extends BaseGuiSettings implements GuiEventEx
 {

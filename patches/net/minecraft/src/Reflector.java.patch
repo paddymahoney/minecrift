@@ -22,7 +22,7 @@
      public static ReflectorClass ForgeItemStack = new ReflectorClass(ItemStack.class);
      public static ReflectorMethod ForgeItemStack_hasEffect = new ReflectorMethod(ForgeItemStack, "hasEffect", new Class[] {Integer.TYPE});
  
-+    /** Minecrift **/
++    /** MINECRIFT */
 +    public static ReflectorClass ForgeIntegratedServer = new ReflectorClass("net.minecraftforge.client.integrated.IntegratedServer");
 +    public static ReflectorMethod ForgeIntegratedServer_isServerStopped = new ReflectorMethod(ForgeIntegratedServer, "isServerStopped");
 +    public static ReflectorClass ForgeGuiIngame = new ReflectorClass("net.minecraftforge.client.GuiIngameForge");
@@ -100,7 +100,7 @@
 +    {
 +        return EventBus.exists();
 +    }
-+    /** end Minecrift **/
++    /** END MINECRIFT */
 +
      public static void callVoid(ReflectorMethod refMethod, Object ... params)
      {

@@ -193,7 +193,7 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
                 case RENDER_FULL_FIRST_PERSON_MODEL_MODE:
                     return new String[] {
                             "Whether to render the full first-person model or",
-                            "other variants (Ctrl-H).",
+                            "other variants HOTKEY - RCtrl-H",
                             "  Full: A full first-person model is rendered.",
                             "        However some animations may not yet be",
                             "        supported (e.g. holding a map).",

@@ -38,8 +38,8 @@ public enum VROption {
     CHROM_AB_CORRECTION("Chrom. Ab. Correction", false, true),
     FOV_CHANGE("FOV Scale", true, false),
     DISTORTION_FIT_POINT("Distortion Border", true, false),
-    SUPERSAMPLING("FSAA", false, true),
-    SUPERSAMPLE_SCALEFACTOR("FSAA Render Scale", true, false),
+    FSAA("FSAA", false, true),
+    FSAA_SCALEFACTOR("FSAA Render Scale", true, false),
 
     //Head orientation tracking
     HEAD_TRACK_PREDICTION("Head Track Prediction", false, true),

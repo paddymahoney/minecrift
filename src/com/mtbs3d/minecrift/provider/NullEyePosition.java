@@ -2,7 +2,7 @@
  * Copyright 2013 Mark Browning
  * Licensed under the LGPL 3.0 or later (See LICENSE.md for details)
  */
-package com.mtbs3d.minecrift;
+package com.mtbs3d.minecrift.provider;
 
 import java.io.File;
 

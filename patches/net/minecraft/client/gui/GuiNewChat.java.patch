@@ -9,13 +9,15 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.util.ChatComponentText;
-@@ -47,10 +49,17 @@
+@@ -47,10 +49,19 @@
                      var3 = true;
                  }
  
 -                float var7 = this.func_146244_h();
 -                int var8 = MathHelper.ceiling_float_int((float)this.func_146228_f() / var7);
-+                /* Minecrift */
++                /** MINECRIFT **/
++                if (!Minecraft.getMinecraft().vrSettings.chatFadeAway)
++                    var3 = true;
 +                float var7 = this.func_146244_h();//chat scale
 +                int chatWidthPixels = this.func_146228_f() ;
 +                int chatFullHeightPixels = func_146243_b(this.field_146247_f.gameSettings.chatHeightFocused );
@@ -26,7 +28,7 @@
                  GL11.glPushMatrix();
 -                GL11.glTranslatef(2.0F, 20.0F, 0.0F);
 +                GL11.glTranslatef(2.0F + offsetX, 20 + offsetY, 0.0F);
-+                /* end Minecrift */
++                /** END MINECRIFT **/
                  GL11.glScalef(var7, var7, 1.0F);
                  int var9;
                  int var11;

@@ -23,6 +23,7 @@ public abstract class ControlBinding {
 	
 	public static void CreateBindingList( GameSettings settings )
 	{
+        // In game
 		bindings.add( new WalkForwardBinding());
 		bindings.add( new WalkBackwardBinding());
 		bindings.add( new WalkLeftBinding());
@@ -43,6 +44,10 @@ public abstract class ControlBinding {
 		bindings.add( new MenuBinding() );
 		bindings.add( new KeyControlBinding( settings.keyBindPlayerList ));
 		//TODO: read from settings.keyBindings, instead, which is populated by Forge.
+
+        // Gui navigation related
+        bindings.add( new GuiScreenNavigator.GuiCursorAimPitchBinding() );
+        bindings.add( new GuiScreenNavigator.GuiCursorAimYawBinding() );
 		bindings.add( new GuiScreenNavigator.GuiUpBinding() );
 		bindings.add( new GuiScreenNavigator.GuiDownBinding() );
 		bindings.add( new GuiScreenNavigator.GuiLeftBinding() );
@@ -51,7 +56,6 @@ public abstract class ControlBinding {
 		bindings.add( new GuiScreenNavigator.GuiAltSelectBinding() );
 		bindings.add( new GuiScreenNavigator.GuiBackBinding() );
 		bindings.add( new GuiScreenNavigator.GuiShiftBinding() );
-		
 	}
 	
 	/**

@@ -4,7 +4,7 @@
              var8.printStackTrace();
          }
  
--        WrUpdateThread.ThreadUpdateListener updateListener = new WrUpdateThread.ThreadUpdateListener((WrUpdateThread.NamelessClass476064545)null);
+-        WrUpdateThread.ThreadUpdateListener updateListener = new WrUpdateThread.ThreadUpdateListener((WrUpdateThread.NamelessClass1828619954)null);
 +        WrUpdateThread.ThreadUpdateListener updateListener = new WrUpdateThread.ThreadUpdateListener((WrUpdateThread.NamelessClass1585710720)null);
  
          while (!Thread.interrupted() && !this.terminated)
@@ -13,7 +13,7 @@
          this.terminated = true;
      }
  
--    static class NamelessClass476064545
+-    static class NamelessClass1828619954
 +    static class NamelessClass1585710720
      {
      }
@@ -22,7 +22,7 @@
              this.updateControl = updateControl;
          }
  
--        ThreadUpdateControl(WrUpdateThread.NamelessClass476064545 x1)
+-        ThreadUpdateControl(WrUpdateThread.NamelessClass1828619954 x1)
 +        ThreadUpdateControl(WrUpdateThread.NamelessClass1585710720 x1)
          {
              this();
@@ -31,7 +31,7 @@
  
          private ThreadUpdateListener()
          {
--            this.tuc = WrUpdateThread.this.new ThreadUpdateControl((WrUpdateThread.NamelessClass476064545)null);
+-            this.tuc = WrUpdateThread.this.new ThreadUpdateControl((WrUpdateThread.NamelessClass1828619954)null);
 +            this.tuc = WrUpdateThread.this.new ThreadUpdateControl((WrUpdateThread.NamelessClass1585710720)null);
          }
  
@@ -40,7 +40,7 @@
              WrUpdateThread.this.checkCanWork(this.tuc);
          }
  
--        ThreadUpdateListener(WrUpdateThread.NamelessClass476064545 x1)
+-        ThreadUpdateListener(WrUpdateThread.NamelessClass1828619954 x1)
 +        ThreadUpdateListener(WrUpdateThread.NamelessClass1585710720 x1)
          {
              this();

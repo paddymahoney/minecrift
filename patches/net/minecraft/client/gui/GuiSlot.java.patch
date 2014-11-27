@@ -1,6 +1,13 @@
 --- a/net/minecraft/client/gui/GuiSlot.java
 +++ b/net/minecraft/client/gui/GuiSlot.java
-@@ -9,26 +9,26 @@
+@@ -1,5 +1,6 @@
+ package net.minecraft.client.gui;
+ 
++import com.mtbs3d.minecrift.control.GuiScreenNavigator;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.OpenGlHelper;
+ import net.minecraft.client.renderer.Tessellator;
+@@ -9,26 +10,28 @@
  public abstract class GuiSlot
  {
      private final Minecraft field_148161_k;
@@ -15,6 +22,7 @@
 -    private int field_148156_n;
 -    protected int field_148150_g;
 -    protected int field_148162_h;
++	/** MINECRIFT - COMMENTS ONLY */
 +    protected int field_148155_a;  // width
 +    private int field_148158_l;    // height
 +    protected int field_148153_b;  // top
@@ -43,19 +51,33 @@
 +    private boolean field_148166_t = true;  // showSelectionBox
 +    private boolean field_148165_u;   // hasListHeader
 +    protected int field_148160_j;     // headerPadding
++	/** END MINECRIFT COMMENTS */
      private boolean field_148164_v = true;
      private static final String __OBFID = "CL_00000679";
  
-@@ -106,7 +106,7 @@
+@@ -106,7 +109,9 @@
          this.field_148156_n = p_148134_2_;
      }
  
 -    private void func_148121_k()
++	/** MINECRIFT COMMENTS ONLY */
 +    private void func_148121_k()     // bindAmountScrolled
++	/** END MINECRIFT COMMENTS */
      {
          int var1 = this.func_148135_f();
  
-@@ -291,16 +291,7 @@
+@@ -187,7 +192,9 @@
+ 
+         if (p_148128_1_ > this.field_148152_e && p_148128_1_ < this.field_148151_d && p_148128_2_ > this.field_148153_b && p_148128_2_ < this.field_148154_c)
+         {
+-            if (Mouse.isButtonDown(0) && this.func_148125_i())
++            /** MINECRIFT */   // Allow gui cursor emulation with clickable scroll bars
++            if (( Mouse.isButtonDown(0) || GuiScreenNavigator.selectDepressed )&& this.func_148125_i())
++            /** END MINECRIFT */
+             {
+                 if (this.field_148157_o == -1.0F)
+                 {
+@@ -291,16 +298,7 @@
          GL11.glDisable(GL11.GL_LIGHTING);
          GL11.glDisable(GL11.GL_FOG);
          Tessellator var16 = Tessellator.instance;
@@ -73,7 +95,7 @@
          var9 = this.field_148152_e + this.field_148155_a / 2 - this.func_148139_c() / 2 + 2;
          var10 = this.field_148153_b + 4 - (int)this.field_148169_q;
  
-@@ -472,4 +463,31 @@
+@@ -472,4 +470,32 @@
      {
          return this.field_148149_f;
      }
@@ -92,7 +114,8 @@
 +        var16.draw();
 +    }
 +	
-+	/** Minecrift **/
++	/** MINECRIFT ADDITIONS BELOW */
++	
 +    public int publicGetSize() { return getSize(); }
 +    public int select( int item, boolean dblClick) {
 +        field_148169_q = item * field_148149_f;

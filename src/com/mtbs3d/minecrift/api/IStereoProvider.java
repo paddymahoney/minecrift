@@ -51,4 +51,6 @@ public interface IStereoProvider extends IBasePlugin
     public Matrix4f getMatrix4fProjection(FovPort fov,
                                           float nearClip,
                                           float farClip);
+
+    public double getCurrentTimeSecs();
 }

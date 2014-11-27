@@ -8,16 +8,17 @@
  
      public GuiVideoSettings(GuiScreen par1GuiScreen, GameSettings par2GameSettings)
      {
-@@ -67,7 +66,11 @@
+@@ -67,7 +66,12 @@
  
              if (y.getEnumFloat())
              {
 -                this.buttonList.add(new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y));
-+                /* Minecrift - disable frame rate settings (always VSync) */
++                /** MINECRIFT */ // disable frame rate settings (always VSync) 
 +                GuiOptionSlider slider = new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y);
 +                if (y == GameSettings.Options.FRAMERATE_LIMIT)
 +                    slider.enabled = false;
 +                this.buttonList.add(slider);
++				/** END MINECRIFT */
              }
              else
              {

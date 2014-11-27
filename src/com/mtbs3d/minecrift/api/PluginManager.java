@@ -194,54 +194,6 @@ public class PluginManager implements IEventListener
         }
     }
 
-    public static Posef getEyePose(EyeType eye)
-    {
-        Posef pose = new Posef();
-
-        // Poll all plugins
-        //pollAll(0f);
-
-        // Mark getEyePose with stereo providers
-        for( IBasePlugin p : thePluginManager.allPlugins )
-        {
-            if( p instanceof IStereoProvider && p.isInitialized() )
-                ((IStereoProvider)p).getEyePose(eye);
-        }
-
-        // Pull together position, orientation information (TODO: also body orientation)
-
-        // Get orient first...
-        for( IBasePlugin p : thePluginManager.allPlugins )
-        {
-            if (p instanceof IOrientationProvider && p.isInitialized() ) {
-                Quaternion orient = ((IOrientationProvider) p).getOrientationQuaternion();
-                if (orient != null) {
-                    pose.Orientation.x = orient.x;
-                    pose.Orientation.y = orient.y;
-                    pose.Orientation.z = orient.z;
-                    pose.Orientation.w = orient.w;
-                }
-            }
-        }
-
-        // ...as some position providers also require orientation information
-        for( IBasePlugin p : thePluginManager.allPlugins )
-        {
-            if (p instanceof IEyePositionProvider && p.isInitialized())
-            {
-                Vec3 pos = ((IEyePositionProvider) p).getEyePosition(eye);
-                if (pos != null)
-                {
-                    pose.Position.x = (float) pos.xCoord;
-                    pose.Position.y = (float) pos.yCoord;
-                    pose.Position.z = (float) pos.zCoord;
-                }
-            }
-        }
-
-        return pose;
-    }
-
     public static void endFrameAll()
     {
         for( IBasePlugin p : thePluginManager.allPlugins )

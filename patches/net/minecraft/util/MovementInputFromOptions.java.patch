@@ -1,38 +1,88 @@
 --- a/net/minecraft/util/MovementInputFromOptions.java
 +++ b/net/minecraft/util/MovementInputFromOptions.java
-@@ -1,5 +1,6 @@
+@@ -1,5 +1,7 @@
  package net.minecraft.util;
  
++import com.mtbs3d.minecrift.settings.VRSettings;
 +import net.minecraft.client.Minecraft;
  import net.minecraft.client.settings.GameSettings;
  
  public class MovementInputFromOptions extends MovementInput
-@@ -14,8 +15,9 @@
+@@ -14,8 +16,50 @@
  
      public void updatePlayerMoveState()
      {
 -        this.moveStrafe = 0.0F;
 -        this.moveForward = 0.0F;
-+        /* Minecrift */
++        /** MINECRIFT */
 +        this.moveStrafe = baseMoveStrafe;        // 0.0f;
 +        this.moveForward = baseMoveForward;      // 0.0f;
++
++        if (Minecraft.getMinecraft().vrSettings.movementQuantisation == VRSettings.MOVEMENT_QUANTISATION_1)
++        {
++            this.moveStrafe = this.moveStrafe > 0.95f ? 1f : (this.moveStrafe < -0.95f ? -1f : 0f);
++            this.moveForward = this.moveForward > 0.95f ? 1f : (this.moveForward < -0.95f ? -1f : 0f);
++        }
++        else if (Minecraft.getMinecraft().vrSettings.movementQuantisation == VRSettings.MOVEMENT_QUANTISATION_2)
++        {
++            if (this.moveStrafe > 0.95f) this.moveStrafe = 1f;
++            else if (this.moveStrafe > 0.45f) this.moveStrafe = 0.5f;
++            else if (this.moveStrafe < -0.95f) this.moveStrafe = -1f;
++            else if (this.moveStrafe < -0.45f) this.moveStrafe = -0.5f;
++            else this.moveStrafe = 0f;
++            if (this.moveForward > 0.95f) this.moveForward = 1f;
++            else if (this.moveForward > 0.45f) this.moveForward = 0.5f;
++            else if (this.moveForward < -0.95f) this.moveForward = -1f;
++            else if (this.moveForward < -0.45f) this.moveForward = -0.5f;
++            else this.moveForward = 0f;
++        }
++        else if (Minecraft.getMinecraft().vrSettings.movementQuantisation == VRSettings.MOVEMENT_QUANTISATION_4)
++        {
++            if (this.moveStrafe > 0.95f) this.moveStrafe = 1f;
++            else if (this.moveStrafe > 0.70f) this.moveStrafe = 0.75f;
++            else if (this.moveStrafe > 0.45f) this.moveStrafe = 0.5f;
++            else if (this.moveStrafe > 0.20f) this.moveStrafe = 0.25f;
++            else if (this.moveStrafe < -0.95f) this.moveStrafe = -1f;
++            else if (this.moveStrafe < -0.70f) this.moveStrafe = -0.75f;
++            else if (this.moveStrafe < -0.45f) this.moveStrafe = -0.5f;
++            else if (this.moveStrafe < -0.20f) this.moveStrafe = -0.25f;
++            else this.moveStrafe = 0f;
++            if (this.moveForward > 0.95f) this.moveForward = 1f;
++            else if (this.moveForward > 0.70f) this.moveForward = 0.75f;
++            else if (this.moveForward > 0.45f) this.moveForward = 0.5f;
++            else if (this.moveForward > 0.20f) this.moveForward = 0.25f;
++            else if (this.moveForward < -0.95f) this.moveForward = -1f;
++            else if (this.moveForward < -0.70f) this.moveForward = -0.75f;
++            else if (this.moveForward < -0.45f) this.moveForward = -0.5f;
++            else if (this.moveForward < -0.20f) this.moveForward = -0.25f;
++            else this.moveForward = 0f;
++        }
++        /** END MINECRIFT */
  
          if (this.gameSettings.keyBindForward.getIsKeyPressed())
          {
-@@ -45,5 +47,16 @@
+@@ -45,5 +89,24 @@
              this.moveStrafe = (float)((double)this.moveStrafe * 0.3D);
              this.moveForward = (float)((double)this.moveForward * 0.3D);
          }
 +
++        /** MINECRIFT */
++        if (Minecraft.getMinecraft().vrSettings.allowForwardPlusStrafe == false &&
++                (this.moveForward > 0.05f || this.moveForward < -0.05f))
++        {
++            // Forward with strafe disallowed (with some leeway). Forward gets preference.
++            this.moveStrafe = 0f;
++        }
++
 +        this.moveForward = this.moveForward * Minecraft.getMinecraft().vrSettings.movementSpeedMultiplier;
 +        this.moveStrafe  = this.moveStrafe * Minecraft.getMinecraft().vrSettings.movementSpeedMultiplier;
 +
-+        // Ensure no one component is greater > 1
-+        this.moveForward = Math.min(this.moveForward, 1f);
-+        this.moveStrafe  = Math.min(this.moveStrafe, 1f);
++        // Ensure no one component is greater > 1.3, sprint speed
++        this.moveForward = Math.min(this.moveForward, 1.3f);
++        this.moveStrafe  = Math.min(this.moveStrafe, 1.3f);
 +
 +        // Don't bother to normalise, vanilla doesn't
 +
-+        /* end Minecrift */
++        /** END MINECRIFT */
      }
  }

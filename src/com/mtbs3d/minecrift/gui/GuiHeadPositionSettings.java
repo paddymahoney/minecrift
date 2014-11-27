@@ -6,8 +6,8 @@ package com.mtbs3d.minecrift.gui;
 
 import java.util.List;
 
-import com.mtbs3d.minecrift.MCHydra;
-import com.mtbs3d.minecrift.MCOculus;
+import com.mtbs3d.minecrift.provider.MCHydra;
+import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.settings.VRSettings;
@@ -45,7 +45,6 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
             VRSettings.VrOptions.POSITION_TRACKING,
             VRSettings.VrOptions.POS_TRACK_HIDE_COLLISION,
             VRSettings.VrOptions.POS_TRACK_DIST_SCALE,
-            //VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.EYE_PROTRUSION,
     };
 
@@ -140,12 +139,6 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
                         maxValue = -0.01f;
                         increment = 0.01f;
                     }
-                    else if (var8 == VRSettings.VrOptions.WORLD_SCALE)
-                    {
-                        minValue = -5.0f;
-                        maxValue = -0.1f;
-                        increment = 0.01f;
-                    }
                     else if (var8 == VRSettings.VrOptions.POS_TRACK_Y_AXIS_DISTANCE_SKEW)
                     {
                         minValue = -45.0f;
@@ -213,7 +206,6 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
 
         if (var8 == VRSettings.VrOptions.POS_TRACK_HYDRALOC ||
                 var8 == VRSettings.VrOptions.POS_TRACK_DIST_SCALE ||
-                var8 == VRSettings.VrOptions.WORLD_SCALE ||
                 var8 == VRSettings.VrOptions.HYDRA_USE_FILTER ||
                 var8 == VRSettings.VrOptions.POS_TRACK_HYDRA_AT_BACKOFHEAD_IS_POINTING_LEFT)
             return true;
@@ -289,12 +281,6 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
         if (enumm == VRSettings.VrOptions.POS_TRACK_OFFSET_SET_DEFAULT)
         {
             this.reinitOffsetDefaults = true;
-            this.reinit = true;
-        }
-
-        if (enumm == VRSettings.VrOptions.WORLD_SCALE)
-        {
-            this.mc.reinitFramebuffers = true;
             this.reinit = true;
         }
 
@@ -382,12 +368,6 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
                         " distance moved in game does not seem to match actual",
                         " head distance travelled."
                 } ;
-                case WORLD_SCALE:
-                    return new String[] {
-                            "Scales the size of the world objects.",
-                            " Adjust this if the blocks do not seem to be one metre",
-                            " in size."
-                    } ;
                 case POS_TRACK_HYDRA_USE_CONTROLLER_ONE:
                     return new String[] {
                             "Sets the controller used for positional tracking.",
