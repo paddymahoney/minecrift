@@ -3,7 +3,7 @@
 .*.swp
 /logs/
 /*.pyc
-/*mcp*/
+/mcp9*/
 .idea/
 *.iml
 releases/

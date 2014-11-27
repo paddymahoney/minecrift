@@ -1,3 +1,5 @@
 #!/usr/bin/env python
 from build import create_install
-create_install("mcp908")
+from install import mcp_version
+
+create_install(mcp_version)

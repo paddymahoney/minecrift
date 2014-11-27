@@ -1,2 +1,3 @@
 echo Building patches...
+@echo off
 python getchanges.py
