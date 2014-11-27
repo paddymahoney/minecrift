@@ -402,7 +402,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
             if (!downloadedOptifine) {
                 finalMessage = "Installed (but failed to download OptiFine). Restart Minecraft and Edit Profile->Use Version minecrift-" + version + mod +
-                        "\nPlease download and install Optifine " + OF_FILE_NAME + "from https://optifine.net/downloads before attempting to play.";
+                        "\nPlease download and install Optifine " + OF_FILE_NAME + " from https://optifine.net/downloads before attempting to play.";
             }
             else {
                 finalMessage = "Installed Successfully! Restart Minecraft and Edit Profile->Use Version minecrift-" + version + mod;
