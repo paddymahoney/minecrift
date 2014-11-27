@@ -13,3 +13,4 @@ releases/
 *install*.exe
 patches/Start.java.patch
 installer/out/
+lib/

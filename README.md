@@ -17,23 +17,35 @@ Install build prerequisites
 
 - Be sure to pull in the required submodules linked to the minecrift git project:
  JRift, Sixense, repo, JMumble
-
+ 
+- Get MCP908 from http://mcp.ocean-labs.de/news.php?extend.14.1
+- Copy the mcp908.zip directory into the root directory of this github repo
+ 
 - Java JDK 1.6 or 1.7 (Java JRE, or 1.8 JDK or 1.8 JRE will NOT work)
 - JAVA_HOME should be set to the JDK directory
 - %JAVA_HOME%/bin must be added to your path
 - Python 2.7 latest version
 - Scala is NOT required (and should NOT be present on your path to avoid build issues)
-- MCP908 from http://mcp.ocean-labs.de/news.php?extend.14.1
-- Copy the contents of the unzipped mcp908 directory into the minecrift/mcp908 directory.
+
 
 Building / updating the patches / pushing changes
 -------------------------------------------------
 
 - Run install.sh (or install.bat) to download minecraft, Optifine, and other
-libraries; deobfuscate the base system, and apply the patches and new files.
+libraries; deobfuscate the base system, and apply the patches and new files. 
+
+NOTE: The scripts will by default use the host architecture 'bitness'. For example, if running
+on a 64bit system, if a native dll has the same name for both 32 and 64bit versions, the 
+64 bit version will be extracted to ./lib/natives. You can override this by specifying
+the preferred architcture, e.g.
+
+install -a 32
+
 
 NOTE: The initial build will fail; applychanges is then called and a few patches will
-fail. This is normal for now. 
+fail. ***This is normal to begin with***. 
+
+- To simply build the current Minecrift installer, run build.sh (or build.bat)
 
 - Use the MCP environment in /mcpxxx to modify, test, and recompile.  If you use
 the built-in eclipse workspace, you'll need to add the JRift, SixenseJava and
@@ -42,9 +54,8 @@ and SixenseJava is in com/sixense.
 
 To run Minecrift in your dev env you will need to:
 
-  - Delete META-INF dir within minecrift/mcp908/jars/versions/1.7.10/1.7.10.jar otherwise
-  you get a SecurityException on Minecrift startup
-  - Merge in the assets directory from .minecraft into the minecrift/assets dir.
+  - Use the libs and natives in ./lib/1.7.10/
+  - Merge in the assets directory from .minecraft into a project assets dir.
   - To allow testing on Multiplayer servers, launch via Start.main, and add your Mojang account
     program arguments:
        --username <username> --password <password>
