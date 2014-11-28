@@ -8,7 +8,85 @@
  
      protected TextureAtlasSprite(String p_i1282_1_)
      {
-@@ -365,7 +364,6 @@
+@@ -282,6 +281,7 @@
+             }
+         }
+ 
++        int di;
+         int var11;
+ 
+         if (p_180598_2_ == null)
+@@ -297,48 +297,53 @@
+         {
+             var6 = var4 / var3;
+             var11 = var3;
+-            int var8 = var3;
++            int datas = var3;
+             this.height = this.width;
+-            int var10;
+ 
+             if (p_180598_2_.getFrameCount() > 0)
+             {
+-                Iterator var12 = p_180598_2_.getFrameIndexSet().iterator();
++                Iterator data = p_180598_2_.getFrameIndexSet().iterator();
+ 
+-                while (var12.hasNext())
++                while (data.hasNext())
+                 {
+-                    var10 = ((Integer)var12.next()).intValue();
++                    di = ((Integer)data.next()).intValue();
+ 
+-                    if (var10 >= var6)
++                    if (di >= var6)
+                     {
+-                        throw new RuntimeException("invalid frameindex " + var10);
++                        throw new RuntimeException("invalid frameindex " + di);
+                     }
+ 
+-                    this.allocateFrameTextureData(var10);
+-                    this.framesTextureData.set(var10, getFrameTextureData(var5, var11, var8, var10));
++                    this.allocateFrameTextureData(di);
++                    this.framesTextureData.set(di, getFrameTextureData(var5, var11, datas, di));
+                 }
+ 
+                 this.animationMetadata = p_180598_2_;
+             }
+             else
+             {
+-                ArrayList var121 = Lists.newArrayList();
++                ArrayList var13 = Lists.newArrayList();
+ 
+-                for (var10 = 0; var10 < var6; ++var10)
++                for (di = 0; di < var6; ++di)
+                 {
+-                    this.framesTextureData.add(getFrameTextureData(var5, var11, var8, var10));
+-                    var121.add(new AnimationFrame(var10, -1));
++                    this.framesTextureData.add(getFrameTextureData(var5, var11, datas, di));
++                    var13.add(new AnimationFrame(di, -1));
+                 }
+ 
+-                this.animationMetadata = new AnimationMetadataSection(var121, this.width, this.height, p_180598_2_.getFrameTime(), p_180598_2_.func_177219_e());
++                this.animationMetadata = new AnimationMetadataSection(var13, this.width, this.height, p_180598_2_.getFrameTime(), p_180598_2_.func_177219_e());
+             }
+         }
+ 
+         for (var11 = 0; var11 < this.framesTextureData.size(); ++var11)
+         {
+-            if (this.framesTextureData.get(var11) == null)
++            int[][] var12 = (int[][])((int[][])this.framesTextureData.get(var11));
++
++            if (var12 != null)
+             {
+-                this.framesTextureData.set(var11, new int[][] {new int[this.width * this.height]});
++                for (di = 0; di < var12.length; ++di)
++                {
++                    int[] var14 = var12[di];
++                    this.fixTransparentColor(var14);
++                }
+             }
+         }
+     }
+@@ -365,7 +370,6 @@
                      var7.addCrashSectionCallable("Frame sizes", new Callable()
                      {
                          private static final String __OBFID = "CL_00001063";
@@ -16,7 +94,7 @@
                          public String call()
                          {
                              StringBuilder var1 = new StringBuilder();
-@@ -386,10 +384,6 @@
+@@ -386,10 +390,6 @@
  
                              return var1.toString();
                          }
@@ -27,3 +105,18 @@
                      });
                      throw new ReportedException(var6);
                  }
+@@ -441,14 +441,6 @@
+     public void setFramesTextureData(List p_110968_1_)
+     {
+         this.framesTextureData = p_110968_1_;
+-
+-        for (int i = 0; i < this.framesTextureData.size(); ++i)
+-        {
+-            if (this.framesTextureData.get(i) == null)
+-            {
+-                this.framesTextureData.set(i, new int[this.width * this.height]);
+-            }
+-        }
+     }
+ 
+     private void resetSprite()

@@ -1,0 +1,85 @@
+--- a/net/minecraft/src/Reflector.java
++++ b/net/minecraft/src/Reflector.java
+@@ -4,6 +4,7 @@
+ import java.lang.reflect.Field;
+ import java.lang.reflect.InvocationTargetException;
+ import java.lang.reflect.Method;
++import java.util.ArrayList;
+ import net.minecraft.block.Block;
+ import net.minecraft.client.gui.GuiScreen;
+ import net.minecraft.client.renderer.EntityRenderer;
+@@ -64,11 +65,12 @@
+     public static ReflectorMethod ForgeHooksClient_setWorldRendererRB = new ReflectorMethod(ForgeHooksClient, "setWorldRendererRB");
+     public static ReflectorMethod ForgeHooksClient_onPreRenderWorld = new ReflectorMethod(ForgeHooksClient, "onPreRenderWorld");
+     public static ReflectorMethod ForgeHooksClient_onPostRenderWorld = new ReflectorMethod(ForgeHooksClient, "onPostRenderWorld");
+-    public static ReflectorClass FMLCommonHandler = new ReflectorClass("cpw.mods.fml.common.FMLCommonHandler");
++    public static ReflectorClass FMLCommonHandler = new ReflectorClass("net.minecraftforge.fml.common.FMLCommonHandler");
+     public static ReflectorMethod FMLCommonHandler_instance = new ReflectorMethod(FMLCommonHandler, "instance");
+     public static ReflectorMethod FMLCommonHandler_handleServerStarting = new ReflectorMethod(FMLCommonHandler, "handleServerStarting");
+     public static ReflectorMethod FMLCommonHandler_handleServerAboutToStart = new ReflectorMethod(FMLCommonHandler, "handleServerAboutToStart");
+-    public static ReflectorClass FMLClientHandler = new ReflectorClass("cpw.mods.fml.client.FMLClientHandler");
++    public static ReflectorMethod FMLCommonHandler_enhanceCrashReport = new ReflectorMethod(FMLCommonHandler, "enhanceCrashReport");
++    public static ReflectorClass FMLClientHandler = new ReflectorClass("net.minecraftforge.fml.client.FMLClientHandler");
+     public static ReflectorMethod FMLClientHandler_instance = new ReflectorMethod(FMLClientHandler, "instance");
+     public static ReflectorMethod FMLClientHandler_isLoading = new ReflectorMethod(FMLClientHandler, "isLoading");
+     public static ReflectorClass ItemRenderType = new ReflectorClass("net.minecraftforge.client.IItemRenderer$ItemRenderType");
+@@ -99,14 +101,15 @@
+     public static ReflectorField EntityViewRenderEvent_FogDensity_density = new ReflectorField(EntityViewRenderEvent_FogDensity, "density");
+     public static ReflectorClass EntityViewRenderEvent_RenderFogEvent = new ReflectorClass("net.minecraftforge.client.event.EntityViewRenderEvent$RenderFogEvent");
+     public static ReflectorConstructor EntityViewRenderEvent_RenderFogEvent_Constructor = new ReflectorConstructor(EntityViewRenderEvent_RenderFogEvent, new Class[] {EntityRenderer.class, EntityLivingBase.class, Block.class, Double.TYPE, Integer.TYPE, Float.TYPE});
+-    public static ReflectorClass EventBus = new ReflectorClass("cpw.mods.fml.common.eventhandler.EventBus");
++    public static ReflectorClass EventBus = new ReflectorClass("net.minecraftforge.fml.common.eventhandler.EventBus");
+     public static ReflectorMethod EventBus_post = new ReflectorMethod(EventBus, "post");
+-    public static ReflectorClass Event_Result = new ReflectorClass("cpw.mods.fml.common.eventhandler.Event$Result");
++    public static ReflectorClass Event_Result = new ReflectorClass("net.minecraftforge.fml.common.eventhandler.Event$Result");
+     public static ReflectorField Event_Result_DENY = new ReflectorField(Event_Result, "DENY");
+     public static ReflectorField Event_Result_ALLOW = new ReflectorField(Event_Result, "ALLOW");
+     public static ReflectorField Event_Result_DEFAULT = new ReflectorField(Event_Result, "DEFAULT");
+     public static ReflectorClass ForgeEventFactory = new ReflectorClass("net.minecraftforge.event.ForgeEventFactory");
+     public static ReflectorMethod ForgeEventFactory_canEntitySpawn = new ReflectorMethod(ForgeEventFactory, "canEntitySpawn");
++    public static ReflectorMethod ForgeEventFactory_canEntityDespawn = new ReflectorMethod(ForgeEventFactory, "canEntityDespawn");
+     public static ReflectorClass ChunkWatchEvent_UnWatch = new ReflectorClass("net.minecraftforge.event.world.ChunkWatchEvent$UnWatch");
+     public static ReflectorConstructor ChunkWatchEvent_UnWatch_Constructor = new ReflectorConstructor(ChunkWatchEvent_UnWatch, new Class[] {ChunkCoordIntPair.class, EntityPlayerMP.class});
+     public static ReflectorClass ForgeBlock = new ReflectorClass(Block.class);
+@@ -668,7 +671,7 @@
+         }
+     }
+ 
+-    public static Field getFieldByType(Class cls, Class fieldType)
++    public static Field getField(Class cls, Class fieldType)
+     {
+         try
+         {
+@@ -692,4 +695,32 @@
+             return null;
+         }
+     }
++
++    public static Field[] getFields(Class cls, Class fieldType)
++    {
++        ArrayList list = new ArrayList();
++
++        try
++        {
++            Field[] e = cls.getDeclaredFields();
++
++            for (int fields = 0; fields < e.length; ++fields)
++            {
++                Field field = e[fields];
++
++                if (field.getType() == fieldType)
++                {
++                    field.setAccessible(true);
++                    list.add(field);
++                }
++            }
++
++            Field[] var7 = (Field[])((Field[])list.toArray(new Field[list.size()]));
++            return var7;
++        }
++        catch (Exception var6)
++        {
++            return null;
++        }
++    }
+ }

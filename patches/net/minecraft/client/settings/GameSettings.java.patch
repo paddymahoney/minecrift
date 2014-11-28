@@ -1,6 +1,29 @@
 --- a/net/minecraft/client/settings/GameSettings.java
 +++ b/net/minecraft/client/settings/GameSettings.java
-@@ -56,7 +56,6 @@
+@@ -25,9 +25,8 @@
+ import net.minecraft.client.stream.TwitchStream;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.entity.player.EnumPlayerModelParts;
+-import net.minecraft.init.Blocks;
+ import net.minecraft.network.play.client.C15PacketClientSettings;
+-import net.minecraft.src.BlockUtils;
++import net.minecraft.src.ClearWater;
+ import net.minecraft.src.Config;
+ import net.minecraft.src.CustomColorizer;
+ import net.minecraft.src.CustomSky;
+@@ -37,11 +36,6 @@
+ import net.minecraft.src.TextureUtils;
+ import net.minecraft.util.MathHelper;
+ import net.minecraft.world.EnumDifficulty;
+-import net.minecraft.world.chunk.Chunk;
+-import net.minecraft.world.chunk.EmptyChunk;
+-import net.minecraft.world.chunk.IChunkProvider;
+-import net.minecraft.world.chunk.NibbleArray;
+-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+ import org.apache.commons.lang3.ArrayUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+@@ -56,7 +50,6 @@
      private static final ParameterizedType typeListString = new ParameterizedType()
      {
          private static final String __OBFID = "CL_00000651";
@@ -8,7 +31,16 @@
          public Type[] getActualTypeArguments()
          {
              return new Type[] {String.class};
-@@ -264,7 +263,6 @@
+@@ -127,7 +120,7 @@
+     public boolean ofNaturalTextures = false;
+     public boolean ofFastMath = false;
+     public boolean ofFastRender = true;
+-    public int ofTranslucentBlocks = 2;
++    public int ofTranslucentBlocks = 0;
+     public int ofAnimatedWater = 0;
+     public int ofAnimatedLava = 0;
+     public boolean ofAnimatedFire = true;
+@@ -264,7 +257,6 @@
      public String language;
      public boolean forceUnicodeFont;
      private static final String __OBFID = "CL_00000650";
@@ -16,7 +48,26 @@
  
      public GameSettings(Minecraft mcIn, File p_i46326_2_)
      {
-@@ -682,7 +680,9 @@
+@@ -334,7 +326,7 @@
+         this.optionsFile = new File(p_i46326_2_, "options.txt");
+         this.optionsFileOF = new File(p_i46326_2_, "optionsof.txt");
+         this.limitFramerate = (int)GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
+-        this.ofKeyBindZoom = new KeyBinding("Zoom", 29, "key.categories.misc");
++        this.ofKeyBindZoom = new KeyBinding("Zoom", 46, "key.categories.misc");
+         this.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(this.keyBindings, this.ofKeyBindZoom));
+         GameSettings.Options.RENDER_DISTANCE.setValueMax(32.0F);
+         this.renderDistanceChunks = 8;
+@@ -421,7 +413,8 @@
+      */
+     public static boolean isKeyDown(KeyBinding p_100015_0_)
+     {
+-        return p_100015_0_.getKeyCode() == 0 ? false : (p_100015_0_.getKeyCode() < 0 ? Mouse.isButtonDown(p_100015_0_.getKeyCode() + 100) : Keyboard.isKeyDown(p_100015_0_.getKeyCode()));
++        int keyCode = p_100015_0_.getKeyCode();
++        return keyCode >= -100 && keyCode <= 255 ? (p_100015_0_.getKeyCode() == 0 ? false : (p_100015_0_.getKeyCode() < 0 ? Mouse.isButtonDown(p_100015_0_.getKeyCode() + 100) : Keyboard.isKeyDown(p_100015_0_.getKeyCode()))) : false;
+     }
+ 
+     /**
+@@ -682,7 +675,9 @@
          if (p_74306_1_ == GameSettings.Options.ENABLE_VSYNC)
          {
              this.enableVsync = !this.enableVsync;
@@ -27,7 +78,74 @@
          }
  
          if (p_74306_1_ == GameSettings.Options.USE_VBO)
-@@ -2855,8 +2855,10 @@
+@@ -1501,32 +1496,17 @@
+ 
+         if (par1EnumOptions == GameSettings.Options.LOAD_FAR)
+         {
+-            this.ofLoadFar = !this.ofLoadFar;
+-            this.mc.renderGlobal.loadRenderers();
++            this.ofLoadFar = false;
+         }
+ 
+         if (par1EnumOptions == GameSettings.Options.PRELOADED_CHUNKS)
+         {
+-            this.ofPreloadedChunks += 2;
+-
+-            if (this.ofPreloadedChunks > 8)
+-            {
+-                this.ofPreloadedChunks = 0;
+-            }
+-
+-            this.mc.renderGlobal.loadRenderers();
++            this.ofPreloadedChunks = 0;
+         }
+ 
+         if (par1EnumOptions == GameSettings.Options.SMOOTH_WORLD)
+         {
+             this.ofSmoothWorld = !this.ofSmoothWorld;
+-            Config.updateAvailableProcessors();
+-
+-            if (!Config.isSingleProcessor())
+-            {
+-                this.ofSmoothWorld = false;
+-            }
+-
+             Config.updateThreadPriorities();
+         }
+ 
+@@ -1700,7 +1680,10 @@
+                 this.ofConnectedTextures = 1;
+             }
+ 
+-            this.mc.renderGlobal.loadRenderers();
++            if (this.ofConnectedTextures != 2)
++            {
++                this.mc.func_175603_A();
++            }
+         }
+ 
+         if (par1EnumOptions == GameSettings.Options.WEATHER)
+@@ -2679,6 +2662,11 @@
+                         this.ofTranslucentBlocks = Integer.valueOf(exception1[1]).intValue();
+                         this.ofTranslucentBlocks = Config.limit(this.ofTranslucentBlocks, 0, 2);
+                     }
++
++                    if (exception1[0].equals("key_" + this.ofKeyBindZoom.getKeyDescription()))
++                    {
++                        this.ofKeyBindZoom.setKeyCode(Integer.parseInt(exception1[1]));
++                    }
+                 }
+                 catch (Exception var5)
+                 {
+@@ -2761,6 +2749,7 @@
+             exception.println("ofFastMath:" + this.ofFastMath);
+             exception.println("ofFastRender:" + this.ofFastRender);
+             exception.println("ofTranslucentBlocks:" + this.ofTranslucentBlocks);
++            exception.println("key_" + this.ofKeyBindZoom.getKeyDescription() + ":" + this.ofKeyBindZoom.getKeyCode());
+             exception.close();
+         }
+         catch (Exception var2)
+@@ -2855,73 +2844,19 @@
  
      public void updateVSync()
      {
@@ -39,7 +157,74 @@
  
      private void updateWaterOpacity()
      {
-@@ -3068,7 +3070,6 @@
+-        if (this.mc.getIntegratedServer() != null)
++        if (this.mc.isIntegratedServerRunning() && this.mc.getIntegratedServer() != null)
+         {
+             Config.waterOpacityChanged = true;
+         }
+ 
+-        byte opacity = 3;
+-
+-        if (this.ofClearWater)
+-        {
+-            opacity = 1;
+-        }
+-
+-        BlockUtils.setLightOpacity(Blocks.water, opacity);
+-        BlockUtils.setLightOpacity(Blocks.flowing_water, opacity);
+-
+-        if (this.mc.theWorld != null)
+-        {
+-            IChunkProvider cp = this.mc.theWorld.getChunkProvider();
+-
+-            if (cp != null)
+-            {
+-                for (int x = -512; x < 512; ++x)
+-                {
+-                    for (int z = -512; z < 512; ++z)
+-                    {
+-                        if (cp.chunkExists(x, z))
+-                        {
+-                            Chunk c = cp.provideChunk(x, z);
+-
+-                            if (c != null && !(c instanceof EmptyChunk))
+-                            {
+-                                ExtendedBlockStorage[] ebss = c.getBlockStorageArray();
+-
+-                                for (int i = 0; i < ebss.length; ++i)
+-                                {
+-                                    ExtendedBlockStorage ebs = ebss[i];
+-
+-                                    if (ebs != null)
+-                                    {
+-                                        NibbleArray na = ebs.getSkylightArray();
+-
+-                                        if (na != null)
+-                                        {
+-                                            byte[] data = na.getData();
+-
+-                                            for (int d = 0; d < data.length; ++d)
+-                                            {
+-                                                data[d] = 0;
+-                                            }
+-                                        }
+-                                    }
+-                                }
+-
+-                                c.generateSkylightMap();
+-                            }
+-                        }
+-                    }
+-                }
+-
+-                this.mc.renderGlobal.loadRenderers();
+-            }
+-        }
++        ClearWater.updateWaterOpacity(this, this.mc.theWorld);
+     }
+ 
+     public void updateChunkLoading()
+@@ -3068,7 +3003,6 @@
          private static final String __OBFID = "CL_00000653";
  
          private static final GameSettings.Options[] $VALUES$ = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, FRAMERATE_LIMIT, FBO_ENABLE, RENDER_CLOUDS, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, USE_VBO, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR, BLOCK_ALTERNATIVES, REDUCED_DEBUG_INFO, FOG_FANCY, FOG_START, MIPMAP_TYPE, LOAD_FAR, PRELOADED_CHUNKS, CLOUDS, CLOUD_HEIGHT, TREES, RAIN, ANIMATED_WATER, ANIMATED_LAVA, ANIMATED_FIRE, ANIMATED_PORTAL, AO_LEVEL, LAGOMETER, AUTOSAVE_TICKS, BETTER_GRASS, ANIMATED_REDSTONE, ANIMATED_EXPLOSION, ANIMATED_FLAME, ANIMATED_SMOKE, WEATHER, SKY, STARS, SUN_MOON, CHUNK_UPDATES, CHUNK_UPDATES_DYNAMIC, TIME, CLEAR_WATER, SMOOTH_WORLD, VOID_PARTICLES, WATER_PARTICLES, RAIN_SPLASH, PORTAL_PARTICLES, POTION_PARTICLES, PROFILER, DRIPPING_WATER_LAVA, BETTER_SNOW, FULLSCREEN_MODE, ANIMATED_TERRAIN, SWAMP_COLORS, RANDOM_MOBS, SMOOTH_BIOMES, CUSTOM_FONTS, CUSTOM_COLORS, SHOW_CAPES, CONNECTED_TEXTURES, AA_LEVEL, AF_LEVEL, ANIMATED_TEXTURES, NATURAL_TEXTURES, CHUNK_LOADING, HELD_ITEM_TOOLTIPS, DROPPED_ITEMS, LAZY_CHUNK_LOADING, CUSTOM_SKY, FAST_MATH, FAST_RENDER, TRANSLUCENT_BLOCKS};
@@ -47,23 +232,23 @@
  
          public static GameSettings.Options getEnumOptions(int p_74379_0_)
          {
-@@ -3088,12 +3089,12 @@
+@@ -3088,12 +3022,12 @@
              return null;
          }
  
 -        private Options(String p_i46376_1_, int p_i46376_2_, String p_i1015_1_, int p_i1015_2_, String p_i1015_3_, boolean p_i1015_4_, boolean p_i1015_5_)
-+        private Options(String p_i46380_1_, int p_i46380_2_, String p_i1015_1_, int p_i1015_2_, String p_i1015_3_, boolean p_i1015_4_, boolean p_i1015_5_)
++        private Options(String p_i46377_1_, int p_i46377_2_, String p_i1015_1_, int p_i1015_2_, String p_i1015_3_, boolean p_i1015_4_, boolean p_i1015_5_)
          {
 -            this(p_i46376_1_, p_i46376_2_, p_i1015_1_, p_i1015_2_, p_i1015_3_, p_i1015_4_, p_i1015_5_, 0.0F, 1.0F, 0.0F);
-+            this(p_i46380_1_, p_i46380_2_, p_i1015_1_, p_i1015_2_, p_i1015_3_, p_i1015_4_, p_i1015_5_, 0.0F, 1.0F, 0.0F);
++            this(p_i46377_1_, p_i46377_2_, p_i1015_1_, p_i1015_2_, p_i1015_3_, p_i1015_4_, p_i1015_5_, 0.0F, 1.0F, 0.0F);
          }
  
 -        private Options(String p_i46377_1_, int p_i46377_2_, String p_i45004_1_, int p_i45004_2_, String p_i45004_3_, boolean p_i45004_4_, boolean p_i45004_5_, float p_i45004_6_, float p_i45004_7_, float p_i45004_8_)
-+        private Options(String p_i46381_1_, int p_i46381_2_, String p_i45004_1_, int p_i45004_2_, String p_i45004_3_, boolean p_i45004_4_, boolean p_i45004_5_, float p_i45004_6_, float p_i45004_7_, float p_i45004_8_)
++        private Options(String p_i46378_1_, int p_i46378_2_, String p_i45004_1_, int p_i45004_2_, String p_i45004_3_, boolean p_i45004_4_, boolean p_i45004_5_, float p_i45004_6_, float p_i45004_7_, float p_i45004_8_)
          {
              this.enumString = p_i45004_3_;
              this.enumFloat = p_i45004_4_;
-@@ -3164,7 +3165,6 @@
+@@ -3164,7 +3098,6 @@
      {
          static final int[] optionIds = new int[GameSettings.Options.values().length];
          private static final String __OBFID = "CL_00000652";

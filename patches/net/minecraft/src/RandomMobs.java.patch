@@ -4,51 +4,62 @@
          }
          else
          {
--            ResourceLocation uuidLow;
+-            ResourceLocation entity;
 +            ResourceLocation name;
  
              try
              {
-@@ -123,38 +123,37 @@
+@@ -116,45 +116,44 @@
+                     initialize();
                  }
  
-                 Entity entity = renderGlobal.renderedEntity;
--                ResourceLocation name1;
- 
-                 if (entity == null)
+-                if (renderGlobal != null)
++                if (renderGlobal == null)
                  {
--                    name1 = loc;
--                    return name1;
+-                    Entity entity1 = renderGlobal.renderedEntity;
+-                    ResourceLocation name1;
++                    ResourceLocation entity1 = loc;
++                    return entity1;
++                }
+ 
+-                    if (entity1 == null)
+-                    {
+-                        name1 = loc;
+-                        return name1;
+-                    }
++                Entity entity = renderGlobal.renderedEntity;
+ 
+-                    if (!(entity1 instanceof EntityLiving))
+-                    {
+-                        name1 = loc;
+-                        return name1;
+-                    }
++                if (entity == null)
++                {
 +                    name = loc;
 +                    return name;
-                 }
++                }
  
--                if (!(entity instanceof EntityLiving))
+-                    String name = loc.getResourcePath();
 +                if (entity instanceof EntityLiving)
-                 {
--                    name1 = loc;
--                    return name1;
--                }
++                {
 +                    String name1 = loc.getResourcePath();
  
--                String name = loc.getResourcePath();
+-                    if (!name.startsWith("textures/entity/"))
 +                    if (!name1.startsWith("textures/entity/"))
-+                    {
-+                        ResourceLocation uuidLow1 = loc;
-+                        return uuidLow1;
-+                    }
+                     {
+                         ResourceLocation uuidLow1 = loc;
+                         return uuidLow1;
+                     }
  
--                if (name.startsWith("textures/entity/"))
--                {
--                    long uuidLow1 = entity.getUniqueID().getLeastSignificantBits();
--                    int id = (int)(uuidLow1 & 2147483647L);
+-                    long uuidLow = entity1.getUniqueID().getLeastSignificantBits();
 +                    long uuidLow = entity.getUniqueID().getLeastSignificantBits();
-+                    int id = (int)(uuidLow & 2147483647L);
+                     int id = (int)(uuidLow & 2147483647L);
                      ResourceLocation var6 = getTextureLocation(loc, id);
                      return var6;
                  }
  
--                uuidLow = loc;
+-                entity = loc;
 +                name = loc;
              }
              finally
@@ -56,7 +67,7 @@
                  working = false;
              }
  
--            return uuidLow;
+-            return entity;
 +            return name;
          }
      }

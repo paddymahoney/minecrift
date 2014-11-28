@@ -1,6 +1,60 @@
 --- a/net/minecraft/src/BlockPosM.java
 +++ b/net/minecraft/src/BlockPosM.java
-@@ -157,7 +157,7 @@
+@@ -4,6 +4,7 @@
+ import java.util.Iterator;
+ import net.minecraft.util.BlockPos;
+ import net.minecraft.util.EnumFacing;
++import net.minecraft.util.MathHelper;
+ 
+ public class BlockPosM extends BlockPos
+ {
+@@ -19,6 +20,11 @@
+         this(x, y, z, 0);
+     }
+ 
++    public BlockPosM(double xIn, double yIn, double zIn)
++    {
++        this(MathHelper.floor_double(xIn), MathHelper.floor_double(yIn), MathHelper.floor_double(zIn));
++    }
++
+     public BlockPosM(int x, int y, int z, int level)
+     {
+         super(0, 0, 0);
+@@ -52,30 +58,17 @@
+         return this.mz;
+     }
+ 
+-    public void setX(int x)
++    public void setXyz(int x, int y, int z)
+     {
+         this.mx = x;
+-        this.needsUpdate = true;
+-    }
+-
+-    public void setY(int y)
+-    {
+         this.my = y;
+-        this.needsUpdate = true;
+-    }
+-
+-    public void setZ(int z)
+-    {
+         this.mz = z;
+         this.needsUpdate = true;
+     }
+ 
+-    public void setXyz(int x, int y, int z)
++    public void setXyz(double xIn, double yIn, double zIn)
+     {
+-        this.mx = x;
+-        this.my = y;
+-        this.mz = z;
+-        this.needsUpdate = true;
++        this.setXyz(MathHelper.floor_double(xIn), MathHelper.floor_double(yIn), MathHelper.floor_double(zIn));
+     }
+ 
+     /**
+@@ -157,7 +150,7 @@
                      {
                          if (this.theBlockPosM == null)
                          {

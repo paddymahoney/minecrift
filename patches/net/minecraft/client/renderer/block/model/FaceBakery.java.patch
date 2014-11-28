@@ -8,6 +8,15 @@
  
      public BakedQuad func_178414_a(Vector3f posFrom, Vector3f posTo, BlockPartFace face, TextureAtlasSprite sprite, EnumFacing facing, ModelRotation modelRotationIn, BlockPartRotation partRotation, boolean uvLocked, boolean shade)
      {
+@@ -208,7 +207,7 @@
+         var6.cross(var5, var4);
+         var6.normalize();
+         EnumFacing var7 = null;
+-        float var8 = 0.0F;
++        float var8 = 0.719F;
+         EnumFacing[] var9 = EnumFacing.values();
+         int var10 = var9.length;
+ 
 @@ -392,7 +391,6 @@
          static final int[] field_178400_a;
          static final int[] field_178399_b = new int[EnumFacing.Axis.values().length];

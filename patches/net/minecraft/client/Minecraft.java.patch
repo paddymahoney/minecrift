@@ -140,7 +140,7 @@
      private MusicTicker mcMusicTicker;
      private ResourceLocation mojangLogo;
      private final MinecraftSessionService sessionService;
-@@ -347,8 +395,92 @@
+@@ -347,8 +395,95 @@
      private String debugProfilerName = "root";
      private static final String __OBFID = "CL_00000631";
  
@@ -216,6 +216,9 @@
 +    public long runTickTimeNanos = 0;
 +    public Deque<Long> runTickTimeNanoDeque = new ArrayDeque<Long>();
 +    public long medianRunTickTimeNanos = 0;
++    public boolean canPrintFrameDebug = false;
++    public int debugFrameCounter = 0;
++    public long frameIndex = 0;
 +
 +    public final String minecriftVerString = "Minecrift 1.8.0 PRE1";
 +    /** END MINECRIFT */
@@ -233,7 +236,7 @@
          theMinecraft = this;
          this.mcDataDir = p_i45547_1_.field_178744_c.field_178760_a;
          this.fileAssets = p_i45547_1_.field_178744_c.field_178759_c;
-@@ -362,11 +494,13 @@
+@@ -362,11 +497,13 @@
          logger.info("Setting user: " + this.session.getUsername());
          logger.info("(Session ID is " + this.session.getSessionID() + ")");
          this.isDemo = p_i45547_1_.field_178741_d.field_178756_a;
@@ -252,7 +255,7 @@
          this.jvm64bit = isJvm64bit();
          this.theIntegratedServer = new IntegratedServer(this);
  
-@@ -420,12 +554,11 @@
+@@ -420,12 +557,11 @@
                      }
  
                      this.displayCrashReport(this.crashReporter);
@@ -266,7 +269,7 @@
              }
              catch (ReportedException var13)
              {
-@@ -433,6 +566,7 @@
+@@ -433,6 +569,7 @@
                  this.freeMemory();
                  logger.fatal("Reported exception thrown!", var13);
                  this.displayCrashReport(var13.getCrashReport());
@@ -274,7 +277,7 @@
              }
              catch (Throwable var14)
              {
-@@ -440,6 +574,7 @@
+@@ -440,6 +577,7 @@
                  this.freeMemory();
                  logger.fatal("Unreported exception thrown!", var14);
                  this.displayCrashReport(var2);
@@ -282,7 +285,7 @@
              }
              finally
              {
-@@ -494,7 +629,9 @@
+@@ -494,7 +632,9 @@
              this.fontRendererObj.setUnicodeFlag(this.isUnicode());
              this.fontRendererObj.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
          }
@@ -293,7 +296,7 @@
          this.standardGalacticFontRenderer = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii_sga.png"), this.renderEngine, false);
          this.mcResourceManager.registerReloadListener(this.fontRendererObj);
          this.mcResourceManager.registerReloadListener(this.standardGalacticFontRenderer);
-@@ -572,7 +709,9 @@
+@@ -572,7 +712,9 @@
  
          try
          {
@@ -304,7 +307,7 @@
          }
          catch (OpenGLException var2)
          {
-@@ -608,7 +747,9 @@
+@@ -608,7 +750,9 @@
      private void func_175609_am() throws LWJGLException
      {
          Display.setResizable(true);
@@ -315,7 +318,7 @@
  
          try
          {
-@@ -898,22 +1039,22 @@
+@@ -898,22 +1042,22 @@
          GlStateManager.disableDepth();
          GlStateManager.func_179098_w();
          InputStream var5 = null;
@@ -354,7 +357,7 @@
          Tessellator var6 = Tessellator.getInstance();
          WorldRenderer var7 = var6.getWorldRenderer();
          var7.startDrawingQuads();
-@@ -934,6 +1075,9 @@
+@@ -934,6 +1078,9 @@
          var4.framebufferRender(var2.getScaledWidth() * var3, var2.getScaledHeight() * var3);
          GlStateManager.enableAlpha();
          GlStateManager.alphaFunc(516, 0.1F);
@@ -364,7 +367,7 @@
          this.func_175601_h();
      }
  
-@@ -1007,7 +1151,9 @@
+@@ -1007,7 +1154,9 @@
      /**
       * Checks for an OpenGL error. If there is one, prints the error ID and error string.
       */
@@ -375,7 +378,20 @@
      {
          if (this.field_175619_R)
          {
-@@ -1070,6 +1216,9 @@
+@@ -1063,6 +1212,12 @@
+      */
+     private void runGameLoop() throws IOException
+     {
++        setFrameDebugCounter();
++        this.frameIndex++;
++
++        long eyeRender1 = 0, eyeRender2 = 0, totalframe1Time = 0, totalframe2Time = 0;
++        long gameLoopStart = System.nanoTime();
++
+         this.mcProfiler.startSection("root");
+ 
+         if (Display.isCreated() && Display.isCloseRequested())
+@@ -1070,6 +1225,9 @@
              this.shutdown();
          }
  
@@ -385,7 +401,7 @@
          if (this.isGamePaused && this.theWorld != null)
          {
              float var1 = this.timer.renderPartialTicks;
-@@ -1093,70 +1242,146 @@
+@@ -1093,81 +1251,188 @@
          }
  
          this.mcProfiler.endSection();
@@ -397,6 +413,7 @@
 -        for (int var3 = 0; var3 < this.timer.elapsedTicks; ++var3)
 -        {
 -            this.runTick();
+-        }
 +        if (!this.integratedServerLaunchInProgress)
 +		{
 +            this.mcProfiler.startSection("tick");
@@ -423,18 +440,18 @@
 +            // update framebuffers
 +            setupRenderConfiguration();
 +        }
-+
-+        if (vrSettings.smoothTick) {
-+            if (ticks > 0) {
-+                addRunTickTimeNanos(runTickTimeNanos / ticks);
-+            } else {
-+                long sleepTimeNanos = getMedianRunTickTimeNanos();
-+                sleepNanos(sleepTimeNanos);
-+            }
-+        }
-+        else {
-+            runTickTimeNanos = System.nanoTime() - var7;
-         }
++//
++//        if (vrSettings.smoothTick) {
++//            if (ticks > 0) {
++//                addRunTickTimeNanos(runTickTimeNanos / ticks);
++//            } else {
++//                long sleepTimeNanos = getMedianRunTickTimeNanos();
++//                sleepNanos(sleepTimeNanos);
++//            }
++//        }
++//        else {
++//            runTickTimeNanos = System.nanoTime() - var7;
++//        }
  
          this.mcProfiler.endStartSection("preRenderErrors");
 -        long var8 = System.nanoTime() - var7;
@@ -451,19 +468,30 @@
 -        GlStateManager.func_179098_w();
  
 -        if (this.thePlayer != null && this.thePlayer.isEntityInsideOpaqueBlock())
--        {
--            this.gameSettings.thirdPersonView = 0;
--        }
 +        // Render GUI to FBO if necessary
 +        this.entityRenderer.renderVrGui(this.timer.renderPartialTicks);
++
++        // Now pad time - target 2ms for total pre render.
++        long endPreRender = System.nanoTime() - gameLoopStart;
++        if (endPreRender < 2000000)
+         {
+-            this.gameSettings.thirdPersonView = 0;
++            long preDiff = 2000000 - endPreRender;
++            //Thread.yield();
++            //sleepNanos(preDiff);
+         }
  
 -        this.mcProfiler.endSection();
-+        // Mark beginning of frame AFTER any GUI rendering to allow maximum
-+        // latency reduction
 +        PluginManager.beginFrameAll();
-+        frameTiming = this.stereoProvider.getFrameTiming();
++        long preRender = System.nanoTime() - gameLoopStart;
++        long startRender = System.nanoTime();
++        long startEye2 = 0, startEnd = 0;
  
 -        if (!this.skipRenderWorld)
++        // Mark beginning of frame AFTER any GUI rendering to allow maximum
++        // latency reduction
++        frameTiming = this.stereoProvider.getFrameTiming();
++
 +        /** Minecrift - main stereo render loop **/
 +        
 +        for (int i = 0; i < viewPortCount; i++)
@@ -522,9 +550,30 @@
 -        {
 -            this.mcProfiler.profilingEnabled = false;
 -            this.prevFrameTime = System.nanoTime();
+-        }
 +            //GL11.glFlush();
 +            //this.mcProfiler.endSection();
-+
+ 
+-        this.guiAchievement.updateAchievementWindow();
+-        this.framebufferMc.unbindFramebuffer();
+-        GlStateManager.popMatrix();
+-        GlStateManager.pushMatrix();
+-        this.framebufferMc.framebufferRender(this.displayWidth, this.displayHeight);
+-        GlStateManager.popMatrix();
+-        GlStateManager.pushMatrix();
+-        this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);
+-        GlStateManager.popMatrix();
+-        this.mcProfiler.startSection("root");
+-        this.func_175601_h();
+-        Thread.yield();
+-        this.mcProfiler.startSection("stream");
+-        this.mcProfiler.startSection("update");
+-        this.stream.func_152935_j();
+-        this.mcProfiler.endStartSection("submit");
+-        this.stream.func_152922_k();
+-        this.mcProfiler.endSection();
+-        this.mcProfiler.endSection();
+-        this.checkGLError("Post render");
 +            if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart && !this.gameSettings.hideGUI)
 +            {
 +                if (!this.mcProfiler.profilingEnabled)
@@ -554,31 +603,38 @@
 +            GlStateManager.pushMatrix();
 +            //this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);   // <-- TODO: What does this do? Some sort of stream status overlay? REENABLE, move to GUI FBO?
 +            GlStateManager.popMatrix();
-         }
- 
--        this.guiAchievement.updateAchievementWindow();
--        this.framebufferMc.unbindFramebuffer();
--        GlStateManager.popMatrix();
--        GlStateManager.pushMatrix();
--        this.framebufferMc.framebufferRender(this.displayWidth, this.displayHeight);
--        GlStateManager.popMatrix();
--        GlStateManager.pushMatrix();
--        this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);
--        GlStateManager.popMatrix();
++//            if (i == 0) {
++//                totalframe1Time = System.nanoTime() - startRender;
++//                eyeRender1 = System.nanoTime() - startRender;
++//                startEye2 = System.nanoTime();
++//            }
++//            else {
++//                totalframe2Time = System.nanoTime() - startEye2;
++//                if (totalframe1Time > totalframe2Time)
++//                {
++//                    long diff = totalframe1Time - totalframe2Time;
++//                    //Thread.yield();
++//                    //sleepNanos(diff);
++//                    totalframe2Time = System.nanoTime() - startEye2;
++//                }
++//                startEnd = System.nanoTime();
++//                eyeRender2 = startEnd - startEye2;
++//            }
++        }
++
 +        endFrame();
++        long endFrame = System.nanoTime() - startEnd;
 +
 +        //this.checkGLError("endFrame");
-         this.mcProfiler.startSection("root");
--        this.func_175601_h();
++        //this.mcProfiler.startSection("root");
 +        //this.func_175601_h();     // Now handled in setup setupRenderConfiguration
-         Thread.yield();
-         this.mcProfiler.startSection("stream");
-         this.mcProfiler.startSection("update");
-@@ -1165,9 +1390,10 @@
-         this.stream.func_152922_k();
-         this.mcProfiler.endSection();
-         this.mcProfiler.endSection();
--        this.checkGLError("Post render");
++        //this.mcProfiler.startSection("stream");
++        //this.mcProfiler.startSection("update");
++        //this.stream.func_152935_j();
++        //this.mcProfiler.endStartSection("submit");
++        //this.stream.func_152922_k();
++        //this.mcProfiler.endSection();
++        //this.mcProfiler.endSection();
 +        //this.checkGLError("Post render");
          ++this.fpsCounter;
          this.isGamePaused = this.isSingleplayer() && this.currentScreen != null && this.currentScreen.doesGuiPauseGame() && !this.theIntegratedServer.getPublic();
@@ -586,7 +642,7 @@
  
          while (getSystemTime() >= this.debugUpdateTime + 1000L)
          {
-@@ -1183,54 +1409,60 @@
+@@ -1183,54 +1448,70 @@
                  this.usageSnooper.startSnooper();
              }
          }
@@ -607,6 +663,16 @@
 +//        }
 +/** END MINECRIFT */
          this.mcProfiler.endSection();
++//        long gameLoopEnd = System.nanoTime() - gameLoopStart;
++//        //long budget = 1000f / 75f
++//        StringBuilder sb = new StringBuilder();
++//        //sb.append("Frame Timings:\nEye1: ").append(getMsStringFromNanos(totalframe1Time)).append("\nEye2: ").append(getMsStringFromNanos(totalframe2Time));//
++//        //sb.append("\nEnd: ").append(getMsStringFromNanos(endFrame)).append("\nTotal: ").append(getMsStringFromNanos(gameLoopEnd));
++//        sb.append("Frame Timings:\nPre: ").append(getMsStringFromNanos(preRender)).append("\nEye1: ").append(getMsStringFromNanos(eyeRender1)).append("\nEye2: ").append(getMsStringFromNanos(eyeRender2));
++//        sb.append("\nEnd: ").append(getMsStringFromNanos(endFrame)).append("\nTotal: ").append(getMsStringFromNanos(gameLoopEnd));
++//        printFrameDebug(sb.toString());
++
++        Thread.yield();
      }
  
      public void func_175601_h()
@@ -682,7 +748,7 @@
      }
  
      public boolean isFramerateLimitBelowMax()
-@@ -1306,10 +1538,19 @@
+@@ -1306,10 +1587,19 @@
      /**
       * Parameter appears to be unused
       */
@@ -703,7 +769,7 @@
              List var3 = this.mcProfiler.getProfilingData(this.debugProfilerName);
              Profiler.Result var4 = (Profiler.Result)var3.remove(0);
              GlStateManager.clear(256);
-@@ -1327,6 +1568,14 @@
+@@ -1327,6 +1617,14 @@
              short var7 = 160;
              int var8 = this.displayWidth - var7 - 10;
              int var9 = this.displayHeight - var7 * 2;
@@ -718,7 +784,7 @@
              GlStateManager.enableBlend();
              var6.startDrawingQuads();
              var6.func_178974_a(0, 200);
-@@ -1417,6 +1666,13 @@
+@@ -1417,6 +1715,13 @@
                  this.fontRendererObj.func_175063_a(var23 = var19.format(var22.field_76332_a) + "%", (float)(var8 + var7 - 50 - this.fontRendererObj.getStringWidth(var23)), (float)(var9 + var7 / 2 + var21 * 8 + 20), var22.func_76329_a());
                  this.fontRendererObj.func_175063_a(var23 = var19.format(var22.field_76330_b) + "%", (float)(var8 + var7 - this.fontRendererObj.getStringWidth(var23)), (float)(var9 + var7 / 2 + var21 * 8 + 20), var22.func_76329_a());
              }
@@ -732,7 +798,7 @@
          }
      }
  
-@@ -1500,8 +1756,9 @@
+@@ -1500,8 +1805,9 @@
              }
          }
      }
@@ -744,7 +810,7 @@
      {
          if (this.leftClickCounter <= 0)
          {
-@@ -1509,7 +1766,9 @@
+@@ -1509,7 +1815,9 @@
  
              if (this.objectMouseOver == null)
              {
@@ -755,7 +821,7 @@
  
                  if (this.playerController.isNotCreative())
                  {
-@@ -1546,8 +1805,9 @@
+@@ -1546,8 +1854,9 @@
  
      /**
       * Called when user clicked he's mouse right button (place)
@@ -767,7 +833,7 @@
      {
          this.rightClickDelayTimer = 4;
          boolean var1 = true;
-@@ -1555,7 +1815,9 @@
+@@ -1555,7 +1864,9 @@
  
          if (this.objectMouseOver == null)
          {
@@ -778,7 +844,7 @@
          }
          else
          {
-@@ -1619,6 +1881,11 @@
+@@ -1619,6 +1930,11 @@
       */
      public void toggleFullscreen()
      {
@@ -790,7 +856,7 @@
          try
          {
              this.fullscreen = !this.fullscreen;
-@@ -1667,7 +1934,9 @@
+@@ -1667,7 +1983,9 @@
              }
  
              Display.setFullscreen(this.fullscreen);
@@ -801,7 +867,7 @@
              this.func_175601_h();
          }
          catch (Exception var2)
-@@ -1681,17 +1950,21 @@
+@@ -1681,17 +1999,21 @@
       */
      private void resize(int width, int height)
      {
@@ -834,7 +900,7 @@
      }
  
      private void updateFramebufferSize()
-@@ -1718,6 +1991,10 @@
+@@ -1718,6 +2040,10 @@
  
          if (!this.isGamePaused)
          {
@@ -845,7 +911,7 @@
              this.ingameGUI.updateTick();
          }
  
-@@ -1739,6 +2016,10 @@
+@@ -1739,6 +2065,10 @@
  
          if (this.currentScreen == null && this.thePlayer != null)
          {
@@ -856,7 +922,7 @@
              if (this.thePlayer.getHealth() <= 0.0F)
              {
                  this.displayGuiScreen((GuiScreen)null);
-@@ -1918,6 +2199,10 @@
+@@ -1918,6 +2248,10 @@
                      }
                      else
                      {
@@ -867,7 +933,7 @@
                          if (var1 == 1)
                          {
                              this.displayInGameMenu();
-@@ -2013,11 +2298,13 @@
+@@ -2013,11 +2347,13 @@
  
                              if (this.gameSettings.thirdPersonView == 0)
                              {
@@ -883,7 +949,7 @@
                              }
                          }
  
-@@ -2148,6 +2435,12 @@
+@@ -2148,6 +2484,12 @@
  
              this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
          }
@@ -896,7 +962,7 @@
  
          if (this.theWorld != null)
          {
-@@ -2285,29 +2578,55 @@
+@@ -2285,29 +2627,55 @@
  
          this.loadingScreen.displaySavingString(I18n.format("menu.loadingLevel", new Object[0]));
  
@@ -918,12 +984,12 @@
 +            long currentTime = System.currentTimeMillis();
  
 -            if (var6 != null)
-+            if (currentTime - lastIntegratedServerLaunchCheck > 200L)
-             {
+-            {
 -                this.loadingScreen.displayLoadingString(I18n.format(var6, new Object[0]));
 -            }
 -            else
--            {
++            if (currentTime - lastIntegratedServerLaunchCheck > 200L)
+             {
 -                this.loadingScreen.displayLoadingString("");
 -            }
 +                this.lastIntegratedServerLaunchCheck = currentTime;
@@ -968,7 +1034,7 @@
          this.displayGuiScreen((GuiScreen)null);
          SocketAddress var11 = this.theIntegratedServer.getNetworkSystem().addLocalEndpoint();
          NetworkManager var12 = NetworkManager.provideLocalClient(var11);
-@@ -2315,7 +2634,11 @@
+@@ -2315,7 +2683,11 @@
          var12.sendPacket(new C00Handshake(47, var11.toString(), 0, EnumConnectionState.LOGIN));
          var12.sendPacket(new C00PacketLoginStart(this.getSession().getProfile()));
          this.myNetworkManager = var12;
@@ -980,7 +1046,7 @@
  
      /**
       * unloads the current world first
-@@ -2876,11 +3199,18 @@
+@@ -2876,11 +3248,18 @@
          playerSnooper.addStatToSnooper("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
@@ -999,7 +1065,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2888,12 +3218,14 @@
+@@ -2888,12 +3267,14 @@
  
              if (var1 != 0)
              {
@@ -1014,7 +1080,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3135,15 +3467,17 @@
+@@ -3135,15 +3516,17 @@
          return this.skinManager;
      }
  
@@ -1033,7 +1099,7 @@
      }
  
      public ListenableFuture addScheduledTask(Callable callableToSchedule)
-@@ -3303,4 +3637,933 @@
+@@ -3303,4 +3686,962 @@
              }
          }
      }
@@ -1355,9 +1421,9 @@
 +
 +        this.entityRenderer.clipDistance = this.entityRenderer.farPlaneDistance * MathHelper.field_180189_a;
 +
-+        if (this.entityRenderer.clipDistance < 128.0F)
++        if (this.entityRenderer.clipDistance < 173.0F)
 +        {
-+            this.entityRenderer.clipDistance = 128.0F;
++            this.entityRenderer.clipDistance = 173.0F;
 +        }
 +
 +        if (this.theWorld != null && this.theWorld.provider != null && this.theWorld.provider.dimensionId == 1)
@@ -1847,7 +1913,7 @@
 +        //this.func_175601_h();
 +    }
 +    
-+    private static void sleepNanos (long nanoDelay)
++    public static void sleepNanos (long nanoDelay)
 +    {
 +        final long end = System.nanoTime() + nanoDelay;
 +        do
@@ -1890,6 +1956,35 @@
 +    private long getMedianRunTickTimeNanos()
 +    {
 +        return medianRunTickTimeNanos;
++    }
++
++    public void printFrameDebug(String debug)
++    {
++        if (canPrintFrameDebug)
++            this.printChatMessage(debug);
++    }
++
++    public void setFrameDebugCounter()
++    {
++        debugFrameCounter++;
++        if (debugFrameCounter == 450)
++        {
++            canPrintFrameDebug = true;
++        }
++        else if (debugFrameCounter > 450)
++        {
++            canPrintFrameDebug = false;
++            debugFrameCounter = 0;
++        }
++        else
++        {
++            canPrintFrameDebug = false;
++        }
++    }
++
++    public String getMsStringFromNanos(long nanos)
++    {
++        return String.format("%.3fms", new Object[] {(double)nanos / 1000000f});
 +    }
 +
 +    public final String LANCZOS_SAMPLER_VERTEX_SHADER =

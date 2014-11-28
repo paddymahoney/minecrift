@@ -8,7 +8,32 @@
  
      public ThreadDownloadImageData(File p_i1049_1_, String p_i1049_2_, ResourceLocation p_i1049_3_, IImageBuffer p_i1049_4_)
      {
-@@ -107,7 +106,6 @@
+@@ -39,15 +38,18 @@
+ 
+     private void checkTextureUploaded()
+     {
+-        if (!this.textureUploaded && this.bufferedImage != null)
++        if (!this.textureUploaded)
+         {
+-            if (this.textureLocation != null)
++            if (this.bufferedImage != null)
+             {
+-                this.deleteGlTexture();
+-            }
++                if (this.textureLocation != null)
++                {
++                    this.deleteGlTexture();
++                }
+ 
+-            TextureUtil.uploadTextureImage(super.getGlTextureId(), this.bufferedImage);
+-            this.textureUploaded = true;
++                TextureUtil.uploadTextureImage(super.getGlTextureId(), this.bufferedImage);
++                this.textureUploaded = true;
++            }
+         }
+     }
+ 
+@@ -107,7 +109,6 @@
          this.imageThread = new Thread("Texture Downloader #" + threadDownloadCounter.incrementAndGet())
          {
              private static final String __OBFID = "CL_00001050";
@@ -16,3 +41,41 @@
              public void run()
              {
                  HttpURLConnection var1 = null;
+@@ -122,30 +123,30 @@
+ 
+                     if (var1.getResponseCode() / 100 == 2)
+                     {
+-                        BufferedImage var6;
++                        BufferedImage var2;
+ 
+                         if (ThreadDownloadImageData.this.field_152434_e != null)
+                         {
+                             FileUtils.copyInputStreamToFile(var1.getInputStream(), ThreadDownloadImageData.this.field_152434_e);
+-                            var6 = ImageIO.read(ThreadDownloadImageData.this.field_152434_e);
++                            var2 = ImageIO.read(ThreadDownloadImageData.this.field_152434_e);
+                         }
+                         else
+                         {
+-                            var6 = TextureUtil.func_177053_a(var1.getInputStream());
++                            var2 = TextureUtil.func_177053_a(var1.getInputStream());
+                         }
+ 
+                         if (ThreadDownloadImageData.this.imageBuffer != null)
+                         {
+-                            var6 = ThreadDownloadImageData.this.imageBuffer.parseUserSkin(var6);
++                            var2 = ThreadDownloadImageData.this.imageBuffer.parseUserSkin(var2);
+                         }
+ 
+-                        ThreadDownloadImageData.this.setBufferedImage(var6);
++                        ThreadDownloadImageData.this.setBufferedImage(var2);
+                         return;
+                     }
+                 }
+-                catch (Exception var61)
++                catch (Exception var6)
+                 {
+-                    ThreadDownloadImageData.logger.error("Couldn\'t download http texture", var61);
++                    ThreadDownloadImageData.logger.error("Couldn\'t download http texture", var6);
+                     return;
+                 }
+                 finally

@@ -16,15 +16,15 @@
                  public void run()
                  {
                      ChunkRenderDispatcher.this.field_178519_d.remove(var2);
-@@ -213,7 +211,6 @@
-                 var2.func_178539_a(new Runnable()
+@@ -218,7 +216,6 @@
+             var2.func_178539_a(new Runnable()
+             {
+                 private static final String __OBFID = "CL_00002461";
+-                private static final String __OBFID = "CL_00002461";
+                 public void run()
                  {
-                     private static final String __OBFID = "CL_00002461";
--                    private static final String __OBFID = "CL_00002461";
-                     public void run()
-                     {
-                         ChunkRenderDispatcher.this.field_178519_d.remove(var2);
-@@ -255,7 +252,6 @@
+                     ChunkRenderDispatcher.this.field_178519_d.remove(var2);
+@@ -256,7 +253,6 @@
              ListenableFutureTask var5 = ListenableFutureTask.create(new Runnable()
              {
                  private static final String __OBFID = "CL_00002460";

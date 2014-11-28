@@ -1,6 +1,14 @@
 --- a/net/minecraft/profiler/Profiler.java
 +++ b/net/minecraft/profiler/Profiler.java
-@@ -39,7 +39,6 @@
+@@ -4,6 +4,7 @@
+ import com.google.common.collect.Maps;
+ import java.util.ArrayList;
+ import java.util.Arrays;
++import java.util.Collections;
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
+@@ -39,7 +40,6 @@
      private static final int HASH_SCHEDULED_EXECUTABLES = "scheduledExecutables".hashCode();
      private static final int HASH_TICK = "tick".hashCode();
      private static final int HASH_PRE_RENDER_ERRORS = "preRenderErrors".hashCode();
@@ -8,7 +16,7 @@
  
      public Profiler()
      {
-@@ -107,8 +106,13 @@
+@@ -107,8 +107,13 @@
              if (this.profilingEnabled)
              {
                  long var1 = System.nanoTime();
@@ -24,7 +32,7 @@
                  long var5 = var1 - var3;
  
                  if (this.profilingMap.containsKey(this.profilingSection))
-@@ -119,8 +123,9 @@
+@@ -119,8 +124,9 @@
                  {
                      this.profilingMap.put(this.profilingSection, Long.valueOf(var5));
                  }
@@ -36,7 +44,15 @@
                  {
                      logger.warn("Something\'s taking too long! \'" + this.profilingSection + "\' took aprox " + (double)var5 / 1000000.0D + " ms");
                  }
-@@ -239,7 +244,6 @@
+@@ -211,6 +217,7 @@
+                 var7.add(new Profiler.Result("unspecified", (double)((float)var8 - var201) * 100.0D / (double)var8, (double)((float)var8 - var201) * 100.0D / (double)var3));
+             }
+ 
++            Collections.sort(var7);
+             var7.add(0, new Profiler.Result(p_76321_1_, 100.0D, (double)var8 * 100.0D / (double)var3));
+             return var7;
+         }
+@@ -239,7 +246,6 @@
          public double field_76330_b;
          public String field_76331_c;
          private static final String __OBFID = "CL_00001498";

@@ -1,0 +1,334 @@
+--- a/net/minecraft/src/CustomColorizer.java
++++ b/net/minecraft/src/CustomColorizer.java
+@@ -13,11 +13,13 @@
+ import javax.imageio.ImageIO;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.BlockRedstoneWire;
++import net.minecraft.block.BlockStem;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.block.state.IBlockState;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.multiplayer.WorldClient;
+ import net.minecraft.client.particle.EntityFX;
++import net.minecraft.client.renderer.block.model.BakedQuad;
+ import net.minecraft.client.renderer.texture.TextureUtil;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.init.Blocks;
+@@ -25,6 +27,7 @@
+ import net.minecraft.util.MathHelper;
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraft.util.Vec3;
++import net.minecraft.world.ColorizerFoliage;
+ import net.minecraft.world.IBlockAccess;
+ import net.minecraft.world.World;
+ import net.minecraft.world.biome.BiomeGenBase;
+@@ -426,6 +429,225 @@
+         useDefaultColorMultiplier = foliageBirchColors == null && foliagePineColors == null && swampGrassColors == null && swampFoliageColors == null && blockPalettes == null && Config.isSwampColors() && Config.isSmoothBiomes();
+     }
+ 
++    public static int getColorMultiplier(BakedQuad quad, Block block, IBlockAccess blockAccess, BlockPos blockPos, RenderEnv renderEnv)
++    {
++        if (useDefaultColorMultiplier)
++        {
++            return -1;
++        }
++        else
++        {
++            int[] colors = null;
++            int[] swampColors = null;
++            int metadata;
++
++            if (blockPalettes != null)
++            {
++                int useSwampColors = renderEnv.getBlockId();
++
++                if (useSwampColors >= 0 && useSwampColors < 256)
++                {
++                    int[] smoothColors = blockPalettes[useSwampColors];
++                    boolean type = true;
++                    int type1;
++
++                    if (smoothColors.length > 1)
++                    {
++                        metadata = renderEnv.getMetadata();
++                        type1 = smoothColors[metadata];
++                    }
++                    else
++                    {
++                        type1 = smoothColors[0];
++                    }
++
++                    if (type1 >= 0)
++                    {
++                        colors = paletteColors[type1];
++                    }
++                }
++
++                if (colors != null)
++                {
++                    if (Config.isSmoothBiomes())
++                    {
++                        return getSmoothColorMultiplier(block, blockAccess, blockPos, colors, colors, 0, 0, renderEnv);
++                    }
++
++                    return getCustomColor(colors, blockAccess, blockPos);
++                }
++            }
++
++            if (!quad.func_178212_b())
++            {
++                return -1;
++            }
++            else if (block == Blocks.waterlily)
++            {
++                return getLilypadColorMultiplier(blockAccess, blockPos);
++            }
++            else if (block instanceof BlockStem)
++            {
++                return getStemColorMultiplier(block, blockAccess, blockPos, renderEnv);
++            }
++            else
++            {
++                boolean useSwampColors1 = Config.isSwampColors();
++                boolean smoothColors1 = false;
++                byte type2 = 0;
++                metadata = 0;
++
++                if (block != Blocks.grass && block != Blocks.tallgrass)
++                {
++                    if (block == Blocks.leaves)
++                    {
++                        type2 = 2;
++                        smoothColors1 = Config.isSmoothBiomes();
++                        metadata = renderEnv.getMetadata();
++
++                        if ((metadata & 3) == 1)
++                        {
++                            colors = foliagePineColors;
++                        }
++                        else if ((metadata & 3) == 2)
++                        {
++                            colors = foliageBirchColors;
++                        }
++                        else
++                        {
++                            colors = foliageColors;
++
++                            if (useSwampColors1)
++                            {
++                                swampColors = swampFoliageColors;
++                            }
++                            else
++                            {
++                                swampColors = colors;
++                            }
++                        }
++                    }
++                    else if (block == Blocks.vine)
++                    {
++                        type2 = 2;
++                        smoothColors1 = Config.isSmoothBiomes();
++                        colors = foliageColors;
++
++                        if (useSwampColors1)
++                        {
++                            swampColors = swampFoliageColors;
++                        }
++                        else
++                        {
++                            swampColors = colors;
++                        }
++                    }
++                }
++                else
++                {
++                    type2 = 1;
++                    smoothColors1 = Config.isSmoothBiomes();
++                    colors = grassColors;
++
++                    if (useSwampColors1)
++                    {
++                        swampColors = swampGrassColors;
++                    }
++                    else
++                    {
++                        swampColors = colors;
++                    }
++                }
++
++                if (smoothColors1)
++                {
++                    return getSmoothColorMultiplier(block, blockAccess, blockPos, colors, swampColors, type2, metadata, renderEnv);
++                }
++                else
++                {
++                    if (swampColors != colors && blockAccess.getBiomeGenForCoords(blockPos) == BiomeGenBase.swampland)
++                    {
++                        colors = swampColors;
++                    }
++
++                    return colors != null ? getCustomColor(colors, blockAccess, blockPos) : -1;
++                }
++            }
++        }
++    }
++
++    private static int getSmoothColorMultiplier(Block block, IBlockAccess blockAccess, BlockPos blockPos, int[] colors, int[] swampColors, int type, int metadata, RenderEnv renderEnv)
++    {
++        int sumRed = 0;
++        int sumGreen = 0;
++        int sumBlue = 0;
++        int x = blockPos.getX();
++        int y = blockPos.getY();
++        int z = blockPos.getZ();
++        BlockPosM posM = renderEnv.getColorizerBlockPos();
++        int r;
++        int g;
++
++        for (r = x - 1; r <= x + 1; ++r)
++        {
++            for (g = z - 1; g <= z + 1; ++g)
++            {
++                posM.setXyz(r, y, g);
++                int[] b = colors;
++
++                if (swampColors != colors && blockAccess.getBiomeGenForCoords(posM) == BiomeGenBase.swampland)
++                {
++                    b = swampColors;
++                }
++
++                boolean col = false;
++                int var20;
++
++                if (b == null)
++                {
++                    switch (type)
++                    {
++                        case 1:
++                            var20 = blockAccess.getBiomeGenForCoords(posM).func_180627_b(posM);
++                            break;
++
++                        case 2:
++                            if ((metadata & 3) == 1)
++                            {
++                                var20 = ColorizerFoliage.getFoliageColorPine();
++                            }
++                            else if ((metadata & 3) == 2)
++                            {
++                                var20 = ColorizerFoliage.getFoliageColorBirch();
++                            }
++                            else
++                            {
++                                var20 = blockAccess.getBiomeGenForCoords(posM).func_180625_c(posM);
++                            }
++
++                            break;
++
++                        default:
++                            var20 = block.colorMultiplier(blockAccess, posM);
++                    }
++                }
++                else
++                {
++                    var20 = getCustomColor(b, blockAccess, posM);
++                }
++
++                sumRed += var20 >> 16 & 255;
++                sumGreen += var20 >> 8 & 255;
++                sumBlue += var20 & 255;
++            }
++        }
++
++        r = sumRed / 9;
++        g = sumGreen / 9;
++        int var19 = sumBlue / 9;
++        return r << 16 | g << 8 | var19;
++    }
++
+     public static int getFluidColor(Block block, IBlockAccess blockAccess, BlockPos blockPos)
+     {
+         return block.getMaterial() != Material.water ? block.colorMultiplier(blockAccess, blockPos) : (waterColors != null ? (Config.isSmoothBiomes() ? getSmoothColor(waterColors, blockAccess, (double)blockPos.getX(), (double)blockPos.getY(), (double)blockPos.getZ(), 3, 1) : getCustomColor(waterColors, blockAccess, blockPos)) : (!Config.isSwampColors() ? 16777215 : block.colorMultiplier(blockAccess, blockPos)));
+@@ -522,17 +744,35 @@
+         return redstoneColors == null ? -1 : (level >= 0 && level <= 15 ? redstoneColors[level] & 16777215 : -1);
+     }
+ 
+-    public static void updateWaterFX(EntityFX fx, IBlockAccess blockAccess)
++    public static void updateWaterFX(EntityFX fx, IBlockAccess blockAccess, double x, double y, double z)
+     {
+         if (waterColors != null)
+         {
+-            ;
++            int col = getFluidColor(Blocks.water, blockAccess, new BlockPos(x, y, z));
++            int red = col >> 16 & 255;
++            int green = col >> 8 & 255;
++            int blue = col & 255;
++            float redF = (float)red / 255.0F;
++            float greenF = (float)green / 255.0F;
++            float blueF = (float)blue / 255.0F;
++
++            if (particleWaterColor >= 0)
++            {
++                int redDrop = particleWaterColor >> 16 & 255;
++                int greenDrop = particleWaterColor >> 8 & 255;
++                int blueDrop = particleWaterColor & 255;
++                redF *= (float)redDrop / 255.0F;
++                greenF *= (float)greenDrop / 255.0F;
++                blueF *= (float)blueDrop / 255.0F;
++            }
++
++            fx.setRBGColorF(redF, greenF, blueF);
+         }
+     }
+ 
+-    public static int getLilypadColor()
++    public static int getLilypadColorMultiplier(IBlockAccess blockAccess, BlockPos blockPos)
+     {
+-        return lilyPadColor < 0 ? Blocks.waterlily.getBlockColor() : lilyPadColor;
++        return lilyPadColor < 0 ? Blocks.waterlily.colorMultiplier(blockAccess, blockPos) : lilyPadColor;
+     }
+ 
+     public static Vec3 getFogColorNether(Vec3 col)
+@@ -627,9 +867,9 @@
+         }
+         else
+         {
+-            int x0 = (int)Math.floor(x);
+-            int y0 = (int)Math.floor(y);
+-            int z0 = (int)Math.floor(z);
++            int x0 = MathHelper.floor_double(x);
++            int y0 = MathHelper.floor_double(y);
++            int z0 = MathHelper.floor_double(z);
+             int n = samples * step / 2;
+             int sumRed = 0;
+             int sumGreen = 0;
+@@ -700,6 +940,30 @@
+         return r << 16 | g << 8 | b;
+     }
+ 
++    public static int getStemColorMultiplier(Block blockStem, IBlockAccess blockAccess, BlockPos blockPos, RenderEnv renderEnv)
++    {
++        if (stemColors == null)
++        {
++            return blockStem.colorMultiplier(blockAccess, blockPos);
++        }
++        else
++        {
++            int level = renderEnv.getMetadata();
++
++            if (level < 0)
++            {
++                level = 0;
++            }
++
++            if (level >= stemColors.length)
++            {
++                level = stemColors.length - 1;
++            }
++
++            return stemColors[level];
++        }
++    }
++
+     public static boolean updateLightmap(World world, float torchFlickerX, int[] lmColors, boolean nightvision)
+     {
+         if (world == null)

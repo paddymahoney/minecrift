@@ -8,3 +8,13 @@
  
      public FontRenderer(GameSettings p_i1035_1_, ResourceLocation p_i1035_2_, TextureManager p_i1035_3_, boolean p_i1035_4_)
      {
+@@ -1019,7 +1018,8 @@
+ 
+     public int func_175064_b(char p_175064_1_)
+     {
+-        return this.colorCode["0123456789abcdef".indexOf(p_175064_1_)];
++        int index = "0123456789abcdef".indexOf(p_175064_1_);
++        return index >= 0 && index < this.colorCode.length ? this.colorCode[index] : 16777215;
+     }
+ 
+     private void readCustomCharWidths()

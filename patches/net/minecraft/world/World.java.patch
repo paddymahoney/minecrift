@@ -1,0 +1,33 @@
+--- a/net/minecraft/world/World.java
++++ b/net/minecraft/world/World.java
+@@ -2442,6 +2442,30 @@
+         }
+     }
+ 
++    /** MINECRIFT */
++    public boolean isSolidFullCube(BlockPos p_175677_1_, boolean p_175677_2_)
++    {
++        if (!this.isValid(p_175677_1_))
++        {
++            return p_175677_2_;
++        }
++        else
++        {
++            Chunk var3 = this.chunkProvider.func_177459_a(p_175677_1_);
++
++            if (var3.isEmpty())
++            {
++                return p_175677_2_;
++            }
++            else
++            {
++                Block var4 = this.getBlockState(p_175677_1_).getBlock();
++                return var4.getMaterial().isOpaque() && var4.isSolidFullCube();
++            }
++        }
++    }
++    /** END MINECRIFT */
++
+     /**
+      * Called on construction of the World class to setup the initial skylight values
+      */

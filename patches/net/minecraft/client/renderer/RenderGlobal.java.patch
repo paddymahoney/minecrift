@@ -1,15 +1,16 @@
 --- a/net/minecraft/client/renderer/RenderGlobal.java
 +++ b/net/minecraft/client/renderer/RenderGlobal.java
-@@ -19,6 +19,8 @@
+@@ -19,6 +19,9 @@
  import javax.vecmath.Vector3d;
  import javax.vecmath.Vector3f;
  import javax.vecmath.Vector4f;
 +
++import com.mtbs3d.minecrift.render.OpenGLdebugging;
 +import com.mtbs3d.minecrift.settings.VRSettings;
  import net.minecraft.block.Block;
  import net.minecraft.block.BlockChest;
  import net.minecraft.block.BlockEnderChest;
-@@ -45,6 +47,7 @@
+@@ -45,6 +48,7 @@
  import net.minecraft.client.renderer.culling.Frustrum;
  import net.minecraft.client.renderer.culling.ICamera;
  import net.minecraft.client.renderer.entity.RenderManager;
@@ -17,7 +18,7 @@
  import net.minecraft.client.renderer.texture.TextureAtlasSprite;
  import net.minecraft.client.renderer.texture.TextureManager;
  import net.minecraft.client.renderer.texture.TextureMap;
-@@ -195,7 +198,6 @@
+@@ -195,7 +199,6 @@
      public Entity renderedEntity;
      public Set chunksToResortTransparency = new LinkedHashSet();
      public Set chunksToUpdateForced = new LinkedHashSet();
@@ -25,7 +26,7 @@
  
      public RenderGlobal(Minecraft mcIn)
      {
-@@ -660,7 +662,10 @@
+@@ -660,7 +663,10 @@
              boolean oldFancyGraphics = this.mc.gameSettings.fancyGraphics;
              this.mc.gameSettings.fancyGraphics = Config.isDroppedItemsFancy();
              RenderGlobal.ContainerLocalRenderInformation var33;
@@ -37,7 +38,7 @@
              while (var321.hasNext())
              {
                  var33 = (RenderGlobal.ContainerLocalRenderInformation)var321.next();
-@@ -684,19 +689,32 @@
+@@ -684,19 +690,32 @@
  
                          if (var30 == this.mc.func_175606_aa() && this.mc.gameSettings.thirdPersonView == 0 && !teClass || var30.posY >= 0.0D && var30.posY < 256.0D && !this.theWorld.isBlockLoaded(new BlockPos(var30)))
                          {
@@ -48,11 +49,11 @@
 +
 +							if (this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_FULL)
 +                                skipRender = false;
- 
--                        ++this.countEntitiesRendered;
++
 +                            if (skipRender)
 +                                continue;
-+
+ 
+-                        ++this.countEntitiesRendered;
 +                            thePlayer = var30;
 +                            /** END MINECRIFT */
 +                        }
@@ -77,11 +78,13 @@
                      }
  
                      if (!var34 && var30 instanceof EntityWitherSkull)
-@@ -778,6 +796,24 @@
+@@ -778,6 +797,26 @@
                  }
              }
  
 +            /** MINECRIFT EXPERIMENTAL */
++            //OpenGLdebugging.dumpOpenGLstateToFileOnce("../Avatar.txt");
++
 +			// Render crosshair...
 +            this.mc.entityRenderer.func_175072_h(); // Disable lightmap
 +            this.mc.entityRenderer.renderCrosshairAtDepth();
@@ -102,7 +105,7 @@
              this.func_174969_t();
              this.mc.entityRenderer.func_175072_h();
              this.mc.mcProfiler.endSection();
-@@ -2307,15 +2343,10 @@
+@@ -2307,15 +2346,10 @@
              var18.addCrashSectionCallable("Position", new Callable()
              {
                  private static final String __OBFID = "CL_00000955";
@@ -118,7 +121,27 @@
              });
              throw new ReportedException(var17);
          }
-@@ -2778,7 +2809,6 @@
+@@ -2437,12 +2471,17 @@
+ 
+                     if (p_174974_1_ == EnumParticleTypes.WATER_BUBBLE.func_179348_c())
+                     {
+-                        CustomColorizer.updateWaterFX(entityFx, this.theWorld);
++                        CustomColorizer.updateWaterFX(entityFx, this.theWorld, p_174974_3_, p_174974_5_, p_174974_7_);
+                     }
+ 
+                     if (p_174974_1_ == EnumParticleTypes.WATER_SPLASH.func_179348_c())
+                     {
+-                        CustomColorizer.updateWaterFX(entityFx, this.theWorld);
++                        CustomColorizer.updateWaterFX(entityFx, this.theWorld, p_174974_3_, p_174974_5_, p_174974_7_);
++                    }
++
++                    if (p_174974_1_ == EnumParticleTypes.WATER_DROP.func_179348_c())
++                    {
++                        CustomColorizer.updateWaterFX(entityFx, this.theWorld, p_174974_3_, p_174974_5_, p_174974_7_);
+                     }
+ 
+                     if (p_174974_1_ == EnumParticleTypes.TOWN_AURA.func_179348_c())
+@@ -2778,7 +2817,6 @@
          final Set field_178035_c;
          final int field_178032_d;
          private static final String __OBFID = "CL_00002534";
@@ -126,7 +149,7 @@
  
          private ContainerLocalRenderInformation(RenderChunk p_i46248_2_, EnumFacing p_i46248_3_, int p_i46248_4_)
          {
-@@ -2798,7 +2828,6 @@
+@@ -2798,7 +2836,6 @@
      {
          static final int[] field_178037_a = new int[VertexFormatElement.EnumUseage.values().length];
          private static final String __OBFID = "CL_00002535";
