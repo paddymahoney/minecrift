@@ -138,14 +138,16 @@ def create_install(mcp_dir):
             bufsize=-1).communicate()
     os.unlink( "launch4j.xml" )
 
-def replacelineinfile(file_path, pattern, subst):
+def replacelineinfile(file_path, pattern, subst, firstmatchonly=False):
     #Create temp file
     fh, abs_path = mkstemp()
     new_file = open(abs_path,'w')
     old_file = open(file_path)
+    hit = False
     for line in old_file:
-        if pattern in line:
+        if pattern in line and not (firstmatchonly == True and hit == True): 
             new_file.write(subst)
+            hit = True
         else:
             new_file.write(line)
     #close temp file

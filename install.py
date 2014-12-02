@@ -14,6 +14,9 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 
 preferredarch = ''
 nomerge = False
+nopatch = False
+clean = False
+force = False
 
 try:
     WindowsError
@@ -116,17 +119,31 @@ def download_deps( mcp_dir, download_mc ):
         print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_dir, mcp_dir, base_dir)
         exit(1)
             
+    # Patch mcp.cfg for additional mem
     print("Patching mcp.cfg. Ignore \"FAILED\" hunks")
     apply_patch( mcp_dir, os.path.join("mcppatches", "mcp.cfg.patch"), os.path.join(mcp_dir,"conf"))
+    
+    # Patch mcp.cfg with minecraft jar md5
+    mcp_cfg_file = os.path.join(mcp_dir,"conf","mcp.cfg")
+    replacelineinfile( mcp_cfg_file, "MD5Client  =", "MD5Client  = %s\n" % mc_file_md5, True );   # Multiple 'MD5Client' entries - hack to get first one currently
+    #replacelineinfile( mcp_cfg_file, "MD5Server  =", "MD5Server  = %s\n" % mc_server_file_md5, True );   
+    
+    # Patch fffix.py
     print("Patching fffix.py. Ignore \"FAILED\" hunks")
     apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
     
+    # Copy over client.md5
     client_md5 = os.path.join("mcppatches","client.md5")
     target_client_md5 = os.path.join(mcp_dir,"temp","client.md5")
     if not os.path.exists(target_client_md5):
         mkdir_p( os.path.join(mcp_dir,"temp") )
         print 'Updating client.md5: copying %s to %s' % (client_md5, target_client_md5)
         shutil.copy(client_md5,target_client_md5)
+        
+    # Setup the appropriate mcp file versions
+    mcp_version_cfg = os.path.join(mcp_dir,"conf","version.cfg")
+    replacelineinfile( mcp_version_cfg, "ClientVersion =", "ClientVersion = %s\n" % mc_version );
+    replacelineinfile( mcp_version_cfg, "ServerVersion =", "ServerVersion = %s\n" % mc_version );    
 
     jars = os.path.join(mcp_dir,"jars")
 
@@ -350,6 +367,28 @@ def main(mcp_dir):
     print 'Preferred architecture: %sbit - preferring %sbit native extraction (use -a 32 or -a 64 to change)' % (preferredarch, preferredarch)
     if nomerge is True:
         print 'NO Optifine merging'
+    if nopatch is True:
+        print 'SKIPPING Apply patches'        
+        
+    if clean == True:
+        print 'Cleaning...'
+        if force == False:
+            print ''
+            print 'WARNING:'
+            print 'The clean option will delete all folders created by MCP, including the'
+            print 'src folder which may contain changes you made to the code, along with any'
+            print 'saved worlds from the client or server.'
+            print 'Minecrift downloaded dependencies will also be removed and re-downloaded.'
+            print 'Patches will be left alone however.'
+            answer = raw_input('If you really want to clean up, enter "Yes" ')
+            if answer.lower() not in ['yes']:
+                print 'You have not entered "Yes", aborting the clean up process'
+                sys.exit(1)        
+        print 'Cleaning mcp dir...'
+        reallyrmtree(mcp_dir)
+        print 'Cleaning lib dir...'
+        reallyrmtree(os.path.join(base_dir,'lib'))
+        
     print("\nDownloading dependencies...")
     download_deps( mcp_dir, True )
 
@@ -360,7 +399,7 @@ def main(mcp_dir):
         print ' Merging\n  %s\n into\n  %s' % (optifine, minecraft_jar)
         zipmerge( minecraft_jar, optifine )
     else:
-        print("Skipping Optifine merge...")
+        print("Skipping Optifine merge!")
     
     print("Decompiling...")
     src_dir = os.path.join(mcp_dir, "src","minecraft")
@@ -379,12 +418,39 @@ def main(mcp_dir):
         shutil.rmtree( org_src_dir, True )
     shutil.copytree( src_dir, org_src_dir )
 
-    applychanges( mcp_dir )
+    if nopatch == False:
+        print("Applying patches...")
+        applychanges( mcp_dir )
+    else:
+        print("Apply patches skipped!")
 
+def reallyrmtree(path):
+    if not sys.platform.startswith('win'):
+        if os.path.exists(path):
+            shutil.rmtree(path)
+    else:
+        i = 0
+        try:
+            while os.stat(path) and i < 20:
+                shutil.rmtree(path, onerror=rmtree_onerror)
+                i += 1
+        except OSError:
+            pass
+
+        # raise OSError if the path still exists even after trying really hard
+        try:
+            os.stat(path)
+        except OSError:
+            pass
+        else:
+            raise OSError(errno.EPERM, "Failed to remove: '" + path + "'", path)
 
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-o', '--no-optifine', dest='nomerge', default=False, action='store_true', help='If specified, no optifine merge will be carried out')
+    parser.add_option('-c', '--clean', dest='clean', default=False, action='store_true', help='Cleans the mcp dir, and REMOVES ALL SOURCE IN THE MCPxxx/SRC dir. Re-downloads dependencies')
+    parser.add_option('-f', '--force', dest='force', default=False, action='store_true', help='Forces any changes without prompts')
+    parser.add_option('-n', '--no-patch', dest='nopatch', default=False, action='store_true', help='If specified, no patches will be applied at the end of installation')
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
     parser.add_option('-a', '--architecture', action='store', dest='arch', help='Architecture to use (\'32\' or \'64\'); prefer 32 or 64bit dlls', default=None)
     options, _ = parser.parse_args()
@@ -399,6 +465,9 @@ if __name__ == '__main__':
         preferredarch = osArch()
         
     nomerge = options.nomerge
+    nopatch = options.nopatch
+    clean = options.clean
+    force = options.force
     
     if not options.mcp_dir is None:
         main(os.path.abspath(options.mcp_dir))
