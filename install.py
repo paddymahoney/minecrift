@@ -4,6 +4,11 @@ import platform
 import shutil, tempfile, json
 import errno
 import platform
+import shutil
+import time
+from shutil import move
+from tempfile import mkstemp
+from os import remove, close
 from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
@@ -445,6 +450,36 @@ def reallyrmtree(path):
         else:
             raise OSError(errno.EPERM, "Failed to remove: '" + path + "'", path)
 
+def rmtree_onerror(func, path, _):
+    if not os.access(path, os.W_OK):
+        os.chmod(path, stat.S_IWUSR)
+    time.sleep(0.5)
+    try:
+        func(path)
+    except OSError:
+        pass
+        
+def replacelineinfile(file_path, pattern, subst, firstmatchonly=False):
+    #Create temp file
+    fh, abs_path = mkstemp()
+    new_file = open(abs_path,'w')
+    old_file = open(file_path)
+    hit = False
+    for line in old_file:
+        if pattern in line and not (firstmatchonly == True and hit == True): 
+            new_file.write(subst)
+            hit = True
+        else:
+            new_file.write(line)
+    #close temp file
+    new_file.close()
+    close(fh)
+    old_file.close()
+    #Remove original file
+    remove(file_path)
+    #Move new file
+    move(abs_path, file_path)
+    
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-o', '--no-optifine', dest='nomerge', default=False, action='store_true', help='If specified, no optifine merge will be carried out')
