@@ -133,6 +133,13 @@ def download_deps( mcp_dir, download_mc ):
     replacelineinfile( mcp_cfg_file, "MD5Client  =", "MD5Client  = %s\n" % mc_file_md5, True );   # Multiple 'MD5Client' entries - hack to get first one currently
     #replacelineinfile( mcp_cfg_file, "MD5Server  =", "MD5Server  = %s\n" % mc_server_file_md5, True );   
     
+    # patch joined.srg if necessary
+    mcp_joined_srg = os.path.join(mcp_dir,"conf","joined.srg")
+    patch_joined_srg = os.path.join(base_dir,"mcppatches","%s_joined.srg" % mc_version)
+    if os.path.exists(patch_joined_srg):
+        print 'Updating joined.srg: copying %s to %s' % (patch_joined_srg, mcp_joined_srg)
+        shutil.copy(patch_joined_srg,mcp_joined_srg)    
+    
     # Patch fffix.py
     print("Patching fffix.py. Ignore \"FAILED\" hunks")
     apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
