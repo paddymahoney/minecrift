@@ -194,7 +194,7 @@
 +    public Deque<Long> runTickTimeNanos = new ArrayDeque<Long>();
 +    public long medianRunTickTimeNanos = 0;
 +
-+    public final String minecriftVerString = "Minecrift 1.7.10 PRE5";
++    public final String minecriftVerString = "Minecrift 1.7.10 PRE5a";
 +    /** END MINECRIFT */
 +
      public Minecraft(Session p_i1103_1_, int p_i1103_2_, int p_i1103_3_, boolean p_i1103_4_, boolean p_i1103_5_, File p_i1103_6_, File p_i1103_7_, File p_i1103_8_, Proxy p_i1103_9_, String p_i1103_10_, Multimap p_i1103_11_, String p_i1103_12_)
@@ -886,7 +886,7 @@
          }
          catch (Exception var2)
          {
-@@ -1632,19 +1943,23 @@
+@@ -1632,29 +1943,35 @@
       */
      private void resize(int p_71370_1_, int p_71370_2_)
      {
@@ -922,7 +922,25 @@
      }
  
      private void updateFramebufferSize()
-@@ -1680,10 +1995,22 @@
+     {
+-        this.mcFramebuffer.createBindFramebuffer(this.displayWidth, this.displayHeight);
+-
+-        if (this.entityRenderer != null)
+-        {
+-            this.entityRenderer.updateShaderGroupSize(this.displayWidth, this.displayHeight);
+-        }
++        /** MINECRIFT */
++//        this.mcFramebuffer.createBindFramebuffer(this.displayWidth, this.displayHeight);
++//
++//        if (this.entityRenderer != null)
++//        {
++//            this.entityRenderer.updateShaderGroupSize(this.displayWidth, this.displayHeight);
++//        }
++        /** END MINECRIFT */
+     }
+ 
+     /**
+@@ -1680,10 +1997,22 @@
              --this.rightClickDelayTimer;
          }
  
@@ -945,7 +963,7 @@
              this.ingameGUI.updateTick();
          }
  
-@@ -1705,6 +2032,10 @@
+@@ -1705,6 +2034,10 @@
  
          if (this.currentScreen == null && this.thePlayer != null)
          {
@@ -956,7 +974,7 @@
              if (this.thePlayer.getHealth() <= 0.0F)
              {
                  this.displayGuiScreen((GuiScreen)null);
-@@ -1778,6 +2109,10 @@
+@@ -1778,6 +2111,10 @@
  
              while (Mouse.next())
              {
@@ -967,7 +985,7 @@
                  var9 = Mouse.getEventButton();
                  KeyBinding.setKeyBindState(var9 - 100, Mouse.getEventButtonState());
  
-@@ -1824,6 +2159,9 @@
+@@ -1824,6 +2161,9 @@
                          this.currentScreen.handleMouseInput();
                      }
                  }
@@ -977,7 +995,7 @@
              }
  
              if (this.leftClickCounter > 0)
-@@ -1875,6 +2213,10 @@
+@@ -1875,6 +2215,10 @@
                      }
                      else
                      {
@@ -988,7 +1006,7 @@
                          if (Keyboard.getEventKey() == 1)
                          {
                              this.displayInGameMenu();
-@@ -1960,6 +2302,9 @@
+@@ -1960,6 +2304,9 @@
                              }
                          }
                      }
@@ -998,7 +1016,7 @@
                  }
              }
  
-@@ -2056,6 +2401,12 @@
+@@ -2056,6 +2403,12 @@
  
              this.func_147115_a(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
          }
@@ -1011,7 +1029,7 @@
  
          if (this.theWorld != null)
          {
-@@ -2151,6 +2502,10 @@
+@@ -2151,6 +2504,10 @@
              this.myNetworkManager.processReceivedPackets();
          }
  
@@ -1022,7 +1040,7 @@
          this.mcProfiler.endSection();
          this.systemTime = getSystemTime();
      }
-@@ -2160,6 +2515,13 @@
+@@ -2160,6 +2517,13 @@
       */
      public void launchIntegratedServer(String p_71371_1_, String p_71371_2_, WorldSettings p_71371_3_)
      {
@@ -1036,7 +1054,7 @@
          this.loadWorld((WorldClient)null);
          System.gc();
          ISaveHandler var4 = this.saveLoader.getSaveLoader(p_71371_1_, false);
-@@ -2193,37 +2555,80 @@
+@@ -2193,37 +2557,80 @@
  
          this.loadingScreen.displayProgressMessage(I18n.format("menu.loadingLevel", new Object[0]));
  
@@ -1140,7 +1158,7 @@
  
      /**
       * unloads the current world first
-@@ -2238,6 +2643,11 @@
+@@ -2238,6 +2645,11 @@
       */
      public void loadWorld(WorldClient p_71353_1_, String p_71353_2_)
      {
@@ -1152,7 +1170,7 @@
          if (p_71353_1_ == null)
          {
              NetHandlerPlayClient var3 = this.getNetHandler();
-@@ -2250,6 +2660,21 @@
+@@ -2250,6 +2662,21 @@
              if (this.theIntegratedServer != null)
              {
                  this.theIntegratedServer.initiateShutdown();
@@ -1174,7 +1192,7 @@
              }
  
              this.theIntegratedServer = null;
-@@ -2276,6 +2701,13 @@
+@@ -2276,6 +2703,13 @@
              this.mcResourcePackRepository.func_148529_f();
              this.setServerData((ServerData)null);
              this.integratedServerIsRunning = false;
@@ -1188,7 +1206,7 @@
          }
  
          this.mcSoundHandler.func_147690_c();
-@@ -2420,108 +2852,116 @@
+@@ -2420,108 +2854,116 @@
              Item var2;
              int var5;
  
@@ -1404,7 +1422,7 @@
              if (var1)
              {
                  var5 = this.thePlayer.inventoryContainer.inventorySlots.size() - 9 + this.thePlayer.inventory.currentItem;
-@@ -2793,11 +3233,18 @@
+@@ -2793,11 +3235,18 @@
          p_70001_1_.func_152767_b("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
@@ -1423,7 +1441,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2805,12 +3252,14 @@
+@@ -2805,12 +3254,14 @@
  
              if (var1 != 0)
              {
@@ -1438,7 +1456,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3117,4 +3566,918 @@
+@@ -3117,4 +3568,918 @@
              }
          }
      }

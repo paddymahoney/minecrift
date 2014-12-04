@@ -1,165 +1,35 @@
 --- a/net/minecraft/src/Config.java
 +++ b/net/minecraft/src/Config.java
-@@ -1383,63 +1383,66 @@
-         return o1 == o2 ? true : (o1 == null ? false : o1.equals(o2));
-     }
+@@ -1385,6 +1385,12 @@
  
-+    /** MINECRIFT */
      public static void checkDisplaySettings()
      {
--        if (getAntialiasingLevel() > 0)
--        {
--            int samples = getAntialiasingLevel();
--            DisplayMode displayMode = Display.getDisplayMode();
--            dbg("FSAA Samples: " + samples);
--
--            try
--            {
--                Display.destroy();
--                Display.setDisplayMode(displayMode);
--                Display.create((new PixelFormat()).withDepthBits(24).withSamples(samples));
--            }
--            catch (LWJGLException var9)
--            {
--                warn("Error setting FSAA: " + samples + "x");
--                var9.printStackTrace();
--
--                try
--                {
--                    Display.setDisplayMode(displayMode);
--                    Display.create((new PixelFormat()).withDepthBits(24));
--                }
--                catch (LWJGLException var8)
--                {
--                    var8.printStackTrace();
--
--                    try
--                    {
--                        Display.setDisplayMode(displayMode);
--                        Display.create();
--                    }
--                    catch (LWJGLException var7)
--                    {
--                        var7.printStackTrace();
--                    }
--                }
--            }
--
--            if (Util.getOSType() != Util.EnumOS.OSX)
--            {
--                try
--                {
--                    File e = new File(minecraft.mcDataDir, "assets");
--                    ByteBuffer bufIcon16 = readIconImage(new File(e, "/icons/icon_16x16.png"));
--                    ByteBuffer bufIcon32 = readIconImage(new File(e, "/icons/icon_32x32.png"));
--                    ByteBuffer[] buf = new ByteBuffer[] {bufIcon16, bufIcon32};
--                    Display.setIcon(buf);
--                }
--                catch (IOException var6)
--                {
--                    dbg(var6.getClass().getName() + ": " + var6.getMessage());
--                }
--            }
--        }
-+        // Dont allow changes to the display...
-+//        if (getAntialiasingLevel() > 0)
-+//        {
-+//            int samples = getAntialiasingLevel();
-+//            DisplayMode displayMode = Display.getDisplayMode();
-+//            dbg("FSAA Samples: " + samples);
-+//
-+//            try
-+//            {
-+//                Display.destroy();
-+//                Display.setDisplayMode(displayMode);
-+//                Display.create((new PixelFormat()).withDepthBits(24).withSamples(samples));
-+//            }
-+//            catch (LWJGLException var9)
-+//            {
-+//                warn("Error setting FSAA: " + samples + "x");
-+//                var9.printStackTrace();
-+//
-+//                try
-+//                {
-+//                    Display.setDisplayMode(displayMode);
-+//                    Display.create((new PixelFormat()).withDepthBits(24));
-+//                }
-+//                catch (LWJGLException var8)
-+//                {
-+//                    var8.printStackTrace();
-+//
-+//                    try
-+//                    {
-+//                        Display.setDisplayMode(displayMode);
-+//                        Display.create();
-+//                    }
-+//                    catch (LWJGLException var7)
-+//                    {
-+//                        var7.printStackTrace();
-+//                    }
-+//                }
-+//            }
-+//
-+//            if (Util.getOSType() != Util.EnumOS.OSX)
-+//            {
-+//                try
-+//                {
-+//                    File e = new File(minecraft.mcDataDir, "assets");
-+//                    ByteBuffer bufIcon16 = readIconImage(new File(e, "/icons/icon_16x16.png"));
-+//                    ByteBuffer bufIcon32 = readIconImage(new File(e, "/icons/icon_32x32.png"));
-+//                    ByteBuffer[] buf = new ByteBuffer[] {bufIcon16, bufIcon32};
-+//                    Display.setIcon(buf);
-+//                }
-+//                catch (IOException var6)
-+//                {
-+//                    dbg(var6.getClass().getName() + ": " + var6.getMessage());
-+//                }
-+//            }
-+//        }
-     }
-+    /** END MINECRIFT */
++        /** MINECRIFT */
++        // Dont allow changes to the display in Direct Mode
++        if (Minecraft.getMinecraft().isDirectMode)
++            return;
++        /** END MINECRIFT */
++
+         if (getAntialiasingLevel() > 0)
+         {
+             int samples = getAntialiasingLevel();
+@@ -1461,6 +1467,12 @@
  
-     private static ByteBuffer readIconImage(File par1File) throws IOException
-     {
-@@ -1459,86 +1462,89 @@
-         return var4;
-     }
- 
-+    /** MINECRIFT */
      public static void checkDisplayMode()
      {
--        try
--        {
--            if (minecraft.isFullScreen())
--            {
--                if (fullscreenModeChecked)
--                {
--                    return;
--                }
--
--                fullscreenModeChecked = true;
--                desktopModeChecked = false;
--                DisplayMode e = Display.getDisplayMode();
--                Dimension dim = getFullscreenDimension();
--
--                if (dim == null)
--                {
--                    return;
--                }
--
--                if (e.getWidth() == dim.width && e.getHeight() == dim.height)
--                {
--                    return;
--                }
--
--                DisplayMode newMode = getDisplayMode(dim);
--
--                if (newMode == null)
--                {
--                    return;
--                }
--
--                Display.setDisplayMode(newMode);
++        /** MINECRIFT */
++
++        // Dont allow changes to the display in Direct Mode
++        if (Minecraft.getMinecraft().isDirectMode)
++            return;
++
+         try
+         {
+             if (minecraft.isFullScreen())
+@@ -1493,31 +1505,35 @@
+                 }
+ 
+                 Display.setDisplayMode(newMode);
 -                minecraft.displayWidth = Display.getDisplayMode().getWidth();
 -                minecraft.displayHeight = Display.getDisplayMode().getHeight();
 -
@@ -167,7 +37,8 @@
 -                {
 -                    minecraft.displayWidth = 1;
 -                }
--
++                Minecraft.getMinecraft().reinitFramebuffers = true;
+ 
 -                if (minecraft.displayHeight <= 0)
 -                {
 -                    minecraft.displayHeight = 1;
@@ -180,64 +51,6 @@
 -                    int sh = sr.getScaledHeight();
 -                    minecraft.currentScreen.setWorldAndResolution(minecraft, sw, sh);
 -                }
--
--                minecraft.loadingScreen = new LoadingScreenRenderer(minecraft);
--                updateFramebufferSize();
--                Display.setFullscreen(true);
--                minecraft.gameSettings.updateVSync();
--                GL11.glEnable(GL11.GL_TEXTURE_2D);
--            }
--            else
--            {
--                if (desktopModeChecked)
--                {
--                    return;
--                }
--
--                desktopModeChecked = true;
--                fullscreenModeChecked = false;
--                minecraft.gameSettings.updateVSync();
--                Display.update();
--                GL11.glEnable(GL11.GL_TEXTURE_2D);
--            }
--        }
--        catch (Exception var6)
--        {
--            var6.printStackTrace();
--        }
-+        // Don't allow changes to the display
-+//        try
-+//        {
-+//            if (minecraft.isFullScreen())
-+//            {
-+//                if (fullscreenModeChecked)
-+//                {
-+//                    return;
-+//                }
-+//
-+//                fullscreenModeChecked = true;
-+//                desktopModeChecked = false;
-+//                DisplayMode e = Display.getDisplayMode();
-+//                Dimension dim = getFullscreenDimension();
-+//
-+//                if (dim == null)
-+//                {
-+//                    return;
-+//                }
-+//
-+//                if (e.getWidth() == dim.width && e.getHeight() == dim.height)
-+//                {
-+//                    return;
-+//                }
-+//
-+//                DisplayMode newMode = getDisplayMode(dim);
-+//
-+//                if (newMode == null)
-+//                {
-+//                    return;
-+//                }
-+//
-+//                Display.setDisplayMode(newMode);
 +//                minecraft.displayWidth = Display.getDisplayMode().getWidth();
 +//                minecraft.displayHeight = Display.getDisplayMode().getHeight();
 +//
@@ -261,30 +74,20 @@
 +//
 +//                minecraft.loadingScreen = new LoadingScreenRenderer(minecraft);
 +//                updateFramebufferSize();
-+//                Display.setFullscreen(true);
-+//                minecraft.gameSettings.updateVSync();
-+//                GL11.glEnable(GL11.GL_TEXTURE_2D);
-+//            }
-+//            else
-+//            {
-+//                if (desktopModeChecked)
-+//                {
-+//                    return;
-+//                }
-+//
-+//                desktopModeChecked = true;
-+//                fullscreenModeChecked = false;
-+//                minecraft.gameSettings.updateVSync();
-+//                Display.update();
-+//                GL11.glEnable(GL11.GL_TEXTURE_2D);
-+//            }
-+//        }
-+//        catch (Exception var6)
-+//        {
-+//            var6.printStackTrace();
-+//        }
+ 
+-                minecraft.loadingScreen = new LoadingScreenRenderer(minecraft);
+-                updateFramebufferSize();
+                 Display.setFullscreen(true);
+                 minecraft.gameSettings.updateVSync();
++                Display.update();
+                 GL11.glEnable(GL11.GL_TEXTURE_2D);
+             }
+             else
+@@ -1538,6 +1554,7 @@
+         {
+             var6.printStackTrace();
+         }
++        /** END MINECRIFT */
      }
-+    /** END MINECRIFT */
  
      private static void updateFramebufferSize()
-     {

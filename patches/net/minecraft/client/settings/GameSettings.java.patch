@@ -31,10 +31,11 @@
  
      public void updateVSync()
      {
-+		/** MINECRIFT * // Don't update - needs to be on
-         Display.setVSyncEnabled(this.enableVsync);
+-        Display.setVSyncEnabled(this.enableVsync);
 -    }
-+		** END MINECRIFT */ 
++		/** MINECRIFT */ // Always needs to be on
++        Display.setVSyncEnabled(true);
++		/** END MINECRIFT */
 +	}
  
      private void updateWaterOpacity()
