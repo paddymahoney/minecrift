@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/World.java
 +++ b/net/minecraft/world/World.java
-@@ -2442,6 +2442,30 @@
+@@ -2447,6 +2447,30 @@
          }
      }
  

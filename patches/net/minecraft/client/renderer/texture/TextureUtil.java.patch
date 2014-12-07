@@ -8,12 +8,3 @@
  
      public static int glGenTextures()
      {
-@@ -330,7 +329,7 @@
-                 ImageIO.write(var12, "png", var6);
-                 logger.debug("Exported png to: {}", new Object[] {var6.getAbsolutePath()});
-             }
--            catch (IOException var14)
-+            catch (Exception var14)
-             {
-                 logger.debug("Unable to write: ", var14);
-             }

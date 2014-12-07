@@ -1,6 +1,6 @@
 --- a/net/minecraft/src/BlockUtils.java
 +++ b/net/minecraft/src/BlockUtils.java
-@@ -10,23 +10,23 @@
+@@ -10,23 +10,25 @@
  
      public static void setLightOpacity(Block block, int opacity)
      {
@@ -21,6 +21,7 @@
 -                }
 -            }
 -        }
++/** MINECRIFT */
 +//        if (directAccessValid)
 +//        {
 +//            try
@@ -38,6 +39,7 @@
 +//                }
 +//            }
 +//        }
++/** END MINECRIFT */
  
          Reflector.callVoid(block, ForgeBlock_setLightOpacity, new Object[] {Integer.valueOf(opacity)});
      }

@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/OpenGlHelper.java
 +++ b/net/minecraft/client/renderer/OpenGlHelper.java
-@@ -87,7 +87,6 @@
+@@ -90,7 +90,6 @@
      private static final String __OBFID = "CL_00001179";
      public static float lastBrightnessX = 0.0F;
      public static float lastBrightnessY = 0.0F;

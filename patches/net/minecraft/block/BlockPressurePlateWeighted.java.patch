@@ -1,0 +1,24 @@
+--- a/net/minecraft/block/BlockPressurePlateWeighted.java
++++ b/net/minecraft/block/BlockPressurePlateWeighted.java
+@@ -17,16 +17,16 @@
+     private final int field_150068_a;
+     private static final String __OBFID = "CL_00000334";
+ 
+-    protected BlockPressurePlateWeighted(Material p_i46409_1_, int p_i46409_2_)
++    protected BlockPressurePlateWeighted(Material p_i46444_1_, int p_i46444_2_)
+     {
+-        this(p_i46409_1_, p_i46409_2_, p_i46409_1_.getMaterialMapColor());
++        this(p_i46444_1_, p_i46444_2_, p_i46444_1_.getMaterialMapColor());
+     }
+ 
+-    protected BlockPressurePlateWeighted(Material p_i46410_1_, int p_i46410_2_, MapColor p_i46410_3_)
++    protected BlockPressurePlateWeighted(Material p_i46445_1_, int p_i46445_2_, MapColor p_i46445_3_)
+     {
+-        super(p_i46410_1_, p_i46410_3_);
++        super(p_i46445_1_, p_i46445_3_);
+         this.setDefaultState(this.blockState.getBaseState().withProperty(POWER, Integer.valueOf(0)));
+-        this.field_150068_a = p_i46410_2_;
++        this.field_150068_a = p_i46445_2_;
+     }
+ 
+     protected int computeRedstoneStrength(World worldIn, BlockPos pos)

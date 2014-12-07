@@ -1,8 +1,8 @@
 --- a/net/minecraft/util/MathHelper.java
 +++ b/net/minecraft/util/MathHelper.java
-@@ -34,7 +34,6 @@
-      */
-     private static final int[] multiplyDeBruijnBitPosition;
+@@ -37,7 +37,6 @@
+     private static final double[] e;
+     private static final double[] f;
      private static final String __OBFID = "CL_00001496";
 -    private static final String __OBFID = "CL_00001496";
  

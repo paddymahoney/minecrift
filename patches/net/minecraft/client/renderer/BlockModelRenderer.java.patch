@@ -1,24 +1,6 @@
 --- a/net/minecraft/client/renderer/BlockModelRenderer.java
 +++ b/net/minecraft/client/renderer/BlockModelRenderer.java
-@@ -7,16 +7,12 @@
- import net.minecraft.block.state.IBlockState;
- import net.minecraft.client.Minecraft;
- import net.minecraft.client.renderer.block.model.BakedQuad;
--import net.minecraft.client.renderer.block.model.BreakingFour;
- import net.minecraft.client.renderer.texture.TextureUtil;
- import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
- import net.minecraft.client.resources.model.IBakedModel;
- import net.minecraft.crash.CrashReport;
- import net.minecraft.crash.CrashReportCategory;
--import net.minecraft.src.BetterGrass;
--import net.minecraft.src.BetterSnow;
--import net.minecraft.src.Config;
--import net.minecraft.src.ConnectedTextures;
-+import net.minecraft.src.*;
- import net.minecraft.util.BlockPos;
- import net.minecraft.util.EnumFacing;
- import net.minecraft.util.MathHelper;
-@@ -28,7 +24,6 @@
+@@ -29,7 +29,6 @@
  {
      private static final String __OBFID = "CL_00002518";
      private static float aoLightValueOpaque = 0.2F;
@@ -26,420 +8,37 @@
  
      public static void updateAoLightValue()
      {
-@@ -63,56 +58,62 @@
- 
-     public boolean func_178265_a(IBlockAccess blockAccessIn, IBakedModel modelIn, Block blockIn, BlockPos blockPosIn, WorldRenderer worldRendererIn, boolean checkSides)
-     {
--        return this.renderModelAmbientOcclusion(blockAccessIn, modelIn, blockIn, (IBlockState)null, blockPosIn, worldRendererIn, checkSides);
-+        return this.renderModelAmbientOcclusion(blockAccessIn, modelIn, blockIn, blockAccessIn.getBlockState(blockPosIn), blockPosIn, worldRendererIn, checkSides);
-     }
- 
-     public boolean renderModelAmbientOcclusion(IBlockAccess blockAccessIn, IBakedModel modelIn, Block blockIn, IBlockState blockStateIn, BlockPos blockPosIn, WorldRenderer worldRendererIn, boolean checkSides)
-     {
--        boolean betterGrass = Config.isBetterGrass();
--        boolean renderBreaking = false;
-         boolean var7 = false;
-         worldRendererIn.func_178963_b(983055);
--        float[] var8 = new float[EnumFacing.VALUES.length * 2];
--        BitSet var9 = new BitSet(3);
--        BlockModelRenderer.AmbientOcclusionFace var10 = new BlockModelRenderer.AmbientOcclusionFace();
-+        RenderEnv renderEnv = null;
-         EnumFacing[] var11 = EnumFacing.VALUES;
-         int var12 = var11.length;
- 
-         for (int var17 = 0; var17 < var12; ++var17)
-         {
--            EnumFacing var14 = var11[var17];
--            List var15 = modelIn.func_177551_a(var14);
-+            EnumFacing modelSnow = var11[var17];
-+            List stateSnow = modelIn.func_177551_a(modelSnow);
- 
--            if (!var15.isEmpty())
-+            if (!stateSnow.isEmpty())
-             {
--                BlockPos var16 = blockPosIn.offset(var14);
-+                BlockPos var16 = blockPosIn.offset(modelSnow);
- 
--                if (!checkSides || blockIn.shouldSideBeRendered(blockAccessIn, var16, var14))
-+                if (!checkSides || blockIn.shouldSideBeRendered(blockAccessIn, var16, modelSnow))
-                 {
--                    renderBreaking = renderBreaking || var15.get(0) instanceof BreakingFour;
-+                    if (renderEnv == null)
-+                    {
-+                        renderEnv = RenderEnv.getInstance(blockAccessIn, blockStateIn, blockPosIn);
-+                    }
- 
--                    if (!renderBreaking && betterGrass)
-+                    if (!renderEnv.isBreakingAnimation(stateSnow) && Config.isBetterGrass())
-                     {
--                        var15 = BetterGrass.getFaceQuads(blockAccessIn, blockIn, blockPosIn, var14, var15);
-+                        stateSnow = BetterGrass.getFaceQuads(blockAccessIn, blockIn, blockPosIn, modelSnow, stateSnow);
-                     }
- 
--                    this.renderModelAmbientOcclusionQuads(blockAccessIn, blockStateIn, blockPosIn, worldRendererIn, var15, var8, var9, var10);
-+                    this.renderModelAmbientOcclusionQuads(blockAccessIn, blockIn, blockPosIn, worldRendererIn, stateSnow, renderEnv);
-                     var7 = true;
-                 }
-             }
-         }
- 
--        List var20 = modelIn.func_177550_a();
-+        List var161 = modelIn.func_177550_a();
- 
--        if (var20.size() > 0)
-+        if (var161.size() > 0)
-         {
--            this.renderModelAmbientOcclusionQuads(blockAccessIn, blockStateIn, blockPosIn, worldRendererIn, var20, var8, var9, var10);
-+            if (renderEnv == null)
-+            {
-+                renderEnv = RenderEnv.getInstance(blockAccessIn, blockStateIn, blockPosIn);
-+            }
-+
-+            this.renderModelAmbientOcclusionQuads(blockAccessIn, blockIn, blockPosIn, worldRendererIn, var161, renderEnv);
-             var7 = true;
-         }
- 
--        if (var7 && Config.isBetterSnow() && !renderBreaking && BetterSnow.shouldRender(blockAccessIn, blockIn, blockStateIn, blockPosIn))
-+        if (renderEnv != null && Config.isBetterSnow() && !renderEnv.isBreakingAnimation() && BetterSnow.shouldRender(blockAccessIn, blockIn, blockStateIn, blockPosIn))
-         {
--            this.renderBlockModel(blockAccessIn, BetterSnow.getModelSnowLayer(), BetterSnow.getStateSnowLayer(), blockPosIn, worldRendererIn, true);
-+            IBakedModel var171 = BetterSnow.getModelSnowLayer();
-+            IBlockState var18 = BetterSnow.getStateSnowLayer();
-+            this.renderModelAmbientOcclusion(blockAccessIn, var171, var18.getBlock(), var18, blockPosIn, worldRendererIn, true);
-         }
- 
-         return var7;
-@@ -120,62 +121,73 @@
- 
-     public boolean func_178258_b(IBlockAccess blockAccessIn, IBakedModel modelIn, Block blockIn, BlockPos blockPosIn, WorldRenderer worldRendererIn, boolean checkSides)
-     {
--        return this.renderModelStandard(blockAccessIn, modelIn, blockIn, (IBlockState)null, blockPosIn, worldRendererIn, checkSides);
-+        return this.renderModelStandard(blockAccessIn, modelIn, blockIn, blockAccessIn.getBlockState(blockPosIn), blockPosIn, worldRendererIn, checkSides);
-     }
- 
-     public boolean renderModelStandard(IBlockAccess blockAccessIn, IBakedModel modelIn, Block blockIn, IBlockState blockStateIn, BlockPos blockPosIn, WorldRenderer worldRendererIn, boolean checkSides)
-     {
--        boolean betterGrass = Config.isBetterGrass();
--        boolean renderBreaking = false;
-         boolean var7 = false;
--        BitSet var8 = new BitSet(3);
-+        RenderEnv renderEnv = null;
-         EnumFacing[] var9 = EnumFacing.VALUES;
-         int var10 = var9.length;
- 
-         for (int var16 = 0; var16 < var10; ++var16)
-         {
--            EnumFacing var12 = var9[var16];
--            List var13 = modelIn.func_177551_a(var12);
-+            EnumFacing modelSnow = var9[var16];
-+            List stateSnow = modelIn.func_177551_a(modelSnow);
- 
--            if (!var13.isEmpty())
-+            if (!stateSnow.isEmpty())
-             {
--                BlockPos var14 = blockPosIn.offset(var12);
-+                BlockPos var14 = blockPosIn.offset(modelSnow);
- 
--                if (!checkSides || blockIn.shouldSideBeRendered(blockAccessIn, var14, var12))
-+                if (!checkSides || blockIn.shouldSideBeRendered(blockAccessIn, var14, modelSnow))
-                 {
--                    renderBreaking = renderBreaking || var13.get(0) instanceof BreakingFour;
-+                    if (renderEnv == null)
-+                    {
-+                        renderEnv = RenderEnv.getInstance(blockAccessIn, blockStateIn, blockPosIn);
-+                    }
- 
--                    if (!renderBreaking && betterGrass)
-+                    if (!renderEnv.isBreakingAnimation(stateSnow) && Config.isBetterGrass())
-                     {
--                        var13 = BetterGrass.getFaceQuads(blockAccessIn, blockIn, blockPosIn, var12, var13);
-+                        stateSnow = BetterGrass.getFaceQuads(blockAccessIn, blockIn, blockPosIn, modelSnow, stateSnow);
-                     }
- 
-                     int var15 = blockIn.getMixedBrightnessForBlock(blockAccessIn, var14);
--                    this.renderModelStandardQuads(blockAccessIn, blockStateIn, blockPosIn, var12, var15, false, worldRendererIn, var13, var8);
-+                    this.renderModelStandardQuads(blockAccessIn, blockIn, blockPosIn, modelSnow, var15, false, worldRendererIn, stateSnow, renderEnv);
-                     var7 = true;
-                 }
-             }
-         }
- 
--        List var19 = modelIn.func_177550_a();
-+        List var17 = modelIn.func_177550_a();
- 
--        if (var19.size() > 0)
-+        if (var17.size() > 0)
-         {
--            this.renderModelStandardQuads(blockAccessIn, blockStateIn, blockPosIn, (EnumFacing)null, -1, true, worldRendererIn, var19, var8);
-+            if (renderEnv == null)
-+            {
-+                renderEnv = RenderEnv.getInstance(blockAccessIn, blockStateIn, blockPosIn);
-+            }
-+
-+            this.renderModelStandardQuads(blockAccessIn, blockIn, blockPosIn, (EnumFacing)null, -1, true, worldRendererIn, var17, renderEnv);
-             var7 = true;
-         }
- 
--        if (var7 && Config.isBetterSnow() && !renderBreaking && BetterSnow.shouldRender(blockAccessIn, blockIn, blockStateIn, blockPosIn))
-+        if (renderEnv != null && Config.isBetterSnow() && !renderEnv.isBreakingAnimation() && BetterSnow.shouldRender(blockAccessIn, blockIn, blockStateIn, blockPosIn) && BetterSnow.shouldRender(blockAccessIn, blockIn, blockStateIn, blockPosIn))
-         {
--            this.renderBlockModel(blockAccessIn, BetterSnow.getModelSnowLayer(), BetterSnow.getStateSnowLayer(), blockPosIn, worldRendererIn, true);
-+            IBakedModel var18 = BetterSnow.getModelSnowLayer();
-+            IBlockState var19 = BetterSnow.getStateSnowLayer();
-+            this.renderModelStandard(blockAccessIn, var18, var19.getBlock(), var19, blockPosIn, worldRendererIn, true);
-         }
- 
-         return var7;
-     }
- 
--    private void renderModelAmbientOcclusionQuads(IBlockAccess blockAccessIn, IBlockState blockStateIn, BlockPos blockPosIn, WorldRenderer worldRendererIn, List listQuadsIn, float[] quadBounds, BitSet boundsFlags, BlockModelRenderer.AmbientOcclusionFace aoFaceIn)
-+    private void renderModelAmbientOcclusionQuads(IBlockAccess blockAccessIn, Block blockIn, BlockPos blockPosIn, WorldRenderer worldRendererIn, List listQuadsIn, RenderEnv renderEnv)
-     {
--        Block blockIn = blockStateIn.getBlock();
-+        float[] quadBounds = renderEnv.getQuadBounds();
-+        BitSet boundsFlags = renderEnv.getBoundsFlags();
-+        BlockModelRenderer.AmbientOcclusionFace aoFaceIn = renderEnv.getAoFace();
-+        IBlockState blockStateIn = renderEnv.getBlockState();
-         double var9 = (double)blockPosIn.getX();
-         double var11 = (double)blockPosIn.getY();
-         double var13 = (double)blockPosIn.getZ();
-@@ -199,17 +211,34 @@
- 
-             if (var17.getSprite() != null && Config.isConnectedTextures())
-             {
--                var17 = ConnectedTextures.getConnectedTexture(blockAccessIn, blockStateIn, blockPosIn, var17);
-+                var17 = ConnectedTextures.getConnectedTexture(blockAccessIn, blockStateIn, blockPosIn, var17, renderEnv);
-             }
- 
-             this.func_178261_a(blockIn, var17.func_178209_a(), var17.getFace(), quadBounds, boundsFlags);
-             aoFaceIn.func_178204_a(blockAccessIn, blockIn, blockPosIn, var17.getFace(), quadBounds, boundsFlags);
-             worldRendererIn.func_178981_a(var17.func_178209_a());
-             worldRendererIn.func_178962_a(aoFaceIn.field_178207_c[0], aoFaceIn.field_178207_c[1], aoFaceIn.field_178207_c[2], aoFaceIn.field_178207_c[3]);
-+            int colorMultiplier = CustomColorizer.getColorMultiplier(var17, blockIn, blockAccessIn, blockPosIn, renderEnv);
- 
--            if (var17.func_178212_b())
-+            if (!var17.func_178212_b() && colorMultiplier < 0)
-             {
--                int var18 = blockIn.colorMultiplier(blockAccessIn, blockPosIn, var17.func_178211_c());
-+                worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[0], aoFaceIn.field_178206_b[0], aoFaceIn.field_178206_b[0], 4);
-+                worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[1], aoFaceIn.field_178206_b[1], aoFaceIn.field_178206_b[1], 3);
-+                worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[2], aoFaceIn.field_178206_b[2], aoFaceIn.field_178206_b[2], 2);
-+                worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[3], aoFaceIn.field_178206_b[3], aoFaceIn.field_178206_b[3], 1);
-+            }
-+            else
-+            {
-+                int var18;
-+
-+                if (colorMultiplier >= 0)
-+                {
-+                    var18 = colorMultiplier;
-+                }
-+                else
-+                {
-+                    var18 = blockIn.colorMultiplier(blockAccessIn, blockPosIn, var17.func_178211_c());
-+                }
- 
-                 if (EntityRenderer.anaglyphEnable)
-                 {
-@@ -224,13 +253,6 @@
-                 worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[2] * var19, aoFaceIn.field_178206_b[2] * var20, aoFaceIn.field_178206_b[2] * var21, 2);
-                 worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[3] * var19, aoFaceIn.field_178206_b[3] * var20, aoFaceIn.field_178206_b[3] * var21, 1);
-             }
--            else
--            {
--                worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[0], aoFaceIn.field_178206_b[0], aoFaceIn.field_178206_b[0], 4);
--                worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[1], aoFaceIn.field_178206_b[1], aoFaceIn.field_178206_b[1], 3);
--                worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[2], aoFaceIn.field_178206_b[2], aoFaceIn.field_178206_b[2], 2);
--                worldRendererIn.func_178978_a(aoFaceIn.field_178206_b[3], aoFaceIn.field_178206_b[3], aoFaceIn.field_178206_b[3], 1);
--            }
-         }
-     }
- 
-@@ -309,9 +331,10 @@
-         }
-     }
- 
--    private void renderModelStandardQuads(IBlockAccess blockAccessIn, IBlockState blockStateIn, BlockPos blockPosIn, EnumFacing faceIn, int brightnessIn, boolean ownBrightness, WorldRenderer worldRendererIn, List listQuadsIn, BitSet boundsFlags)
-+    private void renderModelStandardQuads(IBlockAccess blockAccessIn, Block blockIn, BlockPos blockPosIn, EnumFacing faceIn, int brightnessIn, boolean ownBrightness, WorldRenderer worldRendererIn, List listQuadsIn, RenderEnv renderEnv)
-     {
--        Block blockIn = blockStateIn.getBlock();
-+        BitSet boundsFlags = renderEnv.getBoundsFlags();
-+        IBlockState blockStateIn = renderEnv.getBlockState();
-         double var10 = (double)blockPosIn.getX();
-         double var12 = (double)blockPosIn.getY();
-         double var14 = (double)blockPosIn.getZ();
-@@ -321,14 +344,14 @@
-         {
-             int var23 = blockPosIn.getX();
-             int var24 = blockPosIn.getZ();
--            long var25 = (long)(var23 * 3129871) ^ (long)var24 * 116129781L;
--            var25 = var25 * var25 * 42317861L + var25 * 11L;
--            var10 += ((double)((float)(var25 >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D;
--            var14 += ((double)((float)(var25 >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D;
-+            long colorMultiplier = (long)(var23 * 3129871) ^ (long)var24 * 116129781L;
-+            colorMultiplier = colorMultiplier * colorMultiplier * 42317861L + colorMultiplier * 11L;
-+            var10 += ((double)((float)(colorMultiplier >> 16 & 15L) / 15.0F) - 0.5D) * 0.5D;
-+            var14 += ((double)((float)(colorMultiplier >> 24 & 15L) / 15.0F) - 0.5D) * 0.5D;
- 
-             if (var16 == Block.EnumOffsetType.XYZ)
-             {
--                var12 += ((double)((float)(var25 >> 20 & 15L) / 15.0F) - 1.0D) * 0.2D;
-+                var12 += ((double)((float)(colorMultiplier >> 20 & 15L) / 15.0F) - 1.0D) * 0.2D;
-             }
-         }
- 
-@@ -338,7 +361,7 @@
- 
-             if (var241.getSprite() != null && Config.isConnectedTextures())
-             {
--                var241 = ConnectedTextures.getConnectedTexture(blockAccessIn, blockStateIn, blockPosIn, var241);
-+                var241 = ConnectedTextures.getConnectedTexture(blockAccessIn, blockStateIn, blockPosIn, var241, renderEnv);
-             }
- 
-             if (ownBrightness)
-@@ -349,19 +372,29 @@
- 
-             worldRendererIn.func_178981_a(var241.func_178209_a());
-             worldRendererIn.func_178962_a(brightnessIn, brightnessIn, brightnessIn, brightnessIn);
-+            int colorMultiplier1 = CustomColorizer.getColorMultiplier(var241, blockIn, blockAccessIn, blockPosIn, renderEnv);
- 
--            if (var241.func_178212_b())
-+            if (var241.func_178212_b() || colorMultiplier1 >= 0)
-             {
--                int var251 = blockIn.colorMultiplier(blockAccessIn, blockPosIn, var241.func_178211_c());
-+                int var25;
-+
-+                if (colorMultiplier1 >= 0)
-+                {
-+                    var25 = colorMultiplier1;
-+                }
-+                else
-+                {
-+                    var25 = blockIn.colorMultiplier(blockAccessIn, blockPosIn, var241.func_178211_c());
-+                }
- 
-                 if (EntityRenderer.anaglyphEnable)
-                 {
--                    var251 = TextureUtil.func_177054_c(var251);
-+                    var25 = TextureUtil.func_177054_c(var25);
-                 }
- 
--                float var20 = (float)(var251 >> 16 & 255) / 255.0F;
--                float var21 = (float)(var251 >> 8 & 255) / 255.0F;
--                float var22 = (float)(var251 & 255) / 255.0F;
-+                float var20 = (float)(var25 >> 16 & 255) / 255.0F;
-+                float var21 = (float)(var25 >> 8 & 255) / 255.0F;
-+                float var22 = (float)(var25 & 255) / 255.0F;
-                 worldRendererIn.func_178978_a(var20, var21, var22, 4);
-                 worldRendererIn.func_178978_a(var20, var21, var22, 3);
-                 worldRendererIn.func_178978_a(var20, var21, var22, 2);
-@@ -436,17 +469,20 @@
-         }
-     }
- 
--    private float fixAoLightValue(float val)
-+    public static float fixAoLightValue(float val)
-     {
-         return val == 0.2F ? aoLightValueOpaque : val;
-     }
- 
--    class AmbientOcclusionFace
-+    public static class AmbientOcclusionFace
-     {
+@@ -485,7 +484,6 @@
          private final float[] field_178206_b = new float[4];
          private final int[] field_178207_c = new int[4];
          private static final String __OBFID = "CL_00002515";
 -        private static final String __OBFID = "CL_00002515";
-+
-+        public AmbientOcclusionFace(BlockModelRenderer bmr) {}
-+
-+        public AmbientOcclusionFace() {}
  
-         public void func_178204_a(IBlockAccess blockAccessIn, Block blockIn, BlockPos blockPosIn, EnumFacing facingIn, float[] quadBounds, BitSet boundsFlags)
-         {
-@@ -460,10 +496,10 @@
-             int var14 = blockIn.getMixedBrightnessForBlock(blockAccessIn, var10);
-             int var15 = blockIn.getMixedBrightnessForBlock(blockAccessIn, var11);
-             int var16 = blockIn.getMixedBrightnessForBlock(blockAccessIn, var12);
--            float var17 = BlockModelRenderer.this.fixAoLightValue(blockAccessIn.getBlockState(var9).getBlock().getAmbientOcclusionLightValue());
--            float var18 = BlockModelRenderer.this.fixAoLightValue(blockAccessIn.getBlockState(var10).getBlock().getAmbientOcclusionLightValue());
--            float var19 = BlockModelRenderer.this.fixAoLightValue(blockAccessIn.getBlockState(var11).getBlock().getAmbientOcclusionLightValue());
--            float var20 = BlockModelRenderer.this.fixAoLightValue(blockAccessIn.getBlockState(var12).getBlock().getAmbientOcclusionLightValue());
-+            float var17 = BlockModelRenderer.fixAoLightValue(blockAccessIn.getBlockState(var9).getBlock().getAmbientOcclusionLightValue());
-+            float var18 = BlockModelRenderer.fixAoLightValue(blockAccessIn.getBlockState(var10).getBlock().getAmbientOcclusionLightValue());
-+            float var19 = BlockModelRenderer.fixAoLightValue(blockAccessIn.getBlockState(var11).getBlock().getAmbientOcclusionLightValue());
-+            float var20 = BlockModelRenderer.fixAoLightValue(blockAccessIn.getBlockState(var12).getBlock().getAmbientOcclusionLightValue());
-             boolean var21 = blockAccessIn.getBlockState(var9.offset(facingIn)).getBlock().isTranslucent();
-             boolean var22 = blockAccessIn.getBlockState(var10.offset(facingIn)).getBlock().isTranslucent();
-             boolean var23 = blockAccessIn.getBlockState(var11.offset(facingIn)).getBlock().isTranslucent();
-@@ -480,7 +516,7 @@
-             else
-             {
-                 var33 = var9.offset(var8.field_178276_g[2]);
--                var25 = BlockModelRenderer.this.fixAoLightValue(blockAccessIn.getBlockState(var33).getBlock().getAmbientOcclusionLightValue());
-+                var25 = BlockModelRenderer.fixAoLightValue(blockAccessIn.getBlockState(var33).getBlock().getAmbientOcclusionLightValue());
-                 var29 = blockIn.getMixedBrightnessForBlock(blockAccessIn, var33);
-             }
+         public AmbientOcclusionFace(BlockModelRenderer bmr) {}
  
-@@ -495,7 +531,7 @@
-             else
-             {
-                 var33 = var9.offset(var8.field_178276_g[3]);
--                var26 = BlockModelRenderer.this.fixAoLightValue(blockAccessIn.getBlockState(var33).getBlock().getAmbientOcclusionLightValue());
-+                var26 = BlockModelRenderer.fixAoLightValue(blockAccessIn.getBlockState(var33).getBlock().getAmbientOcclusionLightValue());
-                 var30 = blockIn.getMixedBrightnessForBlock(blockAccessIn, var33);
-             }
- 
-@@ -510,7 +546,7 @@
-             else
-             {
-                 var33 = var10.offset(var8.field_178276_g[2]);
--                var27 = BlockModelRenderer.this.fixAoLightValue(blockAccessIn.getBlockState(var33).getBlock().getAmbientOcclusionLightValue());
-+                var27 = BlockModelRenderer.fixAoLightValue(blockAccessIn.getBlockState(var33).getBlock().getAmbientOcclusionLightValue());
-                 var31 = blockIn.getMixedBrightnessForBlock(blockAccessIn, var33);
-             }
- 
-@@ -525,7 +561,7 @@
-             else
-             {
-                 var33 = var10.offset(var8.field_178276_g[3]);
--                var28 = BlockModelRenderer.this.fixAoLightValue(blockAccessIn.getBlockState(var33).getBlock().getAmbientOcclusionLightValue());
-+                var28 = BlockModelRenderer.fixAoLightValue(blockAccessIn.getBlockState(var33).getBlock().getAmbientOcclusionLightValue());
-                 var32 = blockIn.getMixedBrightnessForBlock(blockAccessIn, var33);
-             }
- 
-@@ -537,7 +573,7 @@
-             }
- 
-             float var34 = boundsFlags.get(0) ? blockAccessIn.getBlockState(var7).getBlock().getAmbientOcclusionLightValue() : blockAccessIn.getBlockState(blockPosIn).getBlock().getAmbientOcclusionLightValue();
--            var34 = BlockModelRenderer.this.fixAoLightValue(var34);
-+            var34 = BlockModelRenderer.fixAoLightValue(var34);
-             BlockModelRenderer.VertexTranslations var35 = BlockModelRenderer.VertexTranslations.func_178184_a(facingIn);
-             float var36;
-             float var37;
-@@ -644,9 +680,8 @@
+@@ -687,9 +685,8 @@
          private static final String __OBFID = "CL_00002516";
  
          private static final BlockModelRenderer.EnumNeighborInfo[] $VALUES$ = new BlockModelRenderer.EnumNeighborInfo[]{DOWN, UP, NORTH, SOUTH, WEST, EAST};
 -        private static final String __OBFID = "CL_00002516";
  
--        private EnumNeighborInfo(String p_i46409_1_, int p_i46409_2_, String p_i46236_1_, int p_i46236_2_, EnumFacing[] p_i46236_3_, float p_i46236_4_, boolean p_i46236_5_, BlockModelRenderer.Orientation[] p_i46236_6_, BlockModelRenderer.Orientation[] p_i46236_7_, BlockModelRenderer.Orientation[] p_i46236_8_, BlockModelRenderer.Orientation[] p_i46236_9_)
+-        private EnumNeighborInfo(String p_i46422_1_, int p_i46422_2_, String p_i46236_1_, int p_i46236_2_, EnumFacing[] p_i46236_3_, float p_i46236_4_, boolean p_i46236_5_, BlockModelRenderer.Orientation[] p_i46236_6_, BlockModelRenderer.Orientation[] p_i46236_7_, BlockModelRenderer.Orientation[] p_i46236_8_, BlockModelRenderer.Orientation[] p_i46236_9_)
 +        private EnumNeighborInfo(String p_i46424_1_, int p_i46424_2_, String p_i46236_1_, int p_i46236_2_, EnumFacing[] p_i46236_3_, float p_i46236_4_, boolean p_i46236_5_, BlockModelRenderer.Orientation[] p_i46236_6_, BlockModelRenderer.Orientation[] p_i46236_7_, BlockModelRenderer.Orientation[] p_i46236_8_, BlockModelRenderer.Orientation[] p_i46236_9_)
          {
              this.field_178276_g = p_i46236_3_;
              this.field_178288_h = p_i46236_4_;
-@@ -691,9 +726,8 @@
+@@ -734,9 +731,8 @@
          private static final String __OBFID = "CL_00002513";
  
          private static final BlockModelRenderer.Orientation[] $VALUES$ = new BlockModelRenderer.Orientation[]{DOWN, UP, NORTH, SOUTH, WEST, EAST, FLIP_DOWN, FLIP_UP, FLIP_NORTH, FLIP_SOUTH, FLIP_WEST, FLIP_EAST};
 -        private static final String __OBFID = "CL_00002513";
  
--        private Orientation(String p_i46394_1_, int p_i46394_2_, String p_i46233_1_, int p_i46233_2_, EnumFacing p_i46233_3_, boolean p_i46233_4_)
+-        private Orientation(String p_i46403_1_, int p_i46403_2_, String p_i46233_1_, int p_i46233_2_, EnumFacing p_i46233_3_, boolean p_i46233_4_)
 +        private Orientation(String p_i46400_1_, int p_i46400_2_, String p_i46233_1_, int p_i46233_2_, EnumFacing p_i46233_3_, boolean p_i46233_4_)
          {
              this.field_178229_m = p_i46233_3_.getIndex() + (p_i46233_4_ ? EnumFacing.values().length : 0);
          }
-@@ -703,7 +737,6 @@
+@@ -746,7 +742,6 @@
      {
          static final int[] field_178290_a = new int[EnumFacing.values().length];
          private static final String __OBFID = "CL_00002517";
@@ -447,13 +46,13 @@
  
          static
          {
-@@ -780,9 +813,8 @@
+@@ -823,9 +818,8 @@
          private static final String __OBFID = "CL_00002514";
  
          private static final BlockModelRenderer.VertexTranslations[] $VALUES$ = new BlockModelRenderer.VertexTranslations[]{DOWN, UP, NORTH, SOUTH, WEST, EAST};
 -        private static final String __OBFID = "CL_00002514";
  
--        private VertexTranslations(String p_i46382_1_, int p_i46382_2_, String p_i46234_1_, int p_i46234_2_, int p_i46234_3_, int p_i46234_4_, int p_i46234_5_, int p_i46234_6_)
+-        private VertexTranslations(String p_i46381_1_, int p_i46381_2_, String p_i46234_1_, int p_i46234_2_, int p_i46234_3_, int p_i46234_4_, int p_i46234_5_, int p_i46234_6_)
 +        private VertexTranslations(String p_i46383_1_, int p_i46383_2_, String p_i46234_1_, int p_i46234_2_, int p_i46234_3_, int p_i46234_4_, int p_i46234_5_, int p_i46234_6_)
          {
              this.field_178191_g = p_i46234_3_;

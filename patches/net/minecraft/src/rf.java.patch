@@ -1,0 +1,20 @@
+--- a/net/minecraft/src/rf.java
++++ b/net/minecraft/src/rf.java
+@@ -4,14 +4,14 @@
+ import io.netty.channel.epoll.EpollEventLoopGroup;
+ import net.minecraft.util.LazyLoadBase;
+ 
+-final class rf extends LazyLoadBase
++public final class rf extends LazyLoadBase
+ {
+-    protected EpollEventLoopGroup a()
++    public EpollEventLoopGroup a()
+     {
+         return new EpollEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Epoll Server IO #%d").setDaemon(true).build());
+     }
+ 
+-    protected Object load()
++    public Object load()
+     {
+         return this.a();
+     }

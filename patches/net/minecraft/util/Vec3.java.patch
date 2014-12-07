@@ -20,7 +20,7 @@
      private static final String __OBFID = "CL_00000612";
  
      public Vec3(double x, double y, double z)
-@@ -205,4 +207,52 @@
+@@ -210,4 +212,52 @@
          double var8 = this.zCoord * (double)var2 - this.xCoord * (double)var3;
          return new Vec3(var4, var6, var8);
      }

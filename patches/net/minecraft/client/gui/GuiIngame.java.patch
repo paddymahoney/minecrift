@@ -40,10 +40,16 @@
          }
  
          GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-@@ -1191,4 +1199,23 @@
+@@ -1191,9 +1199,28 @@
      {
          return this.overlayPlayerList;
      }
+-
++	
+     public void i()
+     {
+         this.overlayPlayerList.a();
++    }	
 +    
 +    /** MINECRIFT ADDITIONS BELOW **/
 +	
@@ -62,5 +68,5 @@
 +        wr.addVertexWithUV((double)(centreX + (width / 2f)), (double)(centreY - (height / 2f)), (double)this.zLevel, (double)((float)(u + texWidth) * f), (double)((float)(v + 0) * f1));
 +        wr.addVertexWithUV((double)(centreX - (width / 2f)), (double)(centreY - (height / 2f)), (double)this.zLevel, (double)((float)(u + 0) * f), (double)((float)(v + 0) * f1));
 +        tessellator.draw();
-+    }
+     }
  }

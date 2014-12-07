@@ -1,0 +1,27 @@
+--- a/net/minecraft/block/BlockPlanks.java
++++ b/net/minecraft/block/BlockPlanks.java
+@@ -93,17 +93,17 @@
+         private static final BlockPlanks.EnumType[] $VALUES = new BlockPlanks.EnumType[]{OAK, SPRUCE, BIRCH, JUNGLE, ACACIA, DARK_OAK};
+         private static final String __OBFID = "CL_00002081";
+ 
+-        private EnumType(String p_i46401_1_, int p_i46401_2_, int p_i46401_3_, String p_i46401_4_, MapColor p_i46401_5_)
++        private EnumType(String p_i46454_1_, int p_i46454_2_, int p_i46454_3_, String p_i46454_4_, MapColor p_i46454_5_)
+         {
+-            this(p_i46401_1_, p_i46401_2_, p_i46401_3_, p_i46401_4_, p_i46401_4_, p_i46401_5_);
++            this(p_i46454_1_, p_i46454_2_, p_i46454_3_, p_i46454_4_, p_i46454_4_, p_i46454_5_);
+         }
+ 
+-        private EnumType(String p_i46402_1_, int p_i46402_2_, int p_i46402_3_, String p_i46402_4_, String p_i46402_5_, MapColor p_i46402_6_)
++        private EnumType(String p_i46455_1_, int p_i46455_2_, int p_i46455_3_, String p_i46455_4_, String p_i46455_5_, MapColor p_i46455_6_)
+         {
+-            this.field_176850_h = p_i46402_3_;
+-            this.field_176851_i = p_i46402_4_;
+-            this.field_176848_j = p_i46402_5_;
+-            this.k = p_i46402_6_;
++            this.field_176850_h = p_i46455_3_;
++            this.field_176851_i = p_i46455_4_;
++            this.field_176848_j = p_i46455_5_;
++            this.k = p_i46455_6_;
+         }
+ 
+         public int func_176839_a()

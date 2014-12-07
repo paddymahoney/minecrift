@@ -1,23 +1,15 @@
 --- a/net/minecraft/client/renderer/block/model/FaceBakery.java
 +++ b/net/minecraft/client/renderer/block/model/FaceBakery.java
-@@ -16,7 +16,6 @@
-     private static final double field_178418_a = 1.0D / Math.cos(0.39269908169872414D) - 1.0D;
-     private static final double field_178417_b = 1.0D / Math.cos((Math.PI / 4D)) - 1.0D;
+@@ -15,7 +15,7 @@
+     private static final float field_178418_a = 1.0F / (float)Math.cos(0.39269909262657166D) - 1.0F;
+     private static final float field_178417_b = 1.0F / (float)Math.cos((Math.PI / 4D)) - 1.0F;
      private static final String __OBFID = "CL_00002490";
 -    private static final String __OBFID = "CL_00002490";
++
  
-     public BakedQuad func_178414_a(Vector3f posFrom, Vector3f posTo, BlockPartFace face, TextureAtlasSprite sprite, EnumFacing facing, ModelRotation modelRotationIn, BlockPartRotation partRotation, boolean uvLocked, boolean shade)
+     public BakedQuad a(Vector3f p_a_1_, Vector3f p_a_2_, BlockPartFace p_a_3_, TextureAtlasSprite p_a_4_, EnumFacing p_a_5_, ModelRotation p_a_6_, BlockPartRotation p_a_7_, boolean p_a_8_, boolean p_a_9_)
      {
-@@ -208,7 +207,7 @@
-         var6.cross(var5, var4);
-         var6.normalize();
-         EnumFacing var7 = null;
--        float var8 = 0.0F;
-+        float var8 = 0.719F;
-         EnumFacing[] var9 = EnumFacing.values();
-         int var10 = var9.length;
- 
-@@ -392,7 +391,6 @@
+@@ -387,7 +387,6 @@
          static final int[] field_178400_a;
          static final int[] field_178399_b = new int[EnumFacing.Axis.values().length];
          private static final String __OBFID = "CL_00002489";

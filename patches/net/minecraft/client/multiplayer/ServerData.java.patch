@@ -1,0 +1,19 @@
+--- a/net/minecraft/client/multiplayer/ServerData.java
++++ b/net/minecraft/client/multiplayer/ServerData.java
+@@ -34,12 +34,12 @@
+     private boolean l;
+     private static final String __OBFID = "CL_00000890";
+ 
+-    public ServerData(String p_i46377_1_, String p_i46377_2_, boolean p_i46377_3_)
++    public ServerData(String p_i46449_1_, String p_i46449_2_, boolean p_i46449_3_)
+     {
+         this.resourceMode = ServerData.ServerResourceMode.PROMPT;
+-        this.serverName = p_i46377_1_;
+-        this.serverIP = p_i46377_2_;
+-        this.l = p_i46377_3_;
++        this.serverName = p_i46449_1_;
++        this.serverIP = p_i46449_2_;
++        this.l = p_i46449_3_;
+     }
+ 
+     /**

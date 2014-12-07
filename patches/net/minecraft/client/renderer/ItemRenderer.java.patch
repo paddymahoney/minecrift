@@ -1,0 +1,30 @@
+--- a/net/minecraft/client/renderer/ItemRenderer.java
++++ b/net/minecraft/client/renderer/ItemRenderer.java
+@@ -6,6 +6,7 @@
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.entity.AbstractClientPlayer;
+ import net.minecraft.client.entity.EntityPlayerSP;
++import net.minecraft.client.model.ModelBase;
+ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
+ import net.minecraft.client.renderer.entity.Render;
+ import net.minecraft.client.renderer.entity.RenderItem;
+@@ -60,7 +61,8 @@
+             Item var4 = p_178099_2_.getItem();
+             Block var5 = Block.getBlockFromItem(var4);
+             GlStateManager.pushMatrix();
+-
++            /** MINECRIFT */
++            GlStateManager.translate(0.0F, 0.0F, ModelBase.vrOffset );
+             if (this.itemRenderer.func_175050_a(p_178099_2_))
+             {
+                 GlStateManager.scale(2.0F, 2.0F, 2.0F);
+@@ -77,7 +79,8 @@
+             {
+                 GlStateManager.depthMask(true);
+             }
+-
++            GlStateManager.translate(0.0F, 0.0F, -ModelBase.vrOffset );
++            /** END MINECRIFT */
+             GlStateManager.popMatrix();
+         }
+     }

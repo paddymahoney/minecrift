@@ -8,7 +8,7 @@
  
      public GameRules()
      {
-@@ -136,7 +135,6 @@
+@@ -138,7 +137,6 @@
          private double valueDouble;
          private final GameRules.ValueType type;
          private static final String __OBFID = "CL_00000137";
@@ -16,13 +16,11 @@
  
          public Value(String value, GameRules.ValueType type)
          {
-@@ -215,8 +213,7 @@
+@@ -217,7 +215,6 @@
          private static final String __OBFID = "CL_00002151";
  
          private static final GameRules.ValueType[] $VALUES$ = new GameRules.ValueType[]{ANY_VALUE, BOOLEAN_VALUE, NUMERICAL_VALUE};
 -        private static final String __OBFID = "CL_00002151";
  
--        private ValueType(String p_i46404_1_, int p_i46404_2_, String p_i45750_1_, int p_i45750_2_) {}
-+        private ValueType(String p_i46418_1_, int p_i46418_2_, String p_i45750_1_, int p_i45750_2_) {}
+         private ValueType(String p_i46405_1_, int p_i46405_2_, String p_i45750_1_, int p_i45750_2_) {}
      }
- }

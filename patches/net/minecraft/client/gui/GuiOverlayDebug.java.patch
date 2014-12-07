@@ -1,12 +1,7 @@
 --- a/net/minecraft/client/gui/GuiOverlayDebug.java
 +++ b/net/minecraft/client/gui/GuiOverlayDebug.java
-@@ -2,10 +2,12 @@
- 
- import com.google.common.base.Strings;
- import com.google.common.collect.Lists;
-+import com.google.common.collect.UnmodifiableIterator;
+@@ -6,6 +6,8 @@
  import java.util.ArrayList;
--import java.util.Iterator;
  import java.util.List;
  import java.util.Map.Entry;
 +
@@ -14,28 +9,20 @@
  import net.minecraft.block.Block;
  import net.minecraft.block.properties.IProperty;
  import net.minecraft.block.state.IBlockState;
-@@ -14,6 +16,7 @@
- import net.minecraft.client.renderer.GlStateManager;
- import net.minecraft.entity.Entity;
- import net.minecraft.entity.player.EntityPlayerMP;
-+import net.minecraft.src.Lagometer;
- import net.minecraft.util.BlockPos;
- import net.minecraft.util.EnumChatFormatting;
- import net.minecraft.util.EnumFacing;
-@@ -45,6 +48,7 @@
-         this.func_180798_a();
-         this.func_175239_b(scaledResolutionIn);
-         GlStateManager.popMatrix();
-+        Lagometer.showLagometer(scaledResolutionIn);
-         this.mc.mcProfiler.endSection();
-     }
+@@ -32,7 +34,6 @@
+     private final Minecraft mc;
+     private final FontRenderer fontRenderer;
+     private static final String __OBFID = "CL_00001956";
+-    private static final String __OBFID = "CL_00001956";
  
-@@ -124,14 +128,17 @@
+     public GuiOverlayDebug(Minecraft mc)
+     {
+@@ -127,8 +128,11 @@
                  case 4:
                      var4 = "Towards positive X";
              }
 -
--            ArrayList var5 = Lists.newArrayList(new String[] {"Minecraft 1.8 (" + this.mc.func_175600_c() + "/" + ClientBrandRetriever.getClientModName() + ")", this.mc.debug, this.mc.renderGlobal.getDebugInfoRenders(), this.mc.renderGlobal.getDebugInfoEntities(), "P: " + this.mc.effectRenderer.getStatistics() + ". T: " + this.mc.theWorld.getDebugLoadedEntities(), this.mc.theWorld.getProviderName(), "", String.format("XYZ: %.3f / %.5f / %.3f", new Object[]{Double.valueOf(this.mc.func_175606_aa().posX), Double.valueOf(this.mc.func_175606_aa().getEntityBoundingBox().minY), Double.valueOf(this.mc.func_175606_aa().posZ)}), String.format("Block: %d %d %d", new Object[]{Integer.valueOf(var1.getX()), Integer.valueOf(var1.getY()), Integer.valueOf(var1.getZ())}), String.format("Chunk: %d %d %d in %d %d %d", new Object[]{Integer.valueOf(var1.getX() & 15), Integer.valueOf(var1.getY() & 15), Integer.valueOf(var1.getZ() & 15), Integer.valueOf(var1.getX() >> 4), Integer.valueOf(var1.getY() >> 4), Integer.valueOf(var1.getZ() >> 4)}), String.format("Facing: %s (%s) (%.1f / %.1f)", new Object[]{var3, var4, Float.valueOf(MathHelper.wrapAngleTo180_float(var2.rotationYaw)), Float.valueOf(MathHelper.wrapAngleTo180_float(var2.rotationPitch))})});
+-            ArrayList var5 = Lists.newArrayList(new String[] {"Minecraft 1.8.1 (" + this.mc.func_175600_c() + "/" + ClientBrandRetriever.getClientModName() + ")", this.mc.debug, this.mc.renderGlobal.getDebugInfoRenders(), this.mc.renderGlobal.getDebugInfoEntities(), "P: " + this.mc.effectRenderer.getStatistics() + ". T: " + this.mc.theWorld.getDebugLoadedEntities(), this.mc.theWorld.getProviderName(), "", String.format("XYZ: %.3f / %.5f / %.3f", new Object[]{Double.valueOf(this.mc.func_175606_aa().posX), Double.valueOf(this.mc.func_175606_aa().getEntityBoundingBox().minY), Double.valueOf(this.mc.func_175606_aa().posZ)}), String.format("Block: %d %d %d", new Object[]{Integer.valueOf(var1.getX()), Integer.valueOf(var1.getY()), Integer.valueOf(var1.getZ())}), String.format("Chunk: %d %d %d in %d %d %d", new Object[]{Integer.valueOf(var1.getX() & 15), Integer.valueOf(var1.getY() & 15), Integer.valueOf(var1.getZ() & 15), Integer.valueOf(var1.getX() >> 4), Integer.valueOf(var1.getY() >> 4), Integer.valueOf(var1.getZ() >> 4)}), String.format("Facing: %s (%s) (%.1f / %.1f)", new Object[]{var3, var4, Float.valueOf(MathHelper.wrapAngleTo180_float(var2.rotationYaw)), Float.valueOf(MathHelper.wrapAngleTo180_float(var2.rotationPitch))})});
 +            
 +            /** MINECRIFT **/
 +            ArrayList var5 = Lists.newArrayList(new String[] {this.mc.minecriftVerString + ", " + OculusRift.getVersionString() + " (" + this.mc.func_175600_c() + "/" + ClientBrandRetriever.getClientModName() +
@@ -44,16 +31,7 @@
  
              if (this.mc.theWorld != null && this.mc.theWorld.isBlockLoaded(var1))
              {
--                Chunk var6 = this.mc.theWorld.getChunkFromBlockCoords(var1);
--                var5.add("Biome: " + var6.getBiome(var1, this.mc.theWorld.getWorldChunkManager()).biomeName);
--                var5.add("Light: " + var6.setLight(var1, 0) + " (" + var6.getLightFor(EnumSkyBlock.SKY, var1) + " sky, " + var6.getLightFor(EnumSkyBlock.BLOCK, var1) + " block)");
-+                Chunk var9 = this.mc.theWorld.getChunkFromBlockCoords(var1);
-+                var5.add("Biome: " + var9.getBiome(var1, this.mc.theWorld.getWorldChunkManager()).biomeName);
-+                var5.add("Light: " + var9.setLight(var1, 0) + " (" + var9.getLightFor(EnumSkyBlock.SKY, var1) + " sky, " + var9.getLightFor(EnumSkyBlock.BLOCK, var1) + " block)");
-                 DifficultyInstance var7 = this.mc.theWorld.getDifficultyForLocation(var1);
- 
-                 if (this.mc.isIntegratedServerRunning() && this.mc.getIntegratedServer() != null)
-@@ -147,15 +154,17 @@
+@@ -150,10 +154,12 @@
                  var5.add(String.format("Local Difficulty: %.2f (Day %d)", new Object[] {Float.valueOf(var7.func_180168_b()), Long.valueOf(this.mc.theWorld.getWorldTime() / 24000L)}));
              }
  
@@ -68,19 +46,11 @@
  
              if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && this.mc.objectMouseOver.func_178782_a() != null)
              {
--                BlockPos var9 = this.mc.objectMouseOver.func_178782_a();
--                var5.add(String.format("Looking at: %d %d %d", new Object[] {Integer.valueOf(var9.getX()), Integer.valueOf(var9.getY()), Integer.valueOf(var9.getZ())}));
-+                BlockPos var91 = this.mc.objectMouseOver.func_178782_a();
-+                var5.add(String.format("Looking at: %d %d %d", new Object[] {Integer.valueOf(var91.getX()), Integer.valueOf(var91.getY()), Integer.valueOf(var91.getZ())}));
-             }
+@@ -223,7 +229,6 @@
+     {
+         static final int[] field_178907_a = new int[EnumFacing.values().length];
+         private static final String __OBFID = "CL_00001955";
+-        private static final String __OBFID = "CL_00001955";
  
-             return var5;
-@@ -191,7 +200,7 @@
-                 Entry var13;
-                 String var14;
- 
--                for (Iterator var12 = var11.getProperties().entrySet().iterator(); var12.hasNext(); var9.add(((IProperty)var13.getKey()).getName() + ": " + var14))
-+                for (UnmodifiableIterator var12 = var11.getProperties().entrySet().iterator(); var12.hasNext(); var9.add(((IProperty)var13.getKey()).getName() + ": " + var14))
-                 {
-                     var13 = (Entry)var12.next();
-                     var14 = ((Comparable)var13.getValue()).toString();
+         static
+         {

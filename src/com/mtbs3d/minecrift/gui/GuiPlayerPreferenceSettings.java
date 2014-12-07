@@ -127,6 +127,10 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
         if (e == VRSettings.VrOptions.SOUND_ORIENT)
             return false;
 
+        // TODO: Remove when fix render helmet stuff
+        if (e == VRSettings.VrOptions.RENDER_OWN_HEADWEAR)
+            return false;
+
         if (e ==  VRSettings.VrOptions.OCULUS_PROFILE_NAME)
             return false; // Always disabled
 

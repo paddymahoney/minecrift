@@ -1,21 +1,10 @@
 --- a/net/minecraft/client/renderer/entity/layers/LayerCape.java
 +++ b/net/minecraft/client/renderer/entity/layers/LayerCape.java
-@@ -41,12 +41,18 @@
-                 var21 = 0.0F;
-             }
+@@ -11,7 +11,6 @@
+ {
+     private final RenderPlayer playerRenderer;
+     private static final String __OBFID = "CL_00002425";
+-    private static final String __OBFID = "CL_00002425";
  
-+            if (var21 > 165.0F)
-+            {
-+                var21 = 165.0F;
-+            }
-+
-             float var23 = p_177166_1_.prevCameraYaw + (p_177166_1_.cameraYaw - p_177166_1_.prevCameraYaw) * p_177166_4_;
-             var20 += MathHelper.sin((p_177166_1_.prevDistanceWalkedModified + (p_177166_1_.distanceWalkedModified - p_177166_1_.prevDistanceWalkedModified) * p_177166_4_) * 6.0F) * 32.0F * var23;
- 
-             if (p_177166_1_.isSneaking())
-             {
-                 var20 += 25.0F;
-+                GlStateManager.translate(0.0F, 0.142F, -0.0178F);
-             }
- 
-             GlStateManager.rotate(6.0F + var21 / 2.0F + var20, 1.0F, 0.0F, 0.0F);
+     public LayerCape(RenderPlayer p_i46123_1_)
+     {

@@ -1,0 +1,25 @@
+--- a/net/minecraft/block/Block.java
++++ b/net/minecraft/block/Block.java
+@@ -282,18 +282,18 @@
+         return state;
+     }
+ 
+-    public Block(Material p_i46390_1_, MapColor p_i46390_2_)
++    public Block(Material p_i46434_1_, MapColor p_i46434_2_)
+     {
+         this.enableStats = true;
+         this.stepSound = soundTypeStone;
+         this.blockParticleGravity = 1.0F;
+         this.slipperiness = 0.6F;
+-        this.blockMaterial = p_i46390_1_;
+-        this.K = p_i46390_2_;
++        this.blockMaterial = p_i46434_1_;
++        this.K = p_i46434_2_;
+         this.setBlockBounds(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+         this.fullBlock = this.isOpaqueCube();
+         this.lightOpacity = this.isOpaqueCube() ? 255 : 0;
+-        this.translucent = !p_i46390_1_.blocksLight();
++        this.translucent = !p_i46434_1_.blocksLight();
+         this.blockState = this.createBlockState();
+         this.setDefaultState(this.blockState.getBaseState());
+     }

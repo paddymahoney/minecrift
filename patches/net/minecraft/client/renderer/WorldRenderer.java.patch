@@ -8,19 +8,7 @@
  
      public WorldRenderer(int p_i46275_1_)
      {
-@@ -89,6 +88,11 @@
- 
-     public void setVertexState(WorldRenderer.State p_178993_1_)
-     {
-+        if (p_178993_1_.func_179013_a().length > this.rawIntBuffer.capacity())
-+        {
-+            this.growBuffer(2097152);
-+        }
-+
-         this.rawIntBuffer.clear();
-         this.rawIntBuffer.put(p_178993_1_.func_179013_a());
-         this.rawBufferIndex = p_178993_1_.getRawBufferIndex();
-@@ -538,7 +542,6 @@
+@@ -543,7 +542,6 @@
          private final int field_179017_d;
          private final VertexFormat field_179018_e;
          private static final String __OBFID = "CL_00002568";
@@ -28,7 +16,7 @@
  
          public State(int[] p_i46274_2_, int p_i46274_3_, int p_i46274_4_, VertexFormat p_i46274_5_)
          {
-@@ -573,7 +576,6 @@
+@@ -578,7 +576,6 @@
      {
          static final int[] field_178959_a = new int[VertexFormatElement.EnumUseage.values().length];
          private static final String __OBFID = "CL_00002569";

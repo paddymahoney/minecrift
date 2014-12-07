@@ -33,7 +33,7 @@
          GlStateManager.scale(var9, var9, var9);
          this.drawCenteredString(this.fontRendererObj, this.splashText, 0, -8, -256);
          GlStateManager.popMatrix();
--        String var10 = "Minecraft 1.8";
+-        String var10 = "Minecraft 1.8.1";
 +		/** MINECRIFT **/
 +        String var10 = this.mc.minecriftVerString + ", " + OculusRift.getVersionString();
 +		/** END MINECRIFT **/

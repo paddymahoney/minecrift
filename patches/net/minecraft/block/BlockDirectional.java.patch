@@ -1,0 +1,13 @@
+--- a/net/minecraft/block/BlockDirectional.java
++++ b/net/minecraft/block/BlockDirectional.java
+@@ -15,8 +15,8 @@
+         super(p_i45401_1_);
+     }
+ 
+-    protected BlockDirectional(Material p_i46392_1_, MapColor p_i46392_2_)
++    protected BlockDirectional(Material p_i46430_1_, MapColor p_i46430_2_)
+     {
+-        super(p_i46392_1_, p_i46392_2_);
++        super(p_i46430_1_, p_i46430_2_);
+     }
+ }

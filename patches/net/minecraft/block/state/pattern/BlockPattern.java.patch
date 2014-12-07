@@ -1,0 +1,26 @@
+--- a/net/minecraft/block/state/pattern/BlockPattern.java
++++ b/net/minecraft/block/state/pattern/BlockPattern.java
+@@ -163,15 +163,15 @@
+         private final int g;
+         private static final String __OBFID = "CL_00002022";
+ 
+-        public PatternHelper(BlockPos p_i46411_1_, EnumFacing p_i46411_2_, EnumFacing p_i46411_3_, LoadingCache p_i46411_4_, int p_i46411_5_, int p_i46411_6_, int p_i46411_7_)
++        public PatternHelper(BlockPos p_i46452_1_, EnumFacing p_i46452_2_, EnumFacing p_i46452_3_, LoadingCache p_i46452_4_, int p_i46452_5_, int p_i46452_6_, int p_i46452_7_)
+         {
+-            this.field_177674_a = p_i46411_1_;
+-            this.field_177672_b = p_i46411_2_;
+-            this.field_177673_c = p_i46411_3_;
+-            this.field_177671_d = p_i46411_4_;
+-            this.e = p_i46411_5_;
+-            this.f = p_i46411_6_;
+-            this.g = p_i46411_7_;
++            this.field_177674_a = p_i46452_1_;
++            this.field_177672_b = p_i46452_2_;
++            this.field_177673_c = p_i46452_3_;
++            this.field_177671_d = p_i46452_4_;
++            this.e = p_i46452_5_;
++            this.f = p_i46452_6_;
++            this.g = p_i46452_7_;
+         }
+ 
+         public BlockPos a()

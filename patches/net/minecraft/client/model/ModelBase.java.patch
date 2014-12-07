@@ -1,13 +1,14 @@
 --- a/net/minecraft/client/model/ModelBase.java
 +++ b/net/minecraft/client/model/ModelBase.java
-@@ -25,6 +25,12 @@
+@@ -25,6 +25,13 @@
      public int textureHeight = 32;
      private static final String __OBFID = "CL_00000845";
  
 +    /** MINECRIFT */
-+    public boolean _renderHead = true;
-+    public boolean _renderHeadWear = true;
-+    public float vrOffset = 0.0F;
++    public static boolean _renderHead = true;
++    public static boolean _renderHeadWear = true;
++    public static float vrOffset = 0.0F;
++    public static boolean vrMode = false;
 +    /** END MINECRIFT */
 +
      /**

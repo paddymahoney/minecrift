@@ -1,0 +1,14 @@
+--- a/net/minecraft/block/BlockFence.java
++++ b/net/minecraft/block/BlockFence.java
+@@ -38,9 +38,9 @@
+         this(p_i45721_1_, p_i45721_1_.getMaterialMapColor());
+     }
+ 
+-    public BlockFence(Material p_i46395_1_, MapColor p_i46395_2_)
++    public BlockFence(Material p_i46431_1_, MapColor p_i46431_2_)
+     {
+-        super(p_i46395_1_, p_i46395_2_);
++        super(p_i46431_1_, p_i46431_2_);
+         this.setDefaultState(this.blockState.getBaseState().withProperty(NORTH, Boolean.valueOf(false)).withProperty(EAST, Boolean.valueOf(false)).withProperty(SOUTH, Boolean.valueOf(false)).withProperty(WEST, Boolean.valueOf(false)));
+         this.setCreativeTab(CreativeTabs.tabDecorations);
+     }

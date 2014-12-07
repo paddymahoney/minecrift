@@ -1,0 +1,17 @@
+--- a/net/minecraft/block/BlockHugeMushroom.java
++++ b/net/minecraft/block/BlockHugeMushroom.java
+@@ -21,11 +21,11 @@
+     private final Block field_176379_b;
+     private static final String __OBFID = "CL_00000258";
+ 
+-    public BlockHugeMushroom(Material p_i46398_1_, MapColor p_i46398_2_, Block p_i46398_3_)
++    public BlockHugeMushroom(Material p_i46440_1_, MapColor p_i46440_2_, Block p_i46440_3_)
+     {
+-        super(p_i46398_1_, p_i46398_2_);
++        super(p_i46440_1_, p_i46440_2_);
+         this.setDefaultState(this.blockState.getBaseState().withProperty(field_176380_a, BlockHugeMushroom.EnumType.ALL_OUTSIDE));
+-        this.field_176379_b = p_i46398_3_;
++        this.field_176379_b = p_i46440_3_;
+     }
+ 
+     /**

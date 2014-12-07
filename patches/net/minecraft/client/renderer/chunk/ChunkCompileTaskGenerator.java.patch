@@ -8,24 +8,19 @@
  
      public ChunkCompileTaskGenerator(RenderChunk p_i46208_1_, ChunkCompileTaskGenerator.Type p_i46208_2_)
      {
-@@ -141,9 +140,8 @@
+@@ -141,7 +140,6 @@
          private static final String __OBFID = "CL_00002465";
  
          private static final ChunkCompileTaskGenerator.Status[] $VALUES$ = new ChunkCompileTaskGenerator.Status[]{PENDING, COMPILING, UPLOADING, DONE};
 -        private static final String __OBFID = "CL_00002465";
  
--        private Status(String p_i46410_1_, int p_i46410_2_, String p_i46207_1_, int p_i46207_2_) {}
-+        private Status(String p_i46425_1_, int p_i46425_2_, String p_i46207_1_, int p_i46207_2_) {}
+         private Status(String p_i46425_1_, int p_i46425_2_, String p_i46207_1_, int p_i46207_2_) {}
      }
- 
-     public static enum Type
-@@ -154,8 +152,7 @@
+@@ -154,7 +152,6 @@
          private static final String __OBFID = "CL_00002464";
  
          private static final ChunkCompileTaskGenerator.Type[] $VALUES$ = new ChunkCompileTaskGenerator.Type[]{REBUILD_CHUNK, RESORT_TRANSPARENCY};
 -        private static final String __OBFID = "CL_00002464";
  
--        private Type(String p_i46389_1_, int p_i46389_2_, String p_i46206_1_, int p_i46206_2_) {}
-+        private Type(String p_i46395_1_, int p_i46395_2_, String p_i46206_1_, int p_i46206_2_) {}
+         private Type(String p_i46395_1_, int p_i46395_2_, String p_i46206_1_, int p_i46206_2_) {}
      }
- }

@@ -1,0 +1,13 @@
+--- a/net/minecraft/block/BlockRotatedPillar.java
++++ b/net/minecraft/block/BlockRotatedPillar.java
+@@ -15,8 +15,8 @@
+         super(p_i45425_1_, p_i45425_1_.getMaterialMapColor());
+     }
+ 
+-    protected BlockRotatedPillar(Material p_i46404_1_, MapColor p_i46404_2_)
++    protected BlockRotatedPillar(Material p_i46460_1_, MapColor p_i46460_2_)
+     {
+-        super(p_i46404_1_, p_i46404_2_);
++        super(p_i46460_1_, p_i46460_2_);
+     }
+ }

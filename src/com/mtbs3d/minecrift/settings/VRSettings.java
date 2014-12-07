@@ -982,7 +982,7 @@ public class VRSettings
 	        		return var4 + "Opaque";
 	            return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.hudOpacity) });
 	        case RENDER_OWN_HEADWEAR:
-	            return this.renderHeadWear ? var4 + "ON" : var4 + "OFF";
+	            return /*this.renderHeadWear ? var4 + "ON" :*/ var4 + "OFF"; // TODO: Re-enable when working
             case RENDER_MENU_BACKGROUND:
                 return this.menuBackground ? var4 + "ON" : var4 + "OFF";
 	        case HUD_HIDE:

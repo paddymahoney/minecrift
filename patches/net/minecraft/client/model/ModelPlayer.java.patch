@@ -1,18 +1,28 @@
 --- a/net/minecraft/client/model/ModelPlayer.java
 +++ b/net/minecraft/client/model/ModelPlayer.java
-@@ -129,15 +129,6 @@
-         func_178685_a(this.bipedLeftArm, this.field_178734_a);
-         func_178685_a(this.bipedRightArm, this.field_178732_b);
-         func_178685_a(this.bipedBody, this.field_178730_v);
--
--        if (p_78087_7_.isSneaking())
--        {
--            this.field_178729_w.rotationPointY = 2.0F;
--        }
--        else
--        {
--            this.field_178729_w.rotationPointY = 0.0F;
--        }
-     }
+@@ -14,7 +14,6 @@
+     private ModelRenderer field_178736_x;
+     private boolean field_178735_y;
+     private static final String __OBFID = "CL_00002626";
+-    private static final String __OBFID = "CL_00002626";
  
-     public void func_178725_a()
+     public ModelPlayer(float p_i46304_1_, boolean p_i46304_2_)
+     {
+@@ -89,6 +88,8 @@
+         }
+         else
+         {
++            /** MINECRIFT */
++            GlStateManager.translate(0.0F, 0.0F, vrOffset );
+             if (p_78088_1_.isSneaking())
+             {
+                 GlStateManager.translate(0.0F, 0.2F, 0.0F);
+@@ -99,6 +100,8 @@
+             this.field_178734_a.render(p_78088_7_);
+             this.field_178732_b.render(p_78088_7_);
+             this.field_178730_v.render(p_78088_7_);
++            GlStateManager.translate(0.0F, 0.0F, -vrOffset );
++            /** END MINECRIFT */
+         }
+ 
+         GlStateManager.popMatrix();

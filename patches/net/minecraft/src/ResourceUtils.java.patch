@@ -1,6 +1,6 @@
 --- a/net/minecraft/src/ResourceUtils.java
 +++ b/net/minecraft/src/ResourceUtils.java
-@@ -11,22 +11,22 @@
+@@ -11,22 +11,24 @@
  
      public static File getResourcePackFile(AbstractResourcePack arp)
      {
@@ -20,6 +20,7 @@
 -                }
 -            }
 -        }
++/** MINECRIFT */
 +//        if (directAccessValid)
 +//        {
 +//            try
@@ -36,6 +37,7 @@
 +//                }
 +//            }
 +//        }
++/** END MINECRIFT */
  
          return (File)Reflector.getFieldValue(arp, ForgeAbstractResourcePack_resourcePackFile);
      }

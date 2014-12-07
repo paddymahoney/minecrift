@@ -1,0 +1,14 @@
+--- a/net/minecraft/src/awx.java
++++ b/net/minecraft/src/awx.java
+@@ -2,9 +2,9 @@
+ 
+ import net.minecraft.block.BlockHugeMushroom;
+ 
+-class awx
++public class awx
+ {
+-    static final int[] a = new int[BlockHugeMushroom.EnumType.values().length];
++    public static final int[] a = new int[BlockHugeMushroom.EnumType.values().length];
+ 
+     static
+     {

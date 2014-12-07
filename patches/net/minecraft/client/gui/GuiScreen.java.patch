@@ -60,7 +60,7 @@
          }
          else
          {
-@@ -746,4 +769,74 @@
+@@ -746,4 +769,80 @@
      {
          this.setWorldAndResolution(mcIn, p_175273_2_, p_175273_3_);
      }
@@ -133,5 +133,11 @@
 +    {
 +        int mY = this.mc.currentScreen.height - Mouse.getY() * this.mc.currentScreen.height / this.mc.displayFBHeight - 1;
 +        return mY;
++    }
++
++    public void setResolution(int width, int height)
++    {
++        this.width = width;
++        this.height = height;
 +    }
  }
