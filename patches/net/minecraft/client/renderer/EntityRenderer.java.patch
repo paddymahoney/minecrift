@@ -1412,10 +1412,17 @@
 +        if( entity != null )
 +        {
 +            //set movement direction
-+            if( this.mc.vrSettings.lookMoveDecoupled )
-+                entity.rotationYaw = lookYawOffset;
-+            else
-+                entity.rotationYaw = (float)cameraYaw;
++            switch(this.mc.vrSettings.lookMoveDecoupled) {
++                case VRSettings.DECOUPLE_OFF:
++                    entity.rotationYaw = (float)cameraYaw;
++                    break;
++                case VRSettings.DECOUPLE_WITH_HUD:
++                    entity.rotationYaw = lookYawOffset;
++                    break;
++                case VRSettings.DECOUPLE_WITH_CROSSHAIR:
++                    entity.rotationYaw = mc.lookaimController.getAimYaw();
++                    break;
++            }
 +
 +            if (entity instanceof EntityAnimal)
 +            {
@@ -1999,7 +2006,7 @@
 +                {
 +                    guiYaw = inGameMenuHeadYaw + this.mc.lookaimController.getBodyYawDegrees();
 +                }
-+                else if (this.mc.theWorld != null && this.mc.vrSettings.lookMoveDecoupled)
++                else if (this.mc.theWorld != null && ( this.mc.vrSettings.lookMoveDecoupled > VRSettings.DECOUPLE_OFF) )
 +                {
 +                    guiYaw = this.mc.lookaimController.getBodyYawDegrees();
 +                }
