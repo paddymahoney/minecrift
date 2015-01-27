@@ -27,8 +27,8 @@ def create_patch( target_dir, src_file, mod_file, label, patch_file ):
     process = subprocess.Popen(cmd, cwd=target_dir, bufsize=-1, stdout=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if stdout:
-        with open( patch_file, 'w') as out:
-            out.write( stdout )
+        with open( patch_file, 'wd') as out:
+            out.write( stdout.replace('\r\n','\n').replace('\r','\n') )
 
 def main(mcp_dir):
     new_src_dir    = os.path.join( base_dir , "src" )
