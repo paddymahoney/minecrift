@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/chunk/ChunkRenderWorker.java
 +++ b/net/minecraft/client/renderer/chunk/ChunkRenderWorker.java
-@@ -163,26 +163,28 @@
+@@ -165,26 +165,28 @@
                  {
                      ChunkRenderWorker.this.func_178473_b(p_178474_1_);
                      p_178474_1_.func_178540_f().lock();
