@@ -63,6 +63,9 @@ public class VRSettings
     public static final int VR_COMFORT_YAW = 1;
     public static final int VR_COMFORT_PITCH = 2;
     public static final int VR_COMFORT_PITCHANDYAW = 3;
+    public static final int DECOUPLE_OFF = 0;
+    public static final int DECOUPLE_WITH_HUD = 1;
+    public static final int DECOUPLE_WITH_CROSSHAIR = 2;
 
     public int version = UNKNOWN_VERSION;
     public boolean newlyCreated = true;
@@ -126,7 +129,7 @@ public class VRSettings
     protected float headTrackSensitivity = 1.0f;
     public boolean useFsaa = false;   // default to off
     public float fsaaScaleFactor = 1.4f;
-    public boolean lookMoveDecoupled = false;
+    public int lookMoveDecoupled = DECOUPLE_OFF;
     public boolean useOculusProfileIpd = true;
     public boolean useHalfIpds = false;
     public boolean useOculusProfilePlayerHeight = true;
@@ -530,7 +533,7 @@ public class VRSettings
 
                     if (optionTokens[0].equals("lookMoveDecoupled"))
                     {
-                        this.lookMoveDecoupled = optionTokens[1].equals("true");
+                        this.lookMoveDecoupled = Integer.parseInt(optionTokens[1]);
                     }
 
                     if (optionTokens[0].equals("posTrackHydraLoc"))
@@ -1059,7 +1062,14 @@ public class VRSettings
 	        case FSAA_SCALEFACTOR:
 	            return var4 + String.format("%.1fX", new Object[] { Float.valueOf(this.fsaaScaleFactor * this.fsaaScaleFactor) });
 	        case DECOUPLE_LOOK_MOVE:
-	            return this.lookMoveDecoupled? var4 + "ON" : var4 + "OFF";
+                switch(this.lookMoveDecoupled) {
+                    case DECOUPLE_OFF:
+                        return var4 + "OFF";
+                    case DECOUPLE_WITH_CROSSHAIR:
+                        return var4 + "Crosshair";
+                    case DECOUPLE_WITH_HUD:
+                        return var4 + "GUI";
+                }
 	        case JOYSTICK_SENSITIVITY:
 	            return var4 + String.format("%.1f", new Object[] { Float.valueOf(this.joystickSensitivity) });
 	        case JOYSTICK_DEADZONE:
@@ -1481,7 +1491,7 @@ public class VRSettings
                 this.useHighQualityDistortion = !this.useHighQualityDistortion;
                 break;
 	        case DECOUPLE_LOOK_MOVE:
-	            this.lookMoveDecoupled = !this.lookMoveDecoupled;
+	            this.lookMoveDecoupled = (this.lookMoveDecoupled + 1) % 3;
 	            break;
 	        case ASPECT_RATIO_CORRECTION:
 	            this.aspectRatioCorrection += 1;

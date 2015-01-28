@@ -1590,8 +1590,8 @@
 +                    }
 +                    glConfig.Display = (Long) fieldDisplay.get(null);
 +                    glConfig.Window = (Long) fieldWindow.get(null);
-+                    System.out.println(String.format("[Minecrift] Display: 0x%X", new Object[] {glConfig.Display}));
-+                    System.out.println(String.format("[Minecrift] Window: 0x%X", new Object[] {glConfig.Window}));
++                    //System.out.println(String.format("[Minecrift] Display: 0x%X", new Object[] {glConfig.Display}));
++                    //System.out.println(String.format("[Minecrift] Window: 0x%X", new Object[] {glConfig.Window}));
 +                    break;
 +                }
 +                case LWJGLUtil.PLATFORM_MACOSX:

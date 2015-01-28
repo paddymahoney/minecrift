@@ -1412,17 +1412,33 @@
 +        if( entity != null )
 +        {
 +            //set movement direction
-+            if( this.mc.vrSettings.lookMoveDecoupled )
-+                entity.rotationYaw = lookYawOffset;
-+            else
-+                entity.rotationYaw = (float)cameraYaw;
++            switch(this.mc.vrSettings.lookMoveDecoupled) {
++                case VRSettings.DECOUPLE_OFF:
++                    entity.rotationYaw = (float)cameraYaw;
++                    break;
++                case VRSettings.DECOUPLE_WITH_HUD:
++                    entity.rotationYaw = lookYawOffset;
++                    break;
++                case VRSettings.DECOUPLE_WITH_CROSSHAIR:
++                    entity.rotationYaw = mc.lookaimController.getAimYaw();
++                    break;
++            }
 +
 +            if (entity instanceof EntityAnimal)
 +            {
 +                EntityAnimal animal = (EntityAnimal)entity;
 +                animal.rotationYawHead = (float) cameraYaw;
 +            }
-+            entity.rotationPitch = (float)cameraPitch;
++            
++            // Always make pitch follow crosshair direction
++            switch(this.mc.vrSettings.lookMoveDecoupled) {
++            case VRSettings.DECOUPLE_OFF:
++            case VRSettings.DECOUPLE_WITH_HUD:
++            case VRSettings.DECOUPLE_WITH_CROSSHAIR:
++                entity.rotationPitch = mc.lookaimController.getAimPitch();
++                break;
++            }
++            //entity.rotationPitch = (float)cameraPitch;
 +
 +        }
 +
@@ -1999,7 +2015,7 @@
 +                {
 +                    guiYaw = inGameMenuHeadYaw + this.mc.lookaimController.getBodyYawDegrees();
 +                }
-+                else if (this.mc.theWorld != null && this.mc.vrSettings.lookMoveDecoupled)
++                else if (this.mc.theWorld != null && ( this.mc.vrSettings.lookMoveDecoupled > VRSettings.DECOUPLE_OFF) )
 +                {
 +                    guiYaw = this.mc.lookaimController.getBodyYawDegrees();
 +                }
