@@ -1429,7 +1429,16 @@
 +                EntityAnimal animal = (EntityAnimal)entity;
 +                animal.rotationYawHead = (float) cameraYaw;
 +            }
-+            entity.rotationPitch = (float)cameraPitch;
++            
++            // Always make pitch follow crosshair direction
++            switch(this.mc.vrSettings.lookMoveDecoupled) {
++            case VRSettings.DECOUPLE_OFF:
++            case VRSettings.DECOUPLE_WITH_HUD:
++            case VRSettings.DECOUPLE_WITH_CROSSHAIR:
++                entity.rotationPitch = mc.lookaimController.getAimPitch();
++                break;
++            }
++            //entity.rotationPitch = (float)cameraPitch;
 +
 +        }
 +
