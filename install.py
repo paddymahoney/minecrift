@@ -104,7 +104,7 @@ def is_non_zero_file(fpath):
 def download_deps( mcp_dir, download_mc ):
 
     mcp_exists = True
-    if not os.path.exists(mcp_dir+"/runtime/commands.py "):
+    if not os.path.exists(mcp_dir+"/runtime/commands.py"):
         mcp_exists = False
         try:
             mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
