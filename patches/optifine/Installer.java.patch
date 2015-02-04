@@ -1,0 +1,12 @@
+--- a/optifine/Installer.java
++++ b/optifine/Installer.java
+@@ -107,6 +107,9 @@
+         JSONObject root = (JSONObject)jp.parse(json);
+         root.put("id", mcVerOf);
+         JSONArray libs = (JSONArray)root.get("libraries");
++        root.put("inheritsFrom", mcVer);
++        libs = new JSONArray();
++        root.put("libraries", libs);
+         String mainClass = (String)root.get("mainClass");
+ 
+         if (!mainClass.startsWith("net.minecraft.launchwrapper."))

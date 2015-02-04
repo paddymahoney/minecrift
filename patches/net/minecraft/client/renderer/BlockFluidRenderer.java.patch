@@ -8,3 +8,27 @@
  
      public BlockFluidRenderer()
      {
+@@ -91,6 +90,7 @@
+                     var31 = var6[1];
+                 }
+ 
++                p_178270_4_.setSprite(var31);
+                 var20 -= var30;
+                 var21 -= var30;
+                 var22 -= var30;
+@@ -183,6 +183,7 @@
+ 
+                 BlockPos var60 = p_178270_3_.add(var581, 0, var59);
+                 var31 = var6[1];
++                p_178270_4_.setSprite(var31);
+ 
+                 if (var13[var571])
+                 {
+@@ -249,6 +250,7 @@
+                 }
+             }
+ 
++            p_178270_4_.setSprite((TextureAtlasSprite)null);
+             return var14;
+         }
+     }

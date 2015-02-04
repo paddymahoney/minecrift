@@ -8,3 +8,20 @@
  
      /**
       * Initializes the texture constants to be used when rendering lightmap values
+@@ -620,7 +619,7 @@
+ 
+     public static boolean func_176075_f()
+     {
+-        return field_176083_O && Minecraft.getMinecraft().gameSettings.field_178881_t;
++        return Config.isMultiTexture() ? false : field_176083_O && Minecraft.getMinecraft().gameSettings.field_178881_t;
+     }
+ 
+     public static void func_153171_g(int p_153171_0_, int p_153171_1_)
+@@ -910,6 +909,6 @@
+ 
+     public static boolean isFramebufferEnabled()
+     {
+-        return framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
++        return Config.getAntialiasingLevel() > 0 ? false : framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
+     }
+ }

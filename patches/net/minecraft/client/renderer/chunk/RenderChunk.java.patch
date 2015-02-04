@@ -1,6 +1,14 @@
 --- a/net/minecraft/client/renderer/chunk/RenderChunk.java
 +++ b/net/minecraft/client/renderer/chunk/RenderChunk.java
-@@ -46,7 +46,6 @@
+@@ -20,6 +20,7 @@
+ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+ import net.minecraft.client.renderer.vertex.VertexBuffer;
+ import net.minecraft.src.BlockPosM;
++import net.minecraft.src.Reflector;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.util.AxisAlignedBB;
+ import net.minecraft.util.BlockPos;
+@@ -46,7 +47,6 @@
      private boolean field_178593_n;
      private static final String __OBFID = "CL_00002452";
      private BlockPos[] positionOffsets16;
@@ -8,7 +16,145 @@
  
      public RenderChunk(World worldIn, RenderGlobal renderGlobalIn, BlockPos blockPosIn, int indexIn)
      {
-@@ -287,35 +286,33 @@
+@@ -130,7 +130,7 @@
+         BlockPos var8 = var7.add(15, 15, 15);
+         p_178581_4_.func_178540_f().lock();
+         RegionRenderCache var9;
+-        label256:
++        label271:
+         {
+             try
+             {
+@@ -143,7 +143,7 @@
+                 {
+                     var9 = new RegionRenderCache(this.field_178588_d, var7.add(-1, -1, -1), var8.add(1, 1, 1), 1);
+                     p_178581_4_.func_178543_a(var5);
+-                    break label256;
++                    break label271;
+                 }
+             }
+             finally
+@@ -160,65 +160,77 @@
+         {
+             ++field_178592_a;
+             Iterator var27 = BlockPosM.getAllInBoxMutable(var7, var8).iterator();
+-            EnumWorldBlockLayer var311;
++            boolean var29 = Reflector.ForgeBlock_hasTileEntity.exists();
+ 
+             while (var27.hasNext())
+             {
+-                BlockPosM var29 = (BlockPosM)var27.next();
+-                IBlockState var28 = var9.getBlockState(var29);
++                BlockPosM var26 = (BlockPosM)var27.next();
++                IBlockState var28 = var9.getBlockState(var26);
+                 Block var30 = var28.getBlock();
+ 
+                 if (var30.isOpaqueCube())
+                 {
+-                    var10.func_178606_a(var29);
++                    var10.func_178606_a(var26);
+                 }
+ 
+-                if (var30.hasTileEntity())
++                boolean var31;
++
++                if (var29)
+                 {
+-                    TileEntity var31 = var9.getTileEntity(new BlockPos(var29));
+-                    TileEntitySpecialRenderer var33 = TileEntityRendererDispatcher.instance.getSpecialRenderer(var31);
++                    var31 = Reflector.callBoolean(var30, Reflector.ForgeBlock_hasTileEntity, new Object[] {var28});
++                }
++                else
++                {
++                    var31 = var30.hasTileEntity();
++                }
+ 
+-                    if (var31 != null && var33 != null)
++                if (var31)
++                {
++                    TileEntity var32 = var9.getTileEntity(new BlockPos(var26));
++                    TileEntitySpecialRenderer var33 = TileEntityRendererDispatcher.instance.getSpecialRenderer(var32);
++
++                    if (var32 != null && var33 != null)
+                     {
+-                        var5.func_178490_a(var31);
++                        var5.func_178490_a(var32);
+ 
+                         if (var33.a())
+                         {
+-                            var11.add(var31);
++                            var11.add(var32);
+                         }
+                     }
+                 }
+ 
+-                var311 = var30.getBlockLayer();
+-                int var32 = var311.ordinal();
++                EnumWorldBlockLayer var34 = var30.getBlockLayer();
++                int var35 = var34.ordinal();
+ 
+                 if (var30.getRenderType() != -1)
+                 {
+-                    WorldRenderer var18 = p_178581_4_.func_178545_d().func_179039_a(var32);
++                    WorldRenderer var18 = p_178581_4_.func_178545_d().func_179039_a(var35);
++                    var18.setBlockLayer(var34);
+ 
+-                    if (!var5.func_178492_d(var311))
++                    if (!var5.func_178492_d(var34))
+                     {
+-                        var5.func_178493_c(var311);
++                        var5.func_178493_c(var34);
+                         this.func_178573_a(var18, var7);
+                     }
+ 
+-                    if (Minecraft.getMinecraft().getBlockRendererDispatcher().func_175018_a(var28, var29, var9, var18))
++                    if (Minecraft.getMinecraft().getBlockRendererDispatcher().func_175018_a(var28, var26, var9, var18))
+                     {
+-                        var5.func_178486_a(var311);
++                        var5.func_178486_a(var34);
+                     }
+                 }
+             }
+ 
+-            EnumWorldBlockLayer[] var271 = EnumWorldBlockLayer.values();
+-            int var291 = var271.length;
++            EnumWorldBlockLayer[] var301 = EnumWorldBlockLayer.values();
++            int var311 = var301.length;
+ 
+-            for (int var301 = 0; var301 < var291; ++var301)
++            for (int var321 = 0; var321 < var311; ++var321)
+             {
+-                var311 = var271[var301];
++                EnumWorldBlockLayer var331 = var301[var321];
+ 
+-                if (var5.func_178492_d(var311))
++                if (var5.func_178492_d(var331))
+                 {
+-                    this.func_178584_a(var311, p_178581_1_, p_178581_2_, p_178581_3_, p_178581_4_.func_178545_d().func_179038_a(var311), var5);
++                    this.func_178584_a(var331, p_178581_1_, p_178581_2_, p_178581_3_, p_178581_4_.func_178545_d().func_179038_a(var331), var5);
+                 }
+             }
+         }
+@@ -228,13 +240,13 @@
+ 
+         try
+         {
+-            HashSet var26 = Sets.newHashSet(var11);
+-            HashSet var281 = Sets.newHashSet(this.j);
+-            var26.removeAll(this.j);
+-            var281.removeAll(var11);
++            HashSet var281 = Sets.newHashSet(var11);
++            HashSet var291 = Sets.newHashSet(this.j);
++            var281.removeAll(this.j);
++            var291.removeAll(var11);
+             this.j.clear();
+             this.j.addAll(var11);
+-            this.field_178589_e.a(var281, var26);
++            this.field_178589_e.a(var291, var281);
+         }
+         finally
+         {
+@@ -287,35 +299,33 @@
      public ChunkCompileTaskGenerator func_178582_e()
      {
          this.field_178587_g.lock();

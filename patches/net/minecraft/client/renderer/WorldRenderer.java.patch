@@ -1,22 +1,337 @@
 --- a/net/minecraft/client/renderer/WorldRenderer.java
 +++ b/net/minecraft/client/renderer/WorldRenderer.java
-@@ -36,7 +36,6 @@
+@@ -4,13 +4,19 @@
+ import java.nio.ByteOrder;
+ import java.nio.FloatBuffer;
+ import java.nio.IntBuffer;
++import java.util.Arrays;
+ import java.util.List;
+ import java.util.PriorityQueue;
++import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+ import net.minecraft.client.renderer.vertex.VertexFormat;
+ import net.minecraft.client.renderer.vertex.VertexFormatElement;
+ import net.minecraft.client.util.QuadComparator;
++import net.minecraft.src.Config;
++import net.minecraft.src.TextureUtils;
++import net.minecraft.util.EnumWorldBlockLayer;
+ import net.minecraft.util.MathHelper;
+ import org.apache.logging.log4j.LogManager;
++import org.lwjgl.opengl.GL11;
+ 
+ public class WorldRenderer
+ {
+@@ -36,7 +42,10 @@
      private boolean isDrawing;
      private int bufferSize;
      private static final String __OBFID = "CL_00000942";
 -    private static final String __OBFID = "CL_00000942";
++    private EnumWorldBlockLayer blockLayer = null;
++    private boolean[] drawnIcons = new boolean[256];
++    private TextureAtlasSprite[] quadSprites = null;
++    private TextureAtlasSprite quadSprite = null;
  
      public WorldRenderer(int p_i46275_1_)
      {
-@@ -543,7 +542,6 @@
+@@ -58,6 +67,14 @@
+         this.byteBuffer = var2;
+         this.rawIntBuffer = this.byteBuffer.asIntBuffer();
+         this.rawFloatBuffer = this.byteBuffer.asFloatBuffer();
++
++        if (this.quadSprites != null)
++        {
++            TextureAtlasSprite[] sprites = this.quadSprites;
++            int quadSize = this.getBufferQuadSize();
++            this.quadSprites = new TextureAtlasSprite[quadSize];
++            System.arraycopy(sprites, 0, this.quadSprites, 0, Math.min(sprites.length, this.quadSprites.length));
++        }
+     }
+ 
+     public WorldRenderer.State getVertexState(float p_178971_1_, float p_178971_2_, float p_178971_3_)
+@@ -65,6 +82,14 @@
+         int[] var4 = new int[this.rawBufferIndex];
+         PriorityQueue var5 = new PriorityQueue(this.rawBufferIndex, new QuadComparator(this.rawFloatBuffer, (float)((double)p_178971_1_ + this.xOffset), (float)((double)p_178971_2_ + this.yOffset), (float)((double)p_178971_3_ + this.zOffset), this.vertexFormat.func_177338_f() / 4));
+         int var6 = this.vertexFormat.func_177338_f();
++        TextureAtlasSprite[] quadSpritesSorted = null;
++        int quadStep = this.vertexFormat.func_177338_f() / 4 * 4;
++
++        if (this.quadSprites != null)
++        {
++            quadSpritesSorted = new TextureAtlasSprite[this.vertexCount / 4];
++        }
++
+         int var7;
+ 
+         for (var7 = 0; var7 < this.rawBufferIndex; var7 += var6)
+@@ -75,16 +100,30 @@
+         for (var7 = 0; !var5.isEmpty(); var7 += var6)
+         {
+             int var8 = ((Integer)var5.remove()).intValue();
++            int indexQuad;
++
++            for (indexQuad = 0; indexQuad < var6; ++indexQuad)
++            {
++                var4[var7 + indexQuad] = this.rawIntBuffer.get(var8 + indexQuad);
++            }
+ 
+-            for (int var9 = 0; var9 < var6; ++var9)
++            if (quadSpritesSorted != null)
+             {
+-                var4[var7 + var9] = this.rawIntBuffer.get(var8 + var9);
++                indexQuad = var8 / quadStep;
++                int indexQuadSorted = var7 / quadStep;
++                quadSpritesSorted[indexQuadSorted] = this.quadSprites[indexQuad];
+             }
+         }
+ 
+         this.rawIntBuffer.clear();
+         this.rawIntBuffer.put(var4);
+-        return new WorldRenderer.State(var4, this.rawBufferIndex, this.vertexCount, new VertexFormat(this.vertexFormat));
++
++        if (this.quadSprites != null)
++        {
++            System.arraycopy(quadSpritesSorted, 0, this.quadSprites, 0, quadSpritesSorted.length);
++        }
++
++        return new WorldRenderer.State(var4, this.rawBufferIndex, this.vertexCount, new VertexFormat(this.vertexFormat), quadSpritesSorted);
+     }
+ 
+     public void setVertexState(WorldRenderer.State p_178993_1_)
+@@ -99,6 +138,20 @@
+         this.rawBufferIndex = p_178993_1_.getRawBufferIndex();
+         this.vertexCount = p_178993_1_.getVertexCount();
+         this.vertexFormat = new VertexFormat(p_178993_1_.func_179016_d());
++
++        if (p_178993_1_.stateQuadSprites != null)
++        {
++            if (this.quadSprites == null)
++            {
++                this.quadSprites = new TextureAtlasSprite[this.getBufferQuadSize()];
++            }
++
++            System.arraycopy(p_178993_1_.stateQuadSprites, 0, this.quadSprites, 0, p_178993_1_.stateQuadSprites.length);
++        }
++        else
++        {
++            this.quadSprites = null;
++        }
+     }
+ 
+     public void reset()
+@@ -107,6 +160,20 @@
+         this.rawBufferIndex = 0;
+         this.vertexFormat.clear();
+         this.vertexFormat.func_177349_a(new VertexFormatElement(0, VertexFormatElement.EnumType.FLOAT, VertexFormatElement.EnumUseage.POSITION, 3));
++
++        if (this.blockLayer != null && Config.isMultiTexture())
++        {
++            if (this.quadSprites == null)
++            {
++                this.quadSprites = new TextureAtlasSprite[this.getBufferQuadSize()];
++            }
++        }
++        else
++        {
++            this.quadSprites = null;
++        }
++
++        this.quadSprite = null;
+     }
+ 
+     public void startDrawingQuads()
+@@ -346,6 +413,13 @@
+ 
+     public void addVertexWithUV(double p_178985_1_, double p_178985_3_, double p_178985_5_, double p_178985_7_, double p_178985_9_)
+     {
++        if (this.quadSprite != null && this.quadSprites != null)
++        {
++            p_178985_7_ = (double)this.quadSprite.toSingleU((float)p_178985_7_);
++            p_178985_9_ = (double)this.quadSprite.toSingleV((float)p_178985_9_);
++            this.quadSprites[this.vertexCount / 4] = this.quadSprite;
++        }
++
+         this.setTextureUV(p_178985_7_, p_178985_9_);
+         this.addVertex(p_178985_1_, p_178985_3_, p_178985_5_);
+     }
+@@ -536,6 +610,160 @@
+         }
+     }
+ 
++    public void putSprite(TextureAtlasSprite sprite)
++    {
++        if (this.quadSprites != null)
++        {
++            int countQuads = this.vertexCount / 4;
++            this.quadSprites[countQuads - 1] = sprite;
++        }
++    }
++
++    public void setSprite(TextureAtlasSprite sprite)
++    {
++        if (this.quadSprites != null)
++        {
++            this.quadSprite = sprite;
++        }
++    }
++
++    public boolean isMultiTexture()
++    {
++        return this.quadSprites != null;
++    }
++
++    public void drawMultiTexture()
++    {
++        if (this.quadSprites != null)
++        {
++            int maxTextureIndex = Config.getMinecraft().getTextureMapBlocks().getCountRegisteredSprites();
++
++            if (this.drawnIcons.length <= maxTextureIndex)
++            {
++                this.drawnIcons = new boolean[maxTextureIndex + 1];
++            }
++
++            Arrays.fill(this.drawnIcons, false);
++            int texSwitch = 0;
++            int grassOverlayIndex = -1;
++            int countQuads = this.vertexCount / 4;
++
++            for (int i = 0; i < countQuads; ++i)
++            {
++                TextureAtlasSprite icon = this.quadSprites[i];
++
++                if (icon != null)
++                {
++                    int iconIndex = icon.getIndexInMap();
++
++                    if (!this.drawnIcons[iconIndex])
++                    {
++                        if (icon == TextureUtils.iconGrassSideOverlay)
++                        {
++                            if (grassOverlayIndex < 0)
++                            {
++                                grassOverlayIndex = i;
++                            }
++                        }
++                        else
++                        {
++                            i = this.drawForIcon(icon, i) - 1;
++                            ++texSwitch;
++
++                            if (this.blockLayer != EnumWorldBlockLayer.TRANSLUCENT)
++                            {
++                                this.drawnIcons[iconIndex] = true;
++                            }
++                        }
++                    }
++                }
++            }
++
++            if (grassOverlayIndex >= 0)
++            {
++                this.drawForIcon(TextureUtils.iconGrassSideOverlay, grassOverlayIndex);
++                ++texSwitch;
++            }
++
++            if (texSwitch > 0)
++            {
++                TextureUtils.bindTexture(Config.getMinecraft().getTextureMapBlocks().getGlTextureId());
++            }
++        }
++    }
++
++    private int drawForIcon(TextureAtlasSprite sprite, int startQuadPos)
++    {
++        sprite.bindSpriteTexture();
++        int firstRegionEnd = -1;
++        int lastPos = -1;
++        int countQuads = this.vertexCount / 4;
++
++        for (int i = startQuadPos; i < countQuads; ++i)
++        {
++            TextureAtlasSprite ts = this.quadSprites[i];
++
++            if (ts == sprite)
++            {
++                if (lastPos < 0)
++                {
++                    lastPos = i;
++                }
++            }
++            else if (lastPos >= 0)
++            {
++                this.draw(lastPos, i);
++
++                if (this.blockLayer == EnumWorldBlockLayer.TRANSLUCENT)
++                {
++                    return i;
++                }
++
++                lastPos = -1;
++
++                if (firstRegionEnd < 0)
++                {
++                    firstRegionEnd = i;
++                }
++            }
++        }
++
++        if (lastPos >= 0)
++        {
++            this.draw(lastPos, countQuads);
++        }
++
++        if (firstRegionEnd < 0)
++        {
++            firstRegionEnd = countQuads;
++        }
++
++        return firstRegionEnd;
++    }
++
++    private void draw(int startQuadVertex, int endQuadVertex)
++    {
++        int vxQuadCount = endQuadVertex - startQuadVertex;
++
++        if (vxQuadCount > 0)
++        {
++            int startVertex = startQuadVertex * 4;
++            int vxCount = vxQuadCount * 4;
++            GL11.glDrawArrays(this.drawMode, startVertex, vxCount);
++        }
++    }
++
++    public void setBlockLayer(EnumWorldBlockLayer blockLayer)
++    {
++        this.blockLayer = blockLayer;
++    }
++
++    private int getBufferQuadSize()
++    {
++        int quadSize = this.bufferSize * 4 / (this.vertexFormat.func_177338_f() * 4);
++        return quadSize;
++    }
++
+     public class State
+     {
+         private final int[] field_179019_b;
+@@ -543,14 +771,15 @@
          private final int field_179017_d;
          private final VertexFormat field_179018_e;
          private static final String __OBFID = "CL_00002568";
 -        private static final String __OBFID = "CL_00002568";
++        public TextureAtlasSprite[] stateQuadSprites;
  
-         public State(int[] p_i46274_2_, int p_i46274_3_, int p_i46274_4_, VertexFormat p_i46274_5_)
+-        public State(int[] p_i46274_2_, int p_i46274_3_, int p_i46274_4_, VertexFormat p_i46274_5_)
++        public State(int[] p_i46274_2_, int p_i46274_3_, int p_i46274_4_, VertexFormat p_i46274_5_, TextureAtlasSprite[] sprites)
          {
-@@ -578,7 +576,6 @@
+             this.field_179019_b = p_i46274_2_;
+             this.field_179020_c = p_i46274_3_;
+             this.field_179017_d = p_i46274_4_;
+             this.field_179018_e = p_i46274_5_;
++            this.stateQuadSprites = sprites;
+         }
+ 
+         public int[] func_179013_a()
+@@ -578,7 +807,6 @@
      {
          static final int[] field_178959_a = new int[VertexFormatElement.EnumUseage.values().length];
          private static final String __OBFID = "CL_00002569";

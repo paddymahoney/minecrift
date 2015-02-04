@@ -1,0 +1,40 @@
+--- a/net/minecraft/src/TextureUtils.java
++++ b/net/minecraft/src/TextureUtils.java
+@@ -8,6 +8,7 @@
+ import java.nio.IntBuffer;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.GLAllocation;
++import net.minecraft.client.renderer.GlStateManager;
+ import net.minecraft.client.renderer.texture.ITextureObject;
+ import net.minecraft.client.renderer.texture.ITickableTextureObject;
+ import net.minecraft.client.renderer.texture.SimpleTexture;
+@@ -17,6 +18,8 @@
+ import net.minecraft.client.resources.IResourceManager;
+ import net.minecraft.client.resources.IResourceManagerReloadListener;
+ import net.minecraft.util.ResourceLocation;
++import org.lwjgl.opengl.GL11;
++import org.lwjgl.opengl.GLContext;
+ 
+ public class TextureUtils
+ {
+@@ -310,4 +313,20 @@
+         int pos = path.lastIndexOf(47);
+         return pos < 0 ? "" : path.substring(0, pos);
+     }
++
++    public static void applyAnisotropicLevel()
++    {
++        if (GLContext.getCapabilities().GL_EXT_texture_filter_anisotropic)
++        {
++            float maxLevel = GL11.glGetFloat(34047);
++            float level = (float)Config.getAnisotropicFilterLevel();
++            level = Math.min(level, maxLevel);
++            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, 34046, level);
++        }
++    }
++
++    public static void bindTexture(int glTexId)
++    {
++        GlStateManager.func_179144_i(glTexId);
++    }
+ }

@@ -8,7 +8,44 @@
  
      public static void updateAoLightValue()
      {
-@@ -485,7 +484,6 @@
+@@ -222,7 +221,17 @@
+ 
+             this.func_178261_a(blockIn, var17.func_178209_a(), var17.getFace(), quadBounds, boundsFlags);
+             aoFaceIn.func_178204_a(blockAccessIn, blockIn, blockPosIn, var17.getFace(), quadBounds, boundsFlags);
+-            worldRendererIn.func_178981_a(var17.func_178209_a());
++
++            if (worldRendererIn.isMultiTexture())
++            {
++                worldRendererIn.func_178981_a(var17.getVertexDataSingle());
++                worldRendererIn.putSprite(var17.getSprite());
++            }
++            else
++            {
++                worldRendererIn.func_178981_a(var17.func_178209_a());
++            }
++
+             worldRendererIn.func_178962_a(aoFaceIn.field_178207_c[0], aoFaceIn.field_178207_c[1], aoFaceIn.field_178207_c[2], aoFaceIn.field_178207_c[3]);
+             int colorMultiplier = CustomColorizer.getColorMultiplier(var17, blockIn, blockAccessIn, blockPosIn, renderEnv);
+ 
+@@ -376,7 +385,16 @@
+                 brightnessIn = boundsFlags.get(0) ? blockIn.getMixedBrightnessForBlock(blockAccessIn, blockPosIn.offset(var241.getFace())) : blockIn.getMixedBrightnessForBlock(blockAccessIn, blockPosIn);
+             }
+ 
+-            worldRendererIn.func_178981_a(var241.func_178209_a());
++            if (worldRendererIn.isMultiTexture())
++            {
++                worldRendererIn.func_178981_a(var241.getVertexDataSingle());
++                worldRendererIn.putSprite(var241.getSprite());
++            }
++            else
++            {
++                worldRendererIn.func_178981_a(var241.func_178209_a());
++            }
++
+             worldRendererIn.func_178962_a(brightnessIn, brightnessIn, brightnessIn, brightnessIn);
+             int colorMultiplier1 = CustomColorizer.getColorMultiplier(var241, blockIn, blockAccessIn, blockPosIn, renderEnv);
+ 
+@@ -485,7 +503,6 @@
          private final float[] field_178206_b = new float[4];
          private final int[] field_178207_c = new int[4];
          private static final String __OBFID = "CL_00002515";
@@ -16,7 +53,7 @@
  
          public AmbientOcclusionFace(BlockModelRenderer bmr) {}
  
-@@ -687,9 +685,8 @@
+@@ -687,9 +704,8 @@
          private static final String __OBFID = "CL_00002516";
  
          private static final BlockModelRenderer.EnumNeighborInfo[] $VALUES$ = new BlockModelRenderer.EnumNeighborInfo[]{DOWN, UP, NORTH, SOUTH, WEST, EAST};
@@ -27,7 +64,7 @@
          {
              this.field_178276_g = p_i46236_3_;
              this.field_178288_h = p_i46236_4_;
-@@ -734,9 +731,8 @@
+@@ -734,9 +750,8 @@
          private static final String __OBFID = "CL_00002513";
  
          private static final BlockModelRenderer.Orientation[] $VALUES$ = new BlockModelRenderer.Orientation[]{DOWN, UP, NORTH, SOUTH, WEST, EAST, FLIP_DOWN, FLIP_UP, FLIP_NORTH, FLIP_SOUTH, FLIP_WEST, FLIP_EAST};
@@ -38,7 +75,7 @@
          {
              this.field_178229_m = p_i46233_3_.getIndex() + (p_i46233_4_ ? EnumFacing.values().length : 0);
          }
-@@ -746,7 +742,6 @@
+@@ -746,7 +761,6 @@
      {
          static final int[] field_178290_a = new int[EnumFacing.values().length];
          private static final String __OBFID = "CL_00002517";
@@ -46,7 +83,7 @@
  
          static
          {
-@@ -823,9 +818,8 @@
+@@ -823,9 +837,8 @@
          private static final String __OBFID = "CL_00002514";
  
          private static final BlockModelRenderer.VertexTranslations[] $VALUES$ = new BlockModelRenderer.VertexTranslations[]{DOWN, UP, NORTH, SOUTH, WEST, EAST};

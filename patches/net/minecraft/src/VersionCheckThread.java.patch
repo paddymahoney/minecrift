@@ -1,0 +1,28 @@
+--- a/net/minecraft/src/VersionCheckThread.java
++++ b/net/minecraft/src/VersionCheckThread.java
+@@ -20,14 +20,13 @@
+             if (Config.getGameSettings().snooperEnabled)
+             {
+                 conn.setRequestProperty("OF-MC-Version", "1.8.1");
+-                conn.setRequestProperty("OF-MC-Brand", ClientBrandRetriever.getClientModName());
++                conn.setRequestProperty("OF-MC-Brand", "" + ClientBrandRetriever.getClientModName());
+                 conn.setRequestProperty("OF-Edition", "HD_U");
+-                conn.setRequestProperty("OF-Release", "B2");
++                conn.setRequestProperty("OF-Release", "C7");
+                 conn.setRequestProperty("OF-Java-Version", "" + System.getProperty("java.version"));
+                 conn.setRequestProperty("OF-CpuCount", "" + Config.getAvailableProcessors());
+                 conn.setRequestProperty("OF-OpenGL-Version", "" + Config.openGlVersion);
+                 conn.setRequestProperty("OF-OpenGL-Vendor", "" + Config.openGlVendor);
+-                conn.setRequestProperty("OF-ResourcePack", Config.getResourcePackNames());
+             }
+ 
+             conn.setDoInput(true);
+@@ -49,7 +48,7 @@
+                 String newVer = verLines[0];
+                 Config.dbg("Version found: " + newVer);
+ 
+-                if (Config.compareRelease(newVer, "B2") > 0)
++                if (Config.compareRelease(newVer, "C7") > 0)
+                 {
+                     Config.setNewRelease(newVer);
+                     return;

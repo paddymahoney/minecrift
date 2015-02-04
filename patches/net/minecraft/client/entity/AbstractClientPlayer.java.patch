@@ -1,6 +1,15 @@
 --- a/net/minecraft/client/entity/AbstractClientPlayer.java
 +++ b/net/minecraft/client/entity/AbstractClientPlayer.java
-@@ -30,7 +30,6 @@
+@@ -20,6 +20,8 @@
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.init.Items;
+ import net.minecraft.src.Config;
++import net.minecraft.src.PlayerConfigurations;
++import net.minecraft.src.Reflector;
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraft.util.StringUtils;
+ import net.minecraft.world.World;
+@@ -30,13 +32,13 @@
      private NetworkPlayerInfo field_175157_a;
      private ResourceLocation ofLocationCape = null;
      private static final String __OBFID = "CL_00000935";
@@ -8,3 +17,59 @@
  
      public AbstractClientPlayer(World worldIn, GameProfile p_i45074_2_)
      {
+         super(worldIn, p_i45074_2_);
+         String username = p_i45074_2_.getName();
+         this.downloadCape(username);
++        PlayerConfigurations.getPlayerConfiguration(this);
+     }
+ 
+     public boolean func_175149_v()
+@@ -148,7 +150,7 @@
+             var1 *= 1.0F - var4 * 0.15F;
+         }
+ 
+-        return var1;
++        return Reflector.ForgeHooksClient_getOffsetFOV.exists() ? Reflector.callFloat(Reflector.ForgeHooksClient_getOffsetFOV, new Object[] {this, Float.valueOf(var1)}): var1;
+     }
+ 
+     private void downloadCape(String username)
+@@ -158,8 +160,26 @@
+             username = StringUtils.stripControlCodes(username);
+             String ofCapeUrl = "http://s.optifine.net/capes/" + username + ".png";
+             MinecraftProfileTexture mpt = new MinecraftProfileTexture(ofCapeUrl, new HashMap());
+-            final ResourceLocation rl = new ResourceLocation("skins/" + mpt.getHash());
+-            IImageBuffer iib = new IImageBuffer()
++            final ResourceLocation rl = new ResourceLocation("capeof/" + mpt.getHash());
++            TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
++            ITextureObject tex = textureManager.getTexture(rl);
++
++            if (tex != null && tex instanceof ThreadDownloadImageData)
++            {
++                ThreadDownloadImageData iib = (ThreadDownloadImageData)tex;
++
++                if (iib.imageFound != null)
++                {
++                    if (iib.imageFound.booleanValue())
++                    {
++                        this.ofLocationCape = rl;
++                    }
++
++                    return;
++                }
++            }
++
++            IImageBuffer iib1 = new IImageBuffer()
+             {
+                 ImageBufferDownload ibd = new ImageBufferDownload();
+                 public BufferedImage parseUserSkin(BufferedImage var1)
+@@ -171,8 +191,8 @@
+                     AbstractClientPlayer.this.ofLocationCape = rl;
+                 }
+             };
+-            ThreadDownloadImageData textureCape = new ThreadDownloadImageData((File)null, mpt.getUrl(), (ResourceLocation)null, iib);
+-            Minecraft.getMinecraft().getTextureManager().loadTexture(rl, textureCape);
++            ThreadDownloadImageData textureCape = new ThreadDownloadImageData((File)null, mpt.getUrl(), (ResourceLocation)null, iib1);
++            textureManager.loadTexture(rl, textureCape);
+         }
+     }
+ 

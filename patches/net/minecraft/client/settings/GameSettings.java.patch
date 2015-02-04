@@ -1,6 +1,14 @@
 --- a/net/minecraft/client/settings/GameSettings.java
 +++ b/net/minecraft/client/settings/GameSettings.java
-@@ -50,7 +50,6 @@
+@@ -33,7 +33,6 @@
+ import net.minecraft.src.NaturalTextures;
+ import net.minecraft.src.RandomMobs;
+ import net.minecraft.src.Reflector;
+-import net.minecraft.src.TextureUtils;
+ import net.minecraft.util.MathHelper;
+ import net.minecraft.world.EnumDifficulty;
+ import org.apache.commons.lang3.ArrayUtils;
+@@ -50,7 +49,6 @@
      private static final ParameterizedType typeListString = new ParameterizedType()
      {
          private static final String __OBFID = "CL_00000651";
@@ -8,7 +16,23 @@
          public Type[] getActualTypeArguments()
          {
              return new Type[] {String.class};
-@@ -261,7 +260,6 @@
+@@ -91,6 +89,7 @@
+     public boolean ofLazyChunkLoading = Config.isSingleProcessor();
+     public float ofAoLevel = 1.0F;
+     public int ofAaLevel = 0;
++    public int ofAfLevel = 1;
+     public int ofClouds = 0;
+     public float ofCloudsHeight = 0.0F;
+     public int ofTrees = 0;
+@@ -136,6 +135,7 @@
+     public boolean ofRainSplash = true;
+     public boolean ofPortalParticles = true;
+     public boolean ofPotionParticles = true;
++    public boolean ofFireworkParticles = true;
+     public boolean ofDrippingWaterLava = true;
+     public boolean ofAnimatedTerrain = true;
+     public boolean ofAnimatedTextures = true;
+@@ -261,7 +261,6 @@
      public String language;
      public boolean forceUnicodeFont;
      private static final String __OBFID = "CL_00000650";
@@ -16,7 +40,7 @@
  
      public GameSettings(Minecraft mcIn, File p_i46326_2_)
      {
-@@ -684,7 +682,9 @@
+@@ -684,7 +683,9 @@
          if (p_74306_1_ == GameSettings.Options.ENABLE_VSYNC)
          {
              this.enableVsync = !this.enableVsync;
@@ -27,7 +51,246 @@
          }
  
          if (p_74306_1_ == GameSettings.Options.USE_VBO)
-@@ -2899,8 +2899,10 @@
+@@ -714,7 +715,7 @@
+ 
+     public float getOptionFloatValue(GameSettings.Options p_74296_1_)
+     {
+-        return p_74296_1_ == GameSettings.Options.CLOUD_HEIGHT ? this.ofCloudsHeight : (p_74296_1_ == GameSettings.Options.AO_LEVEL ? this.ofAoLevel : (p_74296_1_ == GameSettings.Options.FRAMERATE_LIMIT ? ((float)this.limitFramerate == GameSettings.Options.FRAMERATE_LIMIT.getValueMax() && this.enableVsync ? 0.0F : (float)this.limitFramerate) : (p_74296_1_ == GameSettings.Options.FOV ? this.fovSetting : (p_74296_1_ == GameSettings.Options.GAMMA ? this.gammaSetting : (p_74296_1_ == GameSettings.Options.SATURATION ? this.saturation : (p_74296_1_ == GameSettings.Options.SENSITIVITY ? this.mouseSensitivity : (p_74296_1_ == GameSettings.Options.CHAT_OPACITY ? this.chatOpacity : (p_74296_1_ == GameSettings.Options.CHAT_HEIGHT_FOCUSED ? this.chatHeightFocused : (p_74296_1_ == GameSettings.Options.CHAT_HEIGHT_UNFOCUSED ? this.chatHeightUnfocused : (p_74296_1_ == GameSettings.Options.CHAT_SCALE ? this.chatScale : (p_74296_1_ == GameSettings.Options.CHAT_WIDTH ? this.chatWidth : (p_74296_1_ == GameSettings.Options.FRAMERATE_LIMIT ? (float)this.limitFramerate : (p_74296_1_ == GameSettings.Options.MIPMAP_LEVELS ? (float)this.mipmapLevels : (p_74296_1_ == GameSettings.Options.RENDER_DISTANCE ? (float)this.renderDistanceChunks : (p_74296_1_ == GameSettings.Options.STREAM_BYTES_PER_PIXEL ? this.streamBytesPerPixel : (p_74296_1_ == GameSettings.Options.STREAM_VOLUME_MIC ? this.streamMicVolume : (p_74296_1_ == GameSettings.Options.STREAM_VOLUME_SYSTEM ? this.streamGameVolume : (p_74296_1_ == GameSettings.Options.STREAM_KBPS ? this.streamKbps : (p_74296_1_ == GameSettings.Options.STREAM_FPS ? this.streamFps : 0.0F)))))))))))))))))));
++        return p_74296_1_ == GameSettings.Options.CLOUD_HEIGHT ? this.ofCloudsHeight : (p_74296_1_ == GameSettings.Options.AO_LEVEL ? this.ofAoLevel : (p_74296_1_ == GameSettings.Options.AA_LEVEL ? (float)this.ofAaLevel : (p_74296_1_ == GameSettings.Options.AF_LEVEL ? (float)this.ofAfLevel : (p_74296_1_ == GameSettings.Options.MIPMAP_TYPE ? (float)this.ofMipmapType : (p_74296_1_ == GameSettings.Options.FRAMERATE_LIMIT ? ((float)this.limitFramerate == GameSettings.Options.FRAMERATE_LIMIT.getValueMax() && this.enableVsync ? 0.0F : (float)this.limitFramerate) : (p_74296_1_ == GameSettings.Options.FOV ? this.fovSetting : (p_74296_1_ == GameSettings.Options.GAMMA ? this.gammaSetting : (p_74296_1_ == GameSettings.Options.SATURATION ? this.saturation : (p_74296_1_ == GameSettings.Options.SENSITIVITY ? this.mouseSensitivity : (p_74296_1_ == GameSettings.Options.CHAT_OPACITY ? this.chatOpacity : (p_74296_1_ == GameSettings.Options.CHAT_HEIGHT_FOCUSED ? this.chatHeightFocused : (p_74296_1_ == GameSettings.Options.CHAT_HEIGHT_UNFOCUSED ? this.chatHeightUnfocused : (p_74296_1_ == GameSettings.Options.CHAT_SCALE ? this.chatScale : (p_74296_1_ == GameSettings.Options.CHAT_WIDTH ? this.chatWidth : (p_74296_1_ == GameSettings.Options.FRAMERATE_LIMIT ? (float)this.limitFramerate : (p_74296_1_ == GameSettings.Options.MIPMAP_LEVELS ? (float)this.mipmapLevels : (p_74296_1_ == GameSettings.Options.RENDER_DISTANCE ? (float)this.renderDistanceChunks : (p_74296_1_ == GameSettings.Options.STREAM_BYTES_PER_PIXEL ? this.streamBytesPerPixel : (p_74296_1_ == GameSettings.Options.STREAM_VOLUME_MIC ? this.streamMicVolume : (p_74296_1_ == GameSettings.Options.STREAM_VOLUME_SYSTEM ? this.streamGameVolume : (p_74296_1_ == GameSettings.Options.STREAM_KBPS ? this.streamKbps : (p_74296_1_ == GameSettings.Options.STREAM_FPS ? this.streamFps : 0.0F))))))))))))))))))))));
+     }
+ 
+     public boolean getOptionOrdinalValue(GameSettings.Options p_74308_1_)
+@@ -1496,6 +1497,45 @@
+             this.ofAoLevel = val;
+             this.mc.renderGlobal.loadRenderers();
+         }
++
++        if (option == GameSettings.Options.AA_LEVEL)
++        {
++            int[] valInt = new int[] {0, 2, 4, 6, 8, 12, 16};
++            this.ofAaLevel = 0;
++            int valInt1 = (int)val;
++
++            for (int l = 0; l < valInt.length; ++l)
++            {
++                if (valInt1 >= valInt[l])
++                {
++                    this.ofAaLevel = valInt[l];
++                }
++            }
++
++            this.ofAaLevel = Config.limit(this.ofAaLevel, 0, 16);
++        }
++
++        int var6;
++
++        if (option == GameSettings.Options.AF_LEVEL)
++        {
++            var6 = (int)val;
++
++            for (this.ofAfLevel = 1; this.ofAfLevel * 2 <= var6; this.ofAfLevel *= 2)
++            {
++                ;
++            }
++
++            this.ofAfLevel = Config.limit(this.ofAfLevel, 1, 16);
++            this.mc.refreshResources();
++        }
++
++        if (option == GameSettings.Options.MIPMAP_TYPE)
++        {
++            var6 = (int)val;
++            this.ofMipmapType = Config.limit(var6, 0, 3);
++            this.mc.refreshResources();
++        }
+     }
+ 
+     private void setOptionValueOF(GameSettings.Options par1EnumOptions, int par2)
+@@ -1537,18 +1577,6 @@
+             }
+         }
+ 
+-        if (par1EnumOptions == GameSettings.Options.MIPMAP_TYPE)
+-        {
+-            ++this.ofMipmapType;
+-
+-            if (this.ofMipmapType > 3)
+-            {
+-                this.ofMipmapType = 0;
+-            }
+-
+-            TextureUtils.refreshBlockTextures();
+-        }
+-
+         if (par1EnumOptions == GameSettings.Options.LOAD_FAR)
+         {
+             this.ofLoadFar = false;
+@@ -1679,6 +1707,11 @@
+             this.ofPotionParticles = !this.ofPotionParticles;
+         }
+ 
++        if (par1EnumOptions == GameSettings.Options.FIREWORK_PARTICLES)
++        {
++            this.ofFireworkParticles = !this.ofFireworkParticles;
++        }
++
+         if (par1EnumOptions == GameSettings.Options.DRIPPING_WATER_LAVA)
+         {
+             this.ofDrippingWaterLava = !this.ofDrippingWaterLava;
+@@ -1737,7 +1770,7 @@
+ 
+             if (this.ofConnectedTextures != 2)
+             {
+-                this.mc.func_175603_A();
++                this.mc.refreshResources();
+             }
+         }
+ 
+@@ -1804,11 +1837,6 @@
+             this.updateWaterOpacity();
+         }
+ 
+-        if (par1EnumOptions == GameSettings.Options.AA_LEVEL)
+-        {
+-            this.ofAaLevel = 0;
+-        }
+-
+         if (par1EnumOptions == GameSettings.Options.PROFILER)
+         {
+             this.ofProfiler = !this.ofProfiler;
+@@ -1968,29 +1996,29 @@
+ 
+         if (par1EnumOptions == GameSettings.Options.RENDER_DISTANCE)
+         {
+-            int var61 = (int)this.getOptionFloatValue(par1EnumOptions);
++            int var62 = (int)this.getOptionFloatValue(par1EnumOptions);
+             String str = "Tiny";
+             byte baseDist = 2;
+ 
+-            if (var61 >= 4)
++            if (var62 >= 4)
+             {
+                 str = "Short";
+                 baseDist = 4;
+             }
+ 
+-            if (var61 >= 8)
++            if (var62 >= 8)
+             {
+                 str = "Normal";
+                 baseDist = 8;
+             }
+ 
+-            if (var61 >= 16)
++            if (var62 >= 16)
+             {
+                 str = "Far";
+                 baseDist = 16;
+             }
+ 
+-            if (var61 >= 32)
++            if (var62 >= 32)
+             {
+                 str = "Extreme";
+                 baseDist = 32;
+@@ -2004,7 +2032,7 @@
+                 descr = str + "+";
+             }
+ 
+-            return var2 + var61 + " " + descr + "";
++            return var2 + var62 + " " + descr + "";
+         }
+         else if (par1EnumOptions == GameSettings.Options.FOG_FANCY)
+         {
+@@ -2189,6 +2217,10 @@
+         {
+             return this.ofPotionParticles ? var2 + "ON" : var2 + "OFF";
+         }
++        else if (par1EnumOptions == GameSettings.Options.FIREWORK_PARTICLES)
++        {
++            return this.ofFireworkParticles ? var2 + "ON" : var2 + "OFF";
++        }
+         else if (par1EnumOptions == GameSettings.Options.DRIPPING_WATER_LAVA)
+         {
+             return this.ofDrippingWaterLava ? var2 + "ON" : var2 + "OFF";
+@@ -2279,7 +2311,18 @@
+         }
+         else if (par1EnumOptions == GameSettings.Options.AA_LEVEL)
+         {
+-            return this.ofAaLevel == 0 ? var2 + "OFF" : var2 + this.ofAaLevel;
++            String var61 = "";
++
++            if (this.ofAaLevel != Config.getAntialiasingLevel())
++            {
++                var61 = " (restart)";
++            }
++
++            return this.ofAaLevel == 0 ? var2 + "OFF" + var61 : var2 + this.ofAaLevel + var61;
++        }
++        else if (par1EnumOptions == GameSettings.Options.AF_LEVEL)
++        {
++            return this.ofAfLevel == 1 ? var2 + "OFF" : var2 + this.ofAfLevel;
+         }
+         else if (par1EnumOptions == GameSettings.Options.PROFILER)
+         {
+@@ -2542,6 +2585,11 @@
+                         this.ofPotionParticles = Boolean.valueOf(exception1[1]).booleanValue();
+                     }
+ 
++                    if (exception1[0].equals("ofFireworkParticles") && exception1.length >= 2)
++                    {
++                        this.ofFireworkParticles = Boolean.valueOf(exception1[1]).booleanValue();
++                    }
++
+                     if (exception1[0].equals("ofDrippingWaterLava") && exception1.length >= 2)
+                     {
+                         this.ofDrippingWaterLava = Boolean.valueOf(exception1[1]).booleanValue();
+@@ -2641,6 +2689,12 @@
+                         this.ofAaLevel = Config.limit(this.ofAaLevel, 0, 16);
+                     }
+ 
++                    if (exception1[0].equals("ofAfLevel") && exception1.length >= 2)
++                    {
++                        this.ofAfLevel = Integer.valueOf(exception1[1]).intValue();
++                        this.ofAfLevel = Config.limit(this.ofAfLevel, 1, 16);
++                    }
++
+                     if (exception1[0].equals("ofProfiler") && exception1.length >= 2)
+                     {
+                         this.ofProfiler = Boolean.valueOf(exception1[1]).booleanValue();
+@@ -2771,6 +2825,7 @@
+             exception.println("ofWaterParticles:" + this.ofWaterParticles);
+             exception.println("ofPortalParticles:" + this.ofPortalParticles);
+             exception.println("ofPotionParticles:" + this.ofPotionParticles);
++            exception.println("ofFireworkParticles:" + this.ofFireworkParticles);
+             exception.println("ofDrippingWaterLava:" + this.ofDrippingWaterLava);
+             exception.println("ofAnimatedTerrain:" + this.ofAnimatedTerrain);
+             exception.println("ofAnimatedTextures:" + this.ofAnimatedTextures);
+@@ -2789,6 +2844,7 @@
+             exception.println("ofTime:" + this.ofTime);
+             exception.println("ofClearWater:" + this.ofClearWater);
+             exception.println("ofAaLevel:" + this.ofAaLevel);
++            exception.println("ofAfLevel:" + this.ofAfLevel);
+             exception.println("ofProfiler:" + this.ofProfiler);
+             exception.println("ofBetterSnow:" + this.ofBetterSnow);
+             exception.println("ofSwampColors:" + this.ofSwampColors);
+@@ -2848,6 +2904,7 @@
+         this.ofTranslucentBlocks = 0;
+         this.ofAoLevel = 1.0F;
+         this.ofAaLevel = 0;
++        this.ofAfLevel = 1;
+         this.ofClouds = 0;
+         this.ofCloudsHeight = 0.0F;
+         this.ofTrees = 0;
+@@ -2889,6 +2946,7 @@
+         this.ofRainSplash = true;
+         this.ofPortalParticles = true;
+         this.ofPotionParticles = true;
++        this.ofFireworkParticles = true;
+         this.ofDrippingWaterLava = true;
+         this.ofAnimatedTerrain = true;
+         this.ofAnimatedTextures = true;
+@@ -2899,8 +2957,10 @@
  
      public void updateVSync()
      {
@@ -39,15 +302,106 @@
  
      private void updateWaterOpacity()
      {
-@@ -3057,7 +3059,6 @@
+@@ -2936,6 +2996,7 @@
+         this.ofRainSplash = flag;
+         this.ofPortalParticles = flag;
+         this.ofPotionParticles = flag;
++        this.ofFireworkParticles = flag;
+         this.particleSetting = flag ? 0 : 2;
+         this.ofDrippingWaterLava = flag;
+         this.ofAnimatedTerrain = flag;
+@@ -2990,7 +3051,7 @@
+         R("R", 43, "ENTITY_SHADOWS", 43, "options.entityShadows", false, true),
+         FOG_FANCY("FOG_FANCY", 44, "FOG", 999, "Fog", false, false),
+         FOG_START("FOG_START", 45, "", 999, "Fog Start", false, false),
+-        MIPMAP_TYPE("MIPMAP_TYPE", 46, "", 999, "Mipmap Type", false, false),
++        MIPMAP_TYPE("MIPMAP_TYPE", 46, "", 999, "Mipmap Type", true, false, 0.0F, 3.0F, 1.0F),
+         LOAD_FAR("LOAD_FAR", 47, "", 999, "Load Far", false, false),
+         PRELOADED_CHUNKS("PRELOADED_CHUNKS", 48, "", 999, "Preloaded Chunks", false, false),
+         CLOUDS("CLOUDS", 49, "", 999, "Clouds", false, false),
+@@ -3023,30 +3084,31 @@
+         RAIN_SPLASH("RAIN_SPLASH", 76, "", 999, "Rain Splash", false, false),
+         PORTAL_PARTICLES("PORTAL_PARTICLES", 77, "", 999, "Portal Particles", false, false),
+         POTION_PARTICLES("POTION_PARTICLES", 78, "", 999, "Potion Particles", false, false),
+-        PROFILER("PROFILER", 79, "", 999, "Debug Profiler", false, false),
+-        DRIPPING_WATER_LAVA("DRIPPING_WATER_LAVA", 80, "", 999, "Dripping Water/Lava", false, false),
+-        BETTER_SNOW("BETTER_SNOW", 81, "", 999, "Better Snow", false, false),
+-        FULLSCREEN_MODE("FULLSCREEN_MODE", 82, "", 999, "Fullscreen Mode", false, false),
+-        ANIMATED_TERRAIN("ANIMATED_TERRAIN", 83, "", 999, "Terrain Animated", false, false),
+-        SWAMP_COLORS("SWAMP_COLORS", 84, "", 999, "Swamp Colors", false, false),
+-        RANDOM_MOBS("RANDOM_MOBS", 85, "", 999, "Random Mobs", false, false),
+-        SMOOTH_BIOMES("SMOOTH_BIOMES", 86, "", 999, "Smooth Biomes", false, false),
+-        CUSTOM_FONTS("CUSTOM_FONTS", 87, "", 999, "Custom Fonts", false, false),
+-        CUSTOM_COLORS("CUSTOM_COLORS", 88, "", 999, "Custom Colors", false, false),
+-        SHOW_CAPES("SHOW_CAPES", 89, "", 999, "Show Capes", false, false),
+-        CONNECTED_TEXTURES("CONNECTED_TEXTURES", 90, "", 999, "Connected Textures", false, false),
+-        AA_LEVEL("AA_LEVEL", 91, "", 999, "Antialiasing", false, false),
+-        AF_LEVEL("AF_LEVEL", 92, "", 999, "Anisotropic Filtering", false, false),
+-        ANIMATED_TEXTURES("ANIMATED_TEXTURES", 93, "", 999, "Textures Animated", false, false),
+-        NATURAL_TEXTURES("NATURAL_TEXTURES", 94, "", 999, "Natural Textures", false, false),
+-        CHUNK_LOADING("CHUNK_LOADING", 95, "", 999, "Chunk Loading", false, false),
+-        HELD_ITEM_TOOLTIPS("HELD_ITEM_TOOLTIPS", 96, "", 999, "Held Item Tooltips", false, false),
+-        DROPPED_ITEMS("DROPPED_ITEMS", 97, "", 999, "Dropped Items", false, false),
+-        LAZY_CHUNK_LOADING("LAZY_CHUNK_LOADING", 98, "", 999, "Lazy Chunk Loading", false, false),
+-        CUSTOM_SKY("CUSTOM_SKY", 99, "", 999, "Custom Sky", false, false),
+-        FAST_MATH("FAST_MATH", 100, "", 999, "Fast Math", false, false),
+-        FAST_RENDER("FAST_RENDER", 101, "", 999, "Fast Render", false, false),
+-        TRANSLUCENT_BLOCKS("TRANSLUCENT_BLOCKS", 102, "", 999, "Translucent Blocks", false, false);
++        FIREWORK_PARTICLES("FIREWORK_PARTICLES", 79, "", 999, "Firework Particles", false, false),
++        PROFILER("PROFILER", 80, "", 999, "Debug Profiler", false, false),
++        DRIPPING_WATER_LAVA("DRIPPING_WATER_LAVA", 81, "", 999, "Dripping Water/Lava", false, false),
++        BETTER_SNOW("BETTER_SNOW", 82, "", 999, "Better Snow", false, false),
++        FULLSCREEN_MODE("FULLSCREEN_MODE", 83, "", 999, "Fullscreen Mode", false, false),
++        ANIMATED_TERRAIN("ANIMATED_TERRAIN", 84, "", 999, "Terrain Animated", false, false),
++        SWAMP_COLORS("SWAMP_COLORS", 85, "", 999, "Swamp Colors", false, false),
++        RANDOM_MOBS("RANDOM_MOBS", 86, "", 999, "Random Mobs", false, false),
++        SMOOTH_BIOMES("SMOOTH_BIOMES", 87, "", 999, "Smooth Biomes", false, false),
++        CUSTOM_FONTS("CUSTOM_FONTS", 88, "", 999, "Custom Fonts", false, false),
++        CUSTOM_COLORS("CUSTOM_COLORS", 89, "", 999, "Custom Colors", false, false),
++        SHOW_CAPES("SHOW_CAPES", 90, "", 999, "Show Capes", false, false),
++        CONNECTED_TEXTURES("CONNECTED_TEXTURES", 91, "", 999, "Connected Textures", false, false),
++        AA_LEVEL("AA_LEVEL", 92, "", 999, "Antialiasing", true, false, 0.0F, 16.0F, 1.0F),
++        AF_LEVEL("AF_LEVEL", 93, "", 999, "Anisotropic Filtering", true, false, 1.0F, 16.0F, 1.0F),
++        ANIMATED_TEXTURES("ANIMATED_TEXTURES", 94, "", 999, "Textures Animated", false, false),
++        NATURAL_TEXTURES("NATURAL_TEXTURES", 95, "", 999, "Natural Textures", false, false),
++        CHUNK_LOADING("CHUNK_LOADING", 96, "", 999, "Chunk Loading", false, false),
++        HELD_ITEM_TOOLTIPS("HELD_ITEM_TOOLTIPS", 97, "", 999, "Held Item Tooltips", false, false),
++        DROPPED_ITEMS("DROPPED_ITEMS", 98, "", 999, "Dropped Items", false, false),
++        LAZY_CHUNK_LOADING("LAZY_CHUNK_LOADING", 99, "", 999, "Lazy Chunk Loading", false, false),
++        CUSTOM_SKY("CUSTOM_SKY", 100, "", 999, "Custom Sky", false, false),
++        FAST_MATH("FAST_MATH", 101, "", 999, "Fast Math", false, false),
++        FAST_RENDER("FAST_RENDER", 102, "", 999, "Fast Render", false, false),
++        TRANSLUCENT_BLOCKS("TRANSLUCENT_BLOCKS", 103, "", 999, "Translucent Blocks", false, false);
+         private final boolean enumFloat;
+         private final boolean enumBoolean;
+         private final String enumString;
+@@ -3056,8 +3118,7 @@
+         private static final GameSettings.Options[] $VALUES = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, FRAMERATE_LIMIT, FBO_ENABLE, RENDER_CLOUDS, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, USE_VBO, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR, BLOCK_ALTERNATIVES, REDUCED_DEBUG_INFO, R};
          private static final String __OBFID = "CL_00000653";
  
-         private static final GameSettings.Options[] $VALUES$ = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, FRAMERATE_LIMIT, FBO_ENABLE, RENDER_CLOUDS, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, USE_VBO, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR, BLOCK_ALTERNATIVES, REDUCED_DEBUG_INFO, R, FOG_FANCY, FOG_START, MIPMAP_TYPE, LOAD_FAR, PRELOADED_CHUNKS, CLOUDS, CLOUD_HEIGHT, TREES, RAIN, ANIMATED_WATER, ANIMATED_LAVA, ANIMATED_FIRE, ANIMATED_PORTAL, AO_LEVEL, LAGOMETER, AUTOSAVE_TICKS, BETTER_GRASS, ANIMATED_REDSTONE, ANIMATED_EXPLOSION, ANIMATED_FLAME, ANIMATED_SMOKE, WEATHER, SKY, STARS, SUN_MOON, CHUNK_UPDATES, CHUNK_UPDATES_DYNAMIC, TIME, CLEAR_WATER, SMOOTH_WORLD, VOID_PARTICLES, WATER_PARTICLES, RAIN_SPLASH, PORTAL_PARTICLES, POTION_PARTICLES, PROFILER, DRIPPING_WATER_LAVA, BETTER_SNOW, FULLSCREEN_MODE, ANIMATED_TERRAIN, SWAMP_COLORS, RANDOM_MOBS, SMOOTH_BIOMES, CUSTOM_FONTS, CUSTOM_COLORS, SHOW_CAPES, CONNECTED_TEXTURES, AA_LEVEL, AF_LEVEL, ANIMATED_TEXTURES, NATURAL_TEXTURES, CHUNK_LOADING, HELD_ITEM_TOOLTIPS, DROPPED_ITEMS, LAZY_CHUNK_LOADING, CUSTOM_SKY, FAST_MATH, FAST_RENDER, TRANSLUCENT_BLOCKS};
+-        private static final GameSettings.Options[] $VALUES$ = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, FRAMERATE_LIMIT, FBO_ENABLE, RENDER_CLOUDS, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, USE_VBO, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR, BLOCK_ALTERNATIVES, REDUCED_DEBUG_INFO, R, FOG_FANCY, FOG_START, MIPMAP_TYPE, LOAD_FAR, PRELOADED_CHUNKS, CLOUDS, CLOUD_HEIGHT, TREES, RAIN, ANIMATED_WATER, ANIMATED_LAVA, ANIMATED_FIRE, ANIMATED_PORTAL, AO_LEVEL, LAGOMETER, AUTOSAVE_TICKS, BETTER_GRASS, ANIMATED_REDSTONE, ANIMATED_EXPLOSION, ANIMATED_FLAME, ANIMATED_SMOKE, WEATHER, SKY, STARS, SUN_MOON, CHUNK_UPDATES, CHUNK_UPDATES_DYNAMIC, TIME, CLEAR_WATER, SMOOTH_WORLD, VOID_PARTICLES, WATER_PARTICLES, RAIN_SPLASH, PORTAL_PARTICLES, POTION_PARTICLES, PROFILER, DRIPPING_WATER_LAVA, BETTER_SNOW, FULLSCREEN_MODE, ANIMATED_TERRAIN, SWAMP_COLORS, RANDOM_MOBS, SMOOTH_BIOMES, CUSTOM_FONTS, CUSTOM_COLORS, SHOW_CAPES, CONNECTED_TEXTURES, AA_LEVEL, AF_LEVEL, ANIMATED_TEXTURES, NATURAL_TEXTURES, CHUNK_LOADING, HELD_ITEM_TOOLTIPS, DROPPED_ITEMS, LAZY_CHUNK_LOADING, CUSTOM_SKY, FAST_MATH, FAST_RENDER, TRANSLUCENT_BLOCKS};
 -        private static final String __OBFID = "CL_00000653";
++        private static final GameSettings.Options[] $VALUES$ = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, FRAMERATE_LIMIT, FBO_ENABLE, RENDER_CLOUDS, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, USE_VBO, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR, BLOCK_ALTERNATIVES, REDUCED_DEBUG_INFO, R, FOG_FANCY, FOG_START, MIPMAP_TYPE, LOAD_FAR, PRELOADED_CHUNKS, CLOUDS, CLOUD_HEIGHT, TREES, RAIN, ANIMATED_WATER, ANIMATED_LAVA, ANIMATED_FIRE, ANIMATED_PORTAL, AO_LEVEL, LAGOMETER, AUTOSAVE_TICKS, BETTER_GRASS, ANIMATED_REDSTONE, ANIMATED_EXPLOSION, ANIMATED_FLAME, ANIMATED_SMOKE, WEATHER, SKY, STARS, SUN_MOON, CHUNK_UPDATES, CHUNK_UPDATES_DYNAMIC, TIME, CLEAR_WATER, SMOOTH_WORLD, VOID_PARTICLES, WATER_PARTICLES, RAIN_SPLASH, PORTAL_PARTICLES, POTION_PARTICLES, FIREWORK_PARTICLES, PROFILER, DRIPPING_WATER_LAVA, BETTER_SNOW, FULLSCREEN_MODE, ANIMATED_TERRAIN, SWAMP_COLORS, RANDOM_MOBS, SMOOTH_BIOMES, CUSTOM_FONTS, CUSTOM_COLORS, SHOW_CAPES, CONNECTED_TEXTURES, AA_LEVEL, AF_LEVEL, ANIMATED_TEXTURES, NATURAL_TEXTURES, CHUNK_LOADING, HELD_ITEM_TOOLTIPS, DROPPED_ITEMS, LAZY_CHUNK_LOADING, CUSTOM_SKY, FAST_MATH, FAST_RENDER, TRANSLUCENT_BLOCKS};
  
          public static GameSettings.Options getEnumOptions(int p_74379_0_)
          {
-@@ -3153,7 +3154,6 @@
+@@ -3077,12 +3138,12 @@
+             return null;
+         }
+ 
+-        private Options(String p_i46423_1_, int p_i46423_2_, String p_i1015_1_, int p_i1015_2_, String p_i1015_3_, boolean p_i1015_4_, boolean p_i1015_5_)
++        private Options(String p_i46426_1_, int p_i46426_2_, String p_i1015_1_, int p_i1015_2_, String p_i1015_3_, boolean p_i1015_4_, boolean p_i1015_5_)
+         {
+-            this(p_i46423_1_, p_i46423_2_, p_i1015_1_, p_i1015_2_, p_i1015_3_, p_i1015_4_, p_i1015_5_, 0.0F, 1.0F, 0.0F);
++            this(p_i46426_1_, p_i46426_2_, p_i1015_1_, p_i1015_2_, p_i1015_3_, p_i1015_4_, p_i1015_5_, 0.0F, 1.0F, 0.0F);
+         }
+ 
+-        private Options(String p_i46424_1_, int p_i46424_2_, String p_i45004_1_, int p_i45004_2_, String p_i45004_3_, boolean p_i45004_4_, boolean p_i45004_5_, float p_i45004_6_, float p_i45004_7_, float p_i45004_8_)
++        private Options(String p_i46427_1_, int p_i46427_2_, String p_i45004_1_, int p_i45004_2_, String p_i45004_3_, boolean p_i45004_4_, boolean p_i45004_5_, float p_i45004_6_, float p_i45004_7_, float p_i45004_8_)
+         {
+             this.enumString = p_i45004_3_;
+             this.enumFloat = p_i45004_4_;
+@@ -3153,7 +3214,6 @@
      {
          static final int[] optionIds = new int[GameSettings.Options.values().length];
          private static final String __OBFID = "CL_00000652";

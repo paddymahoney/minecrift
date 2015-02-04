@@ -1,0 +1,12 @@
+--- a/net/minecraft/util/ObjectIntIdentityMap.java
++++ b/net/minecraft/util/ObjectIntIdentityMap.java
+@@ -40,4 +40,9 @@
+     {
+         return Iterators.filter(this.field_148748_b.iterator(), Predicates.notNull());
+     }
++
++    public List getObjectList()
++    {
++        return this.field_148748_b;
++    }
+ }

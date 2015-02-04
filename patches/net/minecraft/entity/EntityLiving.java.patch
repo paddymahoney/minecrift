@@ -1,6 +1,15 @@
 --- a/net/minecraft/entity/EntityLiving.java
 +++ b/net/minecraft/entity/EntityLiving.java
-@@ -84,7 +84,6 @@
+@@ -3,8 +3,6 @@
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.UUID;
+-import net.minecraft.client.Minecraft;
+-import net.minecraft.client.multiplayer.WorldClient;
+ import net.minecraft.enchantment.EnchantmentHelper;
+ import net.minecraft.entity.ai.EntityAITasks;
+ import net.minecraft.entity.ai.EntityJumpHelper;
+@@ -84,7 +82,6 @@
      private Entity leashedToEntity;
      private NBTTagCompound leashNBTTag;
      private static final String __OBFID = "CL_00001550";
@@ -8,7 +17,17 @@
  
      public EntityLiving(World worldIn)
      {
-@@ -1404,7 +1403,6 @@
+@@ -1356,8 +1353,7 @@
+         }
+         else
+         {
+-            Minecraft mc = Config.getMinecraft();
+-            WorldClient world = mc.theWorld;
++            World world = this.getEntityWorld();
+ 
+             if (world == null)
+             {
+@@ -1404,7 +1400,6 @@
          private static final String __OBFID = "CL_00002255";
  
          private static final EntityLiving.SpawnPlacementType[] $VALUES$ = new EntityLiving.SpawnPlacementType[]{ON_GROUND, IN_AIR, IN_WATER};

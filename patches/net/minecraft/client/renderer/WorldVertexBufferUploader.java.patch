@@ -1,0 +1,37 @@
+--- a/net/minecraft/client/renderer/WorldVertexBufferUploader.java
++++ b/net/minecraft/client/renderer/WorldVertexBufferUploader.java
+@@ -29,7 +29,7 @@
+                 var8 = (VertexFormatElement)var7.next();
+                 var9 = var8.func_177375_c();
+                 var10 = var8.func_177367_b().func_177397_c();
+-                int var11 = var8.func_177369_e();
++                int wr = var8.func_177369_e();
+ 
+                 switch (WorldVertexBufferUploader.SwitchEnumUseage.field_178958_a[var9.ordinal()])
+                 {
+@@ -41,7 +41,7 @@
+ 
+                     case 2:
+                         var5.position(var8.func_177373_a());
+-                        OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit + var11);
++                        OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit + wr);
+                         GL11.glTexCoordPointer(var8.func_177370_d(), var10, var4, var5);
+                         GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
+                         OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
+@@ -60,7 +60,15 @@
+                 }
+             }
+ 
+-            GL11.glDrawArrays(p_178177_1_.getDrawMode(), 0, p_178177_1_.func_178989_h());
++            if (p_178177_1_.isMultiTexture())
++            {
++                p_178177_1_.drawMultiTexture();
++            }
++            else
++            {
++                GL11.glDrawArrays(p_178177_1_.getDrawMode(), 0, p_178177_1_.func_178989_h());
++            }
++
+             var7 = var6.iterator();
+ 
+             while (var7.hasNext())

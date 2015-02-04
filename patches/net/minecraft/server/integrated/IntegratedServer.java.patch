@@ -8,7 +8,136 @@
  
      public IntegratedServer(Minecraft mcIn)
      {
-@@ -318,20 +317,14 @@
+@@ -78,60 +77,96 @@
+     {
+         this.convertMapIfNeeded(p_71247_1_);
+         ISaveHandler var7 = this.getActiveAnvilConverter().getSaveLoader(p_71247_1_, true);
+-        this.worldServers = new WorldServer[3];
+-        this.timeOfLastDimensionTick = new long[this.worldServers.length][100];
+-        this.setResourcePackFromWorld(this.getFolderName(), var7);
+         WorldInfo var8 = var7.loadWorldInfo();
+ 
+-        if (var8 == null)
++        if (Reflector.DimensionManager.exists())
+         {
+-            var8 = new WorldInfo(this.theWorldSettings, p_71247_2_);
++            WorldServer var9 = this.isDemo() ? (WorldServer)((WorldServer)(new DemoWorldServer(this, var7, var8, 0, this.theProfiler)).init()) : (WorldServer)(new WorldServerOF(this, var7, var8, 0, this.theProfiler)).init();
++            var9.initialize(this.theWorldSettings);
++            Integer[] var10 = (Integer[])((Integer[])Reflector.call(Reflector.DimensionManager_getStaticDimensionIDs, new Object[0]));
++            Integer[] arr$ = var10;
++            int len$ = var10.length;
++
++            for (int i$ = 0; i$ < len$; ++i$)
++            {
++                int dim = arr$[i$].intValue();
++                WorldServer world = dim == 0 ? var9 : (WorldServer)((WorldServer)(new WorldServerMulti(this, var7, dim, var9, this.theProfiler)).init());
++                world.addWorldAccess(new WorldManager(this, world));
++
++                if (!this.isSinglePlayer())
++                {
++                    world.getWorldInfo().setGameType(this.getGameType());
++                }
++
++                if (Reflector.EventBus.exists())
++                {
++                    Reflector.postForgeBusEvent(Reflector.WorldEvent_Load_Constructor, new Object[] {world});
++                }
++            }
++
++            this.getConfigurationManager().setPlayerManager(new WorldServer[] {var9});
++
++            if (var9.getWorldInfo().getDifficulty() == null)
++            {
++                this.setDifficultyForAllWorlds(this.mc.gameSettings.difficulty);
++            }
+         }
+         else
+         {
+-            var8.setWorldName(p_71247_2_);
+-        }
+-
+-        for (int var9 = 0; var9 < this.worldServers.length; ++var9)
+-        {
+-            byte var10 = 0;
++            this.worldServers = new WorldServer[3];
++            this.timeOfLastDimensionTick = new long[this.worldServers.length][100];
++            this.setResourcePackFromWorld(this.getFolderName(), var7);
+ 
+-            if (var9 == 1)
++            if (var8 == null)
+             {
+-                var10 = -1;
++                var8 = new WorldInfo(this.theWorldSettings, p_71247_2_);
+             }
+-
+-            if (var9 == 2)
++            else
+             {
+-                var10 = 1;
++                var8.setWorldName(p_71247_2_);
+             }
+ 
+-            if (var9 == 0)
++            for (int var16 = 0; var16 < this.worldServers.length; ++var16)
+             {
+-                if (this.isDemo())
++                byte var17 = 0;
++
++                if (var16 == 1)
++                {
++                    var17 = -1;
++                }
++
++                if (var16 == 2)
+                 {
+-                    this.worldServers[var9] = (WorldServer)(new DemoWorldServer(this, var7, var8, var10, this.theProfiler)).init();
++                    var17 = 1;
++                }
++
++                if (var16 == 0)
++                {
++                    if (this.isDemo())
++                    {
++                        this.worldServers[var16] = (WorldServer)(new DemoWorldServer(this, var7, var8, var17, this.theProfiler)).init();
++                    }
++                    else
++                    {
++                        this.worldServers[var16] = (WorldServer)(new WorldServerOF(this, var7, var8, var17, this.theProfiler)).init();
++                    }
++
++                    this.worldServers[var16].initialize(this.theWorldSettings);
+                 }
+                 else
+                 {
+-                    this.worldServers[var9] = (WorldServer)(new WorldServerOF(this, var7, var8, var10, this.theProfiler)).init();
++                    this.worldServers[var16] = (WorldServer)(new WorldServerMulti(this, var7, var17, this.worldServers[0], this.theProfiler)).init();
+                 }
+ 
+-                this.worldServers[var9].initialize(this.theWorldSettings);
+-            }
+-            else
+-            {
+-                this.worldServers[var9] = (WorldServer)(new WorldServerMulti(this, var7, var10, this.worldServers[0], this.theProfiler)).init();
++                this.worldServers[var16].addWorldAccess(new WorldManager(this, this.worldServers[var16]));
+             }
+ 
+-            this.worldServers[var9].addWorldAccess(new WorldManager(this, this.worldServers[var9]));
+-        }
++            this.getConfigurationManager().setPlayerManager(this.worldServers);
+ 
+-        this.getConfigurationManager().setPlayerManager(this.worldServers);
+-
+-        if (this.worldServers[0].getWorldInfo().getDifficulty() == null)
+-        {
+-            this.setDifficultyForAllWorlds(this.mc.gameSettings.difficulty);
++            if (this.worldServers[0].getWorldInfo().getDifficulty() == null)
++            {
++                this.setDifficultyForAllWorlds(this.mc.gameSettings.difficulty);
++            }
+         }
+ 
+         this.initialWorldChunkLoad();
+@@ -318,20 +353,14 @@
          report.getCategory().addCrashSectionCallable("Type", new Callable()
          {
              private static final String __OBFID = "CL_00001130";
@@ -29,7 +158,7 @@
              public String call()
              {
                  String var1 = ClientBrandRetriever.getClientModName();
-@@ -346,10 +339,6 @@
+@@ -346,10 +375,6 @@
                      return !var1.equals("vanilla") ? "Definitely; Server brand changed to \'" + var1 + "\'" : (Minecraft.class.getSigners() == null ? "Very likely; Jar signature invalidated" : "Probably not. Jar signature remains and both client + server brands are untouched.");
                  }
              }
@@ -40,7 +169,7 @@
          });
          return report;
      }
-@@ -438,7 +427,6 @@
+@@ -438,7 +463,6 @@
          Futures.getUnchecked(this.addScheduledTask(new Runnable()
          {
              private static final String __OBFID = "CL_00002380";

@@ -8,17 +8,39 @@
  
      public GuiVideoSettings(GuiScreen par1GuiScreen, GameSettings par2GameSettings)
      {
-@@ -70,7 +69,12 @@
+@@ -65,17 +64,26 @@
+         for (var15 = 0; var15 < var14; ++var15)
+         {
+             GameSettings.Options y = var13[var15];
+-            x = this.width / 2 - 155 + var15 % 2 * 160;
+-            int y1 = this.height / 6 + 21 * (var15 / 2) - 10;
  
-             if (y.getEnumFloat())
+-            if (y.getEnumFloat())
++            if (y != null)
              {
 -                this.buttonList.add(new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y));
-+                /** MINECRIFT */ // disable frame rate settings (always VSync) 
-+                GuiOptionSlider slider = new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y);
-+                if (y == GameSettings.Options.FRAMERATE_LIMIT)
-+                    slider.enabled = false;
-+                this.buttonList.add(slider);
-+				/** END MINECRIFT */
-             }
-             else
-             {
+-            }
+-            else
+-            {
+-                this.buttonList.add(new GuiOptionButton(y.returnEnumOrdinal(), x, y1, y, this.guiGameSettings.getKeyBinding(y)));
+-            }
++	            x = this.width / 2 - 155 + var15 % 2 * 160;
++	            int y1 = this.height / 6 + 21 * (var15 / 2) - 10;
++
++	            if (y.getEnumFloat())
++	            {
++	                /** MINECRIFT */ // disable frame rate settings (always VSync) 
++	                GuiOptionSlider slider = new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y);
++	                if (y == GameSettings.Options.FRAMERATE_LIMIT)
++	                    slider.enabled = false;
++	                this.buttonList.add(slider);
++					/** END MINECRIFT */
++	            }
++	            else
++	            {
++	                this.buttonList.add(new GuiOptionButton(y.returnEnumOrdinal(), x, y1, y, this.guiGameSettings.getKeyBinding(y)));
++	            }
++			}
+         }
+ 
+         int var16 = this.height / 6 + 21 * (var15 / 2) - 10;
