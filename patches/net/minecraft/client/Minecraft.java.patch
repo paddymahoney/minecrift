@@ -1508,7 +1508,7 @@
 +            this.entityRenderer.farPlaneDistance *= 0.83F;
 +        }
 +
-+        this.entityRenderer.clipDistance = this.entityRenderer.farPlaneDistance * MathHelper.field_180189_a;
++        this.entityRenderer.clipDistance = this.entityRenderer.farPlaneDistance * 2.0f;
 +
 +        if (this.entityRenderer.clipDistance < 173.0F)
 +        {
