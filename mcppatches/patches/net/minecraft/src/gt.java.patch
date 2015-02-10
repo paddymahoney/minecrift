@@ -1,0 +1,11 @@
+--- a/net/minecraft/src/gt.java
++++ b/net/minecraft/src/gt.java
+@@ -4,7 +4,7 @@
+ import io.netty.channel.epoll.EpollEventLoopGroup;
+ import net.minecraft.util.LazyLoadBase;
+ 
+-final class gt extends LazyLoadBase
++public final class gt extends LazyLoadBase
+ {
+     protected EpollEventLoopGroup a()
+     {

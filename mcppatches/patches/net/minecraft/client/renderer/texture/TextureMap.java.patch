@@ -1,0 +1,111 @@
+--- a/net/minecraft/client/renderer/texture/TextureMap.java
++++ b/net/minecraft/client/renderer/texture/TextureMap.java
+@@ -41,7 +41,6 @@
+     private int mipmapLevels;
+     private final TextureAtlasSprite missingImage;
+     private static final String __OBFID = "CL_00001058";
+-    private static final String __OBFID = "CL_00001058";
+ 
+     public TextureMap(String p_i46099_1_)
+     {
+@@ -127,8 +126,8 @@
+                     try
+                     {
+                         IResource var30 = p_110571_1_.getResource(var28);
+-                        BufferedImage[] var31 = new BufferedImage[1 + this.mipmapLevels];
+-                        var31[0] = TextureUtil.func_177053_a(var30.getInputStream());
++                        BufferedImage[] bufferedImages = new BufferedImage[1 + this.mipmapLevels];
++                        bufferedImages[0] = TextureUtil.func_177053_a(var30.getInputStream());
+                         TextureMetadataSection sheetWidth = (TextureMetadataSection)var30.getMetadata("texture");
+ 
+                         if (sheetWidth != null)
+@@ -138,8 +137,8 @@
+ 
+                             if (!sheetHeight.isEmpty())
+                             {
+-                                int it = var31[0].getWidth();
+-                                listSprites = var31[0].getHeight();
++                                int it = bufferedImages[0].getWidth();
++                                listSprites = bufferedImages[0].getHeight();
+ 
+                                 if (MathHelper.roundUpToPowerOfTwo(it) != it || MathHelper.roundUpToPowerOfTwo(listSprites) != listSprites)
+                                 {
+@@ -153,13 +152,13 @@
+                             {
+                                 listSprites = ((Integer)it1.next()).intValue();
+ 
+-                                if (listSprites > 0 && listSprites < var31.length - 1 && var31[listSprites] == null)
++                                if (listSprites > 0 && listSprites < bufferedImages.length - 1 && bufferedImages[listSprites] == null)
+                                 {
+                                     ResourceLocation tas = this.completeResourceLocation(var27, listSprites);
+ 
+                                     try
+                                     {
+-                                        var31[listSprites] = TextureUtil.func_177053_a(p_110571_1_.getResource(tas).getInputStream());
++                                        bufferedImages[listSprites] = TextureUtil.func_177053_a(p_110571_1_.getResource(tas).getInputStream());
+                                     }
+                                     catch (IOException var24)
+                                     {
+@@ -170,7 +169,7 @@
+                         }
+ 
+                         AnimationMetadataSection sheetHeight1 = (AnimationMetadataSection)var30.getMetadata("animation");
+-                        var26.func_180598_a(var31, sheetHeight1);
++                        var26.func_180598_a(bufferedImages, sheetHeight1);
+                     }
+                     catch (RuntimeException var251)
+                     {
+@@ -232,41 +231,26 @@
+                     sheetWidth1.addCrashSectionCallable("Sprite name", new Callable()
+                     {
+                         private static final String __OBFID = "CL_00001059";
+-                        private static final String __OBFID = "CL_00001059";
+                         public String call()
+                         {
+                             return var281.getIconName();
+                         }
+-                        public Object call() throws Exception
+-                        {
+-                            return this.call();
+-                        }
+                     });
+                     sheetWidth1.addCrashSectionCallable("Sprite size", new Callable()
+                     {
+                         private static final String __OBFID = "CL_00001060";
+-                        private static final String __OBFID = "CL_00001060";
+                         public String call()
+                         {
+                             return var281.getIconWidth() + " x " + var281.getIconHeight();
+                         }
+-                        public Object call() throws Exception
+-                        {
+-                            return this.call();
+-                        }
+                     });
+                     sheetWidth1.addCrashSectionCallable("Sprite frames", new Callable()
+                     {
+                         private static final String __OBFID = "CL_00001061";
+-                        private static final String __OBFID = "CL_00001061";
+                         public String call()
+                         {
+                             return var281.getFrameCount() + " frames";
+                         }
+-                        public Object call() throws Exception
+-                        {
+-                            return this.call();
+-                        }
+                     });
+                     sheetWidth1.addCrashSection("Mipmap levels", Integer.valueOf(this.mipmapLevels));
+                     throw new ReportedException(var311);
+@@ -302,9 +286,9 @@
+                 {
+                     TextureUtil.uploadTextureMipmap(var312.getFrameTextureData(0), var312.getIconWidth(), var312.getIconHeight(), var312.getOriginX(), var312.getOriginY(), false, false);
+                 }
+-                catch (Throwable var21)
++                catch (Throwable throwable)
+                 {
+-                    CrashReport listSprites1 = CrashReport.makeCrashReport(var21, "Stitching texture atlas");
++                    CrashReport listSprites1 = CrashReport.makeCrashReport(throwable, "Stitching texture atlas");
+                     CrashReportCategory it2 = listSprites1.makeCategory("Texture being stitched together");
+                     it2.addCrashSection("Atlas path", this.basePath);
+                     it2.addCrashSection("Sprite", var312);

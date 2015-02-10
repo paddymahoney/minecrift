@@ -1,0 +1,18 @@
+--- a/net/minecraft/client/renderer/chunk/VisGraph.java
++++ b/net/minecraft/client/renderer/chunk/VisGraph.java
+@@ -17,7 +17,6 @@
+     private static final int[] field_178613_e = new int[1352];
+     private int field_178611_f = 4096;
+     private static final String __OBFID = "CL_00002450";
+-    private static final String __OBFID = "CL_00002450";
+ 
+     public void func_178606_a(BlockPos p_178606_1_)
+     {
+@@ -219,7 +218,6 @@
+     {
+         static final int[] field_178617_a = new int[EnumFacing.values().length];
+         private static final String __OBFID = "CL_00002449";
+-        private static final String __OBFID = "CL_00002449";
+ 
+         static
+         {

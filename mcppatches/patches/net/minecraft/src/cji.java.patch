@@ -1,0 +1,17 @@
+--- a/net/minecraft/src/cji.java
++++ b/net/minecraft/src/cji.java
+@@ -4,11 +4,11 @@
+ import net.minecraft.client.renderer.EntityRenderer;
+ import net.minecraft.entity.Entity;
+ 
+-class cji implements Predicate
++public class cji implements Predicate
+ {
+-    final EntityRenderer a;
++    public final EntityRenderer a;
+ 
+-    cji(EntityRenderer p_i46467_1_)
++    public cji(EntityRenderer p_i46467_1_)
+     {
+         this.a = p_i46467_1_;
+     }

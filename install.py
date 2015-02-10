@@ -145,13 +145,13 @@ def download_deps( mcp_dir, download_mc ):
     apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
     
     # Copy over client.md5
-    client_md5 = os.path.join("mcppatches","%s_client.md5" % mc_version)
-    target_client_md5 = os.path.join(mcp_dir,"temp","client.md5")
-    if os.path.exists(client_md5):
-        if not os.path.exists(target_client_md5):
-            mkdir_p( os.path.join(mcp_dir,"temp") )
-            print 'Updating client.md5: copying %s to %s' % (client_md5, target_client_md5)
-            shutil.copy(client_md5,target_client_md5)
+    #client_md5 = os.path.join("mcppatches","%s_client.md5" % mc_version)
+    #target_client_md5 = os.path.join(mcp_dir,"temp","client.md5")
+    #if os.path.exists(client_md5):
+    #    if not os.path.exists(target_client_md5):
+    #        mkdir_p( os.path.join(mcp_dir,"temp") )
+    #        print 'Updating client.md5: copying %s to %s' % (client_md5, target_client_md5)
+    #        shutil.copy(client_md5,target_client_md5)
         
     # Patch Start.java with minecraft version
     start_java_file = os.path.join(base_dir,"mcppatches","Start.java")
@@ -477,8 +477,8 @@ def rmtree_onerror(func, path, _):
 def replacelineinfile(file_path, pattern, subst, firstmatchonly=False):
     #Create temp file
     fh, abs_path = mkstemp()
-    new_file = open(abs_path,'w')
-    old_file = open(file_path)
+    new_file = open(abs_path,'wb')
+    old_file = open(file_path,'rb')
     hit = False
     for line in old_file:
         if pattern in line and not (firstmatchonly == True and hit == True): 

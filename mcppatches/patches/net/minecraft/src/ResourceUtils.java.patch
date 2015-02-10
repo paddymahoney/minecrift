@@ -1,0 +1,26 @@
+--- a/net/minecraft/src/ResourceUtils.java
++++ b/net/minecraft/src/ResourceUtils.java
+@@ -11,23 +11,6 @@
+ 
+     public static File getResourcePackFile(AbstractResourcePack arp)
+     {
+-        if (directAccessValid)
+-        {
+-            try
+-            {
+-                return arp.resourcePackFile;
+-            }
+-            catch (IllegalAccessError var2)
+-            {
+-                directAccessValid = false;
+-
+-                if (!ForgeAbstractResourcePack_resourcePackFile.exists())
+-                {
+-                    throw var2;
+-                }
+-            }
+-        }
+-
+         return (File)Reflector.getFieldValue(arp, ForgeAbstractResourcePack_resourcePackFile);
+     }
+ }

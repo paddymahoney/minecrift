@@ -1,0 +1,26 @@
+--- a/net/minecraft/client/renderer/texture/TextureManager.java
++++ b/net/minecraft/client/renderer/texture/TextureManager.java
+@@ -28,7 +28,6 @@
+     private final Map mapTextureCounters = Maps.newHashMap();
+     private IResourceManager theResourceManager;
+     private static final String __OBFID = "CL_00001064";
+-    private static final String __OBFID = "CL_00001064";
+ 
+     public TextureManager(IResourceManager p_i1284_1_)
+     {
+@@ -90,15 +89,10 @@
+             var6.addCrashSectionCallable("Texture object class", new Callable()
+             {
+                 private static final String __OBFID = "CL_00001065";
+-                private static final String __OBFID = "CL_00001065";
+                 public String call()
+                 {
+                     return p_110579_2_.getClass().getName();
+                 }
+-                public Object call() throws Exception
+-                {
+-                    return this.call();
+-                }
+             });
+             throw new ReportedException(var5);
+         }

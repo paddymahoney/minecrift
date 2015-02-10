@@ -1,0 +1,34 @@
+--- a/net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.java
++++ b/net/minecraft/client/renderer/chunk/ChunkRenderDispatcher.java
+@@ -36,7 +36,6 @@
+     private final Queue field_178524_h = Queues.newArrayDeque();
+     private final ChunkRenderWorker field_178525_i;
+     private static final String __OBFID = "CL_00002463";
+-    private static final String __OBFID = "CL_00002463";
+ 
+     public ChunkRenderDispatcher()
+     {
+@@ -107,7 +106,6 @@
+             var2.func_178539_a(new Runnable()
+             {
+                 private static final String __OBFID = "CL_00002462";
+-                private static final String __OBFID = "CL_00002462";
+                 public void run()
+                 {
+                     ChunkRenderDispatcher.this.field_178519_d.remove(var2);
+@@ -214,7 +212,6 @@
+                 var2.func_178539_a(new Runnable()
+                 {
+                     private static final String __OBFID = "CL_00002461";
+-                    private static final String __OBFID = "CL_00002461";
+                     public void run()
+                     {
+                         ChunkRenderDispatcher.this.field_178519_d.remove(var2);
+@@ -256,7 +253,6 @@
+             ListenableFutureTask var5 = ListenableFutureTask.create(new Runnable()
+             {
+                 private static final String __OBFID = "CL_00002460";
+-                private static final String __OBFID = "CL_00002460";
+                 public void run()
+                 {
+                     ChunkRenderDispatcher.this.func_178503_a(p_178503_1_, p_178503_2_, p_178503_3_, p_178503_4_);

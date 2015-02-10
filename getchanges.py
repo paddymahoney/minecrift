@@ -30,9 +30,9 @@ def create_patch( target_dir, src_file, mod_file, label, patch_file ):
         with open( patch_file, 'wd') as out:
             out.write( stdout.replace('\r\n','\n').replace('\r','\n') )
 
-def main(mcp_dir):
+def main(mcp_dir, patch_dir = "patches"):
     new_src_dir    = os.path.join( base_dir , "src" )
-    patch_base_dir = os.path.join( base_dir , "patches" )
+    patch_base_dir = os.path.join( base_dir , patch_dir )
 
     try:
         shutil.rmtree( new_src_dir )
@@ -81,16 +81,36 @@ def main(mcp_dir):
                 if os.path.exists( new_file ):
                     os.remove( new_file )
                 shutil.copy(mod_file, new_dir)
+    
+    removeEmptyFolders(patch_base_dir)
+
+def removeEmptyFolders(path):
+    if not os.path.isdir(path):
+        return
+
+    # remove empty subfolders
+    files = os.listdir(path)
+    if len(files):
+        for f in files:
+            fullpath = os.path.join(path, f)
+            if os.path.isdir(fullpath):
+                removeEmptyFolders(fullpath)
+
+    # if folder empty, delete it
+    files = os.listdir(path)
+    if len(files) == 0:
+        os.rmdir(path)
 
     
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
+    parser.add_option('-p', '--patch-dir', action='store', dest='patch_dir', help='Patch dir base name to use', default='patches')    
     options, _ = parser.parse_args()
 
     if not options.mcp_dir is None:
-        main(os.path.abspath(options.mcp_dir))
+        main(os.path.abspath(options.mcp_dir), options.patchdir)
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
-        main(os.path.abspath('..'))
+        main(os.path.abspath('..'), options.patchdir)
     else:
-        main(os.path.abspath(mcp_version))
+        main(os.path.abspath(mcp_version), options.patch_dir)

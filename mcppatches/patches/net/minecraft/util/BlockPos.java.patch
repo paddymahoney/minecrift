@@ -1,0 +1,11 @@
+--- a/net/minecraft/util/BlockPos.java
++++ b/net/minecraft/util/BlockPos.java
+@@ -312,7 +312,7 @@
+                     {
+                         if (this.theBlockPos == null)
+                         {
+-                            this.theBlockPos = new BlockPos.MutableBlockPos(var2xxx.getX(), var2.getY(), var2x.getZ());
++                            this.theBlockPos = new BlockPos.MutableBlockPos(var2.getX(), var2.getY(), var2.getZ());
+                             return this.theBlockPos;
+                         }
+                         else if (this.theBlockPos.equals(var3))

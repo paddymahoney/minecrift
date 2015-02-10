@@ -1,0 +1,50 @@
+--- a/net/minecraft/client/renderer/BlockModelRenderer.java
++++ b/net/minecraft/client/renderer/BlockModelRenderer.java
+@@ -29,7 +29,6 @@
+ {
+     private static final String __OBFID = "CL_00002518";
+     private static float aoLightValueOpaque = 0.2F;
+-    private static final String __OBFID = "CL_00002518";
+ 
+     public static void updateAoLightValue()
+     {
+@@ -504,7 +503,6 @@
+         private final float[] field_178206_b = new float[4];
+         private final int[] field_178207_c = new int[4];
+         private static final String __OBFID = "CL_00002515";
+-        private static final String __OBFID = "CL_00002515";
+ 
+         public AmbientOcclusionFace(BlockModelRenderer bmr) {}
+ 
+@@ -706,7 +704,6 @@
+         private static final String __OBFID = "CL_00002516";
+ 
+         private static final BlockModelRenderer.EnumNeighborInfo[] $VALUES$ = new BlockModelRenderer.EnumNeighborInfo[]{DOWN, UP, NORTH, SOUTH, WEST, EAST};
+-        private static final String __OBFID = "CL_00002516";
+ 
+         private EnumNeighborInfo(String p_i46425_1_, int p_i46425_2_, String p_i46236_1_, int p_i46236_2_, EnumFacing[] p_i46236_3_, float p_i46236_4_, boolean p_i46236_5_, BlockModelRenderer.Orientation[] p_i46236_6_, BlockModelRenderer.Orientation[] p_i46236_7_, BlockModelRenderer.Orientation[] p_i46236_8_, BlockModelRenderer.Orientation[] p_i46236_9_)
+         {
+@@ -753,7 +750,6 @@
+         private static final String __OBFID = "CL_00002513";
+ 
+         private static final BlockModelRenderer.Orientation[] $VALUES$ = new BlockModelRenderer.Orientation[]{DOWN, UP, NORTH, SOUTH, WEST, EAST, FLIP_DOWN, FLIP_UP, FLIP_NORTH, FLIP_SOUTH, FLIP_WEST, FLIP_EAST};
+-        private static final String __OBFID = "CL_00002513";
+ 
+         private Orientation(String p_i46404_1_, int p_i46404_2_, String p_i46233_1_, int p_i46233_2_, EnumFacing p_i46233_3_, boolean p_i46233_4_)
+         {
+@@ -765,7 +761,6 @@
+     {
+         static final int[] field_178290_a = new int[EnumFacing.values().length];
+         private static final String __OBFID = "CL_00002517";
+-        private static final String __OBFID = "CL_00002517";
+ 
+         static
+         {
+@@ -842,7 +837,6 @@
+         private static final String __OBFID = "CL_00002514";
+ 
+         private static final BlockModelRenderer.VertexTranslations[] $VALUES$ = new BlockModelRenderer.VertexTranslations[]{DOWN, UP, NORTH, SOUTH, WEST, EAST};
+-        private static final String __OBFID = "CL_00002514";
+ 
+         private VertexTranslations(String p_i46381_1_, int p_i46381_2_, String p_i46234_1_, int p_i46234_2_, int p_i46234_3_, int p_i46234_4_, int p_i46234_5_, int p_i46234_6_)
+         {

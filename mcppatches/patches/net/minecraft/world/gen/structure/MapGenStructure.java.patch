@@ -1,0 +1,53 @@
+--- a/net/minecraft/world/gen/structure/MapGenStructure.java
++++ b/net/minecraft/world/gen/structure/MapGenStructure.java
+@@ -32,7 +32,6 @@
+     protected Map structureMap = Maps.newHashMap();
+     private static final String __OBFID = "CL_00000505";
+     private LongHashMap structureLongMap = new LongHashMap();
+-    private static final String __OBFID = "CL_00000505";
+ 
+     public abstract String getStructureName();
+ 
+@@ -61,42 +60,27 @@
+                 var9.addCrashSectionCallable("Is feature chunk", new Callable()
+                 {
+                     private static final String __OBFID = "CL_00000506";
+-                    private static final String __OBFID = "CL_00000506";
+                     public String call()
+                     {
+                         return MapGenStructure.this.canSpawnStructureAtCoords(p_180701_2_, p_180701_3_) ? "True" : "False";
+                     }
+-                    public Object call() throws Exception
+-                    {
+-                        return this.call();
+-                    }
+                 });
+                 var9.addCrashSection("Chunk location", String.format("%d,%d", new Object[] {Integer.valueOf(p_180701_2_), Integer.valueOf(p_180701_3_)}));
+                 var9.addCrashSectionCallable("Chunk pos hash", new Callable()
+                 {
+                     private static final String __OBFID = "CL_00000507";
+-                    private static final String __OBFID = "CL_00000507";
+                     public String call()
+                     {
+                         return String.valueOf(ChunkCoordIntPair.chunkXZ2Int(p_180701_2_, p_180701_3_));
+                     }
+-                    public Object call() throws Exception
+-                    {
+-                        return this.call();
+-                    }
+                 });
+                 var9.addCrashSectionCallable("Structure type", new Callable()
+                 {
+                     private static final String __OBFID = "CL_00000508";
+-                    private static final String __OBFID = "CL_00000508";
+                     public String call()
+                     {
+                         return MapGenStructure.this.getClass().getCanonicalName();
+                     }
+-                    public Object call() throws Exception
+-                    {
+-                        return this.call();
+-                    }
+                 });
+                 throw new ReportedException(var8);
+             }

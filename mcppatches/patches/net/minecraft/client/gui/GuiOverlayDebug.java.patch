@@ -1,0 +1,18 @@
+--- a/net/minecraft/client/gui/GuiOverlayDebug.java
++++ b/net/minecraft/client/gui/GuiOverlayDebug.java
+@@ -34,7 +34,6 @@
+     private final Minecraft mc;
+     private final FontRenderer fontRenderer;
+     private static final String __OBFID = "CL_00001956";
+-    private static final String __OBFID = "CL_00001956";
+ 
+     public GuiOverlayDebug(Minecraft mc)
+     {
+@@ -232,7 +231,6 @@
+     {
+         static final int[] field_178907_a = new int[EnumFacing.values().length];
+         private static final String __OBFID = "CL_00001955";
+-        private static final String __OBFID = "CL_00001955";
+ 
+         static
+         {

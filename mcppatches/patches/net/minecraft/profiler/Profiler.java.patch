@@ -1,0 +1,18 @@
+--- a/net/minecraft/profiler/Profiler.java
++++ b/net/minecraft/profiler/Profiler.java
+@@ -40,7 +40,6 @@
+     private static final int HASH_SCHEDULED_EXECUTABLES = "scheduledExecutables".hashCode();
+     private static final int HASH_TICK = "tick".hashCode();
+     private static final int HASH_PRE_RENDER_ERRORS = "preRenderErrors".hashCode();
+-    private static final String __OBFID = "CL_00001497";
+ 
+     public Profiler()
+     {
+@@ -241,7 +240,6 @@
+         public double field_76330_b;
+         public String field_76331_c;
+         private static final String __OBFID = "CL_00001498";
+-        private static final String __OBFID = "CL_00001498";
+ 
+         public Result(String p_i1554_1_, double p_i1554_2_, double p_i1554_4_)
+         {

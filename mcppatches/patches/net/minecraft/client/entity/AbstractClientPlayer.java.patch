@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/entity/AbstractClientPlayer.java
++++ b/net/minecraft/client/entity/AbstractClientPlayer.java
+@@ -32,7 +32,6 @@
+     private NetworkPlayerInfo field_175157_a;
+     private ResourceLocation ofLocationCape = null;
+     private static final String __OBFID = "CL_00000935";
+-    private static final String __OBFID = "CL_00000935";
+ 
+     public AbstractClientPlayer(World worldIn, GameProfile p_i45074_2_)
+     {

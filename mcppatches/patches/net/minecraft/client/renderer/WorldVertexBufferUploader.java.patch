@@ -1,0 +1,18 @@
+--- a/net/minecraft/client/renderer/WorldVertexBufferUploader.java
++++ b/net/minecraft/client/renderer/WorldVertexBufferUploader.java
+@@ -10,7 +10,6 @@
+ public class WorldVertexBufferUploader
+ {
+     private static final String __OBFID = "CL_00002567";
+-    private static final String __OBFID = "CL_00002567";
+ 
+     public int draw(WorldRenderer p_178177_1_, int p_178177_2_)
+     {
+@@ -109,7 +108,6 @@
+     {
+         static final int[] field_178958_a = new int[VertexFormatElement.EnumUseage.values().length];
+         private static final String __OBFID = "CL_00002566";
+-        private static final String __OBFID = "CL_00002566";
+ 
+         static
+         {

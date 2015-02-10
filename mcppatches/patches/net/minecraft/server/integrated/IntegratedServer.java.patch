@@ -1,0 +1,50 @@
+--- a/net/minecraft/server/integrated/IntegratedServer.java
++++ b/net/minecraft/server/integrated/IntegratedServer.java
+@@ -45,7 +45,6 @@
+     private boolean isPublic;
+     private ThreadLanServerPing lanServerPing;
+     private static final String __OBFID = "CL_00001129";
+-    private static final String __OBFID = "CL_00001129";
+ 
+     public IntegratedServer(Minecraft mcIn)
+     {
+@@ -354,20 +353,14 @@
+         report.getCategory().addCrashSectionCallable("Type", new Callable()
+         {
+             private static final String __OBFID = "CL_00001130";
+-            private static final String __OBFID = "CL_00001130";
+             public String call()
+             {
+                 return "Integrated Server (map_client.txt)";
+             }
+-            public Object call() throws Exception
+-            {
+-                return this.call();
+-            }
+         });
+         report.getCategory().addCrashSectionCallable("Is Modded", new Callable()
+         {
+             private static final String __OBFID = "CL_00001131";
+-            private static final String __OBFID = "CL_00001131";
+             public String call()
+             {
+                 String var1 = ClientBrandRetriever.getClientModName();
+@@ -382,10 +375,6 @@
+                     return !var1.equals("vanilla") ? "Definitely; Server brand changed to \'" + var1 + "\'" : (Minecraft.class.getSigners() == null ? "Very likely; Jar signature invalidated" : "Probably not. Jar signature remains and both client + server brands are untouched.");
+                 }
+             }
+-            public Object call() throws Exception
+-            {
+-                return this.call();
+-            }
+         });
+         return report;
+     }
+@@ -474,7 +463,6 @@
+         Futures.getUnchecked(this.addScheduledTask(new Runnable()
+         {
+             private static final String __OBFID = "CL_00002380";
+-            private static final String __OBFID = "CL_00002380";
+             public void run()
+             {
+                 ArrayList var1 = Lists.newArrayList(IntegratedServer.this.getConfigurationManager().v());

@@ -1,0 +1,17 @@
+--- a/net/minecraft/src/bwo.java
++++ b/net/minecraft/src/bwo.java
+@@ -4,11 +4,11 @@
+ import java.net.IDN;
+ import net.minecraft.client.gui.GuiScreenAddServer;
+ 
+-class bwo implements Predicate
++public class bwo implements Predicate
+ {
+-    final GuiScreenAddServer a;
++    public final GuiScreenAddServer a;
+ 
+-    bwo(GuiScreenAddServer p_i46444_1_)
++    public bwo(GuiScreenAddServer p_i46444_1_)
+     {
+         this.a = p_i46444_1_;
+     }
