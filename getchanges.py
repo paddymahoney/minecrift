@@ -27,7 +27,7 @@ def create_patch( target_dir, src_file, mod_file, label, patch_file ):
     process = subprocess.Popen(cmd, cwd=target_dir, bufsize=-1, stdout=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if stdout:
-        with open( patch_file, 'wd') as out:
+        with open( patch_file, 'wb') as out:
             out.write( stdout.replace('\r\n','\n').replace('\r','\n') )
 
 def main(mcp_dir, patch_dir = "patches"):
@@ -83,6 +83,7 @@ def main(mcp_dir, patch_dir = "patches"):
                 shutil.copy(mod_file, new_dir)
     
     removeEmptyFolders(patch_base_dir)
+    removeEmptyFolders(new_src_dir)
 
 def removeEmptyFolders(path):
     if not os.path.isdir(path):

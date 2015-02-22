@@ -433,10 +433,20 @@ def main(mcp_dir):
 
     os.chdir( base_dir )
 
+    # Create original decompile src dir
     org_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig")
     if os.path.exists( org_src_dir ):
         shutil.rmtree( org_src_dir, True )
     shutil.copytree( src_dir, org_src_dir )
+
+    # Patch the default decompile errors
+    print("Patching original decopile errors...") 
+    applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False )
+
+    # Update the client md5
+    print("Updating client.md5...")
+    from runtime.updatemd5 import updatemd5
+    updatemd5( None, True, True, False )
 
     if nopatch == False:
         print("Applying patches...")
