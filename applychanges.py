@@ -53,7 +53,7 @@ def merge_tree(root_src_dir, root_dst_dir):
             shutil.copy(src_file, dst_dir)
 
 
-def applychanges(mcp_dir, patch_dir = "patches", backup = True):
+def applychanges(mcp_dir, patch_dir = "patches", backup = True, createOriginal=True ):
     print("Applying Changes...")
 
     mod_src_dir = os.path.join(mcp_dir, "src","minecraft")
@@ -64,7 +64,8 @@ def applychanges(mcp_dir, patch_dir = "patches", backup = True):
         print("Backing up src/minecraft to src/minecraft-bak")
         shutil.rmtree( mod_bak_dir, True )
         shutil.move( mod_src_dir, mod_bak_dir )
-    shutil.copytree( org_src_dir, mod_src_dir, ignore=lambda p,f: [".git"]  )
+    if createOriginal:
+        shutil.copytree( org_src_dir, mod_src_dir, ignore=lambda p,f: [".git"]  )
 
     #apply patches
     apply_patches( mcp_dir, os.path.join( base_dir, patch_dir ), mod_src_dir )
