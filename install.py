@@ -442,7 +442,7 @@ def main(mcp_dir):
     # Patch stage 1: apply only the patches needed to correct the
     # optifine merge decompile errors
     print("Patching original Optifine merge decompile errors...")
-    applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, createOriginal=False )
+    applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
 
     # Update the client md5
     print("Updating client.md5...")
