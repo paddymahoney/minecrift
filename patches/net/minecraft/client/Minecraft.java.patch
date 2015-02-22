@@ -250,7 +250,37 @@
          this.jvm64bit = isJvm64bit();
          this.theIntegratedServer = new IntegratedServer(this);
  
-@@ -498,7 +634,9 @@
+@@ -423,12 +559,11 @@
+                     }
+ 
+                     this.displayCrashReport(this.crashReporter);
+-                    return;
+                 }
+             }
+             catch (MinecraftError var12)
+             {
+-                ;
++                break;
+             }
+             catch (ReportedException var13)
+             {
+@@ -436,6 +571,7 @@
+                 this.freeMemory();
+                 logger.fatal("Reported exception thrown!", var13);
+                 this.displayCrashReport(var13.getCrashReport());
++                break;
+             }
+             catch (Throwable var14)
+             {
+@@ -443,6 +579,7 @@
+                 this.freeMemory();
+                 logger.fatal("Unreported exception thrown!", var14);
+                 this.displayCrashReport(var2);
++                break;
+             }
+             finally
+             {
+@@ -497,7 +634,9 @@
              this.fontRendererObj.setUnicodeFlag(this.isUnicode());
              this.fontRendererObj.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
          }
@@ -261,7 +291,7 @@
          this.standardGalacticFontRenderer = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii_sga.png"), this.renderEngine, false);
          this.mcResourceManager.registerReloadListener(this.fontRendererObj);
          this.mcResourceManager.registerReloadListener(this.standardGalacticFontRenderer);
-@@ -576,7 +714,9 @@
+@@ -575,7 +714,9 @@
  
          try
          {
@@ -272,7 +302,7 @@
          }
          catch (OpenGLException var2)
          {
-@@ -612,7 +752,9 @@
+@@ -611,7 +752,9 @@
      private void func_175609_am() throws LWJGLException
      {
          Display.setResizable(true);
@@ -283,7 +313,7 @@
  
          try
          {
-@@ -902,22 +1044,22 @@
+@@ -901,22 +1044,22 @@
          GlStateManager.disableDepth();
          GlStateManager.func_179098_w();
          InputStream var5 = null;
@@ -322,7 +352,7 @@
          Tessellator var6 = Tessellator.getInstance();
          WorldRenderer var7 = var6.getWorldRenderer();
          var7.startDrawingQuads();
-@@ -938,6 +1080,9 @@
+@@ -937,6 +1080,9 @@
          var4.framebufferRender(var2.getScaledWidth() * var3, var2.getScaledHeight() * var3);
          GlStateManager.enableAlpha();
          GlStateManager.alphaFunc(516, 0.1F);
@@ -332,7 +362,7 @@
          this.func_175601_h();
      }
  
-@@ -995,7 +1140,11 @@
+@@ -994,7 +1140,11 @@
          if (guiScreenIn != null)
          {
              this.setIngameNotInFocus();
@@ -345,7 +375,7 @@
              int var3 = var2.getScaledWidth();
              int var4 = var2.getScaledHeight();
              ((GuiScreen)guiScreenIn).setWorldAndResolution(this, var3, var4);
-@@ -1011,7 +1160,9 @@
+@@ -1010,7 +1160,9 @@
      /**
       * Checks for an OpenGL error. If there is one, prints the error ID and error string.
       */
@@ -356,7 +386,7 @@
      {
          if (this.field_175619_R)
          {
-@@ -1067,6 +1218,13 @@
+@@ -1066,6 +1218,13 @@
       */
      private void runGameLoop() throws IOException
      {
@@ -370,7 +400,7 @@
          this.mcProfiler.startSection("root");
  
          if (Display.isCreated() && Display.isCloseRequested())
-@@ -1074,6 +1232,9 @@
+@@ -1073,6 +1232,9 @@
              this.shutdown();
          }
  
@@ -380,7 +410,7 @@
          if (this.isGamePaused && this.theWorld != null)
          {
              float var1 = this.timer.renderPartialTicks;
-@@ -1097,81 +1258,188 @@
+@@ -1096,81 +1258,188 @@
          }
  
          this.mcProfiler.endSection();
@@ -621,7 +651,7 @@
  
          while (getSystemTime() >= this.debugUpdateTime + 1000L)
          {
-@@ -1187,54 +1455,70 @@
+@@ -1186,54 +1455,70 @@
                  this.usageSnooper.startSnooper();
              }
          }
@@ -727,7 +757,7 @@
      }
  
      public boolean isFramerateLimitBelowMax()
-@@ -1310,10 +1594,19 @@
+@@ -1309,10 +1594,19 @@
      /**
       * Parameter appears to be unused
       */
@@ -748,7 +778,7 @@
              List var3 = this.mcProfiler.getProfilingData(this.debugProfilerName);
              Profiler.Result var4 = (Profiler.Result)var3.remove(0);
              GlStateManager.clear(256);
-@@ -1331,6 +1624,14 @@
+@@ -1330,6 +1624,14 @@
              short var7 = 160;
              int var8 = this.displayWidth - var7 - 10;
              int var9 = this.displayHeight - var7 * 2;
@@ -763,7 +793,7 @@
              GlStateManager.enableBlend();
              var6.startDrawingQuads();
              var6.func_178974_a(0, 200);
-@@ -1421,6 +1722,13 @@
+@@ -1420,6 +1722,13 @@
                  this.fontRendererObj.func_175063_a(var23 = var19.format(var22.field_76332_a) + "%", (float)(var8 + var7 - 50 - this.fontRendererObj.getStringWidth(var23)), (float)(var9 + var7 / 2 + var21 * 8 + 20), var22.func_76329_a());
                  this.fontRendererObj.func_175063_a(var23 = var19.format(var22.field_76330_b) + "%", (float)(var8 + var7 - this.fontRendererObj.getStringWidth(var23)), (float)(var9 + var7 / 2 + var21 * 8 + 20), var22.func_76329_a());
              }
@@ -777,7 +807,7 @@
          }
      }
  
-@@ -1504,8 +1812,9 @@
+@@ -1503,8 +1812,9 @@
              }
          }
      }
@@ -789,7 +819,7 @@
      {
          if (this.leftClickCounter <= 0)
          {
-@@ -1513,7 +1822,9 @@
+@@ -1512,7 +1822,9 @@
  
              if (this.objectMouseOver == null)
              {
@@ -800,7 +830,7 @@
  
                  if (this.playerController.isNotCreative())
                  {
-@@ -1550,82 +1861,90 @@
+@@ -1549,82 +1861,90 @@
  
      /**
       * Called when user clicked he's mouse right button (place)
@@ -943,7 +973,7 @@
          try
          {
              this.fullscreen = !this.fullscreen;
-@@ -1674,7 +1993,9 @@
+@@ -1673,7 +1993,9 @@
              }
  
              Display.setFullscreen(this.fullscreen);
@@ -954,7 +984,7 @@
              this.func_175601_h();
          }
          catch (Exception var2)
-@@ -1688,17 +2009,21 @@
+@@ -1687,17 +2009,21 @@
       */
      private void resize(int width, int height)
      {
@@ -987,7 +1017,7 @@
      }
  
      private void updateFramebufferSize()
-@@ -1725,6 +2050,10 @@
+@@ -1724,6 +2050,10 @@
  
          if (!this.isGamePaused)
          {
@@ -998,7 +1028,7 @@
              this.ingameGUI.updateTick();
          }
  
-@@ -1746,6 +2075,10 @@
+@@ -1745,6 +2075,10 @@
  
          if (this.currentScreen == null && this.thePlayer != null)
          {
@@ -1009,7 +1039,7 @@
              if (this.thePlayer.getHealth() <= 0.0F)
              {
                  this.displayGuiScreen((GuiScreen)null);
-@@ -1925,6 +2258,10 @@
+@@ -1924,6 +2258,10 @@
                      }
                      else
                      {
@@ -1020,7 +1050,7 @@
                          if (var1 == 1)
                          {
                              this.displayInGameMenu();
-@@ -2020,11 +2357,13 @@
+@@ -2019,11 +2357,13 @@
  
                              if (this.gameSettings.thirdPersonView == 0)
                              {
@@ -1036,7 +1066,7 @@
                              }
                          }
  
-@@ -2155,6 +2494,12 @@
+@@ -2154,6 +2494,12 @@
  
              this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindPickBlock.getIsKeyPressed() && this.inGameHasFocus);
          }
@@ -1049,7 +1079,7 @@
  
          if (this.theWorld != null)
          {
-@@ -2296,29 +2641,55 @@
+@@ -2295,29 +2641,55 @@
  
          this.loadingScreen.displaySavingString(I18n.format("menu.loadingLevel", new Object[0]));
  
@@ -1121,7 +1151,7 @@
          this.displayGuiScreen((GuiScreen)null);
          SocketAddress var11 = this.theIntegratedServer.getNetworkSystem().addLocalEndpoint();
          NetworkManager var12 = NetworkManager.provideLocalClient(var11);
-@@ -2326,7 +2697,11 @@
+@@ -2325,7 +2697,11 @@
          var12.sendPacket(new C00Handshake(47, var11.toString(), 0, EnumConnectionState.LOGIN));
          var12.sendPacket(new C00PacketLoginStart(this.getSession().getProfile()));
          this.myNetworkManager = var12;
@@ -1133,7 +1163,7 @@
  
      /**
       * unloads the current world first
-@@ -2908,11 +3283,18 @@
+@@ -2907,11 +3283,18 @@
          playerSnooper.addStatToSnooper("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
@@ -1152,7 +1182,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2920,12 +3302,14 @@
+@@ -2919,12 +3302,14 @@
  
              if (var1 != 0)
              {
@@ -1167,7 +1197,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3178,15 +3562,19 @@
+@@ -3177,15 +3562,19 @@
          return this.skinManager;
      }
  
@@ -1188,7 +1218,7 @@
      }
  
      public ListenableFuture addScheduledTask(Callable callableToSchedule)
-@@ -3346,4 +3734,985 @@
+@@ -3345,4 +3734,985 @@
              }
          }
      }
@@ -1508,7 +1538,7 @@
 +            this.entityRenderer.farPlaneDistance *= 0.83F;
 +        }
 +
-+        this.entityRenderer.clipDistance = this.entityRenderer.farPlaneDistance * 2.0f;
++        this.entityRenderer.clipDistance = this.entityRenderer.farPlaneDistance * 2.0F;
 +
 +        if (this.entityRenderer.clipDistance < 173.0F)
 +        {
