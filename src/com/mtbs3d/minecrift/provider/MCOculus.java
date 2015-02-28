@@ -201,6 +201,9 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     @Override
     public Vec3 getEyePosition(EyeType eye)
     {
+        if (eye == EyeType.ovrEye_Center)
+            return getCenterEyePosition();
+
         VRSettings vr = Minecraft.getMinecraft().vrSettings;
         Vec3 eyePosition = new Vec3(0, 0, 0);
         if (Minecraft.getMinecraft().vrSettings.usePositionTracking)

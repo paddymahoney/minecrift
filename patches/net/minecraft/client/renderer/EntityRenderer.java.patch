@@ -1251,7 +1251,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2486,4 +2852,1061 @@
+@@ -2486,4 +2852,1062 @@
              ;
          }
      }
@@ -1429,10 +1429,11 @@
 +        //TODO: not sure if headPitch or cameraPitch is better here... they really should be the same; silly
 +        //people with their "pitch affects camera" settings.
 +        //At any rate, using cameraPitch makes the UI look less silly
-+        mc.positionTracker.update(this.mc.vrSettings.getHalfIPD(this.mc.currentEye), headYaw, (float)headPitch, (float)headRoll, lookYawOffset, 0.0f, 0.0f);
++        float halfIpd = this.mc.vrSettings.getHalfIPD(this.mc.stereoProvider.isStereo() ? this.mc.currentEye : EyeType.ovrEye_Center);
++        mc.positionTracker.update(halfIpd, headYaw, (float)headPitch, (float)headRoll, lookYawOffset, 0.0f, 0.0f);
 +
 +        //Do head/neck model in non-GL math so we can use camera location(between eyes)
-+        Vec3 cameraOffset = mc.positionTracker.getEyePosition(this.mc.currentEye);
++        Vec3 cameraOffset = mc.positionTracker.getEyePosition(this.mc.stereoProvider.isStereo() ? this.mc.currentEye : EyeType.ovrEye_Center);
 +        cameraOffset.rotateAroundY((float)Math.PI);
 +
 +        //The worldOrigin is at player "eye height" (1.62) above foot position

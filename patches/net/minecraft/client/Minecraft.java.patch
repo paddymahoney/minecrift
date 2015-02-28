@@ -215,7 +215,7 @@
 +    public int debugFrameCounter = 0;
 +    public long frameIndex = 0;
 +
-+    public final String minecriftVerString = "Minecrift 1.8.1 PRE2";
++    public final String minecriftVerString = "Minecrift 1.8.1 BETA1";
 +    /** END MINECRIFT */
 +
      public Minecraft(GameConfiguration p_i45547_1_)
@@ -966,7 +966,7 @@
      public void toggleFullscreen()
      {
 +        /** MINECRIFT */
-+        if (this.isDirectMode)
++        if (this.stereoProvider.isStereo() && this.isDirectMode)
 +            return;
 +        /** END MINECRIFT */
 +

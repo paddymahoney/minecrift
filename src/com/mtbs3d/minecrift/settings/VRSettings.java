@@ -1032,6 +1032,13 @@ public class VRSettings
 	                return var4 + "None";
 	            else
 	                return var4 + String.format("%.2fcm", new Object[] { Float.valueOf(this.renderPlayerOffset) });
+            case MONO_FOV:
+                if(this.mc.gameSettings.fovSetting==110f)
+                    return var4 + "Quake Pro";
+                else if(this.mc.gameSettings.fovSetting==70f)
+                    return var4 + "Normal";
+                else
+                    return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.mc.gameSettings.fovSetting) });
 	        case PITCH_AFFECTS_CAMERA:
 	            return this.allowMousePitchInput ? var4 + "ON" : var4 + "OFF";
             case HUD_LOCK_TO:
@@ -1310,6 +1317,8 @@ public class VRSettings
 				return this.hudOpacity ;
 			case RENDER_PLAYER_OFFSET :
 				return this.renderPlayerOffset ;
+            case MONO_FOV:
+                return this.mc.gameSettings.fovSetting;
             case RENDER_SCALEFACTOR:
                 return this.renderScaleFactor;
 			case HUD_DISTANCE :
@@ -1672,6 +1681,9 @@ public class VRSettings
 	        case RENDER_PLAYER_OFFSET:
 	            this.renderPlayerOffset = par2;
 	        	break;
+            case MONO_FOV:
+                this.mc.gameSettings.fovSetting = par2;
+                break;
             case RENDER_SCALEFACTOR:
                 this.renderScaleFactor = par2;
                 break;
@@ -2097,14 +2109,18 @@ public class VRSettings
     {
         if (this.useOculusProfileIpd)
         {
-            if (eye == EyeType.ovrEye_Left)
+            if (eye == EyeType.ovrEye_Center)
+                return 0f;
+            else if (eye == EyeType.ovrEye_Left)
                 return -Math.abs(this.oculusProfileLeftHalfIpd);
             else
                 return Math.abs(this.oculusProfileRightHalfIpd);
         }
         else
         {
-            if (eye == EyeType.ovrEye_Left)
+            if (eye == EyeType.ovrEye_Center)
+                return 0f;
+            else if (eye == EyeType.ovrEye_Left)
                 return -Math.abs(this.leftHalfIpd);
             else
                 return Math.abs(this.rightHalfIpd);
@@ -2113,7 +2129,9 @@ public class VRSettings
 
     public float getOculusProfileHalfIPD(EyeType eye)
     {
-        if (eye == EyeType.ovrEye_Left)
+        if (eye == EyeType.ovrEye_Center)
+            return 0f;
+        else if (eye == EyeType.ovrEye_Left)
             return -Math.abs(this.oculusProfileLeftHalfIpd);
         else
             return Math.abs(this.oculusProfileRightHalfIpd);
@@ -2246,6 +2264,7 @@ public class VRSettings
         RENDER_OWN_HEADWEAR("Render Own Headwear", false, true),
         RENDER_FULL_FIRST_PERSON_MODEL_MODE("First Person Model", false, true),
         RENDER_PLAYER_OFFSET("View Body Offset", true, false),
+        MONO_FOV("FOV", true, false),
         CONFIG_IPD_MODE("Set IPD", false, true),
         USE_PROFILE_PLAYER_HEIGHT("Use Height from", false, true),
         USE_PROFILE_IPD("Use IPD from", false, true),
