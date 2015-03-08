@@ -439,24 +439,25 @@ def main(mcp_dir):
         shutil.rmtree( org_src_dir, True )
     shutil.copytree( src_dir, org_src_dir )
 
-    # Patch stage 1: apply only the patches needed to correct the
-    # optifine merge decompile errors
-    print("Patching original Optifine merge decompile errors...")
-    applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
-
-    # Update the client md5
-    print("Updating client.md5...")
-    os.chdir(mcp_dir)
-    from runtime.updatemd5 import updatemd5
-    updatemd5( None, True, True, False )
-    os.chdir( base_dir )
-
-    # Now re-create the .minecraft_orig with the new buildable state
-    if os.path.exists( org_src_dir ):
-        shutil.rmtree( org_src_dir, True )
-    shutil.copytree( src_dir, org_src_dir )
 
     if nopatch == False:
+        # Patch stage 1: apply only the patches needed to correct the
+        # optifine merge decompile errors
+        print("Patching original Optifine merge decompile errors...")
+        applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
+
+        # Update the client md5
+        print("Updating client.md5...")
+        os.chdir(mcp_dir)
+        from runtime.updatemd5 import updatemd5
+        updatemd5( None, True, True, False )
+        os.chdir( base_dir )
+
+        # Now re-create the .minecraft_orig with the new buildable state
+        if os.path.exists( org_src_dir ):
+            shutil.rmtree( org_src_dir, True )
+            shutil.copytree( src_dir, org_src_dir )
+
         # Patch stage 2: Now apply our main Minecrift patches, only
         # changes needed for Minecrift functionality
         print("Applying full Minecrift patches...")
