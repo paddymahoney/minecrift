@@ -1,2 +1,2 @@
 @echo off
-python getchanges.py
+python getchanges.py %*

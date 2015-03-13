@@ -20,6 +20,7 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 preferredarch = ''
 nomerge = False
 nopatch = False
+nocompilefixpatch = False
 clean = False
 force = False
 
@@ -135,14 +136,16 @@ def download_deps( mcp_dir, download_mc ):
     
     # patch joined.srg if necessary
     mcp_joined_srg = os.path.join(mcp_dir,"conf","joined.srg")
-    patch_joined_srg = os.path.join(base_dir,"mcppatches","%s_joined.srg" % mc_version)
+    patch_joined_srg = os.path.join(base_dir,"mcppatches","joined.srg")
     if os.path.exists(patch_joined_srg):
         print 'Updating joined.srg: copying %s to %s' % (patch_joined_srg, mcp_joined_srg)
         shutil.copy(patch_joined_srg,mcp_joined_srg)    
     
     # Patch fffix.py
-    print("Patching fffix.py. Ignore \"FAILED\" hunks")
-    apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
+    fffix_patch_path = os.path.join(base_dir, "mcppatches", "fffix.py.patch")
+    if os.path.exists(fffix_patch_path):
+        print("Patching fffix.py. Ignore \"FAILED\" hunks")
+        apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
     
     # Patch Start.java with minecraft version
     start_java_file = os.path.join(base_dir,"mcppatches","Start.java")
@@ -378,8 +381,10 @@ def main(mcp_dir):
     print 'Preferred architecture: %sbit - preferring %sbit native extraction (use -a 32 or -a 64 to change)' % (preferredarch, preferredarch)
     if nomerge is True:
         print 'NO Optifine merging'
+    if nocompilefixpatch is True:
+        print 'SKIPPING Apply compile fix patches'
     if nopatch is True:
-        print 'SKIPPING Apply patches'        
+        print 'SKIPPING Apply Minecrift patches'        
         
     if clean == True:
         print 'Cleaning...'
@@ -430,35 +435,41 @@ def main(mcp_dir):
         shutil.rmtree( org_src_dir, True )
     shutil.copytree( src_dir, org_src_dir )
 
-
-    if nopatch == False:
+    if nocompilefixpatch == False:
+        compile_error_patching_done = False
+        
         # Patch stage 1: apply only the patches needed to correct the
         # optifine merge decompile errors
-        print("Patching Optifine merge decompile errors...")
-        applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
+        mcp_patch_dir = os.path.join( base_dir, "mcppatches", "patches" )
+        if os.path.exists( mcp_patch_dir ):
+            print("Patching Optifine merge decompile errors...")
+            applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
+            compile_error_patching_done = True
         
         # Address problem files - copy over directly
-        print("Addressing problem files...")
         problem_file_dir = os.path.join( base_dir, "mcppatches", "problemfiles" )
-        
-        xp_problem_file = os.path.join(problem_file_dir, "xp.java")
-        shutil.copy( xp_problem_file, os.path.join( mcp_dir, "src", "minecraft", "net", "minecraft", "src", "xp.java" ) )
-        
-        chunkrenderdispatcher_problem_file = os.path.join(problem_file_dir, "ChunkRenderDispatcher.java")
-        shutil.copy( chunkrenderdispatcher_problem_file, os.path.join( mcp_dir, "src", "minecraft", "net", "minecraft", "client", "renderer", "chunk", "ChunkRenderDispatcher.java" ) )
+        if os.path.exists( problem_file_dir ):
+            print("Addressing problem files...")        
+            xp_problem_file = os.path.join(problem_file_dir, "xp.java")
+            shutil.copy( xp_problem_file, os.path.join( mcp_dir, "src", "minecraft", "net", "minecraft", "src", "xp.java" ) )
+            chunkrenderdispatcher_problem_file = os.path.join(problem_file_dir, "ChunkRenderDispatcher.java")
+            shutil.copy( chunkrenderdispatcher_problem_file, os.path.join( mcp_dir, "src", "minecraft", "net", "minecraft", "client", "renderer", "chunk", "ChunkRenderDispatcher.java" ) )
+            compile_error_patching_done = True
 
         # Update the client md5
-        print("Updating client.md5...")
-        os.chdir(mcp_dir)
-        from runtime.updatemd5 import updatemd5
-        updatemd5( None, True, True, False )
-        os.chdir( base_dir )
+        if compile_error_patching_done == True:
+            print("Updating client.md5...")
+            os.chdir(mcp_dir)
+            from runtime.updatemd5 import updatemd5
+            updatemd5( None, True, True, False )
+            os.chdir( base_dir )
 
-        # Now re-create the .minecraft_orig with the new buildable state
-        if os.path.exists( org_src_dir ):
-            shutil.rmtree( org_src_dir, True )
-            shutil.copytree( src_dir, org_src_dir )
-
+            # Now re-create the .minecraft_orig with the new buildable state
+            if os.path.exists( org_src_dir ):
+                shutil.rmtree( org_src_dir, True )
+                shutil.copytree( src_dir, org_src_dir )
+                
+    if nopatch == False:
         # Patch stage 2: Now apply our main Minecrift patches, only
         # changes needed for Minecrift functionality
         print("Applying full Minecrift patches...")
@@ -523,6 +534,7 @@ if __name__ == '__main__':
     parser.add_option('-c', '--clean', dest='clean', default=False, action='store_true', help='Cleans the mcp dir, and REMOVES ALL SOURCE IN THE MCPxxx/SRC dir. Re-downloads dependencies')
     parser.add_option('-f', '--force', dest='force', default=False, action='store_true', help='Forces any changes without prompts')
     parser.add_option('-n', '--no-patch', dest='nopatch', default=False, action='store_true', help='If specified, no patches will be applied at the end of installation')
+    parser.add_option('-x', '--no-fix-patch', dest='nocompilefixpatch', default=False, action='store_true', help='If specified, no compile fix patches will be applied at the end of installation')
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
     parser.add_option('-a', '--architecture', action='store', dest='arch', help='Architecture to use (\'32\' or \'64\'); prefer 32 or 64bit dlls', default=None)
     options, _ = parser.parse_args()
@@ -539,6 +551,7 @@ if __name__ == '__main__':
         
     nomerge = options.nomerge
     nopatch = options.nopatch
+    nocompilefixpatch = options.nocompilefixpatch
     clean = options.clean
     force = options.force
     
