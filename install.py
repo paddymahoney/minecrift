@@ -20,6 +20,7 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 preferredarch = ''
 nomerge = False
 nopatch = False
+nocompilefixpatch = False
 clean = False
 force = False
 
@@ -380,8 +381,10 @@ def main(mcp_dir):
     print 'Preferred architecture: %sbit - preferring %sbit native extraction (use -a 32 or -a 64 to change)' % (preferredarch, preferredarch)
     if nomerge is True:
         print 'NO Optifine merging'
+    if nocompilefixpatch is True:
+        print 'SKIPPING Apply compile fix patches'
     if nopatch is True:
-        print 'SKIPPING Apply patches'        
+        print 'SKIPPING Apply Minecrift patches'        
         
     if clean == True:
         print 'Cleaning...'
@@ -432,8 +435,7 @@ def main(mcp_dir):
         shutil.rmtree( org_src_dir, True )
     shutil.copytree( src_dir, org_src_dir )
 
-
-    if nopatch == False:
+    if nocompilefixpatch == False:
         compile_error_patching_done = False
         
         # Patch stage 1: apply only the patches needed to correct the
@@ -466,7 +468,8 @@ def main(mcp_dir):
             if os.path.exists( org_src_dir ):
                 shutil.rmtree( org_src_dir, True )
                 shutil.copytree( src_dir, org_src_dir )
-
+                
+    if nopatch == False:
         # Patch stage 2: Now apply our main Minecrift patches, only
         # changes needed for Minecrift functionality
         print("Applying full Minecrift patches...")
@@ -531,6 +534,7 @@ if __name__ == '__main__':
     parser.add_option('-c', '--clean', dest='clean', default=False, action='store_true', help='Cleans the mcp dir, and REMOVES ALL SOURCE IN THE MCPxxx/SRC dir. Re-downloads dependencies')
     parser.add_option('-f', '--force', dest='force', default=False, action='store_true', help='Forces any changes without prompts')
     parser.add_option('-n', '--no-patch', dest='nopatch', default=False, action='store_true', help='If specified, no patches will be applied at the end of installation')
+    parser.add_option('-x', '--no-fix-patch', dest='nocompilefixpatch', default=False, action='store_true', help='If specified, no compile fix patches will be applied at the end of installation')
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
     parser.add_option('-a', '--architecture', action='store', dest='arch', help='Architecture to use (\'32\' or \'64\'); prefer 32 or 64bit dlls', default=None)
     options, _ = parser.parse_args()
@@ -547,6 +551,7 @@ if __name__ == '__main__':
         
     nomerge = options.nomerge
     nopatch = options.nopatch
+    nocompilefixpatch = options.nocompilefixpatch
     clean = options.clean
     force = options.force
     
