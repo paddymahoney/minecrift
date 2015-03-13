@@ -144,15 +144,6 @@ def download_deps( mcp_dir, download_mc ):
     print("Patching fffix.py. Ignore \"FAILED\" hunks")
     apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
     
-    # Copy over client.md5
-    #client_md5 = os.path.join("mcppatches","%s_client.md5" % mc_version)
-    #target_client_md5 = os.path.join(mcp_dir,"temp","client.md5")
-    #if os.path.exists(client_md5):
-    #    if not os.path.exists(target_client_md5):
-    #        mkdir_p( os.path.join(mcp_dir,"temp") )
-    #        print 'Updating client.md5: copying %s to %s' % (client_md5, target_client_md5)
-    #        shutil.copy(client_md5,target_client_md5)
-        
     # Patch Start.java with minecraft version
     start_java_file = os.path.join(base_dir,"mcppatches","Start.java")
     target_start_java_file = os.path.join(mcp_dir,"conf","patches","Start.java")    
@@ -443,8 +434,18 @@ def main(mcp_dir):
     if nopatch == False:
         # Patch stage 1: apply only the patches needed to correct the
         # optifine merge decompile errors
-        print("Patching original Optifine merge decompile errors...")
+        print("Patching Optifine merge decompile errors...")
         applychanges( mcp_dir, patch_dir="mcppatches/patches", backup=False, copyOriginal=False, mergeInNew=False )
+        
+        # Address problem files - copy over directly
+        print("Addressing problem files...")
+        problem_file_dir = os.path.join( base_dir, "mcppatches", "problemfiles" )
+        
+        xp_problem_file = os.path.join(problem_file_dir, "xp.java")
+        shutil.copy( xp_problem_file, os.path.join( mcp_dir, "src", "minecraft", "net", "minecraft", "src", "xp.java" ) )
+        
+        chunkrenderdispatcher_problem_file = os.path.join(problem_file_dir, "ChunkRenderDispatcher.java")
+        shutil.copy( chunkrenderdispatcher_problem_file, os.path.join( mcp_dir, "src", "minecraft", "net", "minecraft", "client", "renderer", "chunk", "ChunkRenderDispatcher.java" ) )
 
         # Update the client md5
         print("Updating client.md5...")
