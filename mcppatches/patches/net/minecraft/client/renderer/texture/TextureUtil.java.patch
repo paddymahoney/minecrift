@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/renderer/texture/TextureUtil.java
++++ b/net/minecraft/client/renderer/texture/TextureUtil.java
+@@ -27,7 +27,6 @@
+     private static float field_152779_g = -1.0F;
+     private static final int[] field_147957_g;
+     private static final String __OBFID = "CL_00001067";
+-    private static final String __OBFID = "CL_00001067";
+ 
+     public static int glGenTextures()
+     {

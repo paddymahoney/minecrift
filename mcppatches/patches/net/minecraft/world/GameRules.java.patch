@@ -1,0 +1,18 @@
+--- a/net/minecraft/world/GameRules.java
++++ b/net/minecraft/world/GameRules.java
+@@ -9,7 +9,6 @@
+ {
+     private TreeMap theGameRules = new TreeMap();
+     private static final String __OBFID = "CL_00000136";
+-    private static final String __OBFID = "CL_00000136";
+ 
+     public GameRules()
+     {
+@@ -121,7 +120,6 @@
+         private int valueInteger;
+         private double valueDouble;
+         private static final String __OBFID = "CL_00000137";
+-        private static final String __OBFID = "CL_00000137";
+ 
+         public Value(String par1Str)
+         {

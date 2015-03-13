@@ -1,0 +1,18 @@
+--- a/net/minecraft/client/entity/AbstractClientPlayer.java
++++ b/net/minecraft/client/entity/AbstractClientPlayer.java
+@@ -24,7 +24,6 @@
+     private ResourceLocation locationSkin;
+     private ResourceLocation locationCape;
+     private static final String __OBFID = "CL_00000935";
+-    private static final String __OBFID = "CL_00000935";
+ 
+     public AbstractClientPlayer(World p_i45074_1_, GameProfile p_i45074_2_)
+     {
+@@ -118,7 +117,6 @@
+     {
+         static final int[] field_152630_a = new int[Type.values().length];
+         private static final String __OBFID = "CL_00001832";
+-        private static final String __OBFID = "CL_00001832";
+ 
+         static
+         {

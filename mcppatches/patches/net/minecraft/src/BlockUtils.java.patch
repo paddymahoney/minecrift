@@ -1,0 +1,43 @@
+--- a/net/minecraft/src/BlockUtils.java
++++ b/net/minecraft/src/BlockUtils.java
+@@ -10,23 +10,23 @@
+ 
+     public static void setLightOpacity(Block block, int opacity)
+     {
+-        if (directAccessValid)
+-        {
+-            try
+-            {
+-                block.setLightOpacity(opacity);
+-                return;
+-            }
+-            catch (IllegalAccessError var3)
+-            {
+-                directAccessValid = false;
+-
+-                if (!ForgeBlock_setLightOpacity.exists())
+-                {
+-                    throw var3;
+-                }
+-            }
+-        }
++//        if (directAccessValid)
++//        {
++//            try
++//            {
++//                block.setLightOpacity(opacity);
++//                return;
++//            }
++//            catch (IllegalAccessError var3)
++//            {
++//                directAccessValid = false;
++//
++//                if (!ForgeBlock_setLightOpacity.exists())
++//                {
++//                    throw var3;
++//                }
++//            }
++//        }
+ 
+         Reflector.callVoid(block, ForgeBlock_setLightOpacity, new Object[] {Integer.valueOf(opacity)});
+     }

@@ -5,7 +5,7 @@ import subprocess, shlex
 from tempfile import mkstemp
 from shutil import move
 from os import remove, close
-from install import download_deps, download_native, download_file, mkdir_p
+from install import download_deps, download_native, download_file, mkdir_p, replacelineinfile
 from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, forge_version
 
 try:
@@ -137,25 +137,6 @@ def create_install(mcp_dir):
             cwd=os.path.join(base_dir,"installer","launch4j"),
             bufsize=-1).communicate()
     os.unlink( "launch4j.xml" )
-
-def replacelineinfile(file_path, pattern, subst):
-    #Create temp file
-    fh, abs_path = mkstemp()
-    new_file = open(abs_path,'w')
-    old_file = open(file_path)
-    for line in old_file:
-        if pattern in line:
-            new_file.write(subst)
-        else:
-            new_file.write(line)
-    #close temp file
-    new_file.close()
-    close(fh)
-    old_file.close()
-    #Remove original file
-    remove(file_path)
-    #Move new file
-    move(abs_path, file_path)    
     
 def main(mcp_dir):
     print 'Using mcp dir: %s' % mcp_dir

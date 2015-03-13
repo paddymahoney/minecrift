@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/gui/GuiVideoSettings.java
++++ b/net/minecraft/client/gui/GuiVideoSettings.java
+@@ -19,7 +19,6 @@
+     private int lastMouseX = 0;
+     private int lastMouseY = 0;
+     private long mouseStillTime = 0L;
+-    private static final String __OBFID = "CL_00000718";
+ 
+     public GuiVideoSettings(GuiScreen par1GuiScreen, GameSettings par2GameSettings)
+     {

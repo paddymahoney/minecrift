@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/renderer/ImageBufferDownload.java
++++ b/net/minecraft/client/renderer/ImageBufferDownload.java
+@@ -11,7 +11,6 @@
+     private int imageWidth;
+     private int imageHeight;
+     private static final String __OBFID = "CL_00000956";
+-    private static final String __OBFID = "CL_00000956";
+ 
+     public BufferedImage parseUserSkin(BufferedImage par1BufferedImage)
+     {

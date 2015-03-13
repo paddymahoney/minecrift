@@ -1,0 +1,73 @@
+--- a/net/minecraft/client/renderer/RenderGlobal.java
++++ b/net/minecraft/client/renderer/RenderGlobal.java
+@@ -262,7 +262,6 @@
+     private long lastMovedTime = System.currentTimeMillis();
+     private long lastActionTime = System.currentTimeMillis();
+     private static AxisAlignedBB AABB_INFINITE = AxisAlignedBB.getBoundingBox(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
+-    private static final String __OBFID = "CL_00000954";
+ 
+     public RenderGlobal(Minecraft par1Minecraft)
+     {
+@@ -1805,7 +1804,7 @@
+                         float var19 = this.theWorld.provider.getCloudHeight() - var21 + 0.33F;
+                         var19 += this.mc.gameSettings.ofCloudsHeight * 128.0F;
+                         float var20 = (float)(dc * (double)var10);
+-                        float var21 = (float)(cdx * (double)var10);
++                        float var21a = (float)(cdx * (double)var10);
+                         var5.startDrawingQuads();
+                         var5.setColorRGBA_F(exactPlayerX, var8, exactPlayerY, 0.8F);
+ 
+@@ -1813,10 +1812,10 @@
+                         {
+                             for (int var23 = -var3 * var4; var23 < var3 * var4; var23 += var3)
+                             {
+-                                var5.addVertexWithUV((double)(var22 + 0), (double)var19, (double)(var23 + var3), (double)((float)(var22 + 0) * var10 + var20), (double)((float)(var23 + var3) * var10 + var21));
+-                                var5.addVertexWithUV((double)(var22 + var3), (double)var19, (double)(var23 + var3), (double)((float)(var22 + var3) * var10 + var20), (double)((float)(var23 + var3) * var10 + var21));
+-                                var5.addVertexWithUV((double)(var22 + var3), (double)var19, (double)(var23 + 0), (double)((float)(var22 + var3) * var10 + var20), (double)((float)(var23 + 0) * var10 + var21));
+-                                var5.addVertexWithUV((double)(var22 + 0), (double)var19, (double)(var23 + 0), (double)((float)(var22 + 0) * var10 + var20), (double)((float)(var23 + 0) * var10 + var21));
++                                var5.addVertexWithUV((double)(var22 + 0), (double)var19, (double)(var23 + var3), (double)((float)(var22 + 0) * var10 + var20), (double)((float)(var23 + var3) * var10 + var21a));
++                                var5.addVertexWithUV((double)(var22 + var3), (double)var19, (double)(var23 + var3), (double)((float)(var22 + var3) * var10 + var20), (double)((float)(var23 + var3) * var10 + var21a));
++                                var5.addVertexWithUV((double)(var22 + var3), (double)var19, (double)(var23 + 0), (double)((float)(var22 + var3) * var10 + var20), (double)((float)(var23 + 0) * var10 + var21a));
++                                var5.addVertexWithUV((double)(var22 + 0), (double)var19, (double)(var23 + 0), (double)((float)(var22 + 0) * var10 + var20), (double)((float)(var23 + 0) * var10 + var21a));
+                             }
+                         }
+ 
+@@ -2471,15 +2470,10 @@
+             var16.addCrashSectionCallable("Position", new Callable()
+             {
+                 private static final String __OBFID = "CL_00000955";
+-                private static final String __OBFID = "CL_00000955";
+                 public String call()
+                 {
+                     return CrashReportCategory.func_85074_a(par2, par4, par6);
+                 }
+-                public Object call() throws Exception
+-                {
+-                    return this.call();
+-                }
+             });
+             throw new ReportedException(var15);
+         }
+@@ -2508,19 +2502,19 @@
+             {
+                 if (Config.isAnimatedExplosion())
+                 {
+-                    this.mc.effectRenderer.addEffect(var21 = new EntityHugeExplodeFX(this.theWorld, par2, par4, par6, par8, par10, par12));
++                    this.mc.effectRenderer.addEffect((EntityFX)(var21 = new EntityHugeExplodeFX(this.theWorld, par2, par4, par6, par8, par10, par12)));
+                 }
+             }
+             else if (par1Str.equals("largeexplode"))
+             {
+                 if (Config.isAnimatedExplosion())
+                 {
+-                    this.mc.effectRenderer.addEffect(var21 = new EntityLargeExplodeFX(this.renderEngine, this.theWorld, par2, par4, par6, par8, par10, par12));
++                    this.mc.effectRenderer.addEffect((EntityFX)(var21 = new EntityLargeExplodeFX(this.renderEngine, this.theWorld, par2, par4, par6, par8, par10, par12)));
+                 }
+             }
+             else if (par1Str.equals("fireworksSpark"))
+             {
+-                this.mc.effectRenderer.addEffect(var21 = new EntityFireworkSparkFX(this.theWorld, par2, par4, par6, par8, par10, par12, this.mc.effectRenderer));
++                this.mc.effectRenderer.addEffect((EntityFX)(var21 = new EntityFireworkSparkFX(this.theWorld, par2, par4, par6, par8, par10, par12, this.mc.effectRenderer)));
+             }
+ 
+             if (var21 != null)

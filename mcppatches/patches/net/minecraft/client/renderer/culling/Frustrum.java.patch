@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/renderer/culling/Frustrum.java
++++ b/net/minecraft/client/renderer/culling/Frustrum.java
+@@ -9,7 +9,6 @@
+     private double yPosition;
+     private double zPosition;
+     private static final String __OBFID = "CL_00000976";
+-    private static final String __OBFID = "CL_00000976";
+ 
+     public void setPosition(double par1, double par3, double par5)
+     {
