@@ -221,7 +221,7 @@
       "name": "org.lwjgl.lwjgl:lwjgl_util:2.9.1"
     },
     {
-      "name": "de.fruitfly.ovr:JRift:0.4.4.0",
+      "name": "de.fruitfly.ovr:JRift:0.4.4.2",
 	    "url": "http://repo.minecraft-vr.com/"
     },
     {
@@ -301,7 +301,7 @@
       }
     },
     {
-      "name": "de.fruitfly.ovr:JRiftLibrary:0.4.4.0",
+      "name": "de.fruitfly.ovr:JRiftLibrary:0.4.4.2",
 	    "url": "http://repo.minecraft-vr.com/",
       "natives": {
         "linux": "natives-linux",
