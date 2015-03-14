@@ -24,6 +24,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
 
     static VRSettings.VrOptions[] defaultDisplayOptions = new VRSettings.VrOptions[] {
             //VRSettings.VrOptions.USE_ORTHO_GUI,
+            VRSettings.VrOptions.MONO_FOV,
+            VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.FSAA,
             VRSettings.VrOptions.FSAA_SCALEFACTOR,
     };
@@ -128,6 +130,12 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                     minValue = 1.1f;
                     maxValue = 2.5f;
                     increment = 0.1f;
+                }
+                else if (var8 == VRSettings.VrOptions.MONO_FOV)
+                {
+                    minValue = 30f;
+                    maxValue = 110f;
+                    increment = 1f;
                 }
 
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));

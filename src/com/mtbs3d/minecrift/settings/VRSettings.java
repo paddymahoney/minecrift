@@ -63,6 +63,9 @@ public class VRSettings
     public static final int VR_COMFORT_YAW = 1;
     public static final int VR_COMFORT_PITCH = 2;
     public static final int VR_COMFORT_PITCHANDYAW = 3;
+    public static final int DECOUPLE_OFF = 0;
+    public static final int DECOUPLE_WITH_HUD = 1;
+    public static final int DECOUPLE_WITH_CROSSHAIR = 2;
 
     public int version = UNKNOWN_VERSION;
     public boolean newlyCreated = true;
@@ -126,7 +129,7 @@ public class VRSettings
     protected float headTrackSensitivity = 1.0f;
     public boolean useFsaa = false;   // default to off
     public float fsaaScaleFactor = 1.4f;
-    public boolean lookMoveDecoupled = false;
+    public int lookMoveDecoupled = DECOUPLE_OFF;
     public boolean useOculusProfileIpd = true;
     public boolean useHalfIpds = false;
     public boolean useOculusProfilePlayerHeight = true;
@@ -530,7 +533,7 @@ public class VRSettings
 
                     if (optionTokens[0].equals("lookMoveDecoupled"))
                     {
-                        this.lookMoveDecoupled = optionTokens[1].equals("true");
+                        this.lookMoveDecoupled = Integer.parseInt(optionTokens[1]);
                     }
 
                     if (optionTokens[0].equals("posTrackHydraLoc"))
@@ -1029,6 +1032,13 @@ public class VRSettings
 	                return var4 + "None";
 	            else
 	                return var4 + String.format("%.2fcm", new Object[] { Float.valueOf(this.renderPlayerOffset) });
+            case MONO_FOV:
+                if(this.mc.gameSettings.fovSetting==110f)
+                    return var4 + "Quake Pro";
+                else if(this.mc.gameSettings.fovSetting==70f)
+                    return var4 + "Normal";
+                else
+                    return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.mc.gameSettings.fovSetting) });
 	        case PITCH_AFFECTS_CAMERA:
 	            return this.allowMousePitchInput ? var4 + "ON" : var4 + "OFF";
             case HUD_LOCK_TO:
@@ -1059,7 +1069,14 @@ public class VRSettings
 	        case FSAA_SCALEFACTOR:
 	            return var4 + String.format("%.1fX", new Object[] { Float.valueOf(this.fsaaScaleFactor * this.fsaaScaleFactor) });
 	        case DECOUPLE_LOOK_MOVE:
-	            return this.lookMoveDecoupled? var4 + "ON" : var4 + "OFF";
+                switch(this.lookMoveDecoupled) {
+                    case DECOUPLE_OFF:
+                        return var4 + "OFF";
+                    case DECOUPLE_WITH_CROSSHAIR:
+                        return var4 + "Crosshair";
+                    case DECOUPLE_WITH_HUD:
+                        return var4 + "GUI";
+                }
 	        case JOYSTICK_SENSITIVITY:
 	            return var4 + String.format("%.1f", new Object[] { Float.valueOf(this.joystickSensitivity) });
 	        case JOYSTICK_DEADZONE:
@@ -1300,6 +1317,8 @@ public class VRSettings
 				return this.hudOpacity ;
 			case RENDER_PLAYER_OFFSET :
 				return this.renderPlayerOffset ;
+            case MONO_FOV:
+                return this.mc.gameSettings.fovSetting;
             case RENDER_SCALEFACTOR:
                 return this.renderScaleFactor;
 			case HUD_DISTANCE :
@@ -1481,7 +1500,7 @@ public class VRSettings
                 this.useHighQualityDistortion = !this.useHighQualityDistortion;
                 break;
 	        case DECOUPLE_LOOK_MOVE:
-	            this.lookMoveDecoupled = !this.lookMoveDecoupled;
+	            this.lookMoveDecoupled = (this.lookMoveDecoupled + 1) % 3;
 	            break;
 	        case ASPECT_RATIO_CORRECTION:
 	            this.aspectRatioCorrection += 1;
@@ -1662,6 +1681,9 @@ public class VRSettings
 	        case RENDER_PLAYER_OFFSET:
 	            this.renderPlayerOffset = par2;
 	        	break;
+            case MONO_FOV:
+                this.mc.gameSettings.fovSetting = par2;
+                break;
             case RENDER_SCALEFACTOR:
                 this.renderScaleFactor = par2;
                 break;
@@ -2088,14 +2110,18 @@ public class VRSettings
     {
         if (this.useOculusProfileIpd)
         {
-            if (eye == EyeType.ovrEye_Left)
+            if (eye == EyeType.ovrEye_Center)
+                return 0f;
+            else if (eye == EyeType.ovrEye_Left)
                 return -Math.abs(this.oculusProfileLeftHalfIpd);
             else
                 return Math.abs(this.oculusProfileRightHalfIpd);
         }
         else
         {
-            if (eye == EyeType.ovrEye_Left)
+            if (eye == EyeType.ovrEye_Center)
+                return 0f;
+            else if (eye == EyeType.ovrEye_Left)
                 return -Math.abs(this.leftHalfIpd);
             else
                 return Math.abs(this.rightHalfIpd);
@@ -2104,7 +2130,9 @@ public class VRSettings
 
     public float getOculusProfileHalfIPD(EyeType eye)
     {
-        if (eye == EyeType.ovrEye_Left)
+        if (eye == EyeType.ovrEye_Center)
+            return 0f;
+        else if (eye == EyeType.ovrEye_Left)
             return -Math.abs(this.oculusProfileLeftHalfIpd);
         else
             return Math.abs(this.oculusProfileRightHalfIpd);
@@ -2237,6 +2265,7 @@ public class VRSettings
         RENDER_OWN_HEADWEAR("Render Own Headwear", false, true),
         RENDER_FULL_FIRST_PERSON_MODEL_MODE("First Person Model", false, true),
         RENDER_PLAYER_OFFSET("View Body Offset", true, false),
+        MONO_FOV("FOV", true, false),
         CONFIG_IPD_MODE("Set IPD", false, true),
         USE_PROFILE_PLAYER_HEIGHT("Use Height from", false, true),
         USE_PROFILE_IPD("Use IPD from", false, true),

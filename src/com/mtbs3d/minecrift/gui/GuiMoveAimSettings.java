@@ -201,14 +201,14 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                 {
                     this.guivrSettings.aimKeyholeWidthDegrees = 90f;
                     this.guivrSettings.keyholeHeadRelative = true;  // TODO: This is the same as crosshairHeadRelative? Unify on Hydra fixes.
-                    this.guivrSettings.lookMoveDecoupled = false;
+                    this.guivrSettings.lookMoveDecoupled = VRSettings.DECOUPLE_OFF;
                     this.guivrSettings.joystickSensitivity = 3f;
                 }
                 else if (Minecraft.getMinecraft().lookaimController instanceof MCController )
                 {
                     this.guivrSettings.aimKeyholeWidthDegrees = 60f;
                     this.guivrSettings.keyholeHeight = 50f;
-                    this.guivrSettings.lookMoveDecoupled = true;
+                    this.guivrSettings.lookMoveDecoupled = VRSettings.DECOUPLE_WITH_CROSSHAIR;
                     this.guivrSettings.allowMousePitchInput = false;
                     this.guivrSettings.crosshairHeadRelative = false;
                     this.guivrSettings.joystickAimType = 1;
@@ -219,7 +219,7 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                 {
                     this.guivrSettings.aimKeyholeWidthDegrees = 60f;
                     this.guivrSettings.keyholeHeight = 50f;
-                    this.guivrSettings.lookMoveDecoupled = true;
+                    this.guivrSettings.lookMoveDecoupled = VRSettings.DECOUPLE_WITH_CROSSHAIR;
                     this.guivrSettings.allowMousePitchInput = false;
                     this.guivrSettings.crosshairHeadRelative = false;
                     this.guivrSettings.mouseKeyholeTight = false;
@@ -291,9 +291,11 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                     return new String[] {
                             "Decouple Movement from Looking - \"Tank mode\"",
                             "  OFF: You always move in the direction you are facing",
-                            "  ON: You move in the direction of the GUI - turning",
+                            "  HUD: You move in the direction of the HUD - turning",
                             "     your head will not affect movement direction",
-                            "  Recommended value: ON" } ;
+                            "  Crosshair: Same as above but following your crosshair",
+                            "     instead",
+                            "  Recommended value: Crosshair" } ;
                 case KEYHOLE_WIDTH:
                     return new String[] {
                             "Allows the mouse some flexibility within a \"keyhole\"",

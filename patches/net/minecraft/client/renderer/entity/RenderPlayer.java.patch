@@ -1,0 +1,228 @@
+--- a/net/minecraft/client/renderer/entity/RenderPlayer.java
++++ b/net/minecraft/client/renderer/entity/RenderPlayer.java
+@@ -22,6 +22,7 @@
+ import net.minecraft.scoreboard.Score;
+ import net.minecraft.scoreboard.ScoreObjective;
+ import net.minecraft.scoreboard.Scoreboard;
++import net.minecraft.src.Reflector;
+ import net.minecraft.util.MathHelper;
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraft.util.StringUtils;
+@@ -35,6 +36,12 @@
+     private ModelBiped modelArmor;
+     private static final String __OBFID = "CL_00001020";
+ 
++    /** MINECRIFT */
++    public float vrOffset;
++    public boolean _renderHeadwear;
++    public boolean _renderHead;
++    /** END MINECRIFT */
++
+     public RenderPlayer()
+     {
+         super(new ModelBiped(0.0F), 0.5F);
+@@ -43,6 +50,16 @@
+         this.modelArmor = new ModelBiped(0.5F);
+     }
+ 
++    /** MINECRIFT */
++    public void setVR(boolean vrMode, boolean renderHeadWear, float offset) {
++
++        vrOffset = vrMode? offset : 0.0F;
++        this.modelBipedMain.vrOffset = this.modelArmorChestplate.vrOffset = this.modelArmor.vrOffset = vrOffset;
++        this.modelBipedMain._renderHead = this.modelArmorChestplate._renderHead = this.modelArmor._renderHead = _renderHead = !vrMode;
++        this.modelBipedMain._renderHeadWear = this.modelArmorChestplate._renderHeadWear = this.modelArmor._renderHeadWear = _renderHeadwear = renderHeadWear;
++    }
++    /** END MINECRIFT */
++
+     /**
+      * Queries whether should render the specified pass or not.
+      */
+@@ -50,6 +67,15 @@
+     {
+         ItemStack var4 = p_77032_1_.inventory.armorItemInSlot(3 - p_77032_2_);
+ 
++        if (Reflector.forgeExists()) {
++            Object event = Reflector.newInstance(Reflector.ForgeRenderPlayerEvent_SetArmorModel_Constructor, new Object[]{p_77032_1_, this, 3 - p_77032_2_, p_77032_3_, var4});
++            Reflector.postForgeBusEvent(event);
++            int result = (Integer) Reflector.getFieldValue(Reflector.ForgeRenderPlayerEvent_SetArmorModel_result);
++            if (result != -1) {
++                return result;
++            }
++        }
++
+         if (var4 != null)
+         {
+             Item var5 = var4.getItem();
+@@ -66,12 +92,32 @@
+                 var7.bipedLeftArm.showModel = p_77032_2_ == 1;
+                 var7.bipedRightLeg.showModel = p_77032_2_ == 2 || p_77032_2_ == 3;
+                 var7.bipedLeftLeg.showModel = p_77032_2_ == 2 || p_77032_2_ == 3;
++                if (Reflector.forgeExists())
++                    var7 = (ModelBiped)Reflector.call(Reflector.ForgeHooksClient_getArmorModel, new Object[] {p_77032_1_, var4, p_77032_2_, var7});
+                 this.setRenderPassModel(var7);
+                 var7.onGround = this.mainModel.onGround;
+                 var7.isRiding = this.mainModel.isRiding;
+                 var7.isChild = this.mainModel.isChild;
+ 
+-                if (var6.getArmorMaterial() == ItemArmor.ArmorMaterial.CLOTH)
++				if (Reflector.forgeExists())
++				{
++	                int j = var6.getColor(var4);
++	                if (j != -1)
++	                {
++	                    float f1 = (float)(j >> 16 & 255) / 255.0F;
++	                    float f2 = (float)(j >> 8 & 255) / 255.0F;
++	                    float f3 = (float)(j & 255) / 255.0F;
++	                    GL11.glColor3f(f1, f2, f3);
++
++	                    if (var4.isItemEnchanted())
++	                    {
++	                        return 31;
++	                    }
++
++	                    return 16;
++	                }				
++				}
++                else if (var6.getArmorMaterial() == ItemArmor.ArmorMaterial.CLOTH)
+                 {
+                     int var8 = var6.getColor(var4);
+                     float var9 = (float)(var8 >> 16 & 255) / 255.0F;
+@@ -125,6 +171,9 @@
+      */
+     public void doRender(AbstractClientPlayer p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
+     {
++        if (Reflector.forgeExists()) {
++            if (Reflector.postForgeBusEvent(Reflector.ForgeRenderPlayerEvent_Pre_Constructor, new Object[]{p_76986_1_, this, p_76986_9_})) return;
++        }
+         GL11.glColor3f(1.0F, 1.0F, 1.0F);
+         ItemStack var10 = p_76986_1_.inventory.getCurrentItem();
+         this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = var10 != null ? 1 : 0;
+@@ -155,6 +204,9 @@
+         this.modelArmorChestplate.aimedBow = this.modelArmor.aimedBow = this.modelBipedMain.aimedBow = false;
+         this.modelArmorChestplate.isSneak = this.modelArmor.isSneak = this.modelBipedMain.isSneak = false;
+         this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = 0;
++        if (Reflector.forgeExists()) {
++            if (Reflector.postForgeBusEvent(Reflector.ForgeRenderPlayerEvent_Post_Constructor, new Object[]{p_76986_1_, this, p_76986_9_})) return;
++        }
+     }
+ 
+     /**
+@@ -167,20 +219,38 @@
+ 
+     protected void renderEquippedItems(AbstractClientPlayer p_77029_1_, float p_77029_2_)
+     {
++        Object event = null;
++        boolean Forge = Reflector.forgeExists();
++        if (Forge) {
++            event = Reflector.newInstance(Reflector.ForgeRenderPlayerEvent_Specials_Pre_Constructor, new Object[]{p_77029_1_, this, p_77029_2_});
++            if (Reflector.postForgeBusEvent(event)) return;
++        }
+         GL11.glColor3f(1.0F, 1.0F, 1.0F);
+         super.renderEquippedItems(p_77029_1_, p_77029_2_);
+         super.renderArrowsStuckInEntity(p_77029_1_, p_77029_2_);
+         ItemStack var3 = p_77029_1_.inventory.armorItemInSlot(3);
+ 
+-        if (var3 != null)
++		/** MINECRIFT */
++        if (var3 != null && _renderHead) 
++		/** END MINECRIFT */
+         {
+             GL11.glPushMatrix();
++            /** MINECRIFT */
++            GL11.glTranslatef(0, 0, vrOffset);
++            /** END MINECRIFT */
+             this.modelBipedMain.bipedHead.postRender(0.0625F);
+             float var4;
+ 
+             if (var3.getItem() instanceof ItemBlock)
+             {
+-                if (RenderBlocks.renderItemIn3d(Block.getBlockFromItem(var3.getItem()).getRenderType()))
++				boolean is3D = true;
++				if (Forge) {
++                    Object itemRenderTypeEquipped = Reflector.getFieldValue(Reflector.ItemRenderType_EQUIPPED);
++                    Object itemRenderHelperType3D = Reflector.getFieldValue(Reflector.ForgeItemRendererHelper_BLOCK_3D);
++                    Object customRenderer = Reflector.call(Reflector.MinecraftForgeClient_getItemRenderer, new Object[] {var3, itemRenderTypeEquipped});
++                    is3D = (customRenderer != null && Reflector.callBoolean(customRenderer, Reflector.ForgeIItemRenderer_shouldUseRenderHelper, new Object[] {itemRenderTypeEquipped, var3, itemRenderHelperType3D}));
++				}
++                if (is3D && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(var3.getItem()).getRenderType()))
+                 {
+                     var4 = 0.625F;
+                     GL11.glTranslatef(0.0F, -0.25F, 0.0F);
+@@ -241,12 +311,18 @@
+         }
+ 
+         boolean var21 = p_77029_1_.func_152122_n();
++		if (Forge) {
++			var21 = (Boolean) Reflector.getFieldValue(event, Reflector.ForgeRenderPlayerEvent_Specials_Pre_renderCape) && var21;
++		}
+         float var11;
+ 
+         if (var21 && !p_77029_1_.isInvisible() && !p_77029_1_.getHideCape())
+         {
+             this.bindTexture(p_77029_1_.getLocationCape());
+             GL11.glPushMatrix();
++            /** MINECRIFT */
++            GL11.glTranslatef(0, 0, vrOffset);
++            /** END MINECRIFT */
+             GL11.glTranslatef(0.0F, 0.0F, 0.125F);
+             double var23 = p_77029_1_.field_71091_bM + (p_77029_1_.field_71094_bP - p_77029_1_.field_71091_bM) * (double)p_77029_2_ - (p_77029_1_.prevPosX + (p_77029_1_.posX - p_77029_1_.prevPosX) * (double)p_77029_2_);
+             double var27 = p_77029_1_.field_71096_bN + (p_77029_1_.field_71095_bQ - p_77029_1_.field_71096_bN) * (double)p_77029_2_ - (p_77029_1_.prevPosY + (p_77029_1_.posY - p_77029_1_.prevPosY) * (double)p_77029_2_);
+@@ -291,10 +367,16 @@
+         }
+ 
+         ItemStack var24 = p_77029_1_.inventory.getCurrentItem();
+-
+-        if (var24 != null)
++		boolean eventRenderItem = true;
++		if (Forge)
++			eventRenderItem = (Boolean) Reflector.getFieldValue(event, Reflector.ForgeRenderPlayerEvent_Specials_Pre_renderItem);
++			
++        if (var24 != null && eventRenderItem)
+         {
+             GL11.glPushMatrix();
++            /** MINECRIFT */
++            GL11.glTranslatef(0, 0, vrOffset);
++            /** END MINECRIFT */
+             this.modelBipedMain.bipedRightArm.postRender(0.0625F);
+             GL11.glTranslatef(-0.0625F, 0.4375F, 0.0625F);
+ 
+@@ -310,7 +392,14 @@
+                 var26 = var24.getItemUseAction();
+             }
+ 
+-            if (var24.getItem() instanceof ItemBlock && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(var24.getItem()).getRenderType()))
++			boolean is3D = true;
++            if (Forge) {
++                Object itemRenderTypeEquipped = Reflector.getFieldValue(Reflector.ItemRenderType_EQUIPPED);
++                Object itemRenderHelperType3D = Reflector.getFieldValue(Reflector.ForgeItemRendererHelper_BLOCK_3D);
++                Object customRenderer = Reflector.call(Reflector.MinecraftForgeClient_getItemRenderer, new Object[] {var24, itemRenderTypeEquipped});
++                is3D = (customRenderer != null && Reflector.callBoolean(customRenderer, Reflector.ForgeIItemRenderer_shouldUseRenderHelper, new Object[] {itemRenderTypeEquipped, var24, itemRenderHelperType3D}));
++            }
++            if (is3D && var24.getItem() instanceof ItemBlock && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(var24.getItem()).getRenderType()))
+             {
+                 var7 = 0.5F;
+                 GL11.glTranslatef(0.0F, 0.1875F, -0.3125F);
+@@ -367,7 +456,11 @@
+ 
+             if (var24.getItem().requiresMultipleRenderPasses())
+             {
+-                for (var28 = 0; var28 <= 1; ++var28)
++				int numOfRenderPasses = 2;
++				if (Forge) {
++				    numOfRenderPasses = Reflector.callInt(var24.getItem(), Reflector.MinecraftItem_Forge_getRenderPasses, new Object[] {var24.getItemDamage()});
++				}
++                for (var28 = 0; var28 < numOfRenderPasses; ++var28)
+                 {
+                     int var8 = var24.getItem().getColorFromItemStack(var24, var28);
+                     var30 = (float)(var8 >> 16 & 255) / 255.0F;
+@@ -389,6 +482,9 @@
+ 
+             GL11.glPopMatrix();
+         }
++        if (Forge) {
++            Reflector.postForgeBusEvent(Reflector.ForgeRenderPlayerEvent_Specials_Post_Constructor, new Object[]{p_77029_1_, this, p_77029_2_});
++        }
+     }
+ 
+     /**

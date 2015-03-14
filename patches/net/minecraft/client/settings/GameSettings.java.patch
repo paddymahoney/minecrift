@@ -1,0 +1,26 @@
+--- a/net/minecraft/client/settings/GameSettings.java
++++ b/net/minecraft/client/settings/GameSettings.java
+@@ -1237,7 +1237,9 @@
+         if (par1EnumOptions == GameSettings.Options.ENABLE_VSYNC)
+         {
+             this.enableVsync = !this.enableVsync;
+-            Display.setVSyncEnabled(this.enableVsync);
++			/** MINECRIFT *  // Don't update Vsync - need to be on
++            Display.setVSyncEnabled(this.enableVsync); 
++			** END MINECRIFT */
+         }
+ 
+         this.saveOptions();
+@@ -2921,8 +2923,10 @@
+ 
+     public void updateVSync()
+     {
+-        Display.setVSyncEnabled(this.enableVsync);
+-    }
++		/** MINECRIFT */ // Always needs to be on
++        Display.setVSyncEnabled(true);
++		/** END MINECRIFT */
++	}
+ 
+     private void updateWaterOpacity()
+     {

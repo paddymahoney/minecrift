@@ -19,11 +19,7 @@ import de.fruitfly.ovr.enums.RotateDirection;
 import de.fruitfly.ovr.structs.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Vec3;
-import org.lwjgl.opengl.ARBShaderObjects;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.Quaternion;
 
 public class MCOculus extends OculusRift //OculusRift does most of the heavy lifting
@@ -130,7 +126,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     {
         GL11.glDisable(GL11.GL_CULL_FACE);  // Oculus wants CW orientations, avoid the problem by turning off culling...
         GL11.glDisable(GL11.GL_DEPTH_TEST); // Nothing is drawn with depth test on...
-        GL30.glBindVertexArray(0);
+        //GL30.glBindVertexArray(0);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0); // Unbind GL_ARRAY_BUFFER for my own vertex arrays to work...
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -205,6 +201,9 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     @Override
     public Vec3 getEyePosition(EyeType eye)
     {
+        if (eye == EyeType.ovrEye_Center)
+            return getCenterEyePosition();
+
         VRSettings vr = Minecraft.getMinecraft().vrSettings;
         Vec3 eyePosition = Vec3.createVectorHelper(0, 0, 0);
         if (Minecraft.getMinecraft().vrSettings.usePositionTracking)
