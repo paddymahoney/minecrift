@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/texture/TextureMap.java
 +++ b/net/minecraft/client/renderer/texture/TextureMap.java
-@@ -63,7 +63,6 @@
+@@ -64,7 +64,6 @@
      private int iconGridCountY = -1;
      private double iconGridSizeU = -1.0D;
      private double iconGridSizeV = -1.0D;
@@ -8,7 +8,7 @@
  
      public TextureMap(int par1, String par2Str)
      {
-@@ -243,41 +242,26 @@
+@@ -244,41 +243,26 @@
                      var261.addCrashSectionCallable("Sprite name", new Callable()
                      {
                          private static final String __OBFID = "CL_00001059";

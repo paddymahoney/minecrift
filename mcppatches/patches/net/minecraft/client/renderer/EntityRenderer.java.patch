@@ -1,14 +1,14 @@
 --- a/net/minecraft/client/renderer/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/EntityRenderer.java
-@@ -238,7 +238,6 @@
-     public long prevFrameTimeNano = -1L;
+@@ -241,7 +241,6 @@
      private boolean lastShowDebugInfo = false;
      private boolean showExtendedDebugInfo = false;
+     private long lastErrorCheckTimeMs = 0L;
 -    private static final String __OBFID = "CL_00000947";
  
      public EntityRenderer(Minecraft p_i45076_1_, IResourceManager p_i45076_2_)
      {
-@@ -1342,41 +1341,26 @@
+@@ -1346,41 +1345,26 @@
                      var11.addCrashSectionCallable("Screen name", new Callable()
                      {
                          private static final String __OBFID = "CL_00000948";

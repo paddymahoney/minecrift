@@ -32,7 +32,7 @@
                              }
                          }
  
-@@ -2471,15 +2470,10 @@
+@@ -2493,15 +2492,10 @@
              var16.addCrashSectionCallable("Position", new Callable()
              {
                  private static final String __OBFID = "CL_00000955";
@@ -48,7 +48,7 @@
              });
              throw new ReportedException(var15);
          }
-@@ -2508,19 +2502,19 @@
+@@ -2530,19 +2524,19 @@
              {
                  if (Config.isAnimatedExplosion())
                  {

@@ -1,6 +1,6 @@
 --- a/net/minecraft/world/SpawnerAnimals.java
 +++ b/net/minecraft/world/SpawnerAnimals.java
-@@ -26,7 +26,6 @@
+@@ -27,7 +27,6 @@
      private Map mapSampleEntitiesByClass = new HashMap();
      private int lastPlayerChunkX = Integer.MAX_VALUE;
      private int lastPlayerChunkZ = Integer.MAX_VALUE;
