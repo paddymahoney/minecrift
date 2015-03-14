@@ -6,7 +6,7 @@
   "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type}  --tweakClass optifine.OptiFineTweaker",
   "libraries": [
     {
-      "name": "optifine:OptiFine:1.7.10_HD_U_A4"
+      "name": "optifine:OptiFine:1.7.10_HD_U_B5"
     },
     {
       "name": "org.json:json:20140107",
