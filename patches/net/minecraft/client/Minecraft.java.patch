@@ -195,7 +195,7 @@
 +    public Deque<Long> runTickTimeNanos = new ArrayDeque<Long>();
 +    public long medianRunTickTimeNanos = 0;
 +
-+    public final String minecriftVerString = "Minecrift 1.7.10 A1";
++    public final String minecriftVerString = "Minecrift 1.7.10 Alpha1";
 +    /** END MINECRIFT */
 +
      public Minecraft(Session p_i1103_1_, int p_i1103_2_, int p_i1103_3_, boolean p_i1103_4_, boolean p_i1103_5_, File p_i1103_6_, File p_i1103_7_, File p_i1103_8_, Proxy p_i1103_9_, String p_i1103_10_, Multimap p_i1103_11_, String p_i1103_12_)

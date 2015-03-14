@@ -42,7 +42,7 @@
  import net.minecraft.client.shader.ShaderGroup;
  import net.minecraft.client.shader.ShaderLinkHelper;
  import net.minecraft.crash.CrashReport;
-@@ -64,9 +83,16 @@
+@@ -65,10 +84,17 @@
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
  import org.lwjgl.opengl.Display;
@@ -50,6 +50,7 @@
  import org.lwjgl.opengl.GL11;
 +import org.lwjgl.opengl.GL12;
  import org.lwjgl.opengl.GLContext;
+ import org.lwjgl.util.glu.GLU;
  import org.lwjgl.util.glu.Project;
 +import org.lwjgl.util.vector.Quaternion;
 +import org.lwjgl.util.vector.Vector4f;
@@ -59,7 +60,7 @@
  
  public class EntityRenderer implements IResourceManagerReloadListener
  {
-@@ -80,7 +106,9 @@
+@@ -82,7 +108,9 @@
  
      /** A reference to the Minecraft object. */
      private Minecraft mc;
@@ -70,7 +71,7 @@
      public ItemRenderer itemRenderer;
      private final MapItemRenderer theMapItemRenderer;
  
-@@ -157,12 +185,15 @@
+@@ -159,12 +187,15 @@
      private boolean cloudFog;
      private final IResourceManager resourceManager;
      public ShaderGroup theShaderGroup;
@@ -91,9 +92,9 @@
  
      /** Previous frame time in milliseconds */
      private long prevFrameTime;
-@@ -239,6 +270,61 @@
-     private boolean lastShowDebugInfo = false;
+@@ -242,6 +273,61 @@
      private boolean showExtendedDebugInfo = false;
+     private long lastErrorCheckTimeMs = 0L;
  
 +    /** MINECRIFT */
 +    public int renderpass = 0;
@@ -153,7 +154,7 @@
      public EntityRenderer(Minecraft p_i45076_1_, IResourceManager p_i45076_2_)
      {
          this.shaderIndex = shaderCount;
-@@ -254,6 +340,15 @@
+@@ -257,6 +343,15 @@
          this.locationLightMap = p_i45076_1_.getTextureManager().getDynamicTextureLocation("lightMap", this.lightmapTexture);
          this.lightmapColors = this.lightmapTexture.getTextureData();
          this.theShaderGroup = null;
@@ -169,7 +170,7 @@
      }
  
      public boolean isShaderActive()
-@@ -276,39 +371,44 @@
+@@ -279,39 +374,44 @@
      {
          if (OpenGlHelper.shadersSupported)
          {
@@ -237,7 +238,7 @@
  
      public void onResourceManagerReload(IResourceManager par1ResourceManager)
      {
-@@ -413,41 +513,87 @@
+@@ -416,41 +516,87 @@
       */
      public void getMouseOver(float par1)
      {
@@ -341,7 +342,7 @@
  
              for (int var14 = 0; var14 < var11.size(); ++var14)
              {
-@@ -457,20 +603,20 @@
+@@ -460,20 +606,20 @@
                  {
                      float var16 = var15.getCollisionBorderSize();
                      AxisAlignedBB var17 = var15.boundingBox.expand((double)var16, (double)var16, (double)var16);
@@ -366,7 +367,7 @@
  
                          if (var19 < var12 || var12 == 0.0D)
                          {
-@@ -500,15 +646,41 @@
+@@ -503,15 +649,41 @@
                  }
              }
  
@@ -412,7 +413,7 @@
          }
      }
  
-@@ -645,9 +817,11 @@
+@@ -648,9 +820,11 @@
          {
              EntityPlayer var2 = (EntityPlayer)this.mc.renderViewEntity;
              float var3 = var2.distanceWalkedModified - var2.prevDistanceWalkedModified;
@@ -427,7 +428,7 @@
              GL11.glTranslatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 0.5F, -Math.abs(MathHelper.cos(var4 * (float)Math.PI) * var5), 0.0F);
              GL11.glRotatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 3.0F, 0.0F, 0.0F, 1.0F);
              GL11.glRotatef(Math.abs(MathHelper.cos(var4 * (float)Math.PI - 0.2F) * var5) * 5.0F, 1.0F, 0.0F, 0.0F);
-@@ -665,8 +839,9 @@
+@@ -668,8 +842,9 @@
          double var4 = var2.prevPosX + (var2.posX - var2.prevPosX) * (double)par1;
          double var6 = var2.prevPosY + (var2.posY - var2.prevPosY) * (double)par1 - (double)var3;
          double var8 = var2.prevPosZ + (var2.posZ - var2.prevPosZ) * (double)par1;
@@ -439,7 +440,7 @@
          if (var2.isPlayerSleeping())
          {
              var3 = (float)((double)var3 + 1.0D);
-@@ -754,20 +929,22 @@
+@@ -757,20 +932,22 @@
          }
          else
          {
@@ -466,7 +467,7 @@
      }
  
      /**
-@@ -775,6 +952,8 @@
+@@ -778,6 +955,8 @@
       */
      private void setupCameraTransform(float par1, int par2)
      {
@@ -475,7 +476,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -785,8 +964,8 @@
+@@ -788,8 +967,8 @@
          if (Config.isFogFast())
          {
              this.farPlaneDistance *= 0.83F;
@@ -486,7 +487,7 @@
          GL11.glMatrixMode(GL11.GL_PROJECTION);
          GL11.glLoadIdentity();
          float var3 = 0.07F;
-@@ -796,8 +975,10 @@
+@@ -799,8 +978,10 @@
              GL11.glTranslatef((float)(-(par2 * 2 - 1)) * var3, 0.0F, 0.0F);
          }
  
@@ -498,7 +499,7 @@
          if (clipDistance < 128.0F)
          {
              clipDistance = 128.0F;
-@@ -807,14 +988,23 @@
+@@ -810,14 +991,23 @@
          {
              clipDistance = 256.0F;
          }
@@ -526,7 +527,7 @@
          float var4;
  
          if (this.mc.playerController.enableEverythingIsScrewedUpMode())
-@@ -894,6 +1084,7 @@
+@@ -897,6 +1087,7 @@
       */
      private void renderHand(float par1, int par2)
      {
@@ -534,7 +535,7 @@
          if (this.debugViewDirection <= 0)
          {
              GL11.glMatrixMode(GL11.GL_PROJECTION);
-@@ -905,13 +1096,23 @@
+@@ -908,13 +1099,23 @@
                  GL11.glTranslatef((float)(-(par2 * 2 - 1)) * var3, 0.0F, 0.0F);
              }
  
@@ -560,7 +561,7 @@
  
              if (this.mc.playerController.enableEverythingIsScrewedUpMode())
              {
-@@ -924,7 +1125,7 @@
+@@ -927,7 +1128,7 @@
  
              if (this.mc.gameSettings.anaglyph)
              {
@@ -569,7 +570,7 @@
              }
  
              GL11.glPushMatrix();
-@@ -935,11 +1136,14 @@
+@@ -938,11 +1139,14 @@
                  this.setupViewBobbing(par1);
              }
  
@@ -587,7 +588,7 @@
              }
  
              GL11.glPopMatrix();
-@@ -1183,7 +1387,18 @@
+@@ -1187,7 +1391,18 @@
              this.mc.ingameGUI.getChatGUI().func_146227_a(var14);
              Config.setNewRelease((String)null);
          }
@@ -606,7 +607,7 @@
          if (this.mc.currentScreen instanceof GuiMainMenu)
          {
              this.updateMainMenu((GuiMainMenu)this.mc.currentScreen);
-@@ -1220,64 +1435,92 @@
+@@ -1224,64 +1439,92 @@
          {
              this.prevFrameTime = Minecraft.getSystemTime();
          }
@@ -744,7 +745,7 @@
                  if (OpenGlHelper.shadersSupported)
                  {
                      if (this.theShaderGroup != null)
-@@ -1287,6 +1530,9 @@
+@@ -1291,6 +1534,9 @@
                          GL11.glLoadIdentity();
                          this.theShaderGroup.loadShaderGroup(par1);
                          GL11.glPopMatrix();
@@ -754,7 +755,7 @@
                      }
  
                      this.mc.getFramebuffer().bindFramebuffer(true);
-@@ -1294,30 +1540,61 @@
+@@ -1298,30 +1544,61 @@
  
                  this.renderEndNanoTime = System.nanoTime();
                  this.mc.mcProfiler.endStartSection("gui");
@@ -828,7 +829,7 @@
                  try
                  {
                      boolean var12 = false;
-@@ -1364,7 +1641,12 @@
+@@ -1368,7 +1645,12 @@
                      });
                      throw new ReportedException(var10);
                  }
@@ -840,8 +841,8 @@
 +            /** END MINECRIFT */    
          }
  
-         this.waitForServerThread();
-@@ -1419,9 +1701,22 @@
+         this.frameFinish();
+@@ -1424,9 +1706,22 @@
          EntityLivingBase var4 = this.mc.renderViewEntity;
          RenderGlobal var5 = this.mc.renderGlobal;
          EffectRenderer var6 = this.mc.effectRenderer;
@@ -867,7 +868,7 @@
          this.mc.mcProfiler.endStartSection("center");
  
          for (int var13 = 0; var13 < 2; ++var13)
-@@ -1447,6 +1742,12 @@
+@@ -1452,6 +1747,12 @@
              GL11.glEnable(GL11.GL_CULL_FACE);
              this.mc.mcProfiler.endStartSection("camera");
              this.setupCameraTransform(par1, var13);
@@ -880,7 +881,7 @@
              ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
              this.mc.mcProfiler.endStartSection("frustrum");
              ClippingHelperImpl.getInstance();
-@@ -1472,11 +1773,13 @@
+@@ -1477,11 +1778,13 @@
  
              this.mc.mcProfiler.endStartSection("culling");
              Frustrum var14 = new Frustrum();
@@ -896,7 +897,7 @@
                  this.mc.mcProfiler.endStartSection("updatechunks");
  
                  while (!this.mc.renderGlobal.updateRenderers(var4, false) && par2 != 0L)
-@@ -1509,6 +1812,10 @@
+@@ -1514,6 +1817,10 @@
              boolean hasForge = Reflector.ForgeHooksClient.exists();
              EntityPlayer var18;
  
@@ -907,7 +908,7 @@
              if (this.debugViewDirection == 0)
              {
                  GL11.glMatrixMode(GL11.GL_MODELVIEW);
-@@ -1534,14 +1841,14 @@
+@@ -1539,14 +1846,14 @@
                  GL11.glMatrixMode(GL11.GL_MODELVIEW);
                  GL11.glPopMatrix();
                  GL11.glPushMatrix();
@@ -925,7 +926,7 @@
                      {
                          var5.drawSelectionBox(var18, this.mc.objectMouseOver, 0, par1);
                      }
-@@ -1552,18 +1859,19 @@
+@@ -1557,18 +1864,19 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glPopMatrix();
  
@@ -947,7 +948,7 @@
  
              this.mc.mcProfiler.endStartSection("destroyProgress");
              GL11.glEnable(GL11.GL_BLEND);
-@@ -1666,14 +1974,24 @@
+@@ -1671,14 +1979,24 @@
                  Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, new Object[] {var5, Float.valueOf(par1)});
              }
  
@@ -975,7 +976,25 @@
  
              if (!this.mc.gameSettings.anaglyph)
              {
-@@ -2577,4 +2895,1013 @@
+@@ -2544,6 +2862,8 @@
+ 
+     private void frameFinish()
+     {
++        /** MINECRIFT **/
++        /*
+         if (this.mc.theWorld != null)
+         {
+             long now = System.currentTimeMillis();
+@@ -2561,6 +2881,8 @@
+                 }
+             }
+         }
++        */
++        /** END MINECRIFT **/
+     }
+ 
+     private void updateMainMenu(GuiMainMenu mainGui)
+@@ -2605,4 +2927,1013 @@
              ;
          }
      }

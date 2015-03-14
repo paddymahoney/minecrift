@@ -128,7 +128,7 @@
                              }
                          }
  
-@@ -2496,25 +2535,25 @@
+@@ -2518,25 +2557,25 @@
              double var15 = this.mc.renderViewEntity.posX - par2;
              double var17 = this.mc.renderViewEntity.posY - par4;
              double var19 = this.mc.renderViewEntity.posZ - par6;

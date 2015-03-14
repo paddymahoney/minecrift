@@ -1,16 +1,16 @@
 --- a/net/minecraft/client/gui/GuiVideoSettings.java
 +++ b/net/minecraft/client/gui/GuiVideoSettings.java
-@@ -66,7 +66,12 @@
+@@ -69,7 +69,12 @@
  
-             if (y.getEnumFloat())
-             {
--                this.buttonList.add(new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y));
-+                /** MINECRIFT */ // disable frame rate settings (always VSync) 
-+                GuiOptionSlider slider = new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y);
-+                if (y == GameSettings.Options.FRAMERATE_LIMIT)
-+                    slider.enabled = false;
-+                this.buttonList.add(slider);
-+				/** END MINECRIFT */
-             }
-             else
-             {
+                 if (y.getEnumFloat())
+                 {
+-                    this.buttonList.add(new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y));
++                    /** MINECRIFT */ // disable frame rate settings (always VSync) 
++                    GuiOptionSlider slider = new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y);
++                    if (y == GameSettings.Options.FRAMERATE_LIMIT)
++                        slider.enabled = false;
++                    this.buttonList.add(slider);
++    				/** END MINECRIFT */
+                 }
+                 else
+                 {
