@@ -97,7 +97,7 @@ def create_install(mcp_dir):
     # Build installer.java
     print "Recompiling Installer.java..."
     subprocess.Popen( 
-        cmdsplit("javac \"%s\"" % os.path.join(base_dir,installer_java_file)), 
+        cmdsplit("javac -source 1.6 \"%s\"" % os.path.join(base_dir,installer_java_file)), 
             cwd=os.path.join(base_dir,"installer"),
             bufsize=-1).communicate()
 	
@@ -108,10 +108,12 @@ def create_install(mcp_dir):
     with zipfile.ZipFile( installer,'a', zipfile.ZIP_DEFLATED) as install_out: #append to installer.jar
     
         # Add newly compiled class files
-        for afile in os.listdir("installer"):
-            if os.path.isfile(os.path.join("installer",afile)) and afile.endswith('.class'):
-                print "Adding %s..." % afile
-                install_out.write(os.path.join("installer",afile), afile)
+        for dirName, subdirList, fileList in os.walk("installer"):
+            for afile in fileList:
+                if os.path.isfile(os.path.join(dirName,afile)) and afile.endswith('.class'):
+                    relpath = os.path.relpath(dirName, "installer")
+                    print "Adding %s..." % os.path.join(relpath,afile)
+                    install_out.write(os.path.join(dirName,afile), os.path.join(relpath,afile))
             
         # Add json files
         install_out.writestr( "version.json", process_json("", version))

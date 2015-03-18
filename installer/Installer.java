@@ -1,21 +1,19 @@
+import org.json.JSONObject;
+import org.json.JSONString;
+import org.json.JSONStringer;
+import org.json.JSONWriter;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URL;
 import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.security.MessageDigest;
+import java.text.ParseException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -27,15 +25,15 @@ import javax.swing.border.LineBorder;
 /**
  * Derived from https://github.com/MinecraftForge/Installer/
  * Copyright 2013 MinecraftForge developers, & Mark Browning, StellaArtois
- * 
+ *
  * Licensed under GNU LGPL v2.1 or later.
- * 
+ *
  * @author mabrowning
  *
  */
 public class Installer extends JPanel  implements PropertyChangeListener
 {
-	private static final long serialVersionUID = -562178983462626162L;
+    private static final long serialVersionUID = -562178983462626162L;
 
     /* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
     private static final String MINECRAFT_VERSION = "1.8.1";
@@ -48,7 +46,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final String FORGE_VERSION     = "11.14.0.1239";
     /* END OF DO NOT RENAME */
 
-	private InstallTask task;
+    private InstallTask task;
     private static ProgressMonitor monitor;
 
     static private File targetDir;
@@ -56,33 +54,34 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private JLabel infoLabel;
     private JDialog dialog;
     private JPanel fileEntryPanel;
-	private Frame emptyFrame;
-	private String jar_id;
-	private String version;
-	private String mod = "";
-	private JCheckBox useForge;
-	private JComboBox forgeVersion;
-	private JCheckBox useHydra;
+    private Frame emptyFrame;
+    private String jar_id;
+    private String version;
+    private String mod = "";
+    private JCheckBox useForge;
+    private JCheckBox createProfile;
+    private JComboBox forgeVersion;
+    private JCheckBox useHydra;
     private JCheckBox useHrtf;
-	static private final String forgeNotFound = "Forge not found..." ;
+    static private final String forgeNotFound = "Forge not found..." ;
 
     private String userHomeDir;
     private String osType;
     private boolean isWindows = false;
     private String appDataDir;
 
-	class InstallTask extends SwingWorker<Void, Void>{
-		private boolean DownloadOptiFine()
-		{
+    class InstallTask extends SwingWorker<Void, Void>{
+        private boolean DownloadOptiFine()
+        {
             boolean success = true;
             boolean deleted = false;
 
-			try {
-			    File fod = new File(targetDir,OF_LIB_PATH+OF_JSON_NAME);
-			    fod.mkdirs();
-			    File fo = new File(fod,"OptiFine-"+OF_JSON_NAME+".jar");
+            try {
+                File fod = new File(targetDir,OF_LIB_PATH+OF_JSON_NAME);
+                fod.mkdirs();
+                File fo = new File(fod,"OptiFine-"+OF_JSON_NAME+".jar");
 
-			    // Attempt to get the Optifine MD5
+                // Attempt to get the Optifine MD5
                 String optOnDiskMd5 = GetMd5(fo);
                 System.out.println(optOnDiskMd5 == null ? fo.getCanonicalPath() : fo.getCanonicalPath() + " MD5: " + optOnDiskMd5);
 
@@ -142,14 +141,14 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     return false;
                 }
 
-			    return true;
-			} catch (Exception e) {
-				finalMessage += " Error: "+e.getLocalizedMessage();
-			}
-			return false;
-		}
+                return true;
+            } catch (Exception e) {
+                finalMessage += " Error: "+e.getLocalizedMessage();
+            }
+            return false;
+        }
 
-		private String GetMd5(File fo)
+        private String GetMd5(File fo)
         {
             if (!fo.exists())
                 return null;
@@ -191,118 +190,118 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
         }
 
-		private boolean SetupMinecraftAsLibrary() {
-			File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MINECRAFT_VERSION );
-			lib_dir.mkdirs();
-			File lib_file = new File(lib_dir,"Minecraft-"+MINECRAFT_VERSION+".jar");
-			if( lib_file.exists() && lib_file.length() > 4500000 )return true; //TODO: should md5sum it here, I suppose
-			try {
-				ZipInputStream input_jar = new ZipInputStream(new FileInputStream(new File(targetDir,"versions/"+MINECRAFT_VERSION+"/"+MINECRAFT_VERSION+".jar")));
-				ZipOutputStream lib_jar= new ZipOutputStream(new FileOutputStream(lib_file));
-				
-				ZipEntry ze = null;
-				byte data[] = new byte[1024];
-				while ((ze = input_jar.getNextEntry()) != null) {
-					if(!ze.isDirectory() && !ze.getName().contains("META-INF"))
-					{
-						lib_jar.putNextEntry(new ZipEntry(ze.getName()));
-						int d;
-						while( (d = input_jar.read(data)) != -1 )
-						{
-							lib_jar.write(data, 0, d);
-							
-						}
-						lib_jar.closeEntry();
-						input_jar.closeEntry();
-					}
-				}
-				input_jar.close();
-				lib_jar.close();
-				return true;
-			} catch (Exception e) {
-				finalMessage += " Error: "+e.getLocalizedMessage();
-			}
-			return false;
-		}
+        private boolean SetupMinecraftAsLibrary() {
+            File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MINECRAFT_VERSION );
+            lib_dir.mkdirs();
+            File lib_file = new File(lib_dir,"Minecraft-"+MINECRAFT_VERSION+".jar");
+            if( lib_file.exists() && lib_file.length() > 4500000 )return true; //TODO: should md5sum it here, I suppose
+            try {
+                ZipInputStream input_jar = new ZipInputStream(new FileInputStream(new File(targetDir,"versions/"+MINECRAFT_VERSION+"/"+MINECRAFT_VERSION+".jar")));
+                ZipOutputStream lib_jar= new ZipOutputStream(new FileOutputStream(lib_file));
 
-		private boolean ExtractVersion() {
-			if( jar_id != null )
-			{
-				InputStream version_json; 
-				if(useForge.isSelected() /*&& forgeVersion.getSelectedItem() != forgeNotFound*/ ) {
-					String filename;
-					if( useHydra.isSelected() ) {
-						filename = "version-forge.json";
-						mod="-forge";
-					} else {
-						filename = "version-forge-nohydra.json";
-						mod="-forge-nohydra";
-					}
+                ZipEntry ze = null;
+                byte data[] = new byte[1024];
+                while ((ze = input_jar.getNextEntry()) != null) {
+                    if(!ze.isDirectory() && !ze.getName().contains("META-INF"))
+                    {
+                        lib_jar.putNextEntry(new ZipEntry(ze.getName()));
+                        int d;
+                        while( (d = input_jar.read(data)) != -1 )
+                        {
+                            lib_jar.write(data, 0, d);
 
-					version_json = new FilterInputStream( Installer.class.getResourceAsStream(filename) ) {
-						public int read(byte[] buff) throws IOException {
-							int ret = in.read(buff);
-							if( ret > 0 ) {
-								String s = new String( buff,0, ret, "UTF-8");
-								//s = s.replace("$FORGE_VERSION", (String)forgeVersion.getSelectedItem());
-								ret = s.length();
-								System.arraycopy(s.getBytes("UTF-8"), 0, buff, 0, ret);
-							}
-							return ret;
-						}
-						
-					};
-				} else {
-					String filename;
-					if( useHydra.isSelected() ) {
-						filename = "version.json";
-					} else {
-						filename = "version-nohydra.json";
-						mod="-nohydra";
-					}
-					version_json = Installer.class.getResourceAsStream(filename);
-				}
-				jar_id += mod;
-				InputStream version_jar =Installer.class.getResourceAsStream("version.jar");
-				if( version_jar != null && version_json != null )
-				try {
-					File ver_dir = new File(new File(targetDir,"versions"),jar_id);
-					ver_dir.mkdirs();
-					File ver_json_file = new File (ver_dir, jar_id+".json");
-					FileOutputStream ver_json = new FileOutputStream(ver_json_file); 
-					int d;
-					byte data[] = new byte[40960];
-					
-					// Extract json
-	                while ((d = version_json.read(data)) != -1) {
-	                    ver_json.write(data,0,d);
-	                }
-	                ver_json.close();
-	                
-	                // Extract new lib
-					File lib_dir = new File(targetDir,"libraries/com/mtbs3d/minecrift/"+version);
-					lib_dir.mkdirs();
-					File ver_file = new File (lib_dir, "minecrift-"+version+".jar");
-					FileOutputStream ver_jar = new FileOutputStream(ver_file); 
-	                while ((d = version_jar.read(data)) != -1) {
-	                    ver_jar.write(data,0,d);
-	                }
-	                ver_jar.close();
-	                
-	                //Create empty version jar file
-	                //All code actually lives in libraries/
-					ZipOutputStream null_jar = new ZipOutputStream(new FileOutputStream(new File (ver_dir, jar_id+".jar"))); 
-	                null_jar.putNextEntry(new ZipEntry("Classes actually in libraries directory"));
-	                null_jar.closeEntry();
-	                null_jar.close();
-					return ver_json_file.exists() && ver_file.exists();
-				} catch (Exception e) {
-					finalMessage += " Error: "+e.getLocalizedMessage();
-				}
-				
-			}
-			return false;
-		}
+                        }
+                        lib_jar.closeEntry();
+                        input_jar.closeEntry();
+                    }
+                }
+                input_jar.close();
+                lib_jar.close();
+                return true;
+            } catch (Exception e) {
+                finalMessage += " Error: "+e.getLocalizedMessage();
+            }
+            return false;
+        }
+
+        private boolean ExtractVersion() {
+            if( jar_id != null )
+            {
+                InputStream version_json;
+                if(useForge.isSelected() /*&& forgeVersion.getSelectedItem() != forgeNotFound*/ ) {
+                    String filename;
+                    if( useHydra.isSelected() ) {
+                        filename = "version-forge.json";
+                        mod="-forge";
+                    } else {
+                        filename = "version-forge-nohydra.json";
+                        mod="-forge-nohydra";
+                    }
+
+                    version_json = new FilterInputStream( Installer.class.getResourceAsStream(filename) ) {
+                        public int read(byte[] buff) throws IOException {
+                            int ret = in.read(buff);
+                            if( ret > 0 ) {
+                                String s = new String( buff,0, ret, "UTF-8");
+                                //s = s.replace("$FORGE_VERSION", (String)forgeVersion.getSelectedItem());
+                                ret = s.length();
+                                System.arraycopy(s.getBytes("UTF-8"), 0, buff, 0, ret);
+                            }
+                            return ret;
+                        }
+
+                    };
+                } else {
+                    String filename;
+                    if( useHydra.isSelected() ) {
+                        filename = "version.json";
+                    } else {
+                        filename = "version-nohydra.json";
+                        mod="-nohydra";
+                    }
+                    version_json = Installer.class.getResourceAsStream(filename);
+                }
+                jar_id += mod;
+                InputStream version_jar =Installer.class.getResourceAsStream("version.jar");
+                if( version_jar != null && version_json != null )
+                    try {
+                        File ver_dir = new File(new File(targetDir,"versions"),jar_id);
+                        ver_dir.mkdirs();
+                        File ver_json_file = new File (ver_dir, jar_id+".json");
+                        FileOutputStream ver_json = new FileOutputStream(ver_json_file);
+                        int d;
+                        byte data[] = new byte[40960];
+
+                        // Extract json
+                        while ((d = version_json.read(data)) != -1) {
+                            ver_json.write(data,0,d);
+                        }
+                        ver_json.close();
+
+                        // Extract new lib
+                        File lib_dir = new File(targetDir,"libraries/com/mtbs3d/minecrift/"+version);
+                        lib_dir.mkdirs();
+                        File ver_file = new File (lib_dir, "minecrift-"+version+".jar");
+                        FileOutputStream ver_jar = new FileOutputStream(ver_file);
+                        while ((d = version_jar.read(data)) != -1) {
+                            ver_jar.write(data,0,d);
+                        }
+                        ver_jar.close();
+
+                        //Create empty version jar file
+                        //All code actually lives in libraries/
+                        ZipOutputStream null_jar = new ZipOutputStream(new FileOutputStream(new File (ver_dir, jar_id+".jar")));
+                        null_jar.putNextEntry(new ZipEntry("Classes actually in libraries directory"));
+                        null_jar.closeEntry();
+                        null_jar.close();
+                        return ver_json_file.exists() && ver_file.exists();
+                    } catch (Exception e) {
+                        finalMessage += " Error: "+e.getLocalizedMessage();
+                    }
+
+            }
+            return false;
+        }
 
         private boolean EnableHRTF()           // Implementation by Zach Jaggi
         {
@@ -343,22 +342,25 @@ public class Installer extends JPanel  implements PropertyChangeListener
             } catch (InterruptedException e) {}
         }
 
-		/*
-		 * Main task. Executed in background thread.
-		 */
-		public String finalMessage;
-		@Override
-		public Void doInBackground() {
-			finalMessage = "Failed: Couldn't download Optifine. ";
+        /*
+         * Main task. Executed in background thread.
+         */
+        public String finalMessage;
+        @Override
+        public Void doInBackground()
+        {
+            StringBuilder sbErrors = new StringBuilder();
+            String minecriftVersionName = "minecrift-" + version + mod;
+            finalMessage = "Failed: Couldn't download Optifine. ";
             monitor.setNote("Checking Optifine... Please donate to them!");
             monitor.setProgress(5);
-			// Attempt optifine download...
-			boolean downloadedOptifine = false;
-			sleep(1800);
+            // Attempt optifine download...
+            boolean downloadedOptifine = false;
+            sleep(1800);
             monitor.setNote("Downloading Optifine... Please donate to them!");
 
-			for (int i = 1; i <= 3; i++)
-			{
+            for (int i = 1; i <= 3; i++)
+            {
                 monitor.setProgress(10 * i);
                 if (DownloadOptiFine())
                 {
@@ -401,44 +403,55 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 monitor.setProgress(85);
                 monitor.setNote("Configuring HRTF audio...");
                 sleep(800);
-                finalMessage = "Failed to set up HRTF! Your game will still work but audio won't be binaural.";
                 if(!EnableHRTF())
                 {
-                    monitor.close();
-                    return null;
+                    sbErrors.append("Failed to set up HRTF! Minecrift will still work but audio won't be binaural.\n");
                 }
             }
+            boolean profileCreated = false;
+            if (createProfile.isSelected())
+            {
+                monitor.setProgress(95);
+                monitor.setNote("Creating Minecrift profile...");
+                sleep(800);
+                if (!updateLauncherJson(targetDir, minecriftVersionName))
+                    sbErrors.append("Failed to set up 'Minecrift' profile (you can still manually select Edit Profile->Use Version " + minecriftVersionName + " in the Minecraft launcher)\n");
+                else
+                    profileCreated = true;
+            }
             if (!downloadedOptifine) {
-                finalMessage = "Installed (but failed to download OptiFine). Restart Minecraft and Edit Profile->Use Version minecrift-" + version + mod +
+                finalMessage = "Installed (but failed to download OptiFine). Restart Minecraft" +
+                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName() + "' profile.") +
                         "\nPlease download and install Optifine " + OF_FILE_NAME + " from https://optifine.net/downloads before attempting to play.";
             }
             else {
-                finalMessage = "Installed Successfully! Restart Minecraft and Edit Profile->Use Version minecrift-" + version + mod;
+                finalMessage = "Installed successfully! Restart Minecraft" +
+                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName() + "' profile.");
             }
             monitor.setProgress(100);
             monitor.close();
-			return null;
-		}
+            return null;
+        }
 
-		/*
-		 * Executed in event dispatching thread
-		 */
-		@Override
-		public void done() {
-			setCursor(null); // turn off the wait cursor
+        /*
+         * Executed in event dispatching thread
+         */
+        @Override
+        public void done() {
+            setCursor(null); // turn off the wait cursor
             JOptionPane.showMessageDialog(null, finalMessage, "Complete", JOptionPane.INFORMATION_MESSAGE);
-	        dialog.dispose();
-	        emptyFrame.dispose();
-		}
+            dialog.dispose();
+            emptyFrame.dispose();
+        }
 
-	}
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
+    }
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
         if ("progress" == evt.getPropertyName()) {
             int progress = (Integer) evt.getNewValue();
             System.out.println(progress);
-        } 
-	}
+        }
+    }
 
     public void run()
     {
@@ -454,21 +467,21 @@ public class Installer extends JPanel  implements PropertyChangeListener
         int result = (Integer) (optionPane.getValue() != null ? optionPane.getValue() : -1);
         if (result == JOptionPane.OK_OPTION)
         {
-        	monitor = new ProgressMonitor(null, "Installing Minecrift...", "", 0, 100);
-        	monitor.setMillisToDecideToPopup(0);
-        	monitor.setMillisToPopup(0);
+            monitor = new ProgressMonitor(null, "Installing Minecrift...", "", 0, 100);
+            monitor.setMillisToDecideToPopup(0);
+            monitor.setMillisToPopup(0);
 
             task = new InstallTask();
-        	task.addPropertyChangeListener(this);
+            task.addPropertyChangeListener(this);
             task.execute();
         }
         else{
-	        dialog.dispose();
-	        emptyFrame.dispose();
+            dialog.dispose();
+            emptyFrame.dispose();
         }
     }
 
-	private static void createAndShowGUI() {
+    private static void createAndShowGUI() {
         String userHomeDir = System.getProperty("user.home", ".");
         String osType = System.getProperty("os.name").toLowerCase();
         String mcDir = ".minecraft";
@@ -486,16 +499,60 @@ public class Installer extends JPanel  implements PropertyChangeListener
         {
             minecraftDir = new File(userHomeDir, mcDir);
         }
-        
+
         Installer panel = new Installer(minecraftDir);
         panel.run();
-	}
+    }
+
+    private boolean updateLauncherJson(File mcBaseDirFile, String minecriftVer)
+    {
+        boolean result = false;
+
+        try {
+            int jsonIndentSpaces = 2;
+            String profileName = getMinecraftProfileName();
+            File fileJson = new File(mcBaseDirFile, "launcher_profiles.json");
+            String json = readAsciiFile(fileJson);
+            JSONObject root = new JSONObject(json);
+            //System.out.println(root.toString(jsonIndentSpaces));
+
+            JSONObject profiles = (JSONObject)root.get("profiles");
+            JSONObject prof = null;
+            try {
+                prof = (JSONObject) profiles.get(profileName);
+            }
+            catch (Exception e) {}
+
+            if (prof == null) {
+                prof = new JSONObject();
+                prof.put("name", profileName);
+                prof.put("javaArgs", "-Xmx1G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:-UseAdaptiveSizePolicy -Xmn128M -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true");
+                prof.put("useHopperCrashService", false);
+                prof.put("launcherVisibilityOnGameClose", "keep the launcher open");
+                profiles.put(profileName, prof);
+            }
+            prof.put("lastVersionId", minecriftVer);
+            root.put("selectedProfile", profileName);
+
+            FileWriter fwJson = new FileWriter(fileJson);
+            fwJson.write(root.toString(jsonIndentSpaces));
+            fwJson.flush();
+            fwJson.close();
+
+            result = true;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
 
     private class FileSelectAction extends AbstractAction
     {
-		private static final long serialVersionUID = 743815386102831493L;
+        private static final long serialVersionUID = 743815386102831493L;
 
-		@Override
+        @Override
         public void actionPerformed(ActionEvent e)
         {
             JFileChooser dirChooser = new JFileChooser();
@@ -506,12 +563,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
             int response = dirChooser.showOpenDialog(Installer.this);
             switch (response)
             {
-            case JFileChooser.APPROVE_OPTION:
-                targetDir = dirChooser.getSelectedFile();
-                updateFilePath();
-                break;
-            default:
-                break;
+                case JFileChooser.APPROVE_OPTION:
+                    targetDir = dirChooser.getSelectedFile();
+                    updateFilePath();
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -521,19 +578,19 @@ public class Installer extends JPanel  implements PropertyChangeListener
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         JPanel logoSplash = new JPanel();
-    	logoSplash.setLayout(new BoxLayout(logoSplash, BoxLayout.Y_AXIS));
-	    try {
-	        BufferedImage image;
-			image = ImageIO.read(Installer.class.getResourceAsStream("logo.png"));
-	        ImageIcon icon = new ImageIcon(image);
-	        JLabel logoLabel = new JLabel(icon);
-	        logoLabel.setAlignmentX(CENTER_ALIGNMENT);
-	        logoLabel.setAlignmentY(CENTER_ALIGNMENT);
-	        logoLabel.setSize(image.getWidth(), image.getHeight());
-	        logoSplash.add(logoLabel);
-		} catch (IOException e) {
-		} catch( IllegalArgumentException e) {
-		}
+        logoSplash.setLayout(new BoxLayout(logoSplash, BoxLayout.Y_AXIS));
+        try {
+            BufferedImage image;
+            image = ImageIO.read(Installer.class.getResourceAsStream("logo.png"));
+            ImageIcon icon = new ImageIcon(image);
+            JLabel logoLabel = new JLabel(icon);
+            logoLabel.setAlignmentX(CENTER_ALIGNMENT);
+            logoLabel.setAlignmentY(CENTER_ALIGNMENT);
+            logoLabel.setSize(image.getWidth(), image.getHeight());
+            logoSplash.add(logoLabel);
+        } catch (IOException e) {
+        } catch( IllegalArgumentException e) {
+        }
 
         userHomeDir = System.getProperty("user.home", ".");
         osType = System.getProperty("os.name").toLowerCase();
@@ -543,24 +600,24 @@ public class Installer extends JPanel  implements PropertyChangeListener
             appDataDir = System.getenv("APPDATA");
         }
 
-	    version = "UNKNOWN";
-		try {
-			InputStream ver = Installer.class.getResourceAsStream("version");
-			if( ver != null )
-			{
-				String[] tok = new BufferedReader(new InputStreamReader(ver)).readLine().split(":");
-				if( tok.length > 0)
-				{
-					jar_id = tok[0];
-					version = tok[1];
-				}
-			}
-		} catch (IOException e) { }
+        version = "UNKNOWN";
+        try {
+            InputStream ver = Installer.class.getResourceAsStream("version");
+            if( ver != null )
+            {
+                String[] tok = new BufferedReader(new InputStreamReader(ver)).readLine().split(":");
+                if( tok.length > 0)
+                {
+                    jar_id = tok[0];
+                    version = tok[1];
+                }
+            }
+        } catch (IOException e) { }
         JLabel tag = new JLabel("Welcome! This will install Minecraft VR "+ version);
         tag.setAlignmentX(CENTER_ALIGNMENT);
         tag.setAlignmentY(CENTER_ALIGNMENT);
         logoSplash.add(tag);
-		logoSplash.add(Box.createRigidArea(new Dimension(5,20)));
+        logoSplash.add(Box.createRigidArea(new Dimension(5,20)));
         tag = new JLabel("Select path to minecraft. (The default here is almost always what you want.)");
         tag.setAlignmentX(CENTER_ALIGNMENT);
         tag.setAlignmentY(CENTER_ALIGNMENT);
@@ -569,7 +626,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         logoSplash.setAlignmentX(CENTER_ALIGNMENT);
         logoSplash.setAlignmentY(TOP_ALIGNMENT);
         this.add(logoSplash);
-		
+
 
         JPanel entryPanel = new JPanel();
         entryPanel.setLayout(new BoxLayout(entryPanel,BoxLayout.X_AXIS));
@@ -606,59 +663,63 @@ public class Installer extends JPanel  implements PropertyChangeListener
         this.add(fileEntryPanel);
         this.add(Box.createVerticalStrut(5));
 
-		JPanel optPanel = new JPanel();
-		optPanel.setLayout( new BoxLayout(optPanel, BoxLayout.Y_AXIS));
+        JPanel optPanel = new JPanel();
+        optPanel.setLayout( new BoxLayout(optPanel, BoxLayout.Y_AXIS));
         optPanel.setAlignmentX(LEFT_ALIGNMENT);
         optPanel.setAlignmentY(TOP_ALIGNMENT);
 
         //Add forge options
-		JPanel forgePanel = new JPanel();
-		forgePanel.setLayout( new BoxLayout(forgePanel, BoxLayout.X_AXIS));
+        JPanel forgePanel = new JPanel();
+        forgePanel.setLayout( new BoxLayout(forgePanel, BoxLayout.X_AXIS));
         //Create forge: no/yes buttons
-		useForge = new JCheckBox("Install with Forge " + FORGE_VERSION,false);
-		forgeVersion = new JComboBox();
+        useForge = new JCheckBox("Install with Forge " + FORGE_VERSION,false);
+        forgeVersion = new JComboBox();
+        useForge.setEnabled(true);
 
-		// TODO: Renable forge when working!
-        useForge.setEnabled(false);
+        //Add "yes" and "which version" to the forgePanel
+        useForge.setAlignmentX(LEFT_ALIGNMENT);
+        forgeVersion.setAlignmentX(LEFT_ALIGNMENT);
+        forgePanel.add(useForge);
+        //forgePanel.add(forgeVersion);
 
-		//Add "yes" and "which version" to the forgePanel
-		useForge.setAlignmentX(LEFT_ALIGNMENT);
-		forgeVersion.setAlignmentX(LEFT_ALIGNMENT);
-		forgePanel.add(useForge);
-		//forgePanel.add(forgeVersion);
-		
-		useHydra = new JCheckBox("Include Razer Hydra support",false);
-		useHydra.setAlignmentX(LEFT_ALIGNMENT);
+        // Profile creation / update support
+        createProfile = new JCheckBox("Add/update '" + getMinecraftProfileName() + "' profile", false);
+        createProfile.setAlignmentX(LEFT_ALIGNMENT);
+        createProfile.setSelected(true);
+
+        useHydra = new JCheckBox("Razer Hydra support",false);
+        useHydra.setAlignmentX(LEFT_ALIGNMENT);
 
         useHrtf = new JCheckBox("Setup binaural audio", false);
         useHrtf.setToolTipText(
                 "<html>" +
-                "If checked, the installer will create the configuration file needed for OpenAL HRTF<br>" +
-                "ear-aware sound in Minecraft (and other games).<br>" +
-                " If the file has previously been created, you do not need to check this again.<br>" +
-                " NOTE: Your sound card's output MUST be set to 44.1Khz.<br>" +
-                " WARNING, will overwrite " + (isWindows ? (appDataDir + "\\alsoft.ini") : (userHomeDir + "/.alsoftrc")) + "!<br>" +
-                " Delete the " + (isWindows ? "alsoft.ini" : "alsoftrc") + " file to disable HRTF again." +
-                "</html>");
+                        "If checked, the installer will create the configuration file needed for OpenAL HRTF<br>" +
+                        "ear-aware sound in Minecraft (and other games).<br>" +
+                        " If the file has previously been created, you do not need to check this again.<br>" +
+                        " NOTE: Your sound card's output MUST be set to 44.1Khz.<br>" +
+                        " WARNING, will overwrite " + (isWindows ? (appDataDir + "\\alsoft.ini") : (userHomeDir + "/.alsoftrc")) + "!<br>" +
+                        " Delete the " + (isWindows ? "alsoft.ini" : "alsoftrc") + " file to disable HRTF again." +
+                        "</html>");
         useHrtf.setAlignmentX(LEFT_ALIGNMENT);
 
-		//Add option panels option panel
-		forgePanel.setAlignmentX(LEFT_ALIGNMENT);
-		optPanel.add(forgePanel);
-		optPanel.add(useHydra);
+        //Add option panels option panel
+        forgePanel.setAlignmentX(LEFT_ALIGNMENT);
+        optPanel.add(createProfile);
+        optPanel.add(forgePanel);
+        optPanel.add(useHydra);
         optPanel.add(useHrtf);
-		this.add(optPanel);
+        this.add(optPanel);
 
 
         this.add(Box.createVerticalGlue());
-		JLabel website = linkify("Minecraft VR is Open Source (LGPL)! Check back here for updates.","http://minecraft-vr.com","http://minecraft-vr.com") ;
-		JLabel optifine = linkify("We make use of OptiFine for performance. Please consider donating to them!","http://optifine.net/donate.php","http://optifine.net/donate.php");
+        JLabel website = linkify("Minecraft VR is Open Source (LGPL)! Check back here for updates.","http://minecraft-vr.com","http://minecraft-vr.com") ;
+        JLabel optifine = linkify("We make use of OptiFine for performance. Please consider donating to them!","http://optifine.net/donate.php","http://optifine.net/donate.php");
 
-		website.setAlignmentX(CENTER_ALIGNMENT);
-		optifine.setAlignmentX(CENTER_ALIGNMENT);
-		this.add(Box.createRigidArea(new Dimension(5,20)));
-		this.add( website );
-		this.add( optifine );
+        website.setAlignmentX(CENTER_ALIGNMENT);
+        optifine.setAlignmentX(CENTER_ALIGNMENT);
+        this.add(Box.createRigidArea(new Dimension(5,20)));
+        this.add( website );
+        this.add( optifine );
 
         this.setAlignmentX(LEFT_ALIGNMENT);
 
@@ -668,15 +729,15 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
     private void updateFilePath()
     {
-    	String[] forgeVersions = null;
+        String[] forgeVersions = null;
         try
         {
             targetDir = targetDir.getCanonicalFile();
             if( targetDir.exists() ) {
-            	File ForgeDir = new File( targetDir, "libraries"+File.separator+"net"+File.separator+"minecraftforge"+File.separator+"minecraftforge");
-            	if( ForgeDir.isDirectory() ) {
-            		forgeVersions = ForgeDir.list();
-            	}
+                File ForgeDir = new File( targetDir, "libraries"+File.separator+"net"+File.separator+"minecraftforge"+File.separator+"minecraftforge");
+                if( ForgeDir.isDirectory() ) {
+                    forgeVersions = ForgeDir.list();
+                }
             }
             selectedDirText.setText(targetDir.getPath());
             selectedDirText.setForeground(Color.BLACK);
@@ -702,83 +763,110 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
         }
         if( forgeVersions == null || forgeVersions.length == 0 )
-        	forgeVersions =  new String[] { };
+            forgeVersions =  new String[] { };
         forgeVersion.setModel( new DefaultComboBoxModel(forgeVersions));
     }
 
-    
-	public static void main(String[] args)
+
+    public static void main(String[] args)
     {
-		try {
-        	// Set System L&F
-	        UIManager.setLookAndFeel(
-	        UIManager.getSystemLookAndFeelClassName());
-	    } catch (Exception e) { }
-		
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				createAndShowGUI();
-			}
-		});
-	}
-	public static JLabel linkify(final String text, String URL, String toolTip)
-	{
-		URI temp = null;
-		try
-		{
-			temp = new URI(URL);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		final URI uri = temp;
-		final JLabel link = new JLabel();
-		link.setText("<HTML><FONT color=\"#000099\">"+text+"</FONT></HTML>");
-		if(!toolTip.equals(""))
-			link.setToolTipText(toolTip);
-		link.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		link.addMouseListener(new MouseListener()
-		{
-			public void mouseExited(MouseEvent arg0)
-			{
-				link.setText("<HTML><FONT color=\"#000099\">"+text+"</FONT></HTML>");
-			}
+        try {
+            // Set System L&F
+            UIManager.setLookAndFeel(
+                    UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) { }
 
-			public void mouseEntered(MouseEvent arg0)
-			{
-				link.setText("<HTML><FONT color=\"#000099\"><U>"+text+"</U></FONT></HTML>");
-			}
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createAndShowGUI();
+            }
+        });
+    }
+    public static JLabel linkify(final String text, String URL, String toolTip)
+    {
+        URI temp = null;
+        try
+        {
+            temp = new URI(URL);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        final URI uri = temp;
+        final JLabel link = new JLabel();
+        link.setText("<HTML><FONT color=\"#000099\">"+text+"</FONT></HTML>");
+        if(!toolTip.equals(""))
+            link.setToolTipText(toolTip);
+        link.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        link.addMouseListener(new MouseListener()
+        {
+            public void mouseExited(MouseEvent arg0)
+            {
+                link.setText("<HTML><FONT color=\"#000099\">"+text+"</FONT></HTML>");
+            }
 
-			public void mouseClicked(MouseEvent arg0)
-			{
-				if (Desktop.isDesktopSupported())
-				{
-					try
-					{
-						Desktop.getDesktop().browse(uri);
-					}
-					catch (Exception e)
-					{
-						e.printStackTrace();
-					}
-				}
-				else
-				{
-					JOptionPane pane = new JOptionPane("Could not open link.");
-					JDialog dialog = pane.createDialog(new JFrame(), "");
-					dialog.setVisible(true);
-				}
-			}
+            public void mouseEntered(MouseEvent arg0)
+            {
+                link.setText("<HTML><FONT color=\"#000099\"><U>"+text+"</U></FONT></HTML>");
+            }
 
-			public void mousePressed(MouseEvent e)
-			{
-			}
+            public void mouseClicked(MouseEvent arg0)
+            {
+                if (Desktop.isDesktopSupported())
+                {
+                    try
+                    {
+                        Desktop.getDesktop().browse(uri);
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                else
+                {
+                    JOptionPane pane = new JOptionPane("Could not open link.");
+                    JDialog dialog = pane.createDialog(new JFrame(), "");
+                    dialog.setVisible(true);
+                }
+            }
 
-			public void mouseReleased(MouseEvent e)
-			{
-			}
-		});
-		return link;
-	}
+            public void mousePressed(MouseEvent e)
+            {
+            }
+
+            public void mouseReleased(MouseEvent e)
+            {
+            }
+        });
+        return link;
+    }
+
+    private String getMinecraftProfileName()
+    {
+        return "Minecrift" + MINECRAFT_VERSION.replace(".", "");
+    }
+    
+    public static String readAsciiFile(File file)
+        throws IOException
+    {
+        FileInputStream fin = new FileInputStream(file);
+        InputStreamReader inr = new InputStreamReader(fin, "ASCII");
+        BufferedReader br = new BufferedReader(inr);
+        StringBuffer sb = new StringBuffer();
+        for (;;) {
+            String line = br.readLine();
+            if (line == null)
+                break;
+
+            sb.append(line);
+            sb.append("\n");
+        }
+        br.close();
+        inr.close();
+        fin.close();
+
+        return sb.toString();
+    }    
 }
