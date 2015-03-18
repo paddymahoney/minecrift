@@ -33,7 +33,6 @@
 +import com.mtbs3d.minecrift.api.IStereoProvider;
 +import com.mtbs3d.minecrift.api.PluginManager;
 +import com.mtbs3d.minecrift.control.ControlBinding;
-+import com.mtbs3d.minecrift.control.JoystickAim;
 +import com.mtbs3d.minecrift.provider.MCController;
 +import com.mtbs3d.minecrift.provider.MCMouse;
 +import com.mtbs3d.minecrift.provider.MCOculus;
@@ -44,6 +43,7 @@
 +import com.mtbs3d.minecrift.settings.VRHotkeys;
 +import com.mtbs3d.minecrift.settings.VRSettings;
 +import de.fruitfly.ovr.EyeRenderParams;
++import de.fruitfly.ovr.structs.FullPoseState;
 +import de.fruitfly.ovr.OculusRift;
 +import de.fruitfly.ovr.enums.EyeType;
 +import de.fruitfly.ovr.structs.FovPort;
@@ -134,7 +134,7 @@
      private MusicTicker mcMusicTicker;
      private ResourceLocation mojangLogo;
      private final MinecraftSessionService sessionService;
-@@ -349,8 +395,96 @@
+@@ -349,8 +395,97 @@
      private String debugProfilerName = "root";
      private static final String __OBFID = "CL_00000631";
  
@@ -213,9 +213,10 @@
 +    public long medianRunTickTimeNanos = 0;
 +    public boolean canPrintFrameDebug = false;
 +    public int debugFrameCounter = 0;
-+    public long frameIndex = 0;
++    public int frameIndex = 0;
++    public FullPoseState fullPoseState = new FullPoseState();
 +
-+    public final String minecriftVerString = "Minecrift 1.8.1 BETA1";
++    public final String minecriftVerString = "Minecrift 1.8.1 Alpha1";
 +    /** END MINECRIFT */
 +
      public Minecraft(GameConfiguration p_i45547_1_)
@@ -231,7 +232,7 @@
          theMinecraft = this;
          this.mcDataDir = p_i45547_1_.field_178744_c.field_178760_a;
          this.fileAssets = p_i45547_1_.field_178744_c.field_178759_c;
-@@ -365,11 +499,13 @@
+@@ -365,11 +500,13 @@
          logger.info("Setting user: " + this.session.getUsername());
          logger.info("(Session ID is " + this.session.getSessionID() + ")");
          this.isDemo = p_i45547_1_.field_178741_d.field_178756_a;
@@ -250,7 +251,7 @@
          this.jvm64bit = isJvm64bit();
          this.theIntegratedServer = new IntegratedServer(this);
  
-@@ -423,12 +559,11 @@
+@@ -423,12 +560,11 @@
                      }
  
                      this.displayCrashReport(this.crashReporter);
@@ -264,7 +265,7 @@
              }
              catch (ReportedException var13)
              {
-@@ -436,6 +571,7 @@
+@@ -436,6 +572,7 @@
                  this.freeMemory();
                  logger.fatal("Reported exception thrown!", var13);
                  this.displayCrashReport(var13.getCrashReport());
@@ -272,7 +273,7 @@
              }
              catch (Throwable var14)
              {
-@@ -443,6 +579,7 @@
+@@ -443,6 +580,7 @@
                  this.freeMemory();
                  logger.fatal("Unreported exception thrown!", var14);
                  this.displayCrashReport(var2);
@@ -280,7 +281,7 @@
              }
              finally
              {
-@@ -497,7 +634,9 @@
+@@ -497,7 +635,9 @@
              this.fontRendererObj.setUnicodeFlag(this.isUnicode());
              this.fontRendererObj.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
          }
@@ -291,7 +292,7 @@
          this.standardGalacticFontRenderer = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii_sga.png"), this.renderEngine, false);
          this.mcResourceManager.registerReloadListener(this.fontRendererObj);
          this.mcResourceManager.registerReloadListener(this.standardGalacticFontRenderer);
-@@ -575,7 +714,9 @@
+@@ -575,7 +715,9 @@
  
          try
          {
@@ -302,7 +303,7 @@
          }
          catch (OpenGLException var2)
          {
-@@ -611,7 +752,9 @@
+@@ -611,7 +753,9 @@
      private void func_175609_am() throws LWJGLException
      {
          Display.setResizable(true);
@@ -313,7 +314,7 @@
  
          try
          {
-@@ -901,22 +1044,22 @@
+@@ -901,22 +1045,22 @@
          GlStateManager.disableDepth();
          GlStateManager.func_179098_w();
          InputStream var5 = null;
@@ -352,7 +353,7 @@
          Tessellator var6 = Tessellator.getInstance();
          WorldRenderer var7 = var6.getWorldRenderer();
          var7.startDrawingQuads();
-@@ -937,6 +1080,9 @@
+@@ -937,6 +1081,9 @@
          var4.framebufferRender(var2.getScaledWidth() * var3, var2.getScaledHeight() * var3);
          GlStateManager.enableAlpha();
          GlStateManager.alphaFunc(516, 0.1F);
@@ -362,7 +363,7 @@
          this.func_175601_h();
      }
  
-@@ -994,7 +1140,11 @@
+@@ -994,7 +1141,11 @@
          if (guiScreenIn != null)
          {
              this.setIngameNotInFocus();
@@ -375,7 +376,7 @@
              int var3 = var2.getScaledWidth();
              int var4 = var2.getScaledHeight();
              ((GuiScreen)guiScreenIn).setWorldAndResolution(this, var3, var4);
-@@ -1010,7 +1160,9 @@
+@@ -1010,7 +1161,9 @@
      /**
       * Checks for an OpenGL error. If there is one, prints the error ID and error string.
       */
@@ -386,7 +387,7 @@
      {
          if (this.field_175619_R)
          {
-@@ -1066,6 +1218,13 @@
+@@ -1066,6 +1219,13 @@
       */
      private void runGameLoop() throws IOException
      {
@@ -400,7 +401,7 @@
          this.mcProfiler.startSection("root");
  
          if (Display.isCreated() && Display.isCloseRequested())
-@@ -1073,6 +1232,9 @@
+@@ -1073,6 +1233,9 @@
              this.shutdown();
          }
  
@@ -410,7 +411,7 @@
          if (this.isGamePaused && this.theWorld != null)
          {
              float var1 = this.timer.renderPartialTicks;
-@@ -1096,81 +1258,188 @@
+@@ -1096,81 +1259,191 @@
          }
  
          this.mcProfiler.endSection();
@@ -492,14 +493,17 @@
          }
  
 -        this.mcProfiler.endSection();
-+        PluginManager.beginFrameAll();
++        // As of Oculus SDK 0.4.4, get both eye poses and tracking information before beginFrame
++        fullPoseState = getEyePoses(frameIndex);
+ 
+-        if (!this.skipRenderWorld)
 +        long preRender = System.nanoTime() - gameLoopStart;
 +        long startRender = System.nanoTime();
 +        long startEye2 = 0, startEnd = 0;
- 
--        if (!this.skipRenderWorld)
++
 +        // Mark beginning of frame AFTER any GUI rendering to allow maximum
 +        // latency reduction
++        PluginManager.beginFrameAll(frameIndex);
 +        frameTiming = this.stereoProvider.getFrameTiming();
 +
 +        /** Minecrift - main stereo render loop **/
@@ -522,7 +526,7 @@
 +            this.displayWidth = this.EyeTextureSize[this.currentEye.value()].w;
 +            this.displayHeight = this.EyeTextureSize[this.currentEye.value()].h;
 +
-+            currentPose = getEyePose(this.currentEye);
++            currentPose = fullPoseState.getPose(this.currentEye);
 +
 +            GlStateManager.pushMatrix();
 +            GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);     // GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT)?
@@ -651,7 +655,7 @@
  
          while (getSystemTime() >= this.debugUpdateTime + 1000L)
          {
-@@ -1186,54 +1455,70 @@
+@@ -1186,54 +1459,70 @@
                  this.usageSnooper.startSnooper();
              }
          }
@@ -757,7 +761,7 @@
      }
  
      public boolean isFramerateLimitBelowMax()
-@@ -1309,10 +1594,19 @@
+@@ -1309,10 +1598,19 @@
      /**
       * Parameter appears to be unused
       */
@@ -778,7 +782,7 @@
              List var3 = this.mcProfiler.getProfilingData(this.debugProfilerName);
              Profiler.Result var4 = (Profiler.Result)var3.remove(0);
              GlStateManager.clear(256);
-@@ -1330,6 +1624,14 @@
+@@ -1330,6 +1628,14 @@
              short var7 = 160;
              int var8 = this.displayWidth - var7 - 10;
              int var9 = this.displayHeight - var7 * 2;
@@ -793,7 +797,7 @@
              GlStateManager.enableBlend();
              var6.startDrawingQuads();
              var6.func_178974_a(0, 200);
-@@ -1420,6 +1722,13 @@
+@@ -1420,6 +1726,13 @@
                  this.fontRendererObj.func_175063_a(var23 = var19.format(var22.field_76332_a) + "%", (float)(var8 + var7 - 50 - this.fontRendererObj.getStringWidth(var23)), (float)(var9 + var7 / 2 + var21 * 8 + 20), var22.func_76329_a());
                  this.fontRendererObj.func_175063_a(var23 = var19.format(var22.field_76330_b) + "%", (float)(var8 + var7 - this.fontRendererObj.getStringWidth(var23)), (float)(var9 + var7 / 2 + var21 * 8 + 20), var22.func_76329_a());
              }
@@ -807,7 +811,7 @@
          }
      }
  
-@@ -1503,8 +1812,9 @@
+@@ -1503,8 +1816,9 @@
              }
          }
      }
@@ -819,7 +823,7 @@
      {
          if (this.leftClickCounter <= 0)
          {
-@@ -1512,7 +1822,9 @@
+@@ -1512,7 +1826,9 @@
  
              if (this.objectMouseOver == null)
              {
@@ -830,7 +834,7 @@
  
                  if (this.playerController.isNotCreative())
                  {
-@@ -1549,82 +1861,90 @@
+@@ -1549,82 +1865,90 @@
  
      /**
       * Called when user clicked he's mouse right button (place)
@@ -973,7 +977,7 @@
          try
          {
              this.fullscreen = !this.fullscreen;
-@@ -1673,7 +1993,9 @@
+@@ -1673,7 +1997,9 @@
              }
  
              Display.setFullscreen(this.fullscreen);
@@ -984,7 +988,7 @@
              this.func_175601_h();
          }
          catch (Exception var2)
-@@ -1687,17 +2009,21 @@
+@@ -1687,17 +2013,21 @@
       */
      private void resize(int width, int height)
      {
@@ -1017,7 +1021,7 @@
      }
  
      private void updateFramebufferSize()
-@@ -1724,6 +2050,10 @@
+@@ -1724,6 +2054,10 @@
  
          if (!this.isGamePaused)
          {
@@ -1028,7 +1032,7 @@
              this.ingameGUI.updateTick();
          }
  
-@@ -1745,6 +2075,10 @@
+@@ -1745,6 +2079,10 @@
  
          if (this.currentScreen == null && this.thePlayer != null)
          {
@@ -1039,7 +1043,7 @@
              if (this.thePlayer.getHealth() <= 0.0F)
              {
                  this.displayGuiScreen((GuiScreen)null);
-@@ -1924,6 +2258,10 @@
+@@ -1924,6 +2262,10 @@
                      }
                      else
                      {
@@ -1050,7 +1054,7 @@
                          if (var1 == 1)
                          {
                              this.displayInGameMenu();
-@@ -2019,11 +2357,13 @@
+@@ -2019,11 +2361,13 @@
  
                              if (this.gameSettings.thirdPersonView == 0)
                              {
@@ -1066,7 +1070,7 @@
                              }
                          }
  
-@@ -2154,6 +2494,12 @@
+@@ -2154,6 +2498,12 @@
  
              this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindPickBlock.getIsKeyPressed() && this.inGameHasFocus);
          }
@@ -1079,7 +1083,7 @@
  
          if (this.theWorld != null)
          {
-@@ -2295,29 +2641,55 @@
+@@ -2295,29 +2645,55 @@
  
          this.loadingScreen.displaySavingString(I18n.format("menu.loadingLevel", new Object[0]));
  
@@ -1101,12 +1105,12 @@
 +            long currentTime = System.currentTimeMillis();
  
 -            if (var6 != null)
--            {
++            if (currentTime - lastIntegratedServerLaunchCheck > 200L)
+             {
 -                this.loadingScreen.displayLoadingString(I18n.format(var6, new Object[0]));
 -            }
 -            else
-+            if (currentTime - lastIntegratedServerLaunchCheck > 200L)
-             {
+-            {
 -                this.loadingScreen.displayLoadingString("");
 -            }
 +                this.lastIntegratedServerLaunchCheck = currentTime;
@@ -1151,7 +1155,7 @@
          this.displayGuiScreen((GuiScreen)null);
          SocketAddress var11 = this.theIntegratedServer.getNetworkSystem().addLocalEndpoint();
          NetworkManager var12 = NetworkManager.provideLocalClient(var11);
-@@ -2325,7 +2697,11 @@
+@@ -2325,7 +2701,11 @@
          var12.sendPacket(new C00Handshake(47, var11.toString(), 0, EnumConnectionState.LOGIN));
          var12.sendPacket(new C00PacketLoginStart(this.getSession().getProfile()));
          this.myNetworkManager = var12;
@@ -1163,7 +1167,7 @@
  
      /**
       * unloads the current world first
-@@ -2907,11 +3283,18 @@
+@@ -2907,11 +3287,18 @@
          playerSnooper.addStatToSnooper("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
@@ -1182,7 +1186,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2919,12 +3302,14 @@
+@@ -2919,12 +3306,14 @@
  
              if (var1 != 0)
              {
@@ -1197,7 +1201,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3177,15 +3562,19 @@
+@@ -3177,15 +3566,19 @@
          return this.skinManager;
      }
  
@@ -1218,7 +1222,7 @@
      }
  
      public ListenableFuture addScheduledTask(Callable callableToSchedule)
-@@ -3345,4 +3734,985 @@
+@@ -3345,4 +3738,1004 @@
              }
          }
      }
@@ -1802,41 +1806,60 @@
 +        }
 +    }
 +
-+    public Posef getEyePose(EyeType eye)
++    public FullPoseState getEyePoses(int frameIndex)
 +    {
-+        Posef pose = new Posef();
++        FullPoseState fullPoseState = new FullPoseState();
 +
-+        // Mark getEyePose with stereo provider
++        // Call getEyePoses on the stereo provider - this will provide an initial 'template'
++        // set of orientation, position and tracking information.
 +        if (this.stereoProvider != null)
-+            this.stereoProvider.getEyePose(eye);
++            fullPoseState = this.stereoProvider.getEyePoses(frameIndex);
 +
-+        // Pull together position, orientation information (TODO: also body orientation)
++        // However, we need to use the position, orientation information (TODO: also body orientation)
++        // from the configured orientation and position providers. Granted, this may all
++        // be the same data as that provided above if it all boils down to the same provider; however if
++        // not the configured
 +
-+        // Get orient first...
++        // Get orientation first...
 +        if (this.headTracker != null && this.headTracker.isInitialized())
 +        {
-+            Quaternion orient = this.headTracker.getOrientationQuaternion();
-+            if (orient != null) {
-+                pose.Orientation.x = orient.x;
-+                pose.Orientation.y = orient.y;
-+                pose.Orientation.z = orient.z;
-+                pose.Orientation.w = orient.w;
++            Quaternion leftOrient = this.headTracker.getOrientationQuaternion(EyeType.ovrEye_Left);
++            if (leftOrient != null) {
++                fullPoseState.leftEyePose.Orientation.x = leftOrient.x;
++                fullPoseState.leftEyePose.Orientation.y = leftOrient.y;
++                fullPoseState.leftEyePose.Orientation.z = leftOrient.z;
++                fullPoseState.leftEyePose.Orientation.w = leftOrient.w;
++            }
++            Quaternion rightOrient = this.headTracker.getOrientationQuaternion(EyeType.ovrEye_Right);
++            if (rightOrient != null) {
++                fullPoseState.rightEyePose.Orientation.x = rightOrient.x;
++                fullPoseState.rightEyePose.Orientation.y = rightOrient.y;
++                fullPoseState.rightEyePose.Orientation.z = rightOrient.z;
++                fullPoseState.rightEyePose.Orientation.w = rightOrient.w;
 +            }
 +        }
 +
-+        // ...as some position providers also require orientation information
++        // ...as some position providers also require orientation information (I'm looking
++        // at you, Hydra!)
 +        if (positionTracker != null && this.positionTracker.isInitialized())
 +        {
-+            Vec3 pos = positionTracker.getEyePosition(eye);
-+            if (pos != null)
++            Vec3 leftEyePos = positionTracker.getEyePosition(EyeType.ovrEye_Left);
++            if (leftEyePos != null)
 +            {
-+                pose.Position.x = (float) pos.xCoord;
-+                pose.Position.y = (float) pos.yCoord;
-+                pose.Position.z = (float) pos.zCoord;
++                fullPoseState.leftEyePose.Position.x = (float) leftEyePos.xCoord;
++                fullPoseState.leftEyePose.Position.y = (float) leftEyePos.yCoord;
++                fullPoseState.leftEyePose.Position.z = (float) leftEyePos.zCoord;
++            }
++            Vec3 rightEyePos = positionTracker.getEyePosition(EyeType.ovrEye_Right);
++            if (rightEyePos != null)
++            {
++                fullPoseState.rightEyePose.Position.x = (float) rightEyePos.xCoord;
++                fullPoseState.rightEyePose.Position.y = (float) rightEyePos.yCoord;
++                fullPoseState.rightEyePose.Position.z = (float) rightEyePos.zCoord;
 +            }
 +        }
 +
-+        return pose;
++        return fullPoseState;
 +    }
 +
 +    public void endFrame()

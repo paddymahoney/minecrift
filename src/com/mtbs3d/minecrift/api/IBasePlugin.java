@@ -49,5 +49,7 @@ public interface IBasePlugin {
 
     public void beginFrame();
 
+    public void beginFrame(int frameIndex);
+
     public void endFrame();
 }

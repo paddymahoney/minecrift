@@ -24,10 +24,10 @@
          this.zCoord = z;
      }
  
--    public Vec3(Vec3i p_i46452_1_)
+-    public Vec3(Vec3i p_i46453_1_)
 +    public Vec3(Vec3i p_i46449_1_)
      {
--        this((double)p_i46452_1_.getX(), (double)p_i46452_1_.getY(), (double)p_i46452_1_.getZ());
+-        this((double)p_i46453_1_.getX(), (double)p_i46453_1_.getY(), (double)p_i46453_1_.getZ());
 +        this((double)p_i46449_1_.getX(), (double)p_i46449_1_.getY(), (double)p_i46449_1_.getZ());
      }
  

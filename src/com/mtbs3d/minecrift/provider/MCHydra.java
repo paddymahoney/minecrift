@@ -308,7 +308,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        //aim/body adjustments
 	        	float headYaw = 0;
 	        	if( mc.vrSettings.keyholeHeadRelative )
-		        	headYaw = mc.headTracker.getHeadYawDegrees();
+		        	headYaw = mc.headTracker.getHeadYawDegrees(EyeType.ovrEye_Center);
 	        	
 	        	//Adjust keyhole width on controller pitch; otherwise its a very narrow window at the top and bottom
 	        	float keyholeYaw = mc.vrSettings.aimKeyholeWidthDegrees/2/ MathHelper.cos(cont2Pitch * PIOVER180);
@@ -651,7 +651,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
         Minecraft mc = Minecraft.getMinecraft();
         if( resetOriginRotation && mc.headTracker == this )
         {
-        	float prevTotalYaw = mc.lookaimController.getBodyYawDegrees() + getHeadYawDegrees();
+        	float prevTotalYaw = mc.lookaimController.getBodyYawDegrees() + getHeadYawDegrees(EyeType.ovrEye_Center);
         	yawOffset = cont1Yaw;
         	if( mc.thePlayer == null )
         		//Reset bodyYaw for main menu
@@ -668,22 +668,22 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	}
 
 	@Override
-	public float getHeadYawDegrees() {
+	public float getHeadYawDegrees(EyeType eye) {
 		return cont1Yaw - yawOffset;
 	}
 
 	@Override
-	public float getHeadPitchDegrees() {
+	public float getHeadPitchDegrees(EyeType eye) {
 		return cont1Pitch;
 	}
 
 	@Override
-	public float getHeadRollDegrees() {
+	public float getHeadRollDegrees(EyeType eye) {
 		return cont1Roll;
 	}
 
     @Override
-    public Quaternion getOrientationQuaternion()
+    public Quaternion getOrientationQuaternion(EyeType eye)
     {
         // Needs x, y, z, w
         Quaternion orientation   = new Quaternion(cont1OrientationQuat_xyzw[0],
@@ -759,7 +759,8 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		
 	}
 
-    public void beginFrame() { polledThisFrame = false; }
+    public void beginFrame() { beginFrame(0); }
+    public void beginFrame(int frameIndex) { polledThisFrame = false; }
     public void endFrame() { }
 
     @Override

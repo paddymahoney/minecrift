@@ -45,14 +45,14 @@
 -                            }
 +	                        /** MINECRIFT */
 +	                            boolean skipRender = true;
-+
+ 
+-                            ++this.countEntitiesRendered;
 +								if (this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_FULL)
 +	                                skipRender = false;
  
--                            ++this.countEntitiesRendered;
 +	                            if (skipRender)
 +	                                continue;
- 
++
 +	                            thePlayer = var28;
 +	                        }
 +
@@ -80,7 +80,22 @@
  
                          if (!var31 && var28 instanceof EntityWitherSkull)
                          {
-@@ -883,6 +904,35 @@
+@@ -796,13 +817,8 @@
+             {
+                 Iterator var48 = this.n.iterator();
+ 
+-                while (true)
++                while (var48.hasNext())
+                 {
+-                    if (!var48.hasNext())
+-                    {
+-                        break;
+-                    }
+-
+                     TileEntity var39 = (TileEntity)var48.next();
+ 
+                     if (forgeTileEntityPass)
+@@ -888,6 +904,35 @@
                      TileEntityRendererDispatcher.instance.func_180546_a(var42, partialTicks, var47.getPartialBlockDamage());
                  }
              }

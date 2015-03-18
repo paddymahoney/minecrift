@@ -6,6 +6,7 @@ package com.mtbs3d.minecrift.api;
 
 
 import de.fruitfly.ovr.EyeRenderParams;
+import de.fruitfly.ovr.structs.FullPoseState;
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
 
@@ -47,6 +48,8 @@ public interface IStereoProvider extends IBasePlugin
     public FrameTiming getFrameTiming();
 
     public Posef getEyePose(EyeType eye);
+
+    public FullPoseState getEyePoses(int frameIndex);
 
     public Matrix4f getMatrix4fProjection(FovPort fov,
                                           float nearClip,

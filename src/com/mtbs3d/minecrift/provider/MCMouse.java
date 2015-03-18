@@ -130,7 +130,8 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	@Override
 	public void mapBinding(ControlBinding binding) {
 	}
-    public void beginFrame() { polledThisFrame = false; }
+    public void beginFrame() { beginFrame(0); }
+    public void beginFrame(int frameIndex) { polledThisFrame = false; }
     public void endFrame() { }
 
     @Override

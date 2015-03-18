@@ -194,6 +194,15 @@ public class PluginManager implements IEventListener
         }
     }
 
+    public static void beginFrameAll(int frameIndex)
+    {
+        for( IBasePlugin p : thePluginManager.allPlugins )
+        {
+            if( p.isInitialized() )
+                p.beginFrame(frameIndex);
+        }
+    }
+
     public static void endFrameAll()
     {
         for( IBasePlugin p : thePluginManager.allPlugins )

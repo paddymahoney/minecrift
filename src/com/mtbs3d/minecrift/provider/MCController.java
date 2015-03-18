@@ -530,7 +530,8 @@ public class MCController extends BasePlugin implements IBodyAimController
 		nextBind = binding;
 	}
 
-    public void beginFrame() { polledThisFrame = false; }
+    public void beginFrame() { beginFrame(0); }
+    public void beginFrame(int frameIndex) { polledThisFrame = false; }
     public void endFrame() { }
 
     @Override

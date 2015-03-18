@@ -129,6 +129,7 @@ public class NullEyePosition extends BasePlugin implements IEyePositionProvider 
     public void eventNotification(int eventId) {
     }
 
-    public void beginFrame() { polledThisFrame = false; }
+    public void beginFrame() { beginFrame(0); }
+    public void beginFrame(int frameIndex) { polledThisFrame = false; }
     public void endFrame() { }
 }

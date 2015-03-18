@@ -1894,13 +1894,13 @@
 +    public void orientModelView(boolean correctOffsets, boolean adjustHeight)
 +    {
 +        // View adjust (for IPD, eye relief)
-+        if (this.mc.stereoProvider.isStereo())
-+        {
-+            Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
-+            GlStateManager.translate(viewAdjust.x * (this.mc.gameSettings.thirdPersonView == 2 ? -1f : 1f),
-+                                     viewAdjust.y,
-+                                     viewAdjust.z);
-+        }
++//        if (this.mc.stereoProvider.isStereo())
++//        {
++//            Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
++//            GlStateManager.translate(viewAdjust.x * (this.mc.gameSettings.thirdPersonView == 2 ? -1f : 1f),
++//                                     viewAdjust.y,
++//                                     viewAdjust.z);
++//        }
 +
 +        // Orientation
 +        if (this.mc.gameSettings.thirdPersonView == 2)
@@ -1999,13 +1999,13 @@
 +                float guiPitch = 0f;
 +
 +                // View adjust (for IPD, eye relief)
-+                if (this.mc.stereoProvider.isStereo())
-+                {
-+                    Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
-+                    GlStateManager.translate(viewAdjust.x,
-+                                             viewAdjust.y,
-+                                             viewAdjust.z);
-+                }
++//                if (this.mc.stereoProvider.isStereo())
++//                {
++//                    Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
++//                    GlStateManager.translate(viewAdjust.x,
++//                                             viewAdjust.y,
++//                                             viewAdjust.z);
++//                }
 +
 +                // Orientation adjust
 +                GlStateManager.rotate((float)headRoll, 0f, 0f, 1f);
@@ -2302,7 +2302,7 @@
 +    public Vector3f getViewAdjust(EyeType eye)
 +    {
 +        Vector3f viewAdjust = new Vector3f();
-+        viewAdjust.x = -this.mc.vrSettings.getHalfIPD(eye) * this.mc.vrSettings.worldScale;
++        viewAdjust.x = -this.mc.vrSettings.getHalfIPD(eye)* this.mc.vrSettings.worldScale;
 +        viewAdjust.y = this.mc.eyeRenderParams.Eyes[eye.value()].ViewAdjust.y * this.mc.vrSettings.worldScale;
 +        viewAdjust.z = (Math.abs(this.mc.eyeRenderParams.Eyes[eye.value()].ViewAdjust.z) + this.mc.vrSettings.eyeReliefAdjust) * this.mc.vrSettings.worldScale;
 +        //System.out.println("Viewadjust [" + eye.toString() + "] x=" + viewAdjust.x + ", y=" + viewAdjust.y + ", z=" + viewAdjust.z + ", worldscale=" +  this.mc.vrSettings.worldScale);

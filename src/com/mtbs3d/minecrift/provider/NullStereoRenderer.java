@@ -4,6 +4,7 @@ import com.mtbs3d.minecrift.api.BasePlugin;
 import com.mtbs3d.minecrift.api.IStereoProvider;
 import com.mtbs3d.minecrift.api.PluginType;
 import de.fruitfly.ovr.EyeRenderParams;
+import de.fruitfly.ovr.structs.FullPoseState;
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
 import org.lwjgl.opengl.Display;
@@ -95,6 +96,11 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
+    public FullPoseState getEyePoses(int frameIndex) {
+        return new FullPoseState();
+    }
+
+    @Override
     public Matrix4f getMatrix4fProjection(FovPort fov, float nearClip, float farClip) {
         return null;
     }
@@ -152,6 +158,12 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 
     @Override
     public void beginFrame()
+    {
+        beginFrame(0);
+    }
+
+    @Override
+    public void beginFrame(int frameIndex)
     {
         frameTiming = new FrameTiming();
         frameTiming.ScanoutMidpointSeconds = getCurrentTimeSecs();  // Hack to current for now - doesn't really matter
