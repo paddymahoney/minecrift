@@ -736,6 +736,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
     public Installer(File targetDir)
     {
+        ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         JPanel logoSplash = new JPanel();
@@ -837,6 +838,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
         forgeVersion = new JComboBox();
         if (!ALLOW_FORGE_INSTALL)
             useForge.setEnabled(false);
+        useForge.setToolTipText(
+                "<html>" +
+                "If checked, installs Minecrift with Forge support. The correct version of Forge<br>" +
+                "(as displayed) must already be installed.<br>" +
+                "NOT YET SUPPORTED.<br>" +
+                "</html>");
 
         //Add "yes" and "which version" to the forgePanel
         useForge.setAlignmentX(LEFT_ALIGNMENT);
@@ -848,9 +855,20 @@ public class Installer extends JPanel  implements PropertyChangeListener
         createProfile = new JCheckBox("Add/update '" + getMinecraftProfileName() + "' profile", false);
         createProfile.setAlignmentX(LEFT_ALIGNMENT);
         createProfile.setSelected(true);
+        createProfile.setToolTipText(
+                "<html>" +
+                "If checked, if a Minecrift profile doesn't already exist within the Minecraft launcher<br>" +
+                "one is added. Then the profile is selected, and this Minecrift version is set as the<br>" +
+                "current version.<br>" +
+                "</html>");
 
         useHydra = new JCheckBox("Include Razer Hydra support",false);
         useHydra.setAlignmentX(LEFT_ALIGNMENT);
+        useHydra.setToolTipText(
+                "<html>" +
+                "If checked, installs the additional Razor Hydra native library required for Razor Hydra<br>" +
+                "support." +
+                "</html>");
 
         useHrtf = new JCheckBox("Setup binaural audio", false);
         useHrtf.setToolTipText(
