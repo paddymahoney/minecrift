@@ -130,15 +130,18 @@ def create_install(mcp_dir):
 
     print("Creating Installer exe...")
     with open( os.path.join("installer","launch4j.xml"),"r" ) as inlaunch:
-        with open( "launch4j.xml", "w" ) as outlaunch:
+        with open( os.path.join("installer","launch4j","launch4j.xml"), "w" ) as outlaunch:
             outlaunch.write( inlaunch.read().replace("installer",installer_id))
+    
+    print("Invoking launch4j...")
     subprocess.Popen( 
         cmdsplit("java -jar \"%s\" \"%s\""% (
                 os.path.join( base_dir,"installer","launch4j","launch4j.jar"),
-                os.path.join( base_dir, "launch4j.xml"))), 
+                os.path.join( base_dir,"installer","launch4j","launch4j.xml"))), 
             cwd=os.path.join(base_dir,"installer","launch4j"),
             bufsize=-1).communicate()
-    os.unlink( "launch4j.xml" )
+            
+    os.unlink( os.path.join( base_dir,"installer","launch4j","launch4j.xml") )
     
 def main(mcp_dir):
     print 'Using mcp dir: %s' % mcp_dir
