@@ -1,7 +1,4 @@
 import org.json.JSONObject;
-import org.json.JSONString;
-import org.json.JSONStringer;
-import org.json.JSONWriter;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -13,7 +10,6 @@ import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.security.MessageDigest;
-import java.text.ParseException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -34,6 +30,20 @@ import javax.swing.border.LineBorder;
 public class Installer extends JPanel  implements PropertyChangeListener
 {
     private static final long serialVersionUID = -562178983462626162L;
+
+    private static final boolean ALLOW_FORGE_INSTALL = false;
+
+    // Currently needed for Win boxes - C++ redists
+
+    // Annoyingly we need two redists at the moment - we can only build jherico's OculusSDK with
+    // VS2012 in cmake currently (for some reason it will not build under VS2010). All other win
+    // native libs are compiled under VS2010. Hence we need *two* redists, and then one for 32 bit,
+    // and one for 64bit (so we account for all windows / JRE 32 / 64 bit combinations). Bad.
+
+    public static String winredist2012_64url = "http://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x64.exe";
+    public static String winredist2012_32url = "http://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x86.exe";
+    public static String winredist2010_64url = "http://download.microsoft.com/download/A/8/0/A80747C3-41BD-45DF-B505-E9710D2744E0/vcredist_x64.exe";
+    public static String winredist2010_32url = "http://download.microsoft.com/download/C/6/D/C6D0FD4E-9E53-4897-9B91-836EBA2AACD3/vcredist_x86.exe";
 
     /* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
     private static final String MINECRAFT_VERSION = "1.8.1";
@@ -109,22 +119,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 }
 
                 // Need to attempt download...
-                FileOutputStream fos = new FileOutputStream(fo);
-                try {
-                    String surl = "http://optifine.net/download.php?f=OptiFine_" + OF_FILE_NAME + OF_VERSION_EXT;
-                    System.out.println(surl);
-                    URL url = new URL(surl);
-                    ReadableByteChannel rbc = Channels.newChannel(url.openStream());
-                    long bytes = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-                    fos.flush();
-                }
-                catch(Exception ex) {
-                    ex.printStackTrace();
-                    success = false;
-                }
-                finally {
-                    fos.close();
-                }
+                success = downloadFile("http://optifine.net/download.php?f=OptiFine_" + OF_FILE_NAME + OF_VERSION_EXT, fo);
 
                 // Check (potentially) downloaded optifine md5
                 optOnDiskMd5 = GetMd5(fo);
@@ -146,6 +141,34 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 finalMessage += " Error: "+e.getLocalizedMessage();
             }
             return false;
+        }
+
+        private boolean downloadFile(String surl, File fo)
+        {
+            boolean success = true;
+
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(fo);
+                System.out.println(surl);
+                URL url = new URL(surl);
+                ReadableByteChannel rbc = Channels.newChannel(url.openStream());
+                long bytes = fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+                fos.flush();
+            }
+            catch(Exception ex) {
+                ex.printStackTrace();
+                success = false;
+            }
+            finally {
+                if (fos != null) {
+                    try {
+                        fos.close();
+                    } catch (Exception e) { }
+                }
+            }
+
+            return success;
         }
 
         private String GetMd5(File fo)
@@ -351,9 +374,148 @@ public class Installer extends JPanel  implements PropertyChangeListener
         {
             StringBuilder sbErrors = new StringBuilder();
             String minecriftVersionName = "minecrift-" + version + mod;
+            boolean checkedRedists = false;
+            boolean redistSuccess = true;
+
+            finalMessage = "Failed: Couldn't download C++ redistributables. ";
+            monitor.setNote("Checking for required libraries...");
+            monitor.setProgress(5);
+            sleep(800);
+
+            if (System.getProperty("os.name").contains("Windows"))
+            {
+                // Windows C++ redists (ah the joys of c native code)
+
+                checkedRedists = true;
+
+                String tempDir = System.getProperty("java.io.tmpdir");
+
+                // Determine if we have a Win 64bit OS.
+                boolean is64bitOS = (System.getenv("ProgramFiles(x86)") != null);
+
+                File redist2012_64 = new File(tempDir + "/vcredist_x64_2012.exe");
+                File redist2012_32 = new File(tempDir + "/vcredist_x86_2012.exe");
+                File redist2010_64 = new File(tempDir + "/vcredist_x64_2010.exe");
+                File redist2010_32 = new File(tempDir + "/vcredist_x86_2010.exe");
+
+                boolean neededRedist2012_64 = false;
+                boolean neededRedist2012_32 = false;
+                boolean neededRedist2010_64 = false;
+                boolean neededRedist2010_32 = false;
+
+                // Download VS 2012 64bit
+                if (redistSuccess && is64bitOS) {
+                    if (!redist2012_64.exists()) {
+                        neededRedist2012_64 = true;
+                        monitor.setNote("Downloading VC 2012 C++ 64bit redist...");
+                        monitor.setProgress(10);
+                        if (!downloadFile(winredist2012_64url, redist2012_64)) {
+                            redist2012_64.deleteOnExit();
+                            redistSuccess = false;
+                        }
+                    }
+                }
+
+                // Download VS 2010 64bit
+                if (redistSuccess && is64bitOS) {
+                    if (!redist2010_64.exists()) {
+                        neededRedist2010_64 = true;
+                        monitor.setNote("Downloading VC 2010 C++ 64bit redist...");
+                        monitor.setProgress(15);
+                        if (!downloadFile(winredist2010_64url, redist2010_64)) {
+                            redist2010_64.deleteOnExit();
+                            redistSuccess = false;
+                        }
+                    }
+                }
+
+                // Download VS 2012 32bit
+                if (redistSuccess && !redist2012_32.exists()) {
+                    neededRedist2012_32 = true;
+                    monitor.setNote("Downloading VC 2012 C++ 32bit redist...");
+                    monitor.setProgress(20);
+                    if (!downloadFile(winredist2012_32url, redist2012_32)) {
+                        redist2012_32.deleteOnExit();
+                        redistSuccess = false;
+                    }
+                }
+
+                // Download VS 2010 32bit
+                if (redistSuccess && !redist2010_32.exists()) {
+                    neededRedist2010_32 = true;
+                    monitor.setNote("Downloading VC 2010 C++ 32bit redist...");
+                    monitor.setProgress(25);
+                    if (!downloadFile(winredist2010_32url, redist2010_32)) {
+                        redist2010_32.deleteOnExit();
+                        redistSuccess = false;
+                    }
+                }
+
+                // Install VS2012 64bit
+                if (redistSuccess && is64bitOS && neededRedist2012_64) {
+                    monitor.setNote("Installing VC 2010 C++ 32bit redist...");
+                    monitor.setProgress(30);
+                    try {
+                        Process process = new ProcessBuilder(redist2012_64.getAbsolutePath(), "/passive", "/norestart").start();
+                        process.waitFor();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        redist2012_64.deleteOnExit();
+                        redistSuccess = false;
+                    }
+                }
+
+                // Install VS2010 64bit
+                if (redistSuccess && is64bitOS && neededRedist2010_64) {
+                    monitor.setNote("Installing VC 2010 C++ 64bit redist...");
+                    monitor.setProgress(33);
+                    try {
+                        Process process = new ProcessBuilder(redist2010_64.getAbsolutePath(), "/passive", "/norestart").start();
+                        process.waitFor();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        redist2010_64.deleteOnExit();
+                        redistSuccess = false;
+                    }
+                }
+
+                // Install VS2012 32bit
+                if (redistSuccess && neededRedist2012_32) {
+                    monitor.setNote("Installing VC 2012 C++ 32bit redist...");
+                    monitor.setProgress(36);
+                    try {
+                        Process process = new ProcessBuilder(redist2012_32.getAbsolutePath(), "/passive", "/norestart").start();
+                        process.waitFor();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        redist2012_32.deleteOnExit();
+                        redistSuccess = false;
+                    }
+                }
+
+                // Install VS2010 32bit
+                if (redistSuccess && neededRedist2010_32) {
+                    monitor.setNote("Installing VC 2010 C++ 32bit redist...");
+                    monitor.setProgress(39);
+                    try {
+                        Process process = new ProcessBuilder(redist2010_32.getAbsolutePath(), "/passive", "/norestart").start();
+                        process.waitFor();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        redist2010_32.deleteOnExit();
+                        redistSuccess = false;
+                    }
+                }
+            }
+
+            if (checkedRedists && !redistSuccess) {
+                monitor.close();
+                return null;
+            }
+
             finalMessage = "Failed: Couldn't download Optifine. ";
             monitor.setNote("Checking Optifine... Please donate to them!");
-            monitor.setProgress(5);
+            monitor.setProgress(42);
             // Attempt optifine download...
             boolean downloadedOptifine = false;
             sleep(1800);
@@ -361,7 +523,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
             for (int i = 1; i <= 3; i++)
             {
-                monitor.setProgress(10 * i);
                 if (DownloadOptiFine())
                 {
                     // Got it!
@@ -382,22 +543,22 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
             monitor.setProgress(50);
             monitor.setNote("Setting up Minecrift as a library...");
-			finalMessage = "Failed: Couldn't setup Minecrift "+MC_VERSION+" as library. Have you run "+MINECRAFT_VERSION+" at least once yet?";
-			sleep(800);
-			if(!SetupMinecraftAsLibrary())
-			{
+            finalMessage = "Failed: Couldn't setup Minecrift "+MC_VERSION+" as library. Have you run "+MINECRAFT_VERSION+" at least once yet?";
+            sleep(800);
+            if(!SetupMinecraftAsLibrary())
+            {
                 monitor.close();
-				return null;
-			}
+                return null;
+            }
             monitor.setProgress(75);
             monitor.setNote("Extracting correct Minecrift version...");
             sleep(700);
-			finalMessage = "Failed: Couldn't extract Minecrift. Try redownloading this installer.";
-			if(!ExtractVersion())
-			{
+            finalMessage = "Failed: Couldn't extract Minecrift. Try redownloading this installer.";
+            if(!ExtractVersion())
+            {
                 monitor.close();
-				return null;
-			}
+                return null;
+            }
             if(useHrtf.isSelected())
             {
                 monitor.setProgress(85);
@@ -674,7 +835,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
         //Create forge: no/yes buttons
         useForge = new JCheckBox("Install with Forge " + FORGE_VERSION,false);
         forgeVersion = new JComboBox();
-        useForge.setEnabled(true);
+        if (!ALLOW_FORGE_INSTALL)
+            useForge.setEnabled(false);
 
         //Add "yes" and "which version" to the forgePanel
         useForge.setAlignmentX(LEFT_ALIGNMENT);
@@ -687,7 +849,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         createProfile.setAlignmentX(LEFT_ALIGNMENT);
         createProfile.setSelected(true);
 
-        useHydra = new JCheckBox("Razer Hydra support",false);
+        useHydra = new JCheckBox("Include Razer Hydra support",false);
         useHydra.setAlignmentX(LEFT_ALIGNMENT);
 
         useHrtf = new JCheckBox("Setup binaural audio", false);
@@ -847,9 +1009,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
     {
         return "Minecrift" + MINECRAFT_VERSION.replace(".", "");
     }
-    
+
     public static String readAsciiFile(File file)
-        throws IOException
+            throws IOException
     {
         FileInputStream fin = new FileInputStream(file);
         InputStreamReader inr = new InputStreamReader(fin, "ASCII");
@@ -868,5 +1030,5 @@ public class Installer extends JPanel  implements PropertyChangeListener
         fin.close();
 
         return sb.toString();
-    }    
+    }
 }
