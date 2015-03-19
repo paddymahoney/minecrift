@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.*;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URI;
 import java.nio.channels.Channels;
@@ -376,6 +377,23 @@ public class Installer extends JPanel  implements PropertyChangeListener
             String minecriftVersionName = "minecrift-" + version + mod;
             boolean checkedRedists = false;
             boolean redistSuccess = true;
+            monitor.setProgress(0);
+
+            try {
+                // Set progress dialog size (using reflection - hacky)
+                Field progressdialog = monitor.getClass().getDeclaredField("dialog");
+                if (progressdialog != null) {
+                    progressdialog.setAccessible(true);
+                    Dialog dlg = (Dialog) progressdialog.get(monitor);
+                    if (dlg != null) {
+                        dlg.setSize(450, 150);
+                        dlg.setLocationRelativeTo(null);
+                    }
+                }
+            }
+            catch (NoSuchFieldException e) {}
+            catch (IllegalAccessException e) {}
+
 
             finalMessage = "Failed: Couldn't download C++ redistributables. ";
             monitor.setNote("Checking for required libraries...");
@@ -616,7 +634,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
     public void run()
     {
-        JOptionPane optionPane = new JOptionPane(this, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+        JOptionPane optionPane = new JOptionPane(this, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, new String[]{"Install", "Cancel"});
 
         emptyFrame = new Frame("Minecraft VR Installer");
         emptyFrame.setUndecorated(true);
@@ -625,8 +643,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         dialog = optionPane.createDialog(emptyFrame, "Minecraft VR Installer");
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
-        int result = (Integer) (optionPane.getValue() != null ? optionPane.getValue() : -1);
-        if (result == JOptionPane.OK_OPTION)
+        if (((String)optionPane.getValue()).equalsIgnoreCase("Install"))
         {
             monitor = new ProgressMonitor(null, "Installing Minecrift...", "", 0, 100);
             monitor.setMillisToDecideToPopup(0);
@@ -1025,7 +1042,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
     private String getMinecraftProfileName()
     {
-        return "Minecrift" + MINECRAFT_VERSION.replace(".", "");
+        return "Minecrift " + MINECRAFT_VERSION;
     }
 
     public static String readAsciiFile(File file)
