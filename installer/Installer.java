@@ -474,7 +474,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     monitor.setNote("Installing VC 2010 C++ 32bit redist...");
                     monitor.setProgress(30);
                     try {
-                        Process process = new ProcessBuilder(redist2012_64.getAbsolutePath(), "/passive", "/norestart").start();
+                        Process process = new ProcessBuilder(redist2012_64.getAbsolutePath(), "/quiet", "/norestart").start();
                         process.waitFor();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -488,7 +488,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     monitor.setNote("Installing VC 2010 C++ 64bit redist...");
                     monitor.setProgress(33);
                     try {
-                        Process process = new ProcessBuilder(redist2010_64.getAbsolutePath(), "/passive", "/norestart").start();
+                        Process process = new ProcessBuilder(redist2010_64.getAbsolutePath(), "/quiet", "/norestart").start();
                         process.waitFor();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -502,7 +502,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     monitor.setNote("Installing VC 2012 C++ 32bit redist...");
                     monitor.setProgress(36);
                     try {
-                        Process process = new ProcessBuilder(redist2012_32.getAbsolutePath(), "/passive", "/norestart").start();
+                        Process process = new ProcessBuilder(redist2012_32.getAbsolutePath(), "/quiet", "/norestart").start();
                         process.waitFor();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -516,7 +516,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     monitor.setNote("Installing VC 2010 C++ 32bit redist...");
                     monitor.setProgress(39);
                     try {
-                        Process process = new ProcessBuilder(redist2010_32.getAbsolutePath(), "/passive", "/norestart").start();
+                        Process process = new ProcessBuilder(redist2010_32.getAbsolutePath(), "/quiet", "/norestart").start();
                         process.waitFor();
                     } catch (Exception e) {
                         e.printStackTrace();
