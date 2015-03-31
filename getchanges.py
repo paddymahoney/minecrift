@@ -33,10 +33,12 @@ def create_patch( target_dir, src_file, mod_file, label, patch_file ):
 def main(mcp_dir, patch_dir = "patches"):
     new_src_dir    = os.path.join( base_dir , "src" )
     patch_base_dir = os.path.join( base_dir , patch_dir )
+    patchsrc_base_dir = os.path.join( base_dir , "patchsrc" )
 
     try:
         shutil.rmtree( new_src_dir )
         shutil.rmtree( patch_base_dir )
+        shutil.rmtree( patchsrc_base_dir )
     except OSError as e:
         pass
     
@@ -46,6 +48,9 @@ def main(mcp_dir, patch_dir = "patches"):
     if not os.path.exists( patch_base_dir ):
         os.mkdir( patch_base_dir )
 
+    if not os.path.exists( patchsrc_base_dir ):
+        os.mkdir( patchsrc_base_dir )
+
     mod_src_dir = os.path.join( mcp_dir , "src", "minecraft" )
     org_src_dir = os.path.join( mcp_dir , "src", ".minecraft_orig" )
 
@@ -54,10 +59,13 @@ def main(mcp_dir, patch_dir = "patches"):
         new_dir   = os.path.join( new_src_dir,    pkg )
         mod_dir   = os.path.join( org_src_dir,    pkg )
         patch_dir = os.path.join( patch_base_dir, pkg )
+        patchsrc_dir = os.path.join( patchsrc_base_dir, pkg )
         if not os.path.exists(new_dir):
             os.mkdir(new_dir)
         if not os.path.exists(patch_dir):
             os.mkdir(patch_dir)
+        if not os.path.exists(patchsrc_dir):
+            os.mkdir(patchsrc_dir)
         for file_ in files:
             mod_file = os.path.join(src_dir, file_)
             org_file = os.path.join(mod_dir, file_)
@@ -75,6 +83,8 @@ def main(mcp_dir, patch_dir = "patches"):
                 label = pkg.replace("\\","/") + "/" + file_ #patch label always has "/"
 
                 create_patch( mcp_dir, org_file, mod_file, label, patch_file )
+                if os.path.exists( patch_file ):
+                    shutil.copy(mod_file, patchsrc_dir)
             else:
                 new_file = os.path.join(new_dir, file_)
                 #new class file, just replace
@@ -84,6 +94,7 @@ def main(mcp_dir, patch_dir = "patches"):
     
     removeEmptyFolders(patch_base_dir)
     removeEmptyFolders(new_src_dir)
+    removeEmptyFolders(patchsrc_base_dir)
 
 def removeEmptyFolders(path):
     if not os.path.isdir(path):
