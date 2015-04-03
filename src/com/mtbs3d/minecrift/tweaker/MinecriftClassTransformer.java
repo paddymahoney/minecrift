@@ -12,6 +12,11 @@ import java.net.URLClassLoader;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+// With apologies to Optifine. Copyright sp614x, this is built on his work.
+// The existing classes are overwritten by all of the classes in the minecrift library. The
+// minecrift code implements all of the Forge event handlers via reflection so we are 'Forge
+// compatible' for non-core mods. Forge coremods most likely wont play nicely with us however.
+
 public class MinecriftClassTransformer implements IClassTransformer
 {
     private ZipFile mcZipFile = null;
@@ -31,9 +36,9 @@ public class MinecriftClassTransformer implements IClassTransformer
                 if (zipFile != null)
                 {
                     this.mcZipFile = zipFile;
-                    dbg("Minecrift ClassTransformer");
-                    dbg("Minecrift URL: " + url);
-                    dbg("Minecrift ZIP file: " + zipFile);
+                    debug("Minecrift ClassTransformer");
+                    debug("Minecrift URL: " + url);
+                    debug("Minecrift ZIP file: " + zipFile);
                     break;
                 }
             }
@@ -45,8 +50,8 @@ public class MinecriftClassTransformer implements IClassTransformer
 
         if (this.mcZipFile == null)
         {
-            dbg("*** Can not find the Minecrift JAR in the classpath ***");
-            dbg("*** Minecrift will not be loaded! ***");
+            debug("*** Can not find the Minecrift JAR in the classpath ***");
+            debug("*** Minecrift will not be loaded! ***");
         }
     }
 
@@ -76,8 +81,8 @@ public class MinecriftClassTransformer implements IClassTransformer
 
     public byte[] transform(String name, String transformedName, byte[] bytes)
     {
-        byte[] ofBytes = this.getMinecriftClass(name);
-        return ofBytes != null ? ofBytes : bytes;
+        byte[] minecriftClass = this.getMinecriftClass(name);
+        return minecriftClass != null ? minecriftClass : bytes;
     }
 
     private byte[] getMinecriftClass(String name)
@@ -104,7 +109,7 @@ public class MinecriftClassTransformer implements IClassTransformer
 
                     if ((long)bytes.length != ze.getSize())
                     {
-                        dbg("Invalid size for " + fullName + ": " + bytes.length + ", should be: " + ze.getSize());
+                        debug("Invalid size for " + fullName + ": " + bytes.length + ", should be: " + ze.getSize());
                         return null;
                     }
                     else
@@ -141,7 +146,7 @@ public class MinecriftClassTransformer implements IClassTransformer
         }
     }
 
-    private static void dbg(String str)
+    private static void debug(String str)
     {
         System.out.println(str);
     }

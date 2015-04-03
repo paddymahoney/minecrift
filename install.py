@@ -23,6 +23,7 @@ nopatch = False
 nocompilefixpatch = False
 clean = False
 force = False
+dependenciesOnly = False
 
 try:
     WindowsError
@@ -101,8 +102,8 @@ def download_native(url, folder, name):
 
 def is_non_zero_file(fpath):  
     return True if os.path.isfile(fpath) and os.path.getsize(fpath) > 0 else False
-    
-def download_deps( mcp_dir, download_mc ):
+
+def installAndPatchMcp( mcp_dir ):
 
     mcp_exists = True
     if not os.path.exists(mcp_dir+"/runtime/commands.py"):
@@ -120,11 +121,11 @@ def download_deps( mcp_dir, download_mc ):
                 mcp_exists = True
         except:
             pass
-            
+
     if mcp_exists == False:
         print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_dir, mcp_dir, base_dir)
         exit(1)
-            
+    
     # Patch mcp.cfg for additional mem
     print("Patching mcp.cfg. Ignore \"FAILED\" hunks")
     apply_patch( mcp_dir, os.path.join("mcppatches", "mcp.cfg.patch"), os.path.join(mcp_dir,"conf"))
@@ -132,32 +133,51 @@ def download_deps( mcp_dir, download_mc ):
     # Patch mcp.cfg with minecraft jar md5
     mcp_cfg_file = os.path.join(mcp_dir,"conf","mcp.cfg")
     replacelineinfile( mcp_cfg_file, "MD5Client  =", "MD5Client  = %s\n" % mc_file_md5, True );   # Multiple 'MD5Client' entries - hack to get first one currently
-    #replacelineinfile( mcp_cfg_file, "MD5Server  =", "MD5Server  = %s\n" % mc_server_file_md5, True );   
-    
+    #replacelineinfile( mcp_cfg_file, "MD5Server  =", "MD5Server  = %s\n" % mc_server_file_md5, True );
+
     # patch joined.srg if necessary
     mcp_joined_srg = os.path.join(mcp_dir,"conf","joined.srg")
     patch_joined_srg = os.path.join(base_dir,"mcppatches","joined.srg")
     if os.path.exists(patch_joined_srg):
         print 'Updating joined.srg: copying %s to %s' % (patch_joined_srg, mcp_joined_srg)
-        shutil.copy(patch_joined_srg,mcp_joined_srg)    
-    
+        shutil.copy(patch_joined_srg,mcp_joined_srg)
+
     # Patch fffix.py
     fffix_patch_path = os.path.join(base_dir, "mcppatches", "fffix.py.patch")
     if os.path.exists(fffix_patch_path):
         print("Patching fffix.py. Ignore \"FAILED\" hunks")
         apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
-    
+
     # Patch Start.java with minecraft version
     start_java_file = os.path.join(base_dir,"mcppatches","Start.java")
-    target_start_java_file = os.path.join(mcp_dir,"conf","patches","Start.java")    
+    target_start_java_file = os.path.join(mcp_dir,"conf","patches","Start.java")
     print 'Updating Start.java: copying %s to %s' % (start_java_file, target_start_java_file)
-    shutil.copy(start_java_file,target_start_java_file)  
-    replacelineinfile( target_start_java_file, "args = concat(new String[] {\"--version\", \"mcp\"", "        args = concat(new String[] {\"--version\", \"mcp\", \"--accessToken\", \"0\", \"--assetsDir\", \"assets\", \"--assetIndex\", \"%s\", \"--userProperties\", \"{}\"}, args);\n" % mc_version );    
-        
+    shutil.copy(start_java_file,target_start_java_file)
+    replacelineinfile( target_start_java_file, "args = concat(new String[] {\"--version\", \"mcp\"", "        args = concat(new String[] {\"--version\", \"mcp\", \"--accessToken\", \"0\", \"--assetsDir\", \"assets\", \"--assetIndex\", \"%s\", \"--userProperties\", \"{}\"}, args);\n" % mc_version );
+    
     # Setup the appropriate mcp file versions
     mcp_version_cfg = os.path.join(mcp_dir,"conf","version.cfg")
     replacelineinfile( mcp_version_cfg, "ClientVersion =", "ClientVersion = %s\n" % mc_version );
-    replacelineinfile( mcp_version_cfg, "ServerVersion =", "ServerVersion = %s\n" % mc_version );    
+    replacelineinfile( mcp_version_cfg, "ServerVersion =", "ServerVersion = %s\n" % mc_version );
+
+    # Patch in mcp mappings (if present)
+    params_csv_source = os.path.join(base_dir,"mcppatches","mappings","params.csv")
+    params_csv_dest = os.path.join(mcp_dir,"conf","params.csv")
+    if os.path.exists(params_csv_source):
+        shutil.copy(params_csv_source,params_csv_dest)
+
+    methods_csv_source = os.path.join(base_dir,"mcppatches","mappings","methods.csv")
+    methods_csv_dest = os.path.join(mcp_dir,"conf","methods.csv")
+    if os.path.exists(methods_csv_source):
+        shutil.copy(methods_csv_source,methods_csv_dest)
+
+    fields_csv_source = os.path.join(base_dir,"mcppatches","mappings","fields.csv")
+    fields_csv_dest = os.path.join(mcp_dir,"conf","fields.csv")
+    if os.path.exists(fields_csv_source):
+        shutil.copy(fields_csv_source,fields_csv_dest)
+
+
+def download_deps( mcp_dir, download_mc, forgedep=False ):
 
     jars = os.path.join(mcp_dir,"jars")
 
@@ -173,16 +193,24 @@ def download_deps( mcp_dir, download_mc ):
     else:
         native = "windows"
 
-    flat_lib_dir = os.path.join(base_dir,"lib",mc_version)
-    flat_native_dir = os.path.join(base_dir,"lib",mc_version,"natives",native)
+    if not forgedep:
+        flat_lib_dir = os.path.join(base_dir,"lib",mc_version)
+        flat_native_dir = os.path.join(base_dir,"lib",mc_version,"natives",native)
+    else:
+        flat_lib_dir = os.path.join(base_dir,"lib",mc_version+"-forge")
+        flat_native_dir = os.path.join(base_dir,"lib",mc_version+"-forge","natives",native)
+
     mkdir_p( flat_lib_dir )
     mkdir_p( flat_native_dir )
      
     # Get minecrift json file
     json_file = os.path.join(versions,mc_version+".json")
-    source_json_file = os.path.join("installer",mc_version+".json")
-    print 'Updating json: copying %s to %s' % (source_json_file, json_file)
-    shutil.copy(source_json_file,json_file)
+    if forgedep is False:
+        source_json_file = os.path.join("installer",mc_version+".json")
+        print 'Updating json: copying %s to %s' % (source_json_file, json_file)
+        shutil.copy(source_json_file,json_file)
+    else:
+        source_json_file = os.path.join("installer",mc_version+"-forge.json")
     
     # Use optifine json name for destination dir and jar names
     optifine_dest_dir = os.path.join(jars,"libraries","optifine","OptiFine",of_json_name )
@@ -221,7 +249,7 @@ def download_deps( mcp_dir, download_mc ):
         sys.exit(0)
 
     json_obj = []
-    with open(json_file,"rb") as f:
+    with open(source_json_file,"rb") as f:
         #data=f.read()
         #print 'JSON File:\n%s' % data
         json_obj = json.load( f )
@@ -286,8 +314,9 @@ def download_deps( mcp_dir, download_mc ):
                 
             newlibs.append( lib )
         json_obj['libraries'] = newlibs
-        with open(json_file,"wb+") as f:
-            json.dump( json_obj,f, indent=1 )
+        if forgedep is False:
+            with open(json_file,"wb+") as f:
+                json.dump( json_obj,f, indent=1 )
     except Exception as e:
         print 'ERROR: %s' % e
         raise
@@ -379,12 +408,15 @@ def main(mcp_dir):
     print 'Using base dir: %s' % base_dir
     print 'Using mcp dir: %s (use -m <mcp-dir> to change)' % mcp_dir
     print 'Preferred architecture: %sbit - preferring %sbit native extraction (use -a 32 or -a 64 to change)' % (preferredarch, preferredarch)
-    if nomerge is True:
-        print 'NO Optifine merging'
-    if nocompilefixpatch is True:
-        print 'SKIPPING Apply compile fix patches'
-    if nopatch is True:
-        print 'SKIPPING Apply Minecrift patches'        
+    if dependenciesOnly:
+        print 'Downloading dependencies ONLY'
+    else:
+        if nomerge is True:
+            print 'NO Optifine merging'
+        if nocompilefixpatch is True:
+            print 'SKIPPING Apply compile fix patches'
+        if nopatch is True:
+            print 'SKIPPING Apply Minecrift patches'
         
     if clean == True:
         print 'Cleaning...'
@@ -404,9 +436,17 @@ def main(mcp_dir):
         reallyrmtree(mcp_dir)
         print 'Cleaning lib dir...'
         reallyrmtree(os.path.join(base_dir,'lib'))
-        
+        print 'Cleaning patchsrc dir...'
+        reallyrmtree(os.path.join(base_dir,'patchsrc'))
+        print 'Installing mcp...'
+        installAndPatchMcp(mcp_dir)
+
+
     print("\nDownloading dependencies...")
-    download_deps( mcp_dir, True )
+    download_deps( mcp_dir, True, True ) # Forge libs
+    download_deps( mcp_dir, True, False ) # Vanilla libs
+    if dependenciesOnly:
+        sys.exit(1)
 
     if nomerge == False:
         print("Applying Optifine...")
@@ -533,6 +573,7 @@ if __name__ == '__main__':
     parser.add_option('-o', '--no-optifine', dest='nomerge', default=False, action='store_true', help='If specified, no optifine merge will be carried out')
     parser.add_option('-c', '--clean', dest='clean', default=False, action='store_true', help='Cleans the mcp dir, and REMOVES ALL SOURCE IN THE MCPxxx/SRC dir. Re-downloads dependencies')
     parser.add_option('-f', '--force', dest='force', default=False, action='store_true', help='Forces any changes without prompts')
+    parser.add_option('-d', '--dependenciesOnly', dest='dep', default=False, action='store_true', help='Gets the dependencies only - no merge, compile or apply changes are performed.')
     parser.add_option('-n', '--no-patch', dest='nopatch', default=False, action='store_true', help='If specified, no patches will be applied at the end of installation')
     parser.add_option('-x', '--no-fix-patch', dest='nocompilefixpatch', default=False, action='store_true', help='If specified, no compile fix patches will be applied at the end of installation')
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
@@ -554,6 +595,7 @@ if __name__ == '__main__':
     nocompilefixpatch = options.nocompilefixpatch
     clean = options.clean
     force = options.force
+    dependenciesOnly = options.dep
     
     if not options.mcp_dir is None:
         main(os.path.abspath(options.mcp_dir))
