@@ -131,8 +131,7 @@ public class BaseGuiSettings extends GuiScreen
             if (this.buttonList.get(var3) instanceof GuiButtonEx)
             {
                 GuiButtonEx var4 = (GuiButtonEx) this.buttonList.get(var3);
-                //                          xPos                           yPos
-                boolean var5 = var1 >= var4.field_146128_h && var2 >= var4.field_146129_i && var1 < var4.field_146128_h + var4.getWidth() && var2 < var4.field_146129_i + var4.getHeight();
+                boolean var5 = var1 >= var4.xPosition && var2 >= var4.yPosition && var1 < var4.xPosition + var4.getWidth() && var2 < var4.yPosition + var4.getHeight();
 
                 if (var5) {
                     return var4;

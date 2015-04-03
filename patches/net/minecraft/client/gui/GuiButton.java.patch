@@ -8,29 +8,29 @@
  import net.minecraft.util.ResourceLocation;
  import org.lwjgl.opengl.GL11;
  
-@@ -22,6 +23,7 @@
-     public boolean field_146125_m;
-     protected boolean field_146123_n;
+@@ -34,6 +35,7 @@
+     public boolean visible;
+     protected boolean hovered;
      private static final String __OBFID = "CL_00000668";
 +    public int packedFGColour;
  
-     public GuiButton(int p_i1020_1_, int p_i1020_2_, int p_i1020_3_, String p_i1020_4_)
+     public GuiButton(int buttonId, int x, int y, String buttonText)
      {
-@@ -68,6 +70,12 @@
-             FontRenderer var4 = p_146112_1_.fontRenderer;
-             p_146112_1_.getTextureManager().bindTexture(field_146122_a);
+@@ -84,6 +86,12 @@
+             FontRenderer var4 = mc.fontRendererObj;
+             mc.getTextureManager().bindTexture(buttonTextures);
              GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-+
-+            /** MINECRIFT **/
-+            if (p_146112_2_ > Minecraft.getMinecraft().displayWidth)
-+                p_146112_2_ -= Minecraft.getMinecraft().displayWidth;
++			
++			/** MINECRIFT **/
++            if (mouseX > Minecraft.getMinecraft().displayWidth)
++                mouseX -= Minecraft.getMinecraft().displayWidth;
 +			/** END MINECRIFT **/
-+
-             this.field_146123_n = p_146112_2_ >= this.field_146128_h && p_146112_3_ >= this.field_146129_i && p_146112_2_ < this.field_146128_h + this.field_146120_f && p_146112_3_ < this.field_146129_i + this.field_146121_g;
-             int var5 = this.getHoverState(this.field_146123_n);
++			
+             this.hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
+             int var5 = this.getHoverState(this.hovered);
              GL11.glEnable(GL11.GL_BLEND);
-@@ -78,7 +86,11 @@
-             this.mouseDragged(p_146112_1_, p_146112_2_, p_146112_3_);
+@@ -94,7 +102,11 @@
+             this.mouseDragged(mc, mouseX, mouseY);
              int var6 = 14737632;
  
 -            if (!this.enabled)

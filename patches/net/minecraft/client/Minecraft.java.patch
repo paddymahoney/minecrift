@@ -108,18 +108,18 @@
  
  public class Minecraft implements IPlayerUsage
  {
-@@ -300,7 +328,9 @@
-     private IStream field_152353_at;
-     private Framebuffer mcFramebuffer;
+@@ -304,7 +332,9 @@
+     private IStream stream;
+     private Framebuffer framebufferMc;
      private TextureMap textureMapBlocks;
 -    private SoundHandler mcSoundHandler;
 +    /** MINECRIFT */
 +    public  SoundHandler mcSoundHandler; 
 +    /** END MINECRIFT */
      private MusicTicker mcMusicTicker;
-     private ResourceLocation field_152354_ay;
-     private final MinecraftSessionService field_152355_az;
-@@ -327,8 +357,91 @@
+     private ResourceLocation mojangLogo;
+     private final MinecraftSessionService sessionService;
+@@ -331,8 +361,91 @@
      private String debugProfilerName = "root";
      private static final String __OBFID = "CL_00000631";
  
@@ -195,34 +195,36 @@
 +    public Deque<Long> runTickTimeNanos = new ArrayDeque<Long>();
 +    public long medianRunTickTimeNanos = 0;
 +
-+    public final String minecriftVerString = "Minecrift 1.7.10 Alpha1";
++    public final String minecriftVerString = "Minecrift 1.7.10 Alpha1-forge";
 +    /** END MINECRIFT */
 +
-     public Minecraft(Session p_i1103_1_, int p_i1103_2_, int p_i1103_3_, boolean p_i1103_4_, boolean p_i1103_5_, File p_i1103_6_, File p_i1103_7_, File p_i1103_8_, Proxy p_i1103_9_, String p_i1103_10_, Multimap p_i1103_11_, String p_i1103_12_)
+     public Minecraft(Session sessionIn, int displayWidth, int displayHeight, boolean fullscreen, boolean isDemo, File dataDir, File assetsDir, File resourcePackDir, Proxy proxy, String version, Multimap twitchDetails, String assetsJsonVersion)
      {
 +        /** MINECRIFT */
-+        initialResolution = new Sizei(p_i1103_2_, p_i1103_3_);
++        initialResolution = new Sizei(displayWidth, displayHeight);
 +        minecriftFirstInit();
-+        p_i1103_2_ = initialResolution.w;
-+        p_i1103_3_ = initialResolution.h;
-+        p_i1103_4_ = isDirectMode ? false : p_i1103_4_;
++        displayWidth = initialResolution.w;
++        displayHeight = initialResolution.h;
++        fullscreen = isDirectMode ? false : fullscreen;
 +        /** END MINECRIFT */
 +
          theMinecraft = this;
-         this.mcDataDir = p_i1103_6_;
-         this.fileAssets = p_i1103_7_;
-@@ -418,21 +531,33 @@
+         this.mcDataDir = dataDir;
+         this.fileAssets = assetsDir;
+@@ -421,24 +534,37 @@
+         File var2 = new File(getMinecraft().mcDataDir, "crash-reports");
          File var3 = new File(var2, "crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + "-client.txt");
-         System.out.println(p_71377_1_.getCompleteReport());
- 
+         System.out.println(crashReportIn.getCompleteReport());
+-
++		/** MINECRIFT FORGE **/
 +        int retVal;
-         if (p_71377_1_.getFile() != null)
+         if (crashReportIn.getFile() != null)
          {
-             System.out.println("#@!@# Game crashed! Crash report saved to: #@!@# " + p_71377_1_.getFile());
+             System.out.println("#@!@# Game crashed! Crash report saved to: #@!@# " + crashReportIn.getFile());
 -            System.exit(-1);
 +            retVal = -1;
          }
-         else if (p_71377_1_.saveToFile(var3))
+         else if (crashReportIn.saveToFile(var3))
          {
              System.out.println("#@!@# Game crashed! Crash report saved to: #@!@# " + var3.getAbsolutePath());
 -            System.exit(-1);
@@ -234,7 +236,8 @@
 -            System.exit(-2);
 +            retVal = -2;
          }
-+
+-    }
+ 
 +        Object fmlCommonHandler = null;
 +        if( Reflector.FMLCommonHandler_instance.exists()) {
 +            fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
@@ -245,10 +248,13 @@
 +		else {
 +			System.exit(retVal);
 +		}
-     }
- 
-     public void setServer(String p_71367_1_, int p_71367_2_)
-@@ -476,7 +601,9 @@
++		/** END MINECRIFT FORGE **/
++    }
++	
+     public void setServer(String serverHostname, int serverPort)
+     {
+         this.serverName = serverHostname;
+@@ -480,7 +606,9 @@
          }
  
          Display.setResizable(true);
@@ -259,25 +265,28 @@
          logger.info("LWJGL Version: " + Sys.getVersion());
          Util.EnumOS var1 = Util.getOSType();
  
-@@ -500,7 +627,12 @@
+@@ -504,7 +632,14 @@
  
          try
          {
 -            Display.create((new PixelFormat()).withDepthBits(24));
++			/** MINECRIFT FORGE **/
 +            if (Reflector.ForgeHooksClient_createDisplay.exists()) {
 +                Reflector.callVoid(Reflector.ForgeHooksClient_createDisplay, new Object[0]);
 +			}
 +			else {
 +				Display.create((new PixelFormat()).withDepthBits(24));
 +			}
++			/** END MINECRIFT FORGE **/
          }
          catch (LWJGLException var7)
          {
-@@ -548,7 +680,18 @@
+@@ -552,7 +687,20 @@
          this.mcResourceManager = new SimpleReloadableResourceManager(this.metadataSerializer_);
          this.mcLanguageManager = new LanguageManager(this.metadataSerializer_, this.gameSettings.language);
          this.mcResourceManager.registerReloadListener(this.mcLanguageManager);
 -        this.refreshResources();
++		/** MINECRIFT FORGE **/
 +        Object fmlClientHandler = null;
 +        if( Reflector.FMLClientHandler_instance.exists())
 +        {
@@ -290,25 +299,27 @@
 +		else {
 +			this.refreshResources();
 +		}
++		/** END MINECRIFT FORGE **/
          this.renderEngine = new TextureManager(this.mcResourceManager);
          this.mcResourceManager.registerReloadListener(this.renderEngine);
-         this.field_152350_aA = new SkinManager(this.renderEngine, new File(this.fileAssets, "skins"), this.field_152355_az);
-@@ -563,7 +706,9 @@
-             this.fontRenderer.setUnicodeFlag(this.func_152349_b());
-             this.fontRenderer.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
+         this.skinManager = new SkinManager(this.renderEngine, new File(this.fileAssets, "skins"), this.sessionService);
+@@ -567,7 +715,9 @@
+             this.fontRendererObj.setUnicodeFlag(this.isUnicode());
+             this.fontRendererObj.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
          }
 -
 +        /** MINECRIFT */
 +        initMinecrift();
 +        /** END MINECRIFT */
          this.standardGalacticFontRenderer = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii_sga.png"), this.renderEngine, false);
-         this.mcResourceManager.registerReloadListener(this.fontRenderer);
+         this.mcResourceManager.registerReloadListener(this.fontRendererObj);
          this.mcResourceManager.registerReloadListener(this.standardGalacticFontRenderer);
-@@ -609,12 +754,38 @@
+@@ -613,17 +763,45 @@
          this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items"));
          GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
          this.effectRenderer = new EffectRenderer(this.theWorld, this.renderEngine);
-+        if( fmlClientHandler != null )
++        /** MINECRIFT FORGE **/
++		if( fmlClientHandler != null )
 +        {
 +            Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_finishMinecraftLoading, new Object[0]);
 +        }
@@ -343,13 +354,22 @@
          }
          else
          {
-@@ -630,9 +801,14 @@
+             this.displayGuiScreen(new GuiMainMenu());
+         }
++		/** END MINECRIFT FORGE **/
+ 
+         this.renderEngine.deleteTexture(this.mojangLogo);
+         this.mojangLogo = null;
+@@ -633,10 +811,16 @@
+         {
              this.toggleFullscreen();
          }
- 
+-
++		/** MINECRIFT FORGE **/
 +        if( fmlClientHandler != null ) {
 +            Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_onInitializationComplete, new Object[0]);
 +        }
++		/** END MINECRIFT FORGE **/
          try
          {
 -            Display.setVSyncEnabled(this.gameSettings.enableVsync);
@@ -359,126 +379,91 @@
          }
          catch (OpenGLException var4)
          {
-@@ -778,17 +954,17 @@
+@@ -782,8 +966,8 @@
          GL11.glDisable(GL11.GL_FOG);
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glEnable(GL11.GL_TEXTURE_2D);
 -
 -        try
--        {
--            this.field_152354_ay = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
--            this.renderEngine.bindTexture(this.field_152354_ay);
--        }
--        catch (IOException var7)
--        {
--            logger.error("Unable to load logo: " + locationMojangPng, var7);
++/** MINECRIFT */       // TODO REFACTOR! The loadScreen mods here and below are just to clear the screen to white... !
++/*      try
+         {
+             this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
+             this.renderEngine.bindTexture(this.mojangLogo);
+@@ -791,8 +975,8 @@
+         catch (IOException var7)
+         {
+             logger.error("Unable to load logo: " + locationMojangPng, var7);
 -        }
 -
-+/** MINECRIFT */       // TODO REFACTOR! The loadScreen mods here and below are just to clear the screen to white... !
-+//        try
-+//        {
-+//            this.field_152354_ay = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
-+//            this.renderEngine.bindTexture(this.field_152354_ay);
-+//        }
-+//        catch (IOException var7)
-+//        {
-+//            logger.error("Unable to load logo: " + locationMojangPng, var7);
-+//        }
++        }*/
 +/** END MINECRIFT */
          Tessellator var4 = Tessellator.instance;
          var4.startDrawingQuads();
          var4.setColorOpaque_I(16777215);
-@@ -809,6 +985,9 @@
+@@ -813,6 +997,9 @@
          GL11.glEnable(GL11.GL_ALPHA_TEST);
          GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
          GL11.glFlush();
-+        /** MINECRIFT */
++		/** MINECRIFT */
 +        Display.update();
 +        /** END MINECRIFT */
-         this.func_147120_f();
+         this.resetSize();
      }
  
-@@ -841,7 +1020,7 @@
+@@ -845,7 +1032,8 @@
       */
-     public void displayGuiScreen(GuiScreen p_147108_1_)
+     public void displayGuiScreen(GuiScreen guiScreenIn)
      {
 -        if (this.currentScreen != null)
++		/** MINECRIFT FORGE **/
 +        if (!Reflector.forgeExists() && this.currentScreen != null)
          {
              this.currentScreen.onGuiClosed();
          }
-@@ -855,6 +1034,20 @@
-             p_147108_1_ = new GuiGameOver();
+@@ -858,6 +1046,21 @@
+         {
+             guiScreenIn = new GuiGameOver();
          }
- 
++		
 +        if (Reflector.forgeExists())
 +        {
 +            GuiScreen old = this.currentScreen;
-+            Object event = Reflector.newInstance(Reflector.ForgeGuiOpenEvent_Constructor, new Object[] {p_147108_1_});
++            Object event = Reflector.newInstance(Reflector.ForgeGuiOpenEvent_Constructor, new Object[] {guiScreenIn});
 +
 +            if (Reflector.postForgeBusEvent(event)) return;
 +
-+            p_147108_1_ = (GuiScreen)Reflector.getFieldValue(event, Reflector.ForgeGuiOpenEvent_gui);
-+            if (old != null && p_147108_1_ != old)
++            guiScreenIn = (GuiScreen)Reflector.getFieldValue(event, Reflector.ForgeGuiOpenEvent_gui);
++            if (old != null && guiScreenIn != old)
 +            {
 +                old.onGuiClosed();
 +            }
 +        }
-+		
-         if (p_147108_1_ instanceof GuiMainMenu)
++		/** END MINECRIFT FORGE **/
+ 
+         if (guiScreenIn instanceof GuiMainMenu)
          {
-             this.gameSettings.showDebugInfo = false;
-@@ -866,7 +1059,7 @@
-         if (p_147108_1_ != null)
+@@ -870,7 +1073,7 @@
+         if (guiScreenIn != null)
          {
              this.setIngameNotInFocus();
 -            ScaledResolution var2 = new ScaledResolution(this, this.displayWidth, this.displayHeight);
 +            ScaledResolution var2 = new ScaledResolution(this, this.displayWidth, this.displayHeight);  /** Minecrift **/
              int var3 = var2.getScaledWidth();
              int var4 = var2.getScaledHeight();
-             ((GuiScreen)p_147108_1_).setWorldAndResolution(this, var3, var4);
-@@ -882,7 +1075,9 @@
+             ((GuiScreen)guiScreenIn).setWorldAndResolution(this, var3, var4);
+@@ -886,7 +1089,9 @@
      /**
       * Checks for an OpenGL error. If there is one, prints the error ID and error string.
       */
--    private void checkGLError(String p_71361_1_)
+-    private void checkGLError(String message)
 +    /** MINECRIFT */ 
-+    public void checkGLError(String p_71361_1_)
++    public void checkGLError(String message)
 +    /** END MINECRIFT */
      {
          int var2 = GL11.glGetError();
  
-@@ -979,12 +1174,11 @@
-                     }
- 
-                     this.displayCrashReport(this.crashReporter);
--                    return;
-                 }
-             }
-             catch (MinecraftError var12)
-             {
--                ;
-+                break;
-             }
-             catch (ReportedException var13)
-             {
-@@ -992,6 +1186,7 @@
-                 this.freeMemory();
-                 logger.fatal("Reported exception thrown!", var13);
-                 this.displayCrashReport(var13.getCrashReport());
-+                break;
-             }
-             catch (Throwable var14)
-             {
-@@ -999,6 +1194,7 @@
-                 this.freeMemory();
-                 logger.fatal("Unreported exception thrown!", var14);
-                 this.displayCrashReport(var2);
-+                break;
-             }
-             finally
-             {
-@@ -1021,6 +1217,9 @@
+@@ -1026,6 +1231,9 @@
              this.shutdown();
          }
  
@@ -488,7 +473,7 @@
          if (this.isGamePaused && this.theWorld != null)
          {
              float var1 = this.timer.renderPartialTicks;
-@@ -1038,77 +1237,161 @@
+@@ -1043,77 +1251,163 @@
              this.refreshResources();
          }
  
@@ -541,41 +526,54 @@
          this.mcProfiler.endStartSection("preRenderErrors");
 -        long var6 = System.nanoTime() - var5;
 -        this.checkGLError("Pre render");
-+
++        //long var6 = System.nanoTime() - var5;
 +        //this.checkGLError("Pre render");
          RenderBlocks.fancyGrass = this.gameSettings.fancyGraphics;
          this.mcProfiler.endStartSection("sound");
-         this.mcSoundHandler.func_147691_a(this.thePlayer, this.timer.renderPartialTicks);
+         this.mcSoundHandler.setListener(this.thePlayer, this.timer.renderPartialTicks);
          this.mcProfiler.endSection();
          this.mcProfiler.startSection("render");
 -        GL11.glPushMatrix();
 -        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
--        this.mcFramebuffer.bindFramebuffer(true);
+-        this.framebufferMc.bindFramebuffer(true);
 -        this.mcProfiler.startSection("display");
 -        GL11.glEnable(GL11.GL_TEXTURE_2D);
- 
+-
 -        if (this.thePlayer != null && this.thePlayer.isEntityInsideOpaqueBlock())
 -        {
 -            this.gameSettings.thirdPersonView = 0;
 -        }
+-
+-        this.mcProfiler.endSection();
+-
+-        if (!this.skipRenderWorld)
+-        {
+-            this.mcProfiler.endStartSection("gameRenderer");
+-            this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
+-            this.mcProfiler.endSection();
+-        }
+ 
+-        GL11.glFlush();
+-        this.mcProfiler.endSection();
 +        // Render GUI to FBO if necessary
 +        this.entityRenderer.renderVrGui(this.timer.renderPartialTicks);
  
--        this.mcProfiler.endSection();
+-        if (!Display.isActive() && this.fullscreen)
+-        {
+-            this.toggleFullscreen();
 +        // Mark beginning of frame AFTER any GUI rendering to allow maximum
 +        // latency reduction
 +        PluginManager.beginFrameAll();
 +        frameTiming = this.stereoProvider.getFrameTiming();
- 
--        if (!this.skipRenderWorld)
++
 +        /** Minecrift - main stereo render loop **/
 +        
 +        for (int i = 0; i < viewPortCount; i++)
-         {
++        {
 +            this.currentEye = this.stereoProvider.eyeRenderOrder(i);
 +
-+            this.mcFramebuffer = framebuffers[this.currentEye.value()];
-+            this.mcFramebuffer.bindFramebuffer(true);
++            this.framebufferMc = framebuffers[this.currentEye.value()];
++            this.framebufferMc.bindFramebuffer(true);
 +
 +            if (this.entityRenderer != null)
 +            {
@@ -588,86 +586,70 @@
 +
 +            currentPose = getEyePose(this.currentEye);
 +
-+            GL11.glPushMatrix();
-+            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-+            //this.mcFramebuffer.bindFramebuffer(true);
-+            this.mcProfiler.startSection("display");
-+            GL11.glEnable(GL11.GL_TEXTURE_2D);
++	        GL11.glPushMatrix();
++	        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
++	        //this.framebufferMc.bindFramebuffer(true);
++	        this.mcProfiler.startSection("display");
++	        GL11.glEnable(GL11.GL_TEXTURE_2D);
 +
-+            if (this.thePlayer != null && this.thePlayer.isEntityInsideOpaqueBlock())
-+            {
-+                this.gameSettings.thirdPersonView = 0;
-+            }
++	        if (this.thePlayer != null && this.thePlayer.isEntityInsideOpaqueBlock())
++	        {
++	            this.gameSettings.thirdPersonView = 0;
++	        }
 +
-+            this.mcProfiler.endSection();
++	        this.mcProfiler.endSection();
 +
-+            // Update our orientation and position variables from the sensor polled data
-+            this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
++	        // Update our orientation and position variables from the sensor polled data
++	        this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
 +
-+            if (!this.skipRenderWorld)
-+            {
-+            Object fmlCommonHandler = null;
-+            if (Reflector.FMLCommonHandler_instance.exists()) {
-+                fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
-+            }
-+            if (fmlCommonHandler != null) {
-+                Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
-+            }
-             this.mcProfiler.endStartSection("gameRenderer");
-             this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
-             this.mcProfiler.endSection();
--        }
-+            if (fmlCommonHandler != null) {
-+                Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
-+            }
-+            }
- 
--        GL11.glFlush();
--        this.mcProfiler.endSection();
-+            //GL11.glFlush();
-+            //this.mcProfiler.endSection();
- 
--        if (!Display.isActive() && this.fullscreen)
--        {
--            this.toggleFullscreen();
--        }
-+            //if (!Display.isActive() && this.fullscreen)
-+            //{
-+            //    this.toggleFullscreen();
-+            //}
- 
--        if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)
--        {
--            if (!this.mcProfiler.profilingEnabled)
-+            if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)     // <-- TODO: Move; needs to be overlayed over GUI FBO
-+            {
-+                if (!this.mcProfiler.profilingEnabled)
-+                {
-+                    this.mcProfiler.clearProfiling();
-+                }
++	        if (!this.skipRenderWorld)
++	        {
++				/** MINECRIFT FORGE **/
++	            Object fmlCommonHandler = null;
++	            if (Reflector.FMLCommonHandler_instance.exists()) {
++	                fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
++	            }
++	            if (fmlCommonHandler != null) {
++	                Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
++	            }
++	            this.mcProfiler.endStartSection("gameRenderer");
++	            this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
++	            this.mcProfiler.endSection();
++	            if (fmlCommonHandler != null) {
++	                Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
++	            }
++				/** END MINECRIFT FORGE **/
++	        }
 +
-+                this.mcProfiler.profilingEnabled = true;
-+                this.displayDebugInfo(var6);
-+            }
-+            else
-             {
--                this.mcProfiler.clearProfiling();
-+                this.mcProfiler.profilingEnabled = false;
-+                this.prevFrameTime = System.nanoTime();
-             }
- 
--            this.mcProfiler.profilingEnabled = true;
--            this.displayDebugInfo(var6);
--        }
--        else
--        {
--            this.mcProfiler.profilingEnabled = false;
--            this.prevFrameTime = System.nanoTime();
-+            //this.guiAchievement.func_146254_a();  // <-- TODO: Move; needs to be overlayed over GUI FBO
-+            //this.mcFramebuffer.unbindFramebuffer();
++	        //GL11.glFlush();
++	        //this.mcProfiler.endSection();
++
++	        //if (!Display.isActive() && this.fullscreen)
++	        //{
++	        //    this.toggleFullscreen();
++	        //}
++
++	        if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)    // <-- TODO: Move; needs to be overlayed over GUI FBO
++	        {
++	            if (!this.mcProfiler.profilingEnabled)
++	            {
++	                this.mcProfiler.clearProfiling();
++	            }
++
++	            this.mcProfiler.profilingEnabled = true;
++	            this.displayDebugInfo(var6);
++	        }
++	        else
++	        {
++	            this.mcProfiler.profilingEnabled = false;
++	            this.prevFrameTime = System.nanoTime();
++	        }
++
++            //this.guiAchievement.updateAchievementWindow();  // <-- TODO: Move; needs to be overlayed over GUI FBO
++            //this.framebufferMc.unbindFramebuffer();
 +            GL11.glPopMatrix();
 +            GL11.glPushMatrix();
-+            //this.mcFramebuffer.framebufferRender(this.displayWidth, this.displayHeight);
++            //this.framebufferMc.framebufferRender(this.displayWidth, this.displayHeight);
 +
 +            doPostProcessing(this.currentEye);
 +
@@ -677,26 +659,41 @@
 +            GL11.glPopMatrix();
          }
  
--        this.guiAchievement.func_146254_a();
--        this.mcFramebuffer.unbindFramebuffer();
+-        if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)
+-        {
+-            if (!this.mcProfiler.profilingEnabled)
+-            {
+-                this.mcProfiler.clearProfiling();
+-            }
+-
+-            this.mcProfiler.profilingEnabled = true;
+-            this.displayDebugInfo(var6);
+-        }
+-        else
+-        {
+-            this.mcProfiler.profilingEnabled = false;
+-            this.prevFrameTime = System.nanoTime();
+-        }
++        endFrame();
+ 
+-        this.guiAchievement.updateAchievementWindow();
+-        this.framebufferMc.unbindFramebuffer();
 -        GL11.glPopMatrix();
 -        GL11.glPushMatrix();
--        this.mcFramebuffer.framebufferRender(this.displayWidth, this.displayHeight);
+-        this.framebufferMc.framebufferRender(this.displayWidth, this.displayHeight);
 -        GL11.glPopMatrix();
 -        GL11.glPushMatrix();
 -        this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);
 -        GL11.glPopMatrix();
-+        endFrame();
-+
 +        //this.checkGLError("endFrame");
          this.mcProfiler.startSection("root");
--        this.func_147120_f();
-+        //this.func_147120_f();     // Now handled in setup setupRenderConfiguration
+-        this.resetSize();
++        //this.resetSize();  // Now handled in setup setupRenderConfiguration
          Thread.yield();
          this.mcProfiler.startSection("stream");
          this.mcProfiler.startSection("update");
-@@ -1117,9 +1400,10 @@
-         this.field_152353_at.func_152922_k();
+@@ -1122,9 +1416,10 @@
+         this.stream.func_152922_k();
          this.mcProfiler.endSection();
          this.mcProfiler.endSection();
 -        this.checkGLError("Post render");
@@ -707,7 +704,7 @@
  
          while (getSystemTime() >= this.debugUpdateTime + 1000L)
          {
-@@ -1137,44 +1421,49 @@
+@@ -1142,11 +1437,12 @@
          }
  
          this.mcProfiler.endSection();
@@ -724,8 +721,11 @@
 +/** END MINECRIFT */
      }
  
-     public void func_147120_f()
--    {
+     /**
+@@ -1154,35 +1450,39 @@
+      */
+     public void resetSize()
+     {
 -        Display.update();
 -
 -        if (!this.fullscreen && Display.wasResized())
@@ -750,7 +750,6 @@
 -                this.resize(this.displayWidth, this.displayHeight);
 -            }
 -        }
-+	{
 +/** MINECRIFT */     // Now handled in setupRenderConfiguration
 +//        Display.update();
 +//
@@ -788,19 +787,19 @@
      }
  
      public boolean isFramerateLimitBelowMax()
-@@ -1456,8 +1745,9 @@
+@@ -1468,8 +1768,9 @@
              }
          }
      }
 -
--    private void func_147116_af()
+-    private void clickMouse()
 +    /** MINECRIFT */
-+    public void func_147116_af()      
++    public void clickMouse()
 +    /** END MINECRIFT */
      {
          if (this.leftClickCounter <= 0)
          {
-@@ -1465,7 +1755,9 @@
+@@ -1477,7 +1778,9 @@
  
              if (this.objectMouseOver == null)
              {
@@ -811,19 +810,18 @@
  
                  if (this.playerController.isNotCreative())
                  {
-@@ -1500,8 +1792,9 @@
-             }
-         }
-     }
--
--    private void func_147121_ag()
-+    /** MINECRIFT */
-+    public void func_147121_ag()
-+    /** END MINECRIFT */
+@@ -1516,7 +1819,9 @@
+     /**
+      * Called when user clicked he's mouse right button (place)
+      */
+-    private void rightClickMouse()
++	/** MINECRIFT */ 
++    public void rightClickMouse()
++	/** END MINECRIFT */
      {
          this.rightClickDelayTimer = 4;
          boolean var1 = true;
-@@ -1509,7 +1802,9 @@
+@@ -1524,7 +1829,9 @@
  
          if (this.objectMouseOver == null)
          {
@@ -834,35 +832,39 @@
          }
          else
          {
-@@ -1532,7 +1827,12 @@
+@@ -1547,7 +1854,14 @@
                      {
                          int var6 = var2 != null ? var2.stackSize : 0;
  
 -                        if (this.playerController.onPlayerRightClick(this.thePlayer, this.theWorld, var2, var3, var4, var5, this.objectMouseOver.sideHit, this.objectMouseOver.hitVec))
 +						boolean result = true;
++						/** MINECRIFT FORGE **/
 +						if (Reflector.ForgeEventFactory_onPlayerInteract.exists()) {
 +						    Object event = Reflector.call(Reflector.ForgeEventFactory_onPlayerInteract, new Object[] {thePlayer, Reflector.ForgePlayerInteractEvent_Action_RIGHT_CLICK_BLOCK, var3, var4, var5, this.objectMouseOver.sideHit, this.theWorld});
 +							result = !Reflector.callBoolean(event, Reflector.ForgePlayerInteractEvent_isCanceled, new Object[0]);
 +						}
++						/** END MINECRIFT FORGE **/
 +                        if (result && this.playerController.onPlayerRightClick(this.thePlayer, this.theWorld, var2, var3, var4, var5, this.objectMouseOver.sideHit, this.objectMouseOver.hitVec))
                          {
                              var1 = false;
                              this.thePlayer.swingItem();
-@@ -1559,7 +1859,12 @@
+@@ -1574,7 +1888,14 @@
          {
              ItemStack var7 = this.thePlayer.inventory.getCurrentItem();
  
 -            if (var7 != null && this.playerController.sendUseItem(this.thePlayer, this.theWorld, var7))
 +			boolean result = true;
++			/** MINECRIFT FORGE **/
 +            if (Reflector.ForgeEventFactory_onPlayerInteract.exists()) {
 +                Object event = Reflector.call(Reflector.ForgeEventFactory_onPlayerInteract, new Object[] {thePlayer, Reflector.ForgePlayerInteractEvent_Action_RIGHT_CLICK_AIR, 0, 0, 0, -1, this.theWorld});
 +                result = !Reflector.callBoolean(event, Reflector.ForgePlayerInteractEvent_isCanceled, new Object[0]);
 +            }
++			/** END MINECRIFT FORGE **/
 +            if (result && var7 != null && this.playerController.sendUseItem(this.thePlayer, this.theWorld, var7))
              {
                  this.entityRenderer.itemRenderer.resetEquippedProgress2();
              }
-@@ -1571,6 +1876,11 @@
+@@ -1586,6 +1907,11 @@
       */
      public void toggleFullscreen()
      {
@@ -874,77 +876,61 @@
          try
          {
              this.fullscreen = !this.fullscreen;
-@@ -1618,8 +1928,10 @@
+@@ -1633,8 +1959,10 @@
              }
  
              Display.setFullscreen(this.fullscreen);
 -            Display.setVSyncEnabled(this.gameSettings.enableVsync);
--            this.func_147120_f();
+-            this.resetSize();
 +            /** MINECRIFT */
 +            Display.setVSyncEnabled(true);
-+			this.func_147120_f();
++			this.resetSize();
 +            /** END MINECRIFT */
          }
          catch (Exception var2)
          {
-@@ -1632,29 +1944,35 @@
+@@ -1647,29 +1975,22 @@
       */
-     private void resize(int p_71370_1_, int p_71370_2_)
+     private void resize(int width, int height)
      {
--        this.displayWidth = p_71370_1_ <= 0 ? 1 : p_71370_1_;
--        this.displayHeight = p_71370_2_ <= 0 ? 1 : p_71370_2_;
+-        this.displayWidth = width <= 0 ? 1 : width;
+-        this.displayHeight = height <= 0 ? 1 : height;
 -
 -        if (this.currentScreen != null)
 -        {
--            ScaledResolution var3 = new ScaledResolution(this, p_71370_1_, p_71370_2_);
+-            ScaledResolution var3 = new ScaledResolution(this, width, height);
 -            int var4 = var3.getScaledWidth();
 -            int var5 = var3.getScaledHeight();
 -            this.currentScreen.setWorldAndResolution(this, var4, var5);
 -        }
 +        /** MINECRIFT */
 +        this.reinitFramebuffers = true;    // Screen resize now performed in setupRenderConfiguration
++        /** END MINECRIFT */
  
 -        this.loadingScreen = new LoadingScreenRenderer(this);
 -        this.updateFramebufferSize();
-+//        this.displayWidth = p_71370_1_ <= 0 ? 1 : p_71370_1_;
-+//        this.displayHeight = p_71370_2_ <= 0 ? 1 : p_71370_2_;
-+//
-+//        if (this.currentScreen != null)
-+//        {
-+//            ScaledResolution scaledresolution = new ScaledResolution(this, p_71370_1_, p_71370_2_);
-+//            int k = scaledresolution.getScaledWidth();
-+//            int l = scaledresolution.getScaledHeight();
-+//            this.currentScreen.setWorldAndResolution(this, k, l);
-+//        }
-+//
-+//        this.loadingScreen = new LoadingScreenRenderer(this);
-+//        this.updateFramebufferSize();
-+        /** END MINECRIFT */
      }
  
      private void updateFramebufferSize()
      {
--        this.mcFramebuffer.createBindFramebuffer(this.displayWidth, this.displayHeight);
--
--        if (this.entityRenderer != null)
--        {
--            this.entityRenderer.updateShaderGroupSize(this.displayWidth, this.displayHeight);
--        }
+-        this.framebufferMc.createBindFramebuffer(this.displayWidth, this.displayHeight);
 +        /** MINECRIFT */
-+//        this.mcFramebuffer.createBindFramebuffer(this.displayWidth, this.displayHeight);
-+//
-+//        if (this.entityRenderer != null)
-+//        {
-+//            this.entityRenderer.updateShaderGroupSize(this.displayWidth, this.displayHeight);
-+//        }
++/*      this.framebufferMc.createBindFramebuffer(this.displayWidth, this.displayHeight);
+ 
+         if (this.entityRenderer != null)
+         {
+             this.entityRenderer.updateShaderGroupSize(this.displayWidth, this.displayHeight);
+-        }
++        }*/
 +        /** END MINECRIFT */
      }
  
      /**
-@@ -1680,10 +1998,22 @@
+@@ -1694,11 +2015,24 @@
+         {
              --this.rightClickDelayTimer;
          }
- 
++		/** MINECRIFT FORGE **/
 +        Object fmlCommonHandler = null;
 +        if( Reflector.FMLCommonHandler_instance.exists()) {
 +            fmlCommonHandler = Reflector.call( Reflector.FMLCommonHandler_instance, new Object[0]);
@@ -952,7 +938,8 @@
 +        if( fmlCommonHandler != null) {
 +            Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onPreClientTick, new Object[0]);
 +        }
-+
++		/** END MINECRIFT FORGE **/
+ 
          this.mcProfiler.startSection("gui");
  
          if (!this.isGamePaused)
@@ -964,7 +951,7 @@
              this.ingameGUI.updateTick();
          }
  
-@@ -1705,6 +2035,10 @@
+@@ -1720,6 +2054,10 @@
  
          if (this.currentScreen == null && this.thePlayer != null)
          {
@@ -975,28 +962,32 @@
              if (this.thePlayer.getHealth() <= 0.0F)
              {
                  this.displayGuiScreen((GuiScreen)null);
-@@ -1778,6 +2112,10 @@
+@@ -1793,6 +2131,12 @@
  
              while (Mouse.next())
              {
++				/** MINECRIFT FORGE **/
 +                if (Reflector.ForgeHooksClient_postMouseEvent.exists()) {
 +                    if (Reflector.callBoolean(Reflector.ForgeHooksClient_postMouseEvent, new Object[0])) continue;
 +                }
++				/** END MINECRIFT FORGE **/
 +
                  var9 = Mouse.getEventButton();
                  KeyBinding.setKeyBindState(var9 - 100, Mouse.getEventButtonState());
  
-@@ -1824,6 +2162,9 @@
+@@ -1839,6 +2183,11 @@
                          this.currentScreen.handleMouseInput();
                      }
                  }
++				/** MINECRIFT FORGE **/
 +                if( fmlCommonHandler != null) {
 +                    Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_fireMouseInput, new Object[0]);
 +                }
++				/** END MINECRIFT FORGE **/
              }
  
              if (this.leftClickCounter > 0)
-@@ -1875,6 +2216,10 @@
+@@ -1890,6 +2239,10 @@
                      }
                      else
                      {
@@ -1007,19 +998,21 @@
                          if (Keyboard.getEventKey() == 1)
                          {
                              this.displayInGameMenu();
-@@ -1960,6 +2305,9 @@
+@@ -1975,6 +2328,11 @@
                              }
                          }
                      }
++					/** MINECRIFT FORGE **/
 +                    if( fmlCommonHandler != null) {
 +                        Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_fireKeyInput, new Object[0]);
 +                    }
++					/** END MINECRIFT FORGE **/
                  }
              }
  
-@@ -2056,6 +2404,12 @@
+@@ -2071,6 +2429,12 @@
  
-             this.func_147115_a(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
+             this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
          }
 +        /** MINECRIFT */
 +        else
@@ -1030,34 +1023,38 @@
  
          if (this.theWorld != null)
          {
-@@ -2151,6 +2505,10 @@
+@@ -2165,7 +2529,11 @@
+             this.mcProfiler.endStartSection("pendingConnection");
              this.myNetworkManager.processReceivedPackets();
          }
- 
+-
++		/** MINECRIFT FORGE **/
 +        if( fmlCommonHandler != null) {
 +            Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onPostClientTick, new Object[0]);
 +        }
-+		
++		/** END MINECRIFT FORGE **/
          this.mcProfiler.endSection();
          this.systemTime = getSystemTime();
      }
-@@ -2160,6 +2518,13 @@
+@@ -2175,6 +2543,15 @@
       */
-     public void launchIntegratedServer(String p_71371_1_, String p_71371_2_, WorldSettings p_71371_3_)
+     public void launchIntegratedServer(String folderName, String worldName, WorldSettings worldSettingsIn)
      {
++		/** MINECRIFT FORGE **/
 +        Object fmlClientHandler = null;
 +        if( Reflector.FMLClientHandler_instance.exists()) {
 +            fmlClientHandler = Reflector.call( Reflector.FMLClientHandler_instance, new Object[0]);
 +        }
 +        if( fmlClientHandler != null) {
-+            Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_startIntegratedServer, new Object[] {p_71371_1_, p_71371_2_, p_71371_3_});
++            Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_startIntegratedServer, new Object[] {folderName, worldName, worldSettingsIn});
 +        }
++		/** END MINECRIFT FORGE **/
          this.loadWorld((WorldClient)null);
          System.gc();
-         ISaveHandler var4 = this.saveLoader.getSaveLoader(p_71371_1_, false);
-@@ -2193,37 +2558,80 @@
+         ISaveHandler var4 = this.saveLoader.getSaveLoader(folderName, false);
+@@ -2208,37 +2585,81 @@
  
-         this.loadingScreen.displayProgressMessage(I18n.format("menu.loadingLevel", new Object[0]));
+         this.loadingScreen.displaySavingString(I18n.format("menu.loadingLevel", new Object[0]));
  
 -        while (!this.theIntegratedServer.serverIsInRunLoop())
 +/** MINECRIFT */
@@ -1078,22 +1075,15 @@
  
 -            if (var6 != null)
 -            {
--                this.loadingScreen.resetProgresAndWorkingMessage(I18n.format(var6, new Object[0]));
+-                this.loadingScreen.displayLoadingString(I18n.format(var6, new Object[0]));
 -            }
 -            else
 +            if (currentTime - lastIntegratedServerLaunchCheck > 200L)
              {
--                this.loadingScreen.resetProgresAndWorkingMessage("");
+-                this.loadingScreen.displayLoadingString("");
 -            }
 +                this.lastIntegratedServerLaunchCheck = currentTime;
- 
--            try
--            {
--                Thread.sleep(200L);
--            }
--            catch (InterruptedException var9)
--            {
--                ;
++				/** MINECRIFT FORGE **/
 +                if (Reflector.FMLStartupQuery_check.exists())
 +                {
 +                    if (!Reflector.callBoolean(Reflector.FMLStartupQuery_check, new Object[0]))
@@ -1105,16 +1095,24 @@
 +                        return false;
 +                    }
 +                }
-+
++				/** END MINECRIFT FORGE **/
+ 
+-            try
+-            {
+-                Thread.sleep(200L);
+-            }
+-            catch (InterruptedException var9)
+-            {
+-                ;
 +	            String var6 = this.theIntegratedServer.getUserMessage();
 +
 +	            if (var6 != null)
 +	            {
-+	                this.loadingScreen.resetProgresAndWorkingMessage(I18n.format(var6, new Object[0]));
++	                this.loadingScreen.displayLoadingString(I18n.format(var6, new Object[0]));
 +	            }
 +                else
 +                {
-+                    this.loadingScreen.resetProgresAndWorkingMessage("");
++                    this.loadingScreen.displayLoadingString("");
 +                }
 +
 +                // Wait & loop not used
@@ -1136,21 +1134,21 @@
 +            this.integratedServerLaunchInProgress = false;
  
 -        this.displayGuiScreen((GuiScreen)null);
--        SocketAddress var11 = this.theIntegratedServer.func_147137_ag().addLocalEndpoint();
+-        SocketAddress var11 = this.theIntegratedServer.getNetworkSystem().addLocalEndpoint();
 -        NetworkManager var12 = NetworkManager.provideLocalClient(var11);
 -        var12.setNetHandler(new NetHandlerLoginClient(var12, this, (GuiScreen)null));
 -        var12.scheduleOutboundPacket(new C00Handshake(5, var11.toString(), 0, EnumConnectionState.LOGIN), new GenericFutureListener[0]);
--        var12.scheduleOutboundPacket(new C00PacketLoginStart(this.getSession().func_148256_e()), new GenericFutureListener[0]);
+-        var12.scheduleOutboundPacket(new C00PacketLoginStart(this.getSession().getProfile()), new GenericFutureListener[0]);
 -        this.myNetworkManager = var12;
 +            // Ideally the network stuff below would also be part of the integrated server
 +            // launch, i.e. on it's own thread
 +            this.displayGuiScreen((GuiScreen) null);
-+            SocketAddress socketaddress = this.theIntegratedServer.func_147137_ag().addLocalEndpoint();
-+            NetworkManager networkmanager = NetworkManager.provideLocalClient(socketaddress);
-+            networkmanager.setNetHandler(new NetHandlerLoginClient(networkmanager, this, (GuiScreen) null));
-+            networkmanager.scheduleOutboundPacket(new C00Handshake(5, socketaddress.toString(), 0, EnumConnectionState.LOGIN), new GenericFutureListener[0]);
-+            networkmanager.scheduleOutboundPacket(new C00PacketLoginStart(this.getSession().func_148256_e()), new GenericFutureListener[0]);
-+            this.myNetworkManager = networkmanager;
++	        SocketAddress var11 = this.theIntegratedServer.getNetworkSystem().addLocalEndpoint();
++	        NetworkManager var12 = NetworkManager.provideLocalClient(var11);
++	        var12.setNetHandler(new NetHandlerLoginClient(var12, this, (GuiScreen)null));
++	        var12.scheduleOutboundPacket(new C00Handshake(5, var11.toString(), 0, EnumConnectionState.LOGIN), new GenericFutureListener[0]);
++	        var12.scheduleOutboundPacket(new C00PacketLoginStart(this.getSession().getProfile()), new GenericFutureListener[0]);
++	        this.myNetworkManager = var12;
 +
 +            return false;
 +        }
@@ -1159,27 +1157,30 @@
  
      /**
       * unloads the current world first
-@@ -2238,6 +2646,11 @@
+@@ -2253,6 +2674,13 @@
       */
-     public void loadWorld(WorldClient p_71353_1_, String p_71353_2_)
+     public void loadWorld(WorldClient worldClientIn, String loadingMessage)
      {
-+        if (this.theWorld != null && Reflector.EventBus.exists())
++		/** MINECRIFT FORGE **/
++        if (worldClientIn != null && Reflector.EventBus.exists())
 +        {
 +            Reflector.postForgeBusEvent(Reflector.ForgeWorldEvent_Unload_Constructor, new Object[] {this.theWorld});
 +        }
-+		
-         if (p_71353_1_ == null)
++		/** END MINECRIFT FORGE **/
++
+         if (worldClientIn == null)
          {
              NetHandlerPlayClient var3 = this.getNetHandler();
-@@ -2250,6 +2663,21 @@
+@@ -2265,6 +2693,23 @@
              if (this.theIntegratedServer != null)
              {
                  this.theIntegratedServer.initiateShutdown();
++				/** MINECRIFT FORGE **/
 +				if (Reflector.ForgeIntegratedServer_isServerStopped.exists())
 +				{
 +	                if (loadingScreen != null)
 +	                {
-+                    	this.loadingScreen.resetProgresAndWorkingMessage(I18n.format("forge.client.shutdown.internal"));
++                    	this.loadingScreen.resetProgressAndMessage(I18n.format("forge.client.shutdown.internal"));
 +	                }
 +                    while (!Reflector.callBoolean(Reflector.ForgeIntegratedServer_isServerStopped, new Object[0]))
 +	                {
@@ -1190,13 +1191,15 @@
 +	                    catch (InterruptedException ie) {}
 +	                }				
 +				}
++				/** END MINECRIFT FORGE **/
              }
  
              this.theIntegratedServer = null;
-@@ -2276,6 +2704,13 @@
+@@ -2291,6 +2736,15 @@
              this.mcResourcePackRepository.func_148529_f();
              this.setServerData((ServerData)null);
              this.integratedServerIsRunning = false;
++			/** MINECRIFT FORGE **/
 +            Object fmlClientHandler = null;
 +            if( Reflector.FMLClientHandler_instance.exists()) {
 +                fmlClientHandler = Reflector.call( Reflector.FMLClientHandler_instance, new Object[0]);
@@ -1204,10 +1207,11 @@
 +            if( fmlClientHandler != null) {
 +                Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_handleClientWorldClosing, new Object[]{this.theWorld});
 +            }
++			/** END MINECRIFT FORGE **/
          }
  
-         this.mcSoundHandler.func_147690_c();
-@@ -2420,108 +2855,116 @@
+         this.mcSoundHandler.stopSounds();
+@@ -2438,107 +2892,117 @@
              Item var2;
              int var5;
  
@@ -1235,6 +1239,7 @@
 -                var3 = var9.getDamageValue(this.theWorld, var5, var6, var7);
 -            }
 -            else
++			/** MINECRIFT FORGE **/
 +			if (!Reflector.ForgeHooks_onPickBlock.exists())
 +			{
 +	            if (this.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
@@ -1287,7 +1292,7 @@
 +	                    else
 +	                    {
 +	                        var2 = var12.getItem();
-+	                        var3 = var12.getItemDamage();
++	                        var3 = var12.getMetadata();
 +	                        var4 = true;
 +	                    }
 +	                }
@@ -1337,7 +1342,7 @@
 +	                }
 +	            }
 +
-+	            this.thePlayer.inventory.func_146030_a(var2, var3, var4, var1);
++	            this.thePlayer.inventory.setCurrentItem(var2, var3, var4, var1);
 +			}
 +            else if (!Reflector.callBoolean(Reflector.ForgeHooks_onPickBlock, new Object[]{this.objectMouseOver,this.thePlayer,this.theWorld}))
              {
@@ -1366,7 +1371,7 @@
 -                    else
 -                    {
 -                        var2 = var12.getItem();
--                        var3 = var12.getItemDamage();
+-                        var3 = var12.getMetadata();
 -                        var4 = true;
 -                    }
 -                }
@@ -1417,14 +1422,14 @@
 +                // We delete this code wholly instead of commenting it out, to make sure we detect changes in it between MC versions
 +                return;
              }
- 
--            this.thePlayer.inventory.func_146030_a(var2, var3, var4, var1);
 -
+-            this.thePlayer.inventory.setCurrentItem(var2, var3, var4, var1);
++			/** END MINECRIFT FORGE **/
+ 
              if (var1)
              {
-                 var5 = this.thePlayer.inventoryContainer.inventorySlots.size() - 9 + this.thePlayer.inventory.currentItem;
-@@ -2793,11 +3236,18 @@
-         p_70001_1_.func_152767_b("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
+@@ -2811,11 +3275,18 @@
+         playerSnooper.addStatToSnooper("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
 +/** MINECRIFT */ // From Forge: Adds a optimization to the getGLMaximumTextureSize, only calculate it once.
@@ -1442,7 +1447,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2805,12 +3255,14 @@
+@@ -2823,12 +3294,14 @@
  
              if (var1 != 0)
              {
@@ -1457,7 +1462,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3117,4 +3569,941 @@
+@@ -3135,4 +3608,940 @@
              }
          }
      }
@@ -1987,7 +1992,7 @@
 +    {
 +        if (this.theWorld != null) {
 +            ChatComponentText chatText = new ChatComponentText("\u00a7e[Minecrift]: " + msg + "\u00a7f");
-+            this.ingameGUI.getChatGUI().func_146227_a(chatText);
++            this.ingameGUI.getChatGUI().printChatMessage(chatText);
 +        }
 +    }
 +
@@ -2138,7 +2143,7 @@
 +            }
 +            else
 +            {
-+                this.mcFramebuffer.unbindFramebuffer();
++                this.framebufferMc.unbindFramebuffer();
 +            }
 +
 +            fsaaFirstPassResultFBO[eye.value()].bindTexture();
@@ -2167,8 +2172,8 @@
 +        }
 +        else if (!this.stereoProvider.isStereo())
 +        {
-+            this.mcFramebuffer.unbindFramebuffer();
-+            this.mcFramebuffer.framebufferRender(this.displayWidth, this.displayHeight);
++            this.framebufferMc.unbindFramebuffer();
++            this.framebufferMc.framebufferRender(this.displayWidth, this.displayHeight);
 +        }
 +    }
 +
@@ -2186,7 +2191,6 @@
 +        GL11.glEnd();
 +    }
 +
-+    /** Minecrift */
 +    public void showSplash(Framebuffer rendertarget)
 +    {
 +        final int SPLASH_TIMEOUT_MS = this.stereoProvider.isStereo() ? 2000 : 1500;
@@ -2245,9 +2249,9 @@
 +
 +        try
 +        {
-+            if (this.field_152354_ay == null)
-+                this.field_152354_ay = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(this.locationMojangPng))));
-+            this.renderEngine.bindTexture(this.field_152354_ay);
++            if (this.mojangLogo == null)
++                this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(this.locationMojangPng))));
++            this.renderEngine.bindTexture(this.mojangLogo);
 +        }
 +        catch (IOException var7)
 +        {

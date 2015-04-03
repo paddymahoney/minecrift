@@ -16,12 +16,12 @@ public class GuiButtonEx extends GuiButton
 
     public int getWidth()
     {
-        return super.field_146120_f;
+        return super.width;
     }
 
     public int getHeight()
     {
-        return super.field_146121_g;
+        return super.height;
     }
 
     public GuiButtonEx(int par1, int par2, int par3, String par4Str)

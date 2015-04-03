@@ -54,41 +54,7 @@
          if (var4 != null)
          {
              Item var5 = var4.getItem();
-@@ -66,12 +92,32 @@
-                 var7.bipedLeftArm.showModel = p_77032_2_ == 1;
-                 var7.bipedRightLeg.showModel = p_77032_2_ == 2 || p_77032_2_ == 3;
-                 var7.bipedLeftLeg.showModel = p_77032_2_ == 2 || p_77032_2_ == 3;
-+                if (Reflector.forgeExists())
-+                    var7 = (ModelBiped)Reflector.call(Reflector.ForgeHooksClient_getArmorModel, new Object[] {p_77032_1_, var4, p_77032_2_, var7});
-                 this.setRenderPassModel(var7);
-                 var7.onGround = this.mainModel.onGround;
-                 var7.isRiding = this.mainModel.isRiding;
-                 var7.isChild = this.mainModel.isChild;
- 
--                if (var6.getArmorMaterial() == ItemArmor.ArmorMaterial.CLOTH)
-+				if (Reflector.forgeExists())
-+				{
-+	                int j = var6.getColor(var4);
-+	                if (j != -1)
-+	                {
-+	                    float f1 = (float)(j >> 16 & 255) / 255.0F;
-+	                    float f2 = (float)(j >> 8 & 255) / 255.0F;
-+	                    float f3 = (float)(j & 255) / 255.0F;
-+	                    GL11.glColor3f(f1, f2, f3);
-+
-+	                    if (var4.isItemEnchanted())
-+	                    {
-+	                        return 31;
-+	                    }
-+
-+	                    return 16;
-+	                }				
-+				}
-+                else if (var6.getArmorMaterial() == ItemArmor.ArmorMaterial.CLOTH)
-                 {
-                     int var8 = var6.getColor(var4);
-                     float var9 = (float)(var8 >> 16 & 255) / 255.0F;
-@@ -125,6 +171,9 @@
+@@ -125,6 +151,9 @@
       */
      public void doRender(AbstractClientPlayer p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
      {
@@ -98,7 +64,7 @@
          GL11.glColor3f(1.0F, 1.0F, 1.0F);
          ItemStack var10 = p_76986_1_.inventory.getCurrentItem();
          this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = var10 != null ? 1 : 0;
-@@ -155,6 +204,9 @@
+@@ -155,6 +184,9 @@
          this.modelArmorChestplate.aimedBow = this.modelArmor.aimedBow = this.modelBipedMain.aimedBow = false;
          this.modelArmorChestplate.isSneak = this.modelArmor.isSneak = this.modelBipedMain.isSneak = false;
          this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = 0;
@@ -108,7 +74,7 @@
      }
  
      /**
-@@ -167,20 +219,38 @@
+@@ -167,20 +199,38 @@
  
      protected void renderEquippedItems(AbstractClientPlayer p_77029_1_, float p_77029_2_)
      {
@@ -149,26 +115,7 @@
                  {
                      var4 = 0.625F;
                      GL11.glTranslatef(0.0F, -0.25F, 0.0F);
-@@ -241,12 +311,18 @@
-         }
- 
-         boolean var21 = p_77029_1_.func_152122_n();
-+		if (Forge) {
-+			var21 = (Boolean) Reflector.getFieldValue(event, Reflector.ForgeRenderPlayerEvent_Specials_Pre_renderCape) && var21;
-+		}
-         float var11;
- 
-         if (var21 && !p_77029_1_.isInvisible() && !p_77029_1_.getHideCape())
-         {
-             this.bindTexture(p_77029_1_.getLocationCape());
-             GL11.glPushMatrix();
-+            /** MINECRIFT */
-+            GL11.glTranslatef(0, 0, vrOffset);
-+            /** END MINECRIFT */
-             GL11.glTranslatef(0.0F, 0.0F, 0.125F);
-             double var23 = p_77029_1_.field_71091_bM + (p_77029_1_.field_71094_bP - p_77029_1_.field_71091_bM) * (double)p_77029_2_ - (p_77029_1_.prevPosX + (p_77029_1_.posX - p_77029_1_.prevPosX) * (double)p_77029_2_);
-             double var27 = p_77029_1_.field_71096_bN + (p_77029_1_.field_71095_bQ - p_77029_1_.field_71096_bN) * (double)p_77029_2_ - (p_77029_1_.prevPosY + (p_77029_1_.posY - p_77029_1_.prevPosY) * (double)p_77029_2_);
-@@ -291,10 +367,16 @@
+@@ -291,10 +341,16 @@
          }
  
          ItemStack var24 = p_77029_1_.inventory.getCurrentItem();
@@ -187,7 +134,7 @@
              this.modelBipedMain.bipedRightArm.postRender(0.0625F);
              GL11.glTranslatef(-0.0625F, 0.4375F, 0.0625F);
  
-@@ -310,7 +392,14 @@
+@@ -310,7 +366,14 @@
                  var26 = var24.getItemUseAction();
              }
  
@@ -203,20 +150,23 @@
              {
                  var7 = 0.5F;
                  GL11.glTranslatef(0.0F, 0.1875F, -0.3125F);
-@@ -367,7 +456,11 @@
+@@ -367,7 +430,14 @@
  
              if (var24.getItem().requiresMultipleRenderPasses())
              {
 -                for (var28 = 0; var28 <= 1; ++var28)
++                /** MINECRIFT FORGE **/
 +				int numOfRenderPasses = 2;
 +				if (Forge) {
-+				    numOfRenderPasses = Reflector.callInt(var24.getItem(), Reflector.MinecraftItem_Forge_getRenderPasses, new Object[] {var24.getItemDamage()});
++                    // FORGE TODO
++				    //numOfRenderPasses = Reflector.callInt(var24.getItem(), Reflector.MinecraftItem_Forge_getRenderPasses, new Object[] {var24.getItemDamage()});
 +				}
++                /** END MINECRIFT FORGE **/
 +                for (var28 = 0; var28 < numOfRenderPasses; ++var28)
                  {
                      int var8 = var24.getItem().getColorFromItemStack(var24, var28);
                      var30 = (float)(var8 >> 16 & 255) / 255.0F;
-@@ -389,6 +482,9 @@
+@@ -389,6 +459,9 @@
  
              GL11.glPopMatrix();
          }

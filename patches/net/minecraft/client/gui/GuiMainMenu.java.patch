@@ -23,13 +23,14 @@
  import net.minecraft.util.EnumChatFormatting;
  import net.minecraft.util.MathHelper;
  import net.minecraft.util.ResourceLocation;
-@@ -214,9 +216,24 @@
+@@ -215,9 +217,26 @@
       */
      private void addSingleplayerMultiplayerButtons(int p_73969_1_, int p_73969_2_)
      {
 -        this.buttonList.add(new GuiButton(1, this.width / 2 - 100, p_73969_1_, I18n.format("menu.singleplayer", new Object[0])));
 -        this.buttonList.add(new GuiButton(2, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 1, I18n.format("menu.multiplayer", new Object[0])));
 -        this.buttonList.add(new GuiButton(14, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2, I18n.format("menu.online", new Object[0])));
++        /** MINECRIFT FORGE **/
 +        if (!Reflector.forgeExists())
 +		{
 +            this.buttonList.add(new GuiButton(1, this.width / 2 - 100, p_73969_1_, I18n.format("menu.singleplayer", new Object[0])));
@@ -42,28 +43,31 @@
 +            this.buttonList.add(new GuiButton(2, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 1, I18n.format("menu.multiplayer", new Object[0])));
 +            GuiButton realmsButton = new GuiButton(14, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2, I18n.format("menu.online", new Object[0]));
 +            GuiButton fmlModButton = new GuiButton(6, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2, "Mods");
-+            fmlModButton.field_146128_h = this.width / 2 + 2;
-+            realmsButton.field_146120_f = 98;
-+            fmlModButton.field_146120_f = 98;
++            fmlModButton.xPosition = this.width / 2 + 2;
++            realmsButton.width = 98;
++            fmlModButton.width = 98;
 +            this.buttonList.add(realmsButton);
 +            this.buttonList.add(fmlModButton);
-+		}	
++		}
++        /** END MINECRIFT FORGE **/
      }
  
      /**
-@@ -267,6 +284,11 @@
+@@ -268,6 +287,13 @@
              this.mc.shutdown();
          }
  
-+        if (Reflector.FMLGuiModList_Constructor.exists() && p_146284_1_.id == 6)
++		/** MINECRIFT FORGE **/
++        if (Reflector.FMLGuiModList_Constructor.exists() && button.id == 6)
 +        {
 +            this.mc.displayGuiScreen((GuiScreen)Reflector.newInstance(Reflector.FMLGuiModList_Constructor, new Object[] {this}));
 +        }
-+
-         if (p_146284_1_.id == 11)
++		/** END MINECRIFT FORGE **/
++		
+         if (button.id == 11)
          {
              this.mc.launchIntegratedServer("Demo_World", "Demo_World", DemoWorldServer.demoWorldSettings);
-@@ -448,7 +470,9 @@
+@@ -449,7 +475,9 @@
       */
      private void renderSkybox(int p_73971_1_, int p_73971_2_, float p_73971_3_)
      {
@@ -73,7 +77,7 @@
          GL11.glViewport(0, 0, 256, 256);
          this.drawPanorama(p_73971_1_, p_73971_2_, p_73971_3_);
          this.rotateAndBlurSkybox(p_73971_3_);
-@@ -458,7 +482,9 @@
+@@ -459,7 +487,9 @@
          this.rotateAndBlurSkybox(p_73971_3_);
          this.rotateAndBlurSkybox(p_73971_3_);
          this.rotateAndBlurSkybox(p_73971_3_);
@@ -83,7 +87,7 @@
          GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
          Tessellator var4 = Tessellator.instance;
          var4.startDrawingQuads();
-@@ -515,13 +541,31 @@
+@@ -516,13 +546,31 @@
          GL11.glScalef(var8, var8, var8);
          this.drawCenteredString(this.fontRendererObj, this.splashText, 0, -8, -256);
          GL11.glPopMatrix();

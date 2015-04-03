@@ -9,7 +9,7 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.GuiButton;
  import net.minecraft.client.gui.GuiOptionButton;
-@@ -108,8 +110,9 @@
+@@ -109,8 +111,9 @@
          else
          {
              int var4;
