@@ -30,7 +30,7 @@ def create_patch( target_dir, src_file, mod_file, label, patch_file ):
         with open( patch_file, 'wb') as out:
             out.write( stdout.replace('\r\n','\n').replace('\r','\n') )
 
-def main(mcp_dir, patch_dir = "patches"):
+def main(mcp_dir, patch_dir = "patches", orig_dir = ".minecraft_orig"):
     new_src_dir    = os.path.join( base_dir , "src" )
     patch_base_dir = os.path.join( base_dir , patch_dir )
     patchsrc_base_dir = os.path.join( base_dir , "patchsrc" )
@@ -52,7 +52,7 @@ def main(mcp_dir, patch_dir = "patches"):
         os.mkdir( patchsrc_base_dir )
 
     mod_src_dir = os.path.join( mcp_dir , "src", "minecraft" )
-    org_src_dir = os.path.join( mcp_dir , "src", ".minecraft_orig" )
+    org_src_dir = os.path.join( mcp_dir , "src", orig_dir )
 
     for src_dir, dirs, files in os.walk(mod_src_dir):
         pkg       = os.path.relpath(src_dir,mod_src_dir)
@@ -117,12 +117,13 @@ def removeEmptyFolders(path):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
-    parser.add_option('-p', '--patch-dir', action='store', dest='patch_dir', help='Patch dir base name to use', default='patches')    
+    parser.add_option('-o', '--orig-dir', action='store', dest='orig_dir', help='Name of original source dir', default=".minecraft_orig")
+    parser.add_option('-p', '--patch-dir', action='store', dest='patch_dir', help='Patch dest dir base name to use', default='patches')
     options, _ = parser.parse_args()
 
     if not options.mcp_dir is None:
-        main(os.path.abspath(options.mcp_dir), options.patchdir)
+        main(os.path.abspath(options.mcp_dir), options.patch_dir, options.orig_dir)
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
-        main(os.path.abspath('..'), options.patchdir)
+        main(os.path.abspath('..'), options.patch_dir, options.orig_dir)
     else:
-        main(os.path.abspath(mcp_version), options.patch_dir)
+        main(os.path.abspath(mcp_version), options.patch_dir, options.orig_dir)
