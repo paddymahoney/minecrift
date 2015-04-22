@@ -1,8 +1,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>installer.jar</jar>
-  <outfile>installer.exe</outfile>
+  <jar>../../installer.jar</jar>
+  <outfile>../../installer.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>
@@ -11,7 +11,7 @@
   <supportUrl></supportUrl>
   <customProcName>false</customProcName>
   <stayAlive>false</stayAlive>
-  <manifest></manifest>
+  <manifest>manifest/uac.exe.manifest</manifest>
   <icon></icon>
   <jre>
     <path></path>
