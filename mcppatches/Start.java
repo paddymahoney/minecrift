@@ -11,6 +11,7 @@ import joptsimple.ArgumentAcceptingOptionSpec;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import net.minecraft.client.main.Main;
+import net.minecraft.launchwrapper.Launch;
 import net.minecraft.util.Session;
 import org.json.JSONObject;   // JAR available at http://mvnrepository.com/artifact/org.json/json/20140107
 
@@ -20,7 +21,7 @@ public class Start
     {
         // Support --username <username> and --password <password> parameters as args.
         /** LEAVE THE LINE BELOW - IT'S UPDATED BY THE INSTALL SCRIPTS TO THE CORRECT MINECRAFT VERSION */
-        args = concat(new String[] {"--version", "mcp", "--accessToken", "0", "--assetsDir", "assets", "--assetIndex", "1.8", "--userProperties", "{}"}, args);
+        args = concat(new String[] {"--version", "mcp", "--accessToken", "0", "--assetsDir", "assets", "--assetIndex", "1.7.10", "--userProperties", "{}"}, args);
 
         // Authenticate --username <username> and --password <password> with Mojang.
         // *** Username should most likely be an email address!!! ***
@@ -28,10 +29,12 @@ public class Start
         optionParser.allowsUnrecognizedOptions();
         ArgumentAcceptingOptionSpec username = optionParser.accepts("username").withRequiredArg();
         ArgumentAcceptingOptionSpec password = optionParser.accepts("password").withRequiredArg();
+        ArgumentAcceptingOptionSpec launchwrapper = optionParser.accepts("useLaunchWrapper").withRequiredArg().ofType(Integer.class).defaultsTo(Integer.valueOf(0), new Integer[0]);
         OptionSet optionSet = optionParser.parse(args);
         String user = (String)optionSet.valueOf(username);
         String pass = (String)optionSet.valueOf(password);
-
+        boolean useLaunchwrapper = (((Integer)optionSet.valueOf(launchwrapper)).intValue() == 0 ? false : true);
+        
         if (user != null && pass != null)
         {
             Session session = null;
@@ -68,18 +71,28 @@ public class Start
                     newArgs.add(args[i]);
                 }
             }
-
+            
             newArgs.add("--username");
             newArgs.add(session.getUsername());
             newArgs.add("--uuid");
             newArgs.add(session.getPlayerID());
             newArgs.add("--accessToken");
             newArgs.add(session.getToken());
-            Main.main(newArgs.toArray(new String[0]));
+            if (!useLaunchwrapper) {
+                Main.main(newArgs.toArray(new String[0]));
+            }
+            else {
+                Launch.main(newArgs.toArray(new String[0]));
+            }
         }
         else
         {
-            Main.main(args);
+            if (!useLaunchwrapper) {
+                Main.main(args);
+            }
+            else {
+                Launch.main(args);
+            }
         }
     }
 
