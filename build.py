@@ -1,5 +1,6 @@
 import os, os.path, sys, json, datetime, StringIO
 import shutil, tempfile,zipfile, fnmatch
+from xml.dom.minidom import parse
 from optparse import OptionParser
 import subprocess, shlex
 from tempfile import mkstemp
@@ -119,6 +120,9 @@ def create_install(mcp_dir):
         install_out.writestr( "version-nohydra.json", process_json("-nohydra", version))
         install_out.writestr( "version-forge-nohydra.json", process_json("-forge-nohydra", version))
         
+        # Add release notes
+        install_out.write("CHANGES.md", "release_notes.txt")
+        
         # Add version jar - this contains all the changed files (effectively minecrift.jar). A mix
         # of obfuscated and non-obfuscated files.
         install_out.writestr( "version.jar", in_mem_zip.read() )
@@ -137,7 +141,16 @@ def create_install(mcp_dir):
             cwd=os.path.join(base_dir,"installer","launch4j"),
             bufsize=-1).communicate()
     os.unlink( "launch4j.xml" )
-    
+  
+def readpomversion(pomFile):
+	if not os.path.exists(pomFile):
+		return ''
+		
+	dom = parse(pomFile)
+	project = dom.getElementsByTagName("project")[0]
+	version = str(project.getElementsByTagName("version")[0].firstChild.nodeValue)
+	return version
+  
 def main(mcp_dir):
     print 'Using mcp dir: %s' % mcp_dir
     print 'Using base dir: %s' % base_dir
@@ -154,6 +167,14 @@ def main(mcp_dir):
         shutil.rmtree(reobf)
     except OSError:
         pass
+		
+	# Read Minecrift lib versions
+	jRiftPom = os.path.join(base_dir, 'JRift', 'JRift', 'pom.xml')
+	jRiftLibraryPom = os.path.join(base_dir, 'JRift', 'JRiftLibrary', 'pom.xml')
+	jRiftVer = readpomversion(jRiftPom)
+	print 'JRift: %s' % jRiftVer
+	jRiftLibraryVer = readpomversion(jRiftLibraryPom)
+	print 'JRiftLibrary: %s' % jRiftLibraryVer
         
     # Update Minecrift version
     minecraft_java_file = os.path.join(mcp_dir,'src','minecraft','net','minecraft','client','Minecraft.java')
