@@ -5,7 +5,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.*;
 import java.io.*;
-import java.lang.reflect.Field;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.net.URI;
 import java.nio.channels.Channels;
@@ -74,6 +74,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private JComboBox forgeVersion;
     private JCheckBox useHydra;
     private JCheckBox useHrtf;
+    private final boolean QUIET_DEV = false;
+	private File releaseNotes = null;
+
     static private final String forgeNotFound = "Forge not found..." ;
 
     private String userHomeDir;
@@ -422,6 +425,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 boolean neededRedist2010_32 = false;
 
                 // Download VS 2012 64bit
+				/*
                 if (redistSuccess && is64bitOS) {
                     if (!redist2012_64.exists()) {
                         neededRedist2012_64 = true;
@@ -433,6 +437,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         }
                     }
                 }
+				*/
 
                 // Download VS 2010 64bit
                 if (redistSuccess && is64bitOS) {
@@ -447,6 +452,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     }
                 }
 
+				/*
                 // Download VS 2012 32bit
                 if (redistSuccess && !redist2012_32.exists()) {
                     neededRedist2012_32 = true;
@@ -457,6 +463,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         redistSuccess = false;
                     }
                 }
+				*/
 
                 // Download VS 2010 32bit
                 if (redistSuccess && !redist2010_32.exists()) {
@@ -469,6 +476,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     }
                 }
 
+				/*
                 // Install VS2012 64bit
                 if (redistSuccess && is64bitOS && neededRedist2012_64) {
                     monitor.setNote("Installing VC 2010 C++ 32bit redist...");
@@ -482,6 +490,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         redistSuccess = false;
                     }
                 }
+				*/
 
                 // Install VS2010 64bit
                 if (redistSuccess && is64bitOS && neededRedist2010_64) {
@@ -497,6 +506,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     }
                 }
 
+				/*
                 // Install VS2012 32bit
                 if (redistSuccess && neededRedist2012_32) {
                     monitor.setNote("Installing VC 2012 C++ 32bit redist...");
@@ -510,6 +520,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         redistSuccess = false;
                     }
                 }
+				*/
 
                 // Install VS2010 32bit
                 if (redistSuccess && neededRedist2010_32) {
@@ -759,6 +770,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         JPanel logoSplash = new JPanel();
         logoSplash.setLayout(new BoxLayout(logoSplash, BoxLayout.Y_AXIS));
         try {
+            // Read png
             BufferedImage image;
             image = ImageIO.read(Installer.class.getResourceAsStream("logo.png"));
             ImageIcon icon = new ImageIcon(image);
@@ -766,7 +778,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
             logoLabel.setAlignmentX(CENTER_ALIGNMENT);
             logoLabel.setAlignmentY(CENTER_ALIGNMENT);
             logoLabel.setSize(image.getWidth(), image.getHeight());
-            logoSplash.add(logoLabel);
+            if (!QUIET_DEV)
+	            logoSplash.add(logoLabel);
         } catch (IOException e) {
         } catch( IllegalArgumentException e) {
         }
@@ -792,10 +805,29 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 }
             }
         } catch (IOException e) { }
+
+        // Read release notes, save to file
+        String tmpFileName = System.getProperty("java.io.tmpdir") + "Minecrift_" + version.toLowerCase() + "_release_notes.txt";
+        releaseNotes = new File(tmpFileName);
+        InputStream is = Installer.class.getResourceAsStream("release_notes.txt");
+        if (!copyInputStreamToFile(is, releaseNotes)) {
+            releaseNotes = null;
+        }
+
         JLabel tag = new JLabel("Welcome! This will install Minecraft VR "+ version);
         tag.setAlignmentX(CENTER_ALIGNMENT);
         tag.setAlignmentY(CENTER_ALIGNMENT);
         logoSplash.add(tag);
+
+        JLabel releaseNotesLink = null;
+        if (releaseNotes != null) {
+            releaseNotesLink = linkify("Release Notes", releaseNotes.toURI().toString(), releaseNotes.toURI().toString());
+            releaseNotesLink.setAlignmentX(CENTER_ALIGNMENT);
+            releaseNotesLink.setAlignmentY(CENTER_ALIGNMENT);
+            releaseNotesLink.setHorizontalAlignment(SwingConstants.CENTER);
+            logoSplash.add(releaseNotesLink);
+        }
+        
         logoSplash.add(Box.createRigidArea(new Dimension(5,20)));
         tag = new JLabel("Select path to minecraft. (The default here is almost always what you want.)");
         tag.setAlignmentX(CENTER_ALIGNMENT);
@@ -913,7 +945,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
         JLabel optifine = linkify("We make use of OptiFine for performance. Please consider donating to them!","http://optifine.net/donate.php","http://optifine.net/donate.php");
 
         website.setAlignmentX(CENTER_ALIGNMENT);
+        website.setHorizontalAlignment(SwingConstants.CENTER);
         optifine.setAlignmentX(CENTER_ALIGNMENT);
+        optifine.setHorizontalAlignment(SwingConstants.CENTER);
         this.add(Box.createRigidArea(new Dimension(5,20)));
         this.add( website );
         this.add( optifine );
@@ -1065,5 +1099,25 @@ public class Installer extends JPanel  implements PropertyChangeListener
         fin.close();
 
         return sb.toString();
+    }
+	
+	private boolean copyInputStreamToFile( InputStream in, File file ) 
+	{
+        boolean success = true;
+        try {
+            OutputStream out = new FileOutputStream(file);
+            byte[] buf = new byte[1024];
+            int len;
+            while((len=in.read(buf))>0){
+                out.write(buf,0,len);
+            }
+            out.close();
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            success = false;
+        }
+
+        return success;
     }
 }
