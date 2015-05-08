@@ -36,7 +36,7 @@ public class KeyControlBinding extends ControlBinding {
 				key.pressed = false;
 				mc.displayGuiScreen(null);
 			} else {
-				key.presses ++;
+				key.pressTime++;
 			}
 		}
 	}

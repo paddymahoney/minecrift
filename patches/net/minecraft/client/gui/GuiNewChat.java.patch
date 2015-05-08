@@ -9,20 +9,19 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.util.ChatComponentText;
-@@ -47,10 +49,19 @@
+@@ -51,10 +53,19 @@
                      var3 = true;
                  }
  
--                float var7 = this.func_146244_h();
--                int var8 = MathHelper.ceiling_float_int((float)this.func_146228_f() / var7);
 +                /** MINECRIFT **/
 +                if (!Minecraft.getMinecraft().vrSettings.chatFadeAway)
 +                    var3 = true;
-+                float var7 = this.func_146244_h();//chat scale
-+                int chatWidthPixels = this.func_146228_f() ;
-+                int chatFullHeightPixels = func_146243_b(this.field_146247_f.gameSettings.chatHeightFocused );
+                 float var7 = this.getChatScale();
+-                int var8 = MathHelper.ceiling_float_int((float)this.getChatWidth() / var7);
++                int chatWidthPixels = this.getChatWidth() ;
++                int chatFullHeightPixels = calculateChatboxHeight( this.mc.gameSettings.chatHeightFocused );
 +                int var8 = MathHelper.ceiling_float_int((float)chatWidthPixels/ var7);
-+                ScaledResolution res = new ScaledResolution(this.field_146247_f, this.field_146247_f.displayWidth, this.field_146247_f.displayHeight);
++                ScaledResolution res = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
 +                int offsetX =  (int)(VRSettings.inst.chatOffsetX*(res.getScaledWidth()  - chatWidthPixels -2 ));
 +                int offsetY = -(int)(VRSettings.inst.chatOffsetY*(res.getScaledHeight() - chatFullHeightPixels -20 ));
                  GL11.glPushMatrix();

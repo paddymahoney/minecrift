@@ -86,7 +86,7 @@
              var22 = MathHelper.floor_double(this.mc.thePlayer.posX);
              var23 = MathHelper.floor_double(this.mc.thePlayer.posY);
              int var24 = MathHelper.floor_double(this.mc.thePlayer.posZ);
-@@ -1036,4 +1063,22 @@
+@@ -1039,4 +1066,22 @@
      {
          return this.updateCounter;
      }

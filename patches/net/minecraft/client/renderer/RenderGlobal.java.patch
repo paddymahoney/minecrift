@@ -17,7 +17,7 @@
  import net.minecraft.client.renderer.texture.IIconRegister;
  import net.minecraft.client.renderer.texture.TextureManager;
  import net.minecraft.client.renderer.texture.TextureMap;
-@@ -642,6 +645,9 @@
+@@ -647,6 +650,9 @@
              boolean var26 = this.mc.gameSettings.fancyGraphics;
              this.mc.gameSettings.fancyGraphics = Config.isDroppedItemsFancy();
  
@@ -27,47 +27,7 @@
              for (var25 = 0; var25 < var24.size(); ++var25)
              {
                  var19 = (Entity)var24.get(var25);
-@@ -661,21 +667,37 @@
-                         }
-                     }
- 
--                    if (te && (var19 != this.mc.renderViewEntity || this.mc.gameSettings.thirdPersonView != 0 || this.mc.renderViewEntity.isPlayerSleeping()) && this.theWorld.blockExists(MathHelper.floor_double(var19.posX), 0, MathHelper.floor_double(var19.posZ)))
-+                    if (te && (var19 == this.mc.renderViewEntity && this.mc.gameSettings.thirdPersonView == 0 && !mc.renderViewEntity.isPlayerSleeping()) && this.theWorld.blockExists(MathHelper.floor_double(var19.posX), 0, MathHelper.floor_double(var19.posZ)))
-                     {
--                        ++this.countEntitiesRendered;
-+                        if (this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_HAND ||
-+                            this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_NONE)
-+                        {
-+                            te = false;
-+                        }
-+                        else
-+                        {
-+                            thePlayer = var19;
-+                        }
-+                    }
- 
-+                    if (te)
-+                    {
-                         if (var19.getClass() == EntityItemFrame.class)
-                         {
-                             var19.renderDistanceWeight = 0.06D;
-                         }
- 
-+                        if (thePlayer != var19)
-+                        {
-+                        ++this.countEntitiesRendered;
-                         this.renderedEntity = var19;
-                         RenderManager.instance.func_147937_a(var19, p_147589_3_);
-                         this.renderedEntity = null;
-+                        }
-                     }
-                 }
-             }
-+			/** END MINECRIFT */
- 
-             this.mc.gameSettings.fancyGraphics = var26;
-             this.theWorld.theProfiler.endStartSection("blockentities");
-@@ -723,6 +745,23 @@
+@@ -728,6 +734,23 @@
                  }
              }
  
@@ -82,7 +42,7 @@
 +                ++this.countEntitiesRendered;
 +                renderPlayer.setVR(true,this.mc.vrSettings.renderHeadWear, this.mc.vrSettings.renderPlayerOffset);
 +                this.renderedEntity = thePlayer;
-+                RenderManager.instance.func_147937_a(thePlayer, p_147589_3_);
++                RenderManager.instance.renderEntitySimple(thePlayer, p_147589_3_);
 +                this.renderedEntity = null;
 +                renderPlayer.setVR(false,true,0.0F);
 +            }
@@ -91,7 +51,7 @@
              this.mc.entityRenderer.disableLightmap((double)p_147589_3_);
              this.theWorld.theProfiler.endSection();
          }
-@@ -1764,7 +1803,7 @@
+@@ -1769,7 +1792,7 @@
                      float partialTicks1 = par1;
                      par1 = 0.0F;
                      GL11.glDisable(GL11.GL_CULL_FACE);
@@ -100,7 +60,7 @@
                      byte var3 = 32;
                      int var4 = 256 / var3;
                      Tessellator var5 = Tessellator.instance;
-@@ -1801,10 +1840,10 @@
+@@ -1806,10 +1829,10 @@
                          int var18 = MathHelper.floor_double(cdx / 2048.0D);
                          dc -= (double)(cdz * 2048);
                          cdx -= (double)(var18 * 2048);
@@ -113,7 +73,7 @@
                          var5.startDrawingQuads();
                          var5.setColorRGBA_F(exactPlayerX, var8, exactPlayerY, 0.8F);
  
-@@ -1812,10 +1851,10 @@
+@@ -1817,10 +1840,10 @@
                          {
                              for (int var23 = -var3 * var4; var23 < var3 * var4; var23 += var3)
                              {
@@ -128,7 +88,7 @@
                              }
                          }
  
-@@ -2518,25 +2557,25 @@
+@@ -2523,25 +2546,25 @@
              double var15 = this.mc.renderViewEntity.posX - par2;
              double var17 = this.mc.renderViewEntity.posY - par4;
              double var19 = this.mc.renderViewEntity.posZ - par6;

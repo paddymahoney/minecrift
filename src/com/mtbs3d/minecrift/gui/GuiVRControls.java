@@ -104,7 +104,7 @@ public class GuiVRControls extends BaseGuiSettings {
         this.buttonList.add(new GuiButtonEx(200, this.width / 2 - 100, this.height / 6 + 168, "Done"));
         
         slots = new ControlSlot(this);
-        slots.func_148134_d(201, 202);
+        slots.registerScrollButtons(201, 202);
     }
 
     /**
@@ -115,7 +115,7 @@ public class GuiVRControls extends BaseGuiSettings {
             initGui();
             reinit = false;
         }
-        this.slots.func_148128_a(par1,par2,par3);
+        this.slots.drawScreen(par1,par2,par3);
         super.drawScreen(par1,par2,par3,false);
     }
 

@@ -2,15 +2,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URL;
 import java.net.URI;
 import java.nio.channels.Channels;
@@ -45,7 +37,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final String OF_JSON_NAME      = "1.7.10_HD_U_B5";
     private static final String OF_MD5            = "13e7145cbc832131f1b7db9c488b2596";
     private static final String OF_VERSION_EXT    = ".jar";
-    private static final String FORGE_VERSION     = "10.13.0.1180";
+    private static final String FORGE_VERSION     = "10.13.2.1291";
     /* END OF DO NOT RENAME */
 
 	private InstallTask task;
@@ -64,7 +56,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
 	private JComboBox forgeVersion;
 	private JCheckBox useHydra;
     private JCheckBox useHrtf;
-	static private final String forgeNotFound = "Forge not found..." ;
+    private final boolean QUIET_DEV = false;
+	private File releaseNotes = null;
+
+    static private final String forgeNotFound = "Forge not found..." ;
 
     private String userHomeDir;
     private String osType;
@@ -523,14 +518,16 @@ public class Installer extends JPanel  implements PropertyChangeListener
         JPanel logoSplash = new JPanel();
     	logoSplash.setLayout(new BoxLayout(logoSplash, BoxLayout.Y_AXIS));
 	    try {
+            // Read png
 	        BufferedImage image;
 			image = ImageIO.read(Installer.class.getResourceAsStream("logo.png"));
 	        ImageIcon icon = new ImageIcon(image);
 	        JLabel logoLabel = new JLabel(icon);
-	        logoLabel.setAlignmentX(CENTER_ALIGNMENT);
-	        logoLabel.setAlignmentY(CENTER_ALIGNMENT);
-	        logoLabel.setSize(image.getWidth(), image.getHeight());
-	        logoSplash.add(logoLabel);
+            logoLabel.setAlignmentX(CENTER_ALIGNMENT);
+            logoLabel.setAlignmentY(CENTER_ALIGNMENT);
+            logoLabel.setSize(image.getWidth(), image.getHeight());
+            if (!QUIET_DEV)
+	            logoSplash.add(logoLabel);
 		} catch (IOException e) {
 		} catch( IllegalArgumentException e) {
 		}
@@ -556,10 +553,29 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				}
 			}
 		} catch (IOException e) { }
+
+        // Read release notes, save to file
+        String tmpFileName = System.getProperty("java.io.tmpdir") + "Minecrift_" + version.toLowerCase() + "_release_notes.txt";
+        releaseNotes = new File(tmpFileName);
+        InputStream is = Installer.class.getResourceAsStream("release_notes.txt");
+        if (!copyInputStreamToFile(is, releaseNotes)) {
+            releaseNotes = null;
+        }
+
         JLabel tag = new JLabel("Welcome! This will install Minecraft VR "+ version);
         tag.setAlignmentX(CENTER_ALIGNMENT);
         tag.setAlignmentY(CENTER_ALIGNMENT);
         logoSplash.add(tag);
+
+        JLabel releaseNotesLink = null;
+        if (releaseNotes != null) {
+            releaseNotesLink = linkify("Release Notes", releaseNotes.toURI().toString(), releaseNotes.toURI().toString());
+            releaseNotesLink.setAlignmentX(CENTER_ALIGNMENT);
+            releaseNotesLink.setAlignmentY(CENTER_ALIGNMENT);
+            releaseNotesLink.setHorizontalAlignment(SwingConstants.CENTER);
+            logoSplash.add(releaseNotesLink);
+        }
+        
 		logoSplash.add(Box.createRigidArea(new Dimension(5,20)));
         tag = new JLabel("Select path to minecraft. (The default here is almost always what you want.)");
         tag.setAlignmentX(CENTER_ALIGNMENT);
@@ -653,7 +669,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		JLabel optifine = linkify("We make use of OptiFine for performance. Please consider donating to them!","http://optifine.net/donate.php","http://optifine.net/donate.php");
 
 		website.setAlignmentX(CENTER_ALIGNMENT);
+        website.setHorizontalAlignment(SwingConstants.CENTER);
 		optifine.setAlignmentX(CENTER_ALIGNMENT);
+        optifine.setHorizontalAlignment(SwingConstants.CENTER);
 		this.add(Box.createRigidArea(new Dimension(5,20)));
 		this.add( website );
 		this.add( optifine );
@@ -710,14 +728,14 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		try {
         	// Set System L&F
 	        UIManager.setLookAndFeel(
-	        UIManager.getSystemLookAndFeelClassName());
+                    UIManager.getSystemLookAndFeelClassName());
 	    } catch (Exception e) { }
 		
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				createAndShowGUI();
-			}
-		});
+            public void run() {
+                createAndShowGUI();
+            }
+        });
 	}
 	public static JLabel linkify(final String text, String URL, String toolTip)
 	{
@@ -736,47 +754,54 @@ public class Installer extends JPanel  implements PropertyChangeListener
 		if(!toolTip.equals(""))
 			link.setToolTipText(toolTip);
 		link.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		link.addMouseListener(new MouseListener()
-		{
-			public void mouseExited(MouseEvent arg0)
-			{
-				link.setText("<HTML><FONT color=\"#000099\">"+text+"</FONT></HTML>");
-			}
+		link.addMouseListener(new MouseListener() {
+            public void mouseExited(MouseEvent arg0) {
+                link.setText("<HTML><FONT color=\"#000099\">" + text + "</FONT></HTML>");
+            }
 
-			public void mouseEntered(MouseEvent arg0)
-			{
-				link.setText("<HTML><FONT color=\"#000099\"><U>"+text+"</U></FONT></HTML>");
-			}
+            public void mouseEntered(MouseEvent arg0) {
+                link.setText("<HTML><FONT color=\"#000099\"><U>" + text + "</U></FONT></HTML>");
+            }
 
-			public void mouseClicked(MouseEvent arg0)
-			{
-				if (Desktop.isDesktopSupported())
-				{
-					try
-					{
-						Desktop.getDesktop().browse(uri);
-					}
-					catch (Exception e)
-					{
-						e.printStackTrace();
-					}
-				}
-				else
-				{
-					JOptionPane pane = new JOptionPane("Could not open link.");
-					JDialog dialog = pane.createDialog(new JFrame(), "");
-					dialog.setVisible(true);
-				}
-			}
+            public void mouseClicked(MouseEvent arg0) {
+                if (Desktop.isDesktopSupported()) {
+                    try {
+                        Desktop.getDesktop().browse(uri);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    JOptionPane pane = new JOptionPane("Could not open link.");
+                    JDialog dialog = pane.createDialog(new JFrame(), "");
+                    dialog.setVisible(true);
+                }
+            }
 
-			public void mousePressed(MouseEvent e)
-			{
-			}
+            public void mousePressed(MouseEvent e) {
+            }
 
-			public void mouseReleased(MouseEvent e)
-			{
-			}
-		});
+            public void mouseReleased(MouseEvent e) {
+            }
+        });
 		return link;
 	}
+
+    private boolean copyInputStreamToFile( InputStream in, File file ) {
+        boolean success = true;
+        try {
+            OutputStream out = new FileOutputStream(file);
+            byte[] buf = new byte[1024];
+            int len;
+            while((len=in.read(buf))>0){
+                out.write(buf,0,len);
+            }
+            out.close();
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            success = false;
+        }
+
+        return success;
+    }
 }

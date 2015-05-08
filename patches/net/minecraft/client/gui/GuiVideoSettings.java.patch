@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/GuiVideoSettings.java
 +++ b/net/minecraft/client/gui/GuiVideoSettings.java
-@@ -69,7 +69,12 @@
+@@ -71,7 +71,12 @@
  
                  if (y.getEnumFloat())
                  {

@@ -286,7 +286,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	        	if(mc.currentScreen != null)
 		        	thePlayer.closeScreen();
 	        	else
-		        	settings.keyBindInventory.presses=1;
+		        	settings.keyBindInventory.pressTime=1;
 	        }
 
 	        if((cont1.buttons & EnumButton.START.mask())>0 &&
@@ -351,7 +351,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        if( cont2.trigger > 0.05 )
 		        {
 		        	if( !leftMouseClicked )
-		        		mc.func_147116_af();
+		        		mc.clickMouse();
 		        	settings.keyBindAttack.pressed = true;
 		        	leftMouseClicked = true;
 		        }
@@ -364,7 +364,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        if((cont2.buttons & EnumButton.BUMPER.mask()) >0 && 
 		        	 (lastcont2Buttons & EnumButton.BUMPER.mask()) == 0)
 		        {
-		        	mc.func_147121_ag();
+		        	mc.rightClickMouse();
 		        }
 
 	        	settings.keyBindUseItem.pressed = (cont2.buttons & EnumButton.BUMPER.mask()) >0 ;
@@ -383,7 +383,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        if((cont2.buttons & EnumButton.BUTTON_1.mask())>0 &&
 		        	(lastcont2Buttons & EnumButton.BUTTON_1.mask()) == 0)
 		        {
-		        	settings.keyBindDrop.presses++;
+		        	settings.keyBindDrop.pressTime++;
 		        }
 	
 		        if((cont2.buttons & EnumButton.BUTTON_2.mask())>0 &&

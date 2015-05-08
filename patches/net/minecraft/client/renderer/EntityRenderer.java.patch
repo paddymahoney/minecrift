@@ -304,13 +304,13 @@
              }
  
 -            if (this.mc.objectMouseOver != null)
-+            this.mc.objectMouseOver = this.mc.theWorld.func_147447_a(pos1, endPos, false, false, true);
++            this.mc.objectMouseOver = this.mc.theWorld.rayTraceBlocks(pos1, endPos, false, false, true);
 +            if (this.mc.objectMouseOver == null || this.mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
 +            {
 +                // Get MISS distance
 +                if (!this.mc.vrSettings.maxCrosshairDistanceAtBlockReach) {
 +                    endPos = pos2.addVector(aim.xCoord * 128, aim.yCoord * 128, aim.zCoord * 128);
-+                    MovingObjectPosition crossPos = this.mc.theWorld.func_147447_a(pos2, endPos, false, false, true);
++                    MovingObjectPosition crossPos = this.mc.theWorld.rayTraceBlocks(pos2, endPos, false, false, true);
 +                    if (crossPos != null) {
 +                        crossVec = crossPos.hitVec;
 +                    } else {
@@ -589,7 +589,7 @@
  
              GL11.glPopMatrix();
 @@ -1187,7 +1391,18 @@
-             this.mc.ingameGUI.getChatGUI().func_146227_a(var14);
+             this.mc.ingameGUI.getChatGUI().printChatMessage(var14);
              Config.setNewRelease((String)null);
          }
 +        /** MINECRIFT */
@@ -1474,10 +1474,10 @@
 +            float textScale = (float) Math.sqrt((x * x + y * y + z * z));
 +            GL11.glScalef(-INITIAL_CALIBRATION_TEXT_SCALE * textScale, -INITIAL_CALIBRATION_TEXT_SCALE * textScale, -INITIAL_CALIBRATION_TEXT_SCALE * textScale);
 +            String calibrating = "Calibrating " + calibrationHelper.currentPlugin.getName() + "...";
-+            mc.fontRenderer.drawStringWithShadow(calibrating, -mc.fontRenderer.getStringWidth(calibrating) / 2, -8, /*white*/16777215);
++            mc.fontRendererObj.drawStringWithShadow(calibrating, -mc.fontRendererObj.getStringWidth(calibrating) / 2, -8, /*white*/16777215);
 +            for (String line : wrapped)
 +            {
-+                mc.fontRenderer.drawStringWithShadow(line, -mc.fontRenderer.getStringWidth(line) / 2, column, /*white*/16777215);
++                mc.fontRendererObj.drawStringWithShadow(line, -mc.fontRendererObj.getStringWidth(line) / 2, column, /*white*/16777215);
 +                column += COLUMN_GAP;
 +            }
 +
@@ -1844,7 +1844,7 @@
 +                    //Draw in game HUD overlay
 +                    GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
 +                    this.mc.ingameGUI.renderGameOverlay(renderPartialTicks, this.mc.currentScreen != null, 0, 0);
-+                    mc.guiAchievement.func_146254_a();
++                    mc.guiAchievement.updateAchievementWindow();
 +                    GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 +                }
 +

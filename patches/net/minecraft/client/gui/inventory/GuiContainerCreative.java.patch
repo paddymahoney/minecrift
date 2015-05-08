@@ -9,14 +9,14 @@
  import net.minecraft.client.gui.GuiButton;
  import net.minecraft.client.gui.GuiTextField;
  import net.minecraft.client.gui.achievement.GuiAchievements;
-@@ -587,7 +589,9 @@
+@@ -613,7 +615,9 @@
       */
-     public void drawScreen(int p_73863_1_, int p_73863_2_, float p_73863_3_)
+     public void drawScreen(int mouseX, int mouseY, float partialTicks)
      {
 -        boolean var4 = Mouse.isButtonDown(0);
 +        /** MINECRIFT **/
 +        boolean var4 = Mouse.isButtonDown(0) || GuiScreenNavigator.selectDepressed;
 +        /** END MINECRIFT **/
-         int var5 = this.field_147003_i;
-         int var6 = this.field_147009_r;
+         int var5 = this.guiLeft;
+         int var6 = this.guiTop;
          int var7 = var5 + 175;
