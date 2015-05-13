@@ -111,7 +111,8 @@ def installAndPatchMcp( mcp_dir ):
         try:
             mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
             if os.path.exists( mcp_zip_file ):
-                os.mkdir( mcp_dir )
+                if not os.path.exists( mcp_dir ):
+                    os.mkdir( mcp_dir )
                 mcp_zip = zipfile.ZipFile( mcp_zip_file )
                 mcp_zip.extractall( mcp_dir )
                 import stat
@@ -123,7 +124,7 @@ def installAndPatchMcp( mcp_dir ):
             pass
 
     if mcp_exists == False:
-        print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_dir, mcp_dir, base_dir)
+        print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_version, mcp_version, base_dir)
         exit(1)
     
     # Patch mcp.cfg for additional mem
@@ -438,9 +439,9 @@ def main(mcp_dir):
         reallyrmtree(os.path.join(base_dir,'lib'))
         print 'Cleaning patchsrc dir...'
         reallyrmtree(os.path.join(base_dir,'patchsrc'))
-        print 'Installing mcp...'
-        installAndPatchMcp(mcp_dir)
 
+    print 'Installing mcp...'
+    installAndPatchMcp(mcp_dir)
 
     print("\nDownloading dependencies...")
     download_deps( mcp_dir, True, True ) # Forge libs
