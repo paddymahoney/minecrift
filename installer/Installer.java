@@ -32,7 +32,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
 {
     private static final long serialVersionUID = -562178983462626162L;
 
-    private static final boolean ALLOW_FORGE_INSTALL = false;
+    private static final boolean ALLOW_FORGE_INSTALL = true;
+    private static final boolean ALLOW_HYDRA_INSTALL = false;
 
     // Currently needed for Win boxes - C++ redists
 
@@ -891,7 +892,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 "<html>" +
                 "If checked, installs Minecrift with Forge support. The correct version of Forge<br>" +
                 "(as displayed) must already be installed.<br>" +
-                "NOT YET SUPPORTED.<br>" +
                 "</html>");
 
         //Add "yes" and "which version" to the forgePanel
@@ -913,6 +913,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
         useHydra = new JCheckBox("Include Razer Hydra support",false);
         useHydra.setAlignmentX(LEFT_ALIGNMENT);
+        if (!ALLOW_HYDRA_INSTALL)
+            useHydra.setEnabled(false);
         useHydra.setToolTipText(
                 "<html>" +
                 "If checked, installs the additional Razor Hydra native library required for Razor Hydra<br>" +
