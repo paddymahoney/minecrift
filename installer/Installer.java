@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.beans.*;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.net.URI;
 import java.nio.channels.Channels;
