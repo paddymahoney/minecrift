@@ -25,6 +25,7 @@ import com.sixense.EnumButton;
 import com.sixense.Sixense;
 import com.sixense.utils.ControllerManager;
 import com.sixense.utils.enums.EnumSetupStep;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Quaternion;
 import org.lwjgl.util.vector.Vector4f;
 
@@ -108,7 +109,8 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	private Field keyDownField; //Whee, reflection
 	private Field buttonDownField; //Whee, reflection
 	private boolean mouseUseJoystick = true;
-	
+	int lastIndex = -1;
+    boolean isCalibrating = false;
 
 	public MCHydra()
 	{
@@ -176,15 +178,14 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	}
 	
 	@Override
-	public void poll(float delta)
+	public void poll(int index)
     {
         if (!isInitialized())
             return;
-
-        if (polledThisFrame)      // TODO: Support poll for left pos, poll for right pos?
+        if (index <= this.lastIndex)
             return;
 
-        polledThisFrame = true;
+        lastIndex = index;
 
         Minecraft mc = Minecraft.getMinecraft();
 
@@ -219,21 +220,23 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
             cont2 = newData[1];
         }
 
-        EnumSetupStep step = cm.getCurrentStep();
-        switch ( step )
+        if (!hydraRunning && isCalibrating)
         {
-            case P1C2_IDLE:
-                hydraRunning = true;
-                calibrationStep = "";
-                break;
-            default:
-                hydraRunning = false;
-                if (step != null)
-                {
-                    //System.out.println("HYDRA: " + step.toString());
-                    calibrationStep = cm.getStepString();
-                }
-                break;
+            EnumSetupStep step = cm.getCurrentStep();
+            switch ( step )
+            {
+                case P1C2_IDLE:
+                    setCalibrated();
+                    break;
+                default:
+                    hydraRunning = false;
+                    if (step != null)
+                    {
+                        //System.out.println("HYDRA: " + step.toString());
+                        calibrationStep = cm.getStepString() + "\n(or ESC to abort)";
+                    }
+                    break;
+            }
         }
 
         if (hydraRunning)
@@ -307,7 +310,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        //aim/body adjustments
 	        	float headYaw = 0;
 	        	if( mc.vrSettings.keyholeHeadRelative )
-		        	headYaw = mc.headTracker.getHeadYawDegrees();
+		        	headYaw = mc.headTracker.getHeadYawDegrees(EyeType.ovrEye_Center);
 	        	
 	        	//Adjust keyhole width on controller pitch; otherwise its a very narrow window at the top and bottom
 	        	float keyholeYaw = mc.vrSettings.aimKeyholeWidthDegrees/2/ MathHelper.cos(cont2Pitch * PIOVER180);
@@ -412,7 +415,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
         }
         
         //GUI controls
-        if( mc.currentScreen != null )
+        if( mc.currentScreen != null && Display.isActive() )
         {
         	mouseUseJoystick = false;
         	if( mouseUseJoystick )
@@ -431,7 +434,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
             mc.currentScreen.mouseOffsetY = (int)(hydraMouseY*scaleY);
 	        int mouseX = Mouse.getX() + hydraMouseX;
 	        int	mouseY = Mouse.getY() + hydraMouseY;
-            Mouse.setCursorPosition(mouseX, mouseY);
+            //Mouse.setCursorPosition(mouseX, mouseY);
             
             mouseX = (int)(mouseX*scaleX);
             mouseY = (int)(mouseY*scaleY);
@@ -646,7 +649,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
         Minecraft mc = Minecraft.getMinecraft();
         if( resetOriginRotation && mc.headTracker == this )
         {
-        	float prevTotalYaw = mc.lookaimController.getBodyYawDegrees() + getHeadYawDegrees();
+        	float prevTotalYaw = mc.lookaimController.getBodyYawDegrees() + getHeadYawDegrees(EyeType.ovrEye_Center);
         	yawOffset = cont1Yaw;
         	if( mc.thePlayer == null )
         		//Reset bodyYaw for main menu
@@ -663,22 +666,22 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	}
 
 	@Override
-	public float getHeadYawDegrees() {
+	public float getHeadYawDegrees(EyeType eye) {
 		return cont1Yaw - yawOffset;
 	}
 
 	@Override
-	public float getHeadPitchDegrees() {
+	public float getHeadPitchDegrees(EyeType eye) {
 		return cont1Pitch;
 	}
 
 	@Override
-	public float getHeadRollDegrees() {
+	public float getHeadRollDegrees(EyeType eye) {
 		return cont1Roll;
 	}
 
     @Override
-    public Quaternion getOrientationQuaternion()
+    public Quaternion getOrientationQuaternion(EyeType eye)
     {
         // Needs x, y, z, w
         Quaternion orientation   = new Quaternion(cont1OrientationQuat_xyzw[0],
@@ -694,6 +697,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 
     @Override
     public void beginCalibration(PluginType type) {
+        isCalibrating = true;
         resetOriginRotation(); //Reset the head tracker/hydra orientation reference frame
     }
 
@@ -747,14 +751,27 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
             resetOrigin();
             resetOriginRotation();
         }
+        if (eventId == IBasePlugin.EVENT_CALIBRATION_ABORT && !hydraRunning)
+        {
+            setCalibrated();
+        }
     }
+
+    private void setCalibrated()
+    {
+        hydraRunning = true;
+        calibrationStep = "";
+        isCalibrating = false;
+    }
+
 	@Override
 	public void mapBinding(ControlBinding binding) {
 		// TODO Auto-generated method stub
 		
 	}
 
-    public void beginFrame() { polledThisFrame = false; }
+    public void beginFrame() { beginFrame(0); }
+    public void beginFrame(int frameIndex) { }
     public void endFrame() { }
 
     @Override

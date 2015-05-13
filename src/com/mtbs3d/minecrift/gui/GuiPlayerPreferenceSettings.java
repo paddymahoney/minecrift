@@ -1,11 +1,11 @@
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import de.fruitfly.ovr.UserProfileData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.util.StringTranslate;
 
 public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiEventEx
 {
@@ -275,11 +275,18 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
     }
 
     @Override
-    public void event(int id, VRSettings.VrOptions enumm)
+    public boolean event(int id, VRSettings.VrOptions enumm)
     {
         if (enumm == VRSettings.VrOptions.USE_PROFILE_PLAYER_HEIGHT)
         {
             this.reinit = true;
         }
+
+        return true;
+    }
+
+    @Override
+    public boolean event(int id, String s) {
+        return true;
     }
 }

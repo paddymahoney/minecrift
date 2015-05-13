@@ -8,14 +8,8 @@ package com.mtbs3d.minecrift.provider;
 import com.mtbs3d.minecrift.api.*;
 
 import com.mtbs3d.minecrift.settings.VRSettings;
-import de.fruitfly.ovr.EyeRenderParams;
-import de.fruitfly.ovr.IOculusRift;
-import de.fruitfly.ovr.OculusRift;
-import de.fruitfly.ovr.UserProfileData;
-import de.fruitfly.ovr.enums.Axis;
-import de.fruitfly.ovr.enums.EyeType;
-import de.fruitfly.ovr.enums.HandedSystem;
-import de.fruitfly.ovr.enums.RotateDirection;
+import de.fruitfly.ovr.*;
+import de.fruitfly.ovr.enums.*;
 import de.fruitfly.ovr.structs.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Vec3;
@@ -29,6 +23,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     public static final int CALIBRATE_AWAITING_FIRST_ORIGIN = 1;
     public static final int CALIBRATE_AT_FIRST_ORIGIN = 2;
     public static final int CALIBRATE_COOLDOWN = 7;
+    public static final int CALIBRATE_ABORTED_COOLDOWN = 8;
 
     public static final long COOLDOWNTIME_MS = 1500L;
 
@@ -43,19 +38,22 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     private float rollHeadRad = 0f;
     private float pitchHeadRad = 0f;
     private float yawHeadRad = 0f;
-    private boolean polledThisFrame = false;
     private TrackerState ts = new TrackerState();
-    private Posef[] eyePose = new Posef[2];
-    private EulerOrient[] eulerOrient = new EulerOrient[2];
-    private EyeType lastEyePolled = EyeType.ovrEye_Left;
+    private Posef[] eyePose = new Posef[3];
+    private EulerOrient[] eulerOrient = new EulerOrient[3];
+    int lastIndex = -1;
+    FullPoseState fullPoseState = new FullPoseState();
+    boolean isCalibrating = false;
 
     public MCOculus()
     {
         super();
         eyePose[0] = new Posef();
         eyePose[1] = new Posef();
+        eyePose[2] = new Posef();
         eulerOrient[0] = new EulerOrient();
         eulerOrient[1] = new EulerOrient();
+        eulerOrient[2] = new EulerOrient();
     }
 
     @Override
@@ -94,25 +92,28 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
     public static UserProfileData theProfileData = null;
 
+    @Override
     public void beginFrame()
     {
-        polledThisFrame = false;
-        frameTiming = super.beginFrameGetTiming();
+        beginFrame(0);
     }
 
+    @Override
+    public void beginFrame(int frameIndex)
+    {
+        frameTiming = super.beginFrameGetTiming(frameIndex);
+    }
+
+    @Override
     public Posef getEyePose(EyeType eye)
     {
-        this.eyePose[eye.value()] = super.getEyePose(eye);
-        this.eulerOrient[eye.value()] = OculusRift.getEulerAnglesDeg(this.eyePose[eye.value()].Orientation,
-                                                                     1.0f,
-                                                                     Axis.Axis_Y,
-                                                                     Axis.Axis_X,
-                                                                     Axis.Axis_Z,
-                                                                     HandedSystem.Handed_L,
-                                                                     RotateDirection.Rotate_CCW);
-
-        this.lastEyePolled = eye;
         return this.eyePose[eye.value()];
+    }
+
+    @Override
+    public FullPoseState getEyePoses(int frameIndex)
+    {
+        return fullPoseState;
     }
 
     public Matrix4f getMatrix4fProjection(FovPort fov,
@@ -171,11 +172,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
                        float worldPitchOffsetDegrees,
                        float worldRollOffsetDegrees)
     {
-        if (!polledThisFrame)
-        {
-            ts = poll(frameTiming.ScanoutMidpointSeconds);
-            polledThisFrame = true;
-        }
         rollHeadRad = (float)Math.toRadians(rollHeadDegrees);
         pitchHeadRad = (float)Math.toRadians(pitchHeadDegrees);
         yawHeadRad =  (float)Math.toRadians(yawHeadDegrees);
@@ -186,32 +182,24 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     @Override
     public Vec3 getCenterEyePosition()
     {
-        VRSettings vr = Minecraft.getMinecraft().vrSettings;
-        Vec3 eyePosition = Vec3.createVectorHelper(0, 0, 0);
-        if (Minecraft.getMinecraft().vrSettings.usePositionTracking)
-        {
-            eyePosition = Vec3.createVectorHelper(ts.HeadPose.ThePose.Position.x * vr.posTrackDistanceScale * vr.worldScale,
-                                                  -ts.HeadPose.ThePose.Position.y * vr.posTrackDistanceScale * vr.worldScale,
-                                                  ts.HeadPose.ThePose.Position.z * vr.posTrackDistanceScale * vr.worldScale);
-        }
-
-        return eyePosition;
+        return getEyePosition(EyeType.ovrEye_Center);
     }
 
     @Override
     public Vec3 getEyePosition(EyeType eye)
     {
-        if (eye == EyeType.ovrEye_Center)
-            return getCenterEyePosition();
-
         VRSettings vr = Minecraft.getMinecraft().vrSettings;
         Vec3 eyePosition = Vec3.createVectorHelper(0, 0, 0);
-        if (Minecraft.getMinecraft().vrSettings.usePositionTracking)
+        if (vr.usePositionTracking)
         {
+            float posTrackScale = vr.posTrackDistanceScale;
+            if (vr.debugPos) {
+                posTrackScale = 1f;
+            }
             Vector3f eyePos = super.getEyePos(eye);
-            eyePosition = Vec3.createVectorHelper(eyePos.x * vr.posTrackDistanceScale * vr.worldScale,
-                                                  -eyePos.y * vr.posTrackDistanceScale * vr.worldScale,
-                                                  eyePos.z * vr.posTrackDistanceScale * vr.worldScale);
+            eyePosition = Vec3.createVectorHelper(eyePos.x * posTrackScale,
+                                                  eyePos.y * posTrackScale,
+                                                  eyePos.z * posTrackScale);
         }
 
         return eyePosition;
@@ -235,8 +223,10 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     @Override
     public void beginCalibration(PluginType type)
     {
-        if (isInitialized())
+        if (isInitialized()) {
+            isCalibrating = true;
             processCalibration();
+        }
     }
 
     @Override
@@ -289,6 +279,11 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
                 step = "Done!";
                 break;
             }
+            case CALIBRATE_ABORTED_COOLDOWN:
+            {
+                step = "Aborted!";
+                break;
+            }
         }
 
         return step;
@@ -311,6 +306,16 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
             case IBasePlugin.EVENT_SET_ORIGIN:
             {
                 resetOrigin();
+            }
+            case IBasePlugin.EVENT_CALIBRATION_ABORT:
+            {
+                if (isCalibrating)
+                {
+                    calibrationStep = CALIBRATE_ABORTED_COOLDOWN;
+                    coolDownStart = System.currentTimeMillis();
+                    processCalibration();
+                }
+                break;
             }
         }
     }
@@ -365,38 +370,98 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
                 }
                 break;
             }
+            case CALIBRATE_ABORTED_COOLDOWN:
+            {
+                if ((System.currentTimeMillis() - coolDownStart) > COOLDOWNTIME_MS)
+                {
+                    coolDownStart = 0;
+                    calibrationStep = NOT_CALIBRATING;
+                    isCalibrated = true;
+                    isCalibrating = false;
+                }
+                break;
+            }
         }
     }
 
     @Override
-    public void poll(/*EyeType eyeHint, */float delta)
+    public void poll(int index)
     {
-        // Do nothing
+        //System.out.println("lastIndex: " + lastIndex);
+
+        EyeType eye;
+        if (!isInitialized())
+            return;
+        if (index <= this.lastIndex)
+            return;
+
+        lastIndex = index;
+        Vector3f leftViewAdjust = erp.Eyes[EyeType.ovrEye_Left.value()].ViewAdjust;
+        Vector3f rightViewAdjust = erp.Eyes[EyeType.ovrEye_Right.value()].ViewAdjust;
+
+        // Get our eye pose and tracker state in one hit
+        fullPoseState = super.getEyePoses(index, leftViewAdjust, rightViewAdjust);
+
+        // Set left eye pose
+        eye = EyeType.ovrEye_Left;
+        this.eyePose[eye.value()] = fullPoseState.leftEyePose;
+        this.eulerOrient[eye.value()] = OculusRift.getEulerAnglesDeg(this.eyePose[eye.value()].Orientation,
+                1.0f,
+                Axis.Axis_Y,
+                Axis.Axis_X,
+                Axis.Axis_Z,
+                HandedSystem.Handed_L,
+                RotateDirection.Rotate_CCW);
+
+        // Set right eye pose
+        eye = EyeType.ovrEye_Right;
+        this.eyePose[eye.value()] = fullPoseState.rightEyePose;
+        this.eulerOrient[eye.value()] = OculusRift.getEulerAnglesDeg(this.eyePose[eye.value()].Orientation,
+                1.0f,
+                Axis.Axis_Y,
+                Axis.Axis_X,
+                Axis.Axis_Z,
+                HandedSystem.Handed_L,
+                RotateDirection.Rotate_CCW);
+
+        // Set center eye pose
+        eye = EyeType.ovrEye_Center;
+        this.eyePose[eye.value()] = fullPoseState.trackerState.HeadPose.ThePose;
+        this.eulerOrient[eye.value()] = OculusRift.getEulerAnglesDeg(this.eyePose[eye.value()].Orientation,
+                1.0f,
+                Axis.Axis_Y,
+                Axis.Axis_X,
+                Axis.Axis_Z,
+                HandedSystem.Handed_L,
+                RotateDirection.Rotate_CCW);
+
+        // Set tracker info
+        ts = fullPoseState.trackerState;
     }
 
 
 	@Override
-	public float getHeadYawDegrees()
+	public float getHeadYawDegrees(EyeType eye)
     {
-        return this.eulerOrient[lastEyePolled.value()].yaw;
+        return this.eulerOrient[eye.value()].yaw;
 	}
 
 	@Override
-	public float getHeadPitchDegrees()
+	public float getHeadPitchDegrees(EyeType eye)
     {
-        return this.eulerOrient[lastEyePolled.value()].pitch;
+        return this.eulerOrient[eye.value()].pitch;
 	}
 
 	@Override
-	public float getHeadRollDegrees()
+	public float getHeadRollDegrees(EyeType eye)
     {
-        return this.eulerOrient[lastEyePolled.value()].roll;
+        return this.eulerOrient[eye.value()].roll;
 	}
 
     @Override
-    public Quaternion getOrientationQuaternion()
+    public Quaternion getOrientationQuaternion(EyeType eye)
     {
-        Quatf orient = this.eyePose[lastEyePolled.value()].Orientation;
+        Quatf orient = this.eyePose[eye.value()].Orientation;
         return new Quaternion(orient.x, orient.y, orient.z, orient.w);
     }
 

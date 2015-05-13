@@ -37,12 +37,43 @@ public class VRHotkeys {
             mc.printChatMessage("Show aim (RCTRL+RSHIFT): done");
         }
 
+        // Debug pos
+        if (Keyboard.getEventKey() == Keyboard.KEY_P && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+        {
+            mc.vrSettings.debugPos = !mc.vrSettings.debugPos;
+            mc.printChatMessage("Debug position (RCTRL+P): " + mc.vrSettings.debugPos);
+        }
+
         // Walk up blocks
         if (Keyboard.getEventKey() == Keyboard.KEY_B && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
         {
             mc.vrSettings.walkUpBlocks = !mc.vrSettings.walkUpBlocks;
             mc.vrSettings.saveOptions();
             mc.printChatMessage("Walk up blocks (RCTRL+B): " + (mc.vrSettings.walkUpBlocks ? "YES" : "NO"));
+        }
+
+        // Player inertia
+        if (Keyboard.getEventKey() == Keyboard.KEY_I && Keyboard.isKeyDown(Keyboard.KEY_LCONTROL))
+        {
+            mc.vrSettings.inertiaFactor += 1;
+            if (mc.vrSettings.inertiaFactor > VRSettings.INERTIA_MASSIVE)
+                mc.vrSettings.inertiaFactor = VRSettings.INERTIA_NONE;
+            mc.vrSettings.saveOptions();
+            switch (mc.vrSettings.inertiaFactor)
+            {
+                case VRSettings.INERTIA_NONE:
+                    mc.printChatMessage("Player player movement inertia (LCTRL-I): None");
+                    break;
+                case VRSettings.INERTIA_NORMAL:
+                    mc.printChatMessage("Player player movement inertia (LCTRL-I): Normal");
+                    break;
+                case VRSettings.INERTIA_LARGE:
+                    mc.printChatMessage("Player player movement inertia (LCTRL-I): Large");
+                    break;
+                case VRSettings.INERTIA_MASSIVE:
+                    mc.printChatMessage("Player player movement inertia (LCTRL-I): Massive");
+                    break;
+            }
         }
 
         // Render full player model or just an disembodied hand...
@@ -71,6 +102,11 @@ public class VRHotkeys {
         if (Keyboard.isKeyDown(Keyboard.KEY_SPACE))
         {
             PluginManager.notifyAll(IBasePlugin.EVENT_CALIBRATION_SET_ORIGIN);
+        }
+        // ...and ESC aborts
+        if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
+        {
+            PluginManager.notifyAll(IBasePlugin.EVENT_CALIBRATION_ABORT);
         }
 	}
 }

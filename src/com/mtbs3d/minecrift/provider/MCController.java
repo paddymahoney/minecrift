@@ -279,6 +279,8 @@ public class MCController extends BasePlugin implements IBodyAimController
 	private Minecraft mc;
 	private GuiScreenNavigator screenNavigator;
 	private boolean loaded = false;
+    int lastIndex = -1;
+
 	public MCController() {
 		super();
 		mc = Minecraft.getMinecraft();
@@ -286,6 +288,7 @@ public class MCController extends BasePlugin implements IBodyAimController
         pluginID = "controller";
         pluginName = "Controller";
 	}
+
 	@Override
 	public String getInitializationStatus() {
 		return hasControllers ? "Ready." : "No Controllers found.";
@@ -349,12 +352,11 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	@Override
-	public void poll(float delta)
+	public void poll(int index)
     {
-        if (polledThisFrame)
+        if (index <= this.lastIndex)
             return;
-
-        polledThisFrame = true;
+        lastIndex = index;
 
 		if(!loaded)
 			loadBindings();
@@ -530,7 +532,8 @@ public class MCController extends BasePlugin implements IBodyAimController
 		nextBind = binding;
 	}
 
-    public void beginFrame() { polledThisFrame = false; }
+    public void beginFrame() { beginFrame(0); }
+    public void beginFrame(int frameIndex) { }
     public void endFrame() { }
 
     @Override

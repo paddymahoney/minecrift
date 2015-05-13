@@ -1,5 +1,9 @@
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
+import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
+import com.mtbs3d.minecrift.gui.framework.GuiSliderEx;
+import com.mtbs3d.minecrift.gui.framework.GuiSmallButtonEx;
 import com.mtbs3d.minecrift.settings.VRSettings;
 
 import net.minecraft.client.Minecraft;

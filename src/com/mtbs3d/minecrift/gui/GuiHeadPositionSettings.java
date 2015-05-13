@@ -6,6 +6,7 @@ package com.mtbs3d.minecrift.gui;
 
 import java.util.List;
 
+import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.provider.MCHydra;
 import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
@@ -276,7 +277,7 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
     }
 
     @Override
-    public void event(int id, VRSettings.VrOptions enumm)
+    public boolean event(int id, VRSettings.VrOptions enumm)
     {
         if (enumm == VRSettings.VrOptions.POS_TRACK_OFFSET_SET_DEFAULT)
         {
@@ -289,6 +290,13 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
         {
             this.reinit = true;
         }
+
+        return true;
+    }
+
+    @Override
+    public boolean event(int id, String s) {
+        return true;
     }
 
     private void setLocOffsetDefaults()

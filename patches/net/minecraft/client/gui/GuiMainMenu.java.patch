@@ -87,7 +87,7 @@
          GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
          Tessellator var4 = Tessellator.instance;
          var4.startDrawingQuads();
-@@ -516,13 +546,31 @@
+@@ -516,14 +546,40 @@
          GL11.glScalef(var8, var8, var8);
          this.drawCenteredString(this.fontRendererObj, this.splashText, 0, -8, -256);
          GL11.glPopMatrix();
@@ -100,23 +100,34 @@
          {
              var9 = var9 + " Demo";
          }
- 
-+        Object fmlCommonHandler = null;
-+        if( Reflector.FMLCommonHandler_instance.exists()) {
-+            fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
-+        }
-+        if( fmlCommonHandler != null ) {
-+            List<String> brandings = Lists.reverse((List<String>)Reflector.call(fmlCommonHandler, Reflector.FMLCommonHandler_getBrandings, new Object[]{true}));
-+            for (int i = 0; i < brandings.size(); i++)
-+            {
-+                String brd = brandings.get(i);
-+                if (!Strings.isNullOrEmpty(brd))
-+                {
-+                    this.drawString(this.fontRendererObj, brd, 2, this.height - ( 10 + i * (this.fontRendererObj.FONT_HEIGHT + 1)), 16777215);
-+                }
-+            }
-+            Reflector.callVoid(Reflector.ForgeHooksClient_renderMainMenu, new Object[] {this, fontRendererObj, width, height});
+-
+-        this.drawString(this.fontRendererObj, var9, 2, this.height - 10, -1);
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists()) {
++	        Object fmlCommonHandler = null;
++	        if( Reflector.FMLCommonHandler_instance.exists()) {
++	            fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
++	        }
++	        if( fmlCommonHandler != null ) {
++	            List<String> brandings = Lists.reverse((List<String>)Reflector.call(fmlCommonHandler, Reflector.FMLCommonHandler_getBrandings, new Object[]{true}));
++	            for (int i = 0; i < brandings.size(); i++)
++	            {
++	                String brd = brandings.get(i);
++	                brd = brd.replaceAll("Minecraft", "Minecrift");
++                    if (!Strings.isNullOrEmpty(brd))
++	                {
++	                    this.drawString(this.fontRendererObj, brd, 2, this.height - ( 10 + i * (this.fontRendererObj.FONT_HEIGHT + 1)), 16777215);
++	                }
++	            }
++	            Reflector.callVoid(Reflector.ForgeHooksClient_renderMainMenu, new Object[] {this, fontRendererObj, width, height});
++			}
 +		}
-         this.drawString(this.fontRendererObj, var9, 2, this.height - 10, -1);
++		else {
++		/** END MINECRIFT FORGE **/
++        	this.drawString(this.fontRendererObj, var9, 2, this.height - 10, -1);
++		/** MINECRIFT FORGE **/	
++		}
++		/** END MINECRIFT FORGE **/
          String var10 = "Copyright Mojang AB. Do not distribute!";
          this.drawString(this.fontRendererObj, var10, this.width - this.fontRendererObj.getStringWidth(var10) - 2, this.height - 10, -1);
+ 

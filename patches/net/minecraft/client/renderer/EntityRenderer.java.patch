@@ -71,7 +71,7 @@
      public ItemRenderer itemRenderer;
      private final MapItemRenderer theMapItemRenderer;
  
-@@ -159,12 +187,15 @@
+@@ -159,12 +187,14 @@
      private boolean cloudFog;
      private final IResourceManager resourceManager;
      public ShaderGroup theShaderGroup;
@@ -84,7 +84,6 @@
 -    private double cameraZoom;
 -    private double cameraYaw;
 -    private double cameraPitch;
-+    public int shaderIndex;
 +    public double cameraZoom;
 +    public double cameraYaw;
 +    public double cameraPitch;
@@ -92,7 +91,7 @@
  
      /** Previous frame time in milliseconds */
      private long prevFrameTime;
-@@ -242,6 +273,61 @@
+@@ -242,9 +272,65 @@
      private boolean showExtendedDebugInfo = false;
      private long lastErrorCheckTimeMs = 0L;
  
@@ -153,13 +152,17 @@
 +
      public EntityRenderer(Minecraft p_i45076_1_, IResourceManager p_i45076_2_)
      {
-         this.shaderIndex = shaderCount;
-@@ -257,6 +343,15 @@
+-        this.shaderIndex = shaderCount;
++        /** MINECRIFT **/
++        //this.shaderIndex = shaderCount;
+         this.cameraZoom = 1.0D;
+         this.prevFrameTime = Minecraft.getSystemTime();
+         this.random = new Random();
+@@ -257,6 +343,14 @@
          this.locationLightMap = p_i45076_1_.getTextureManager().getDynamicTextureLocation("lightMap", this.lightmapTexture);
          this.lightmapColors = this.lightmapTexture.getTextureData();
          this.theShaderGroup = null;
 +
-+        /** MINECRIFT */
 +        generatedIconMipmaps[0] = false;
 +        generatedIconMipmaps[1] = false;
 +        eyeproj[0] = new Matrix4f();
@@ -170,28 +173,51 @@
      }
  
      public boolean isShaderActive()
-@@ -279,39 +374,44 @@
+@@ -272,68 +366,94 @@
+         }
+ 
+         this.theShaderGroup = null;
+-        this.shaderIndex = shaderCount;
++        /** MINECRIFT **/
++        this.mc.vrSettings.shaderIndex = VRSettings.NO_SHADER;
++        this.mc.vrSettings.saveOptions();
++        /** END MINECRIFT **/
+     }
+ 
+     public void activateNextShader()
      {
          if (OpenGlHelper.shadersSupported)
          {
 -            if (this.theShaderGroup != null)
 -            {
 -                this.theShaderGroup.deleteShaderGroup();
--            }
--
-+/** MINECRIFT */        
-             this.shaderIndex = (this.shaderIndex + 1) % (shaderResourceLocations.length + 1);
- 
--            if (this.shaderIndex != shaderCount)
++/** MINECRIFT */
++            this.mc.vrSettings.shaderIndex++;
++            if (this.mc.vrSettings.shaderIndex >= shaderCount) {
++                this.mc.vrSettings.shaderIndex = VRSettings.NO_SHADER;
+             }
++            this.mc.vrSettings.saveOptions();
 +            // The change will be picked up the next time round the render loop...
 +        }
 +    }
-+
+ 
+-            this.shaderIndex = (this.shaderIndex + 1) % (shaderResourceLocations.length + 1);
 +    public ShaderGroup initShaderGroup(Framebuffer framebuffer)
 +    {
 +        ShaderGroup shaderGroup = null;
 +
-+        if (OpenGlHelper.shadersSupported && this.shaderIndex != shaderCount)
++        if (this.mc.vrSettings.shaderIndex >= shaderCount) {
++            this.mc.vrSettings.shaderIndex = VRSettings.NO_SHADER;
++            this.mc.vrSettings.saveOptions();
++        }
++
++        if (this.theShaderGroup != null)
++        {
++            this.theShaderGroup.deleteShaderGroup();
++        }
+ 
+-            if (this.shaderIndex != shaderCount)
++        if (OpenGlHelper.shadersSupported && this.mc.vrSettings.shaderIndex != VRSettings.NO_SHADER)
 +        {
 +            try
              {
@@ -201,14 +227,9 @@
 -                    this.theShaderGroup = new ShaderGroup(this.mc.getTextureManager(), this.resourceManager, this.mc.getFramebuffer(), shaderResourceLocations[this.shaderIndex]);
 -                    this.theShaderGroup.createBindFramebuffers(this.mc.displayWidth, this.mc.displayHeight);
 -                }
-+                logger.info("Selecting effect " + shaderResourceLocations[this.shaderIndex]);
-+                shaderGroup = new ShaderGroup(this.mc.getTextureManager(), this.resourceManager, framebuffer, shaderResourceLocations[this.shaderIndex]);
-+                shaderGroup.createBindFramebuffers(this.mc.displayWidth, this.mc.displayHeight);
-+            }
-                 catch (IOException var2)
+-                catch (IOException var2)
 -                {
-+            {
-                     logger.warn("Failed to load shader: " + shaderResourceLocations[this.shaderIndex], var2);
+-                    logger.warn("Failed to load shader: " + shaderResourceLocations[this.shaderIndex], var2);
 -                    this.shaderIndex = shaderCount;
 -                }
 -                catch (JsonSyntaxException var3)
@@ -216,15 +237,22 @@
 -                    logger.warn("Failed to load shader: " + shaderResourceLocations[this.shaderIndex], var3);
 -                    this.shaderIndex = shaderCount;
 -                }
-+                this.shaderIndex = shaderCount;
++                logger.info("Selecting effect " + shaderResourceLocations[this.mc.vrSettings.shaderIndex]);
++                shaderGroup = new ShaderGroup(this.mc.getTextureManager(), this.resourceManager, framebuffer, shaderResourceLocations[this.mc.vrSettings.shaderIndex]);
++                shaderGroup.createBindFramebuffers(framebuffer.framebufferWidth, framebuffer.framebufferHeight);
              }
 -            else
-+                catch (JsonSyntaxException var3)
++            catch (IOException var2)
++            {
++                logger.warn("Failed to load shader: " + shaderResourceLocations[this.mc.vrSettings.shaderIndex], var2);
++                this.mc.vrSettings.shaderIndex = VRSettings.NO_SHADER;
++            }
++            catch (JsonSyntaxException var3)
              {
 -                this.theShaderGroup = null;
 -                logger.info("No effect selected");
-+                    logger.warn("Failed to load shader: " + shaderResourceLocations[this.shaderIndex], var3);
-+                this.shaderIndex = shaderCount;
++                logger.warn("Failed to load shader: " + shaderResourceLocations[this.mc.vrSettings.shaderIndex], var3);
++                this.mc.vrSettings.shaderIndex = VRSettings.NO_SHADER;
              }
          }
 +        else
@@ -234,11 +262,42 @@
 +
 +        return shaderGroup;
      }
-+/** END MINECRIFT */	
  
      public void onResourceManagerReload(IResourceManager par1ResourceManager)
      {
-@@ -416,41 +516,87 @@
++        if (OpenGlHelper.shadersSupported && ShaderLinkHelper.getStaticShaderLinkHelper() == null)
++        {
++            ShaderLinkHelper.setNewStaticShaderLinkHelper();
++        }
++
+         if (this.theShaderGroup != null)
+         {
+             this.theShaderGroup.deleteShaderGroup();
+         }
+ 
+-        if (this.shaderIndex != shaderCount)
++        if (this.mc.vrSettings.shaderIndex != VRSettings.NO_SHADER)
+         {
+             try
+             {
+-                this.theShaderGroup = new ShaderGroup(this.mc.getTextureManager(), par1ResourceManager, this.mc.getFramebuffer(), shaderResourceLocations[this.shaderIndex]);
++                this.theShaderGroup = new ShaderGroup(this.mc.getTextureManager(), par1ResourceManager, this.mc.getFramebuffer(), shaderResourceLocations[this.mc.vrSettings.shaderIndex]);
+                 this.theShaderGroup.createBindFramebuffers(this.mc.displayWidth, this.mc.displayHeight);
+             }
+             catch (IOException var3)
+             {
+-                logger.warn("Failed to load shader: " + shaderResourceLocations[this.shaderIndex], var3);
+-                this.shaderIndex = shaderCount;
++                logger.warn("Failed to load shader: " + shaderResourceLocations[this.mc.vrSettings.shaderIndex], var3);
++                this.mc.vrSettings.shaderIndex = VRSettings.NO_SHADER;
+             }
+         }
+     }
++/** END MINECRIFT */
+ 
+     /**
+      * Updates the entity renderer
+@@ -416,41 +536,87 @@
       */
      public void getMouseOver(float par1)
      {
@@ -342,7 +401,7 @@
  
              for (int var14 = 0; var14 < var11.size(); ++var14)
              {
-@@ -460,20 +606,20 @@
+@@ -460,20 +626,20 @@
                  {
                      float var16 = var15.getCollisionBorderSize();
                      AxisAlignedBB var17 = var15.boundingBox.expand((double)var16, (double)var16, (double)var16);
@@ -367,7 +426,7 @@
  
                          if (var19 < var12 || var12 == 0.0D)
                          {
-@@ -503,15 +649,41 @@
+@@ -503,15 +669,41 @@
                  }
              }
  
@@ -413,7 +472,7 @@
          }
      }
  
-@@ -648,9 +820,11 @@
+@@ -648,9 +840,11 @@
          {
              EntityPlayer var2 = (EntityPlayer)this.mc.renderViewEntity;
              float var3 = var2.distanceWalkedModified - var2.prevDistanceWalkedModified;
@@ -428,7 +487,7 @@
              GL11.glTranslatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 0.5F, -Math.abs(MathHelper.cos(var4 * (float)Math.PI) * var5), 0.0F);
              GL11.glRotatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 3.0F, 0.0F, 0.0F, 1.0F);
              GL11.glRotatef(Math.abs(MathHelper.cos(var4 * (float)Math.PI - 0.2F) * var5) * 5.0F, 1.0F, 0.0F, 0.0F);
-@@ -668,8 +842,9 @@
+@@ -668,8 +862,9 @@
          double var4 = var2.prevPosX + (var2.posX - var2.prevPosX) * (double)par1;
          double var6 = var2.prevPosY + (var2.posY - var2.prevPosY) * (double)par1 - (double)var3;
          double var8 = var2.prevPosZ + (var2.posZ - var2.prevPosZ) * (double)par1;
@@ -440,7 +499,7 @@
          if (var2.isPlayerSleeping())
          {
              var3 = (float)((double)var3 + 1.0D);
-@@ -757,20 +932,22 @@
+@@ -757,20 +952,22 @@
          }
          else
          {
@@ -467,47 +526,48 @@
      }
  
      /**
-@@ -778,6 +955,8 @@
+@@ -778,6 +975,9 @@
       */
      private void setupCameraTransform(float par1, int par2)
      {
-+        /** MINECRIFT *
++        /** MINECRIFT */
++        /*
 +        // Setup farPlaneDistance in Minecraft.setupRenderConfig
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -788,8 +967,8 @@
-         if (Config.isFogFast())
+@@ -789,18 +989,21 @@
          {
              this.farPlaneDistance *= 0.83F;
--        }
--
-+        }        
-+        ** END MINECRIFT */
+         }
++        */
+ 
          GL11.glMatrixMode(GL11.GL_PROJECTION);
          GL11.glLoadIdentity();
          float var3 = 0.07F;
-@@ -799,8 +978,10 @@
+ 
+-        if (this.mc.gameSettings.anaglyph)
++        if (this.mc.gameSettings.anaglyph && !this.mc.vrSettings.debugPos)
+         {
              GL11.glTranslatef((float)(-(par2 * 2 - 1)) * var3, 0.0F, 0.0F);
          }
  
-+        /** MINECRIFT *
-+        // Setup clip in Minecraft.setupRenderConfig
++        /*
++        // Setup clip in Minecraft.setupRenderConfig instead...
          float clipDistance = this.farPlaneDistance * 2.0F;
 -
 +        
          if (clipDistance < 128.0F)
          {
              clipDistance = 128.0F;
-@@ -810,14 +991,23 @@
+@@ -810,17 +1013,26 @@
          {
              clipDistance = 256.0F;
          }
--
++        */
+ 
 -        if (this.cameraZoom != 1.0D)
-+        ** END MINECRIFT */
-+        /** MINECRIFT */        
-+        if (!this.mc.stereoProvider.isStereo() && this.cameraZoom != 1.0D)
++        if (!this.mc.stereoProvider.isStereo() && this.cameraZoom != 1.0D && !this.mc.vrSettings.debugPos)
          {
 -            GL11.glTranslatef((float)this.cameraYaw, (float)(-this.cameraPitch), 0.0F);
 +            GL11.glTranslatef((float)this.cameraYaw, (float)(-this.cameraPitch), (float)(-this.cameraRoll)); // Minecrift
@@ -521,33 +581,87 @@
 +        }
 +        else
 +        {
-+        Project.gluPerspective(this.getFOVModifier(par1, true), (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
++            Project.gluPerspective(this.getFOVModifier(par1, true), (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
 +        }
-+        /** END MINECRIFT */
++
          float var4;
  
-         if (this.mc.playerController.enableEverythingIsScrewedUpMode())
-@@ -897,6 +1087,7 @@
+-        if (this.mc.playerController.enableEverythingIsScrewedUpMode())
++        if (this.mc.playerController.enableEverythingIsScrewedUpMode() && !this.mc.vrSettings.debugPos)
+         {
+             var4 = 0.6666667F;
+             GL11.glScalef(1.0F, var4, 1.0F);
+@@ -829,21 +1041,23 @@
+         GL11.glMatrixMode(GL11.GL_MODELVIEW);
+         GL11.glLoadIdentity();
+ 
+-        if (this.mc.gameSettings.anaglyph)
++        if (this.mc.gameSettings.anaglyph && !this.mc.vrSettings.debugPos)
+         {
+             GL11.glTranslatef((float)(par2 * 2 - 1) * 0.1F, 0.0F, 0.0F);
+         }
+ 
+-        this.hurtCameraEffect(par1);
++        if (!this.mc.vrSettings.debugPos) {
++            this.hurtCameraEffect(par1);
++        }
+ 
+-        if (this.mc.gameSettings.viewBobbing)
++        if (this.mc.gameSettings.viewBobbing && !this.mc.vrSettings.debugPos)
+         {
+             this.setupViewBobbing(par1);
+         }
+ 
+         var4 = this.mc.thePlayer.prevTimeInPortal + (this.mc.thePlayer.timeInPortal - this.mc.thePlayer.prevTimeInPortal) * par1;
+ 
+-        if (var4 > 0.0F)
++        if (var4 > 0.0F && !this.mc.vrSettings.debugPos)
+         {
+             byte var7 = 20;
+ 
+@@ -861,7 +1075,7 @@
+ 
+         this.orientCamera(par1);
+ 
+-        if (this.debugViewDirection > 0)
++        if (this.debugViewDirection > 0 && !this.mc.vrSettings.debugPos)
+         {
+             int var71 = this.debugViewDirection - 1;
+ 
+@@ -890,6 +1104,7 @@
+                 GL11.glRotatef(-90.0F, 1.0F, 0.0F, 0.0F);
+             }
+         }
++        /** END MINECRIFT */
+     }
+ 
+     /**
+@@ -897,26 +1112,35 @@
       */
      private void renderHand(float par1, int par2)
      {
-+        /** Minecrift */
++        /** MINECRIFT */
          if (this.debugViewDirection <= 0)
          {
              GL11.glMatrixMode(GL11.GL_PROJECTION);
-@@ -908,13 +1099,23 @@
+             GL11.glLoadIdentity();
+             float var3 = 0.07F;
+ 
+-            if (this.mc.gameSettings.anaglyph)
++            if (this.mc.gameSettings.anaglyph && !this.mc.vrSettings.debugPos)
+             {
                  GL11.glTranslatef((float)(-(par2 * 2 - 1)) * var3, 0.0F, 0.0F);
              }
  
 -            if (this.cameraZoom != 1.0D)
-+            /** MINECRIFT */
-+            if (!this.mc.stereoProvider.isStereo() && this.cameraZoom != 1.0D)
++            if (!this.mc.stereoProvider.isStereo() && this.cameraZoom != 1.0D && !this.mc.vrSettings.debugPos)
              {
 -                GL11.glTranslatef((float)this.cameraYaw, (float)(-this.cameraPitch), 0.0F);
 +                GL11.glTranslatef((float) this.cameraYaw, (float) (-this.cameraPitch), 0.0F);
                  GL11.glScaled(this.cameraZoom, this.cameraZoom, 1.0D);
              }
  
+-            Project.gluPerspective(this.getFOVModifier(par1, false), (float)this.mc.displayWidth / (float)this.mc.displayHeight, 0.05F, this.farPlaneDistance * 2.0F);
 +            // Minecrift - use correct projection
 +            if (this.mc.stereoProvider.isStereo())
 +            {
@@ -555,22 +669,34 @@
 +            }
 +            else
 +            {
-             Project.gluPerspective(this.getFOVModifier(par1, false), (float)this.mc.displayWidth / (float)this.mc.displayHeight, 0.05F, this.farPlaneDistance * 2.0F);
++                Project.gluPerspective(this.getFOVModifier(par1, false), (float)this.mc.displayWidth / (float)this.mc.displayHeight, 0.05F, this.farPlaneDistance * 2.0F);
 +            }
-+            /** END MINECRIFT */
  
-             if (this.mc.playerController.enableEverythingIsScrewedUpMode())
+-            if (this.mc.playerController.enableEverythingIsScrewedUpMode())
++            if (this.mc.playerController.enableEverythingIsScrewedUpMode() && !this.mc.vrSettings.debugPos)
              {
-@@ -927,7 +1128,7 @@
+                 float var4 = 0.6666667F;
+                 GL11.glScalef(1.0F, var4, 1.0F);
+@@ -925,24 +1149,28 @@
+             GL11.glMatrixMode(GL11.GL_MODELVIEW);
+             GL11.glLoadIdentity();
  
-             if (this.mc.gameSettings.anaglyph)
+-            if (this.mc.gameSettings.anaglyph)
++            if (this.mc.gameSettings.anaglyph && !this.mc.vrSettings.debugPos)
              {
 -                GL11.glTranslatef((float)(par2 * 2 - 1) * 0.1F, 0.0F, 0.0F);
 +                GL11.glTranslatef((float) (par2 * 2 - 1) * 0.1F, 0.0F, 0.0F);
              }
  
              GL11.glPushMatrix();
-@@ -938,11 +1139,14 @@
+-            this.hurtCameraEffect(par1);
++            if (!this.mc.vrSettings.debugPos) {
++                this.hurtCameraEffect(par1);
++            }
+ 
+-            if (this.mc.gameSettings.viewBobbing)
++            if (this.mc.gameSettings.viewBobbing && !this.mc.vrSettings.debugPos)
+             {
                  this.setupViewBobbing(par1);
              }
  
@@ -580,7 +706,6 @@
 +            if (this.mc.gameSettings.thirdPersonView == 0 && !this.mc.renderViewEntity.isPlayerSleeping() /*&& !this.mc.gameSettings.hideGUI*/ && !this.mc.playerController.enableEverythingIsScrewedUpMode())
              {
 -                this.enableLightmap((double)par1);
-+            /** END MINECRIFT */
 +                this.enableLightmap((double) par1);
                  this.itemRenderer.renderItemInFirstPerson(par1);
 -                this.disableLightmap((double)par1);
@@ -588,12 +713,32 @@
              }
  
              GL11.glPopMatrix();
-@@ -1187,7 +1391,18 @@
+@@ -950,14 +1178,17 @@
+             if (this.mc.gameSettings.thirdPersonView == 0 && !this.mc.renderViewEntity.isPlayerSleeping())
+             {
+                 this.itemRenderer.renderOverlays(par1);
+-                this.hurtCameraEffect(par1);
++                if (!this.mc.vrSettings.debugPos) {
++                    this.hurtCameraEffect(par1);
++                }
+             }
+ 
+-            if (this.mc.gameSettings.viewBobbing)
++            if (this.mc.gameSettings.viewBobbing && !this.mc.vrSettings.debugPos)
+             {
+                 this.setupViewBobbing(par1);
+             }
+         }
++        /** END MINECRIFT */
+     }
+ 
+     /**
+@@ -1187,7 +1418,18 @@
              this.mc.ingameGUI.getChatGUI().printChatMessage(var14);
              Config.setNewRelease((String)null);
          }
 +        /** MINECRIFT */
-+        if (world1 != null && this.warningsEnabled)
++        if (world1 != null && this.mc.stereoProvider.isStereo() && this.warningsEnabled)
 +        {
 +            if (!Display.isFullscreen() && this.mc.isDirectMode == false)
 +                this.mc.printChatMessage("Minecrift is not running in Fullscreen mode. Please Fullscreen via F11!");
@@ -607,7 +752,7 @@
          if (this.mc.currentScreen instanceof GuiMainMenu)
          {
              this.updateMainMenu((GuiMainMenu)this.mc.currentScreen);
-@@ -1224,64 +1439,92 @@
+@@ -1224,64 +1466,94 @@
          {
              this.prevFrameTime = Minecraft.getSystemTime();
          }
@@ -708,15 +853,16 @@
          if (!this.mc.skipRenderWorld)
          {
              anaglyphEnable = this.mc.gameSettings.anaglyph;
--            final ScaledResolution var133 = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
 +            /** MINECRIFT */
-+            final ScaledResolution var133 = new ScaledResolution(this.mc, this.mc.displayFBWidth, this.mc.displayFBHeight);
++            this.mc.enableGuiSizeHack();
+             final ScaledResolution var133 = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
              int var142 = var133.getScaledWidth();
              int var151 = var133.getScaledHeight();
 -            final int var161 = Mouse.getX() * var142 / this.mc.displayWidth;
 -            final int var171 = var151 - Mouse.getY() * var151 / this.mc.displayHeight - 1;
 +            final int var161 = Mouse.getX() * var142 / this.mc.displayFBWidth;
 +            final int var171 = var151 - Mouse.getY() * var151 / this.mc.displayFBHeight - 1;
++            this.mc.disableGuiSizeHack();
 +            /** END MINECRIFT */
              int var181 = this.mc.gameSettings.limitFramerate;
  
@@ -745,7 +891,7 @@
                  if (OpenGlHelper.shadersSupported)
                  {
                      if (this.theShaderGroup != null)
-@@ -1291,6 +1534,9 @@
+@@ -1291,6 +1563,9 @@
                          GL11.glLoadIdentity();
                          this.theShaderGroup.loadShaderGroup(par1);
                          GL11.glPopMatrix();
@@ -755,7 +901,7 @@
                      }
  
                      this.mc.getFramebuffer().bindFramebuffer(true);
-@@ -1298,30 +1544,61 @@
+@@ -1298,30 +1573,68 @@
  
                  this.renderEndNanoTime = System.nanoTime();
                  this.mc.mcProfiler.endStartSection("gui");
@@ -767,9 +913,11 @@
 +				{
 +                if (!this.mc.gameSettings.hideGUI || this.mc.currentScreen != null) 
 +				{
++                    this.mc.enableGuiSizeHack();
                      GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
 -                    this.mc.ingameGUI.renderGameOverlay(par1, this.mc.currentScreen != null, var161, var171);
 +                	this.mc.ingameGUI.renderGameOverlay(par1, this.mc.currentScreen != null, var161, var171);
++                    this.mc.disableGuiSizeHack();
                  }
 -
 +                }
@@ -791,12 +939,14 @@
 +
 +                if (this.mc.stereoProvider.isGuiOrtho())
 +                {
++                    this.mc.enableGuiSizeHack();
 +                    GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
 +                    GL11.glMatrixMode(GL11.GL_PROJECTION);
 +                    GL11.glLoadIdentity();
 +                    GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +                    GL11.glLoadIdentity();
 +                    this.setupOverlayRendering();
++                    this.mc.disableGuiSizeHack();
 +                }
 +                /** END MINECRIFT */
                  this.renderEndNanoTime = System.nanoTime();
@@ -807,7 +957,7 @@
 +            renderFadeEffects();
 +
 +            if (!this.mc.stereoProvider.isGuiOrtho())
-+            {
+             {
 +                GL11.glDisable(GL11.GL_ALPHA_TEST);
 +                GL11.glEnable(GL11.GL_DEPTH_TEST);
 +
@@ -815,11 +965,14 @@
 +            }
 +            else if (this.mc.integratedServerLaunchInProgress)
 +            {
++                this.mc.enableGuiSizeHack();
 +                this.mc.loadingScreen.renderTarget = this.mc.getFramebuffer();
 +                this.mc.loadingScreen.render();
++                this.mc.disableGuiSizeHack();
 +            }
 +            else if (this.mc.currentScreen != null)
-             {
++            {
++                this.mc.enableGuiSizeHack();
                  GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
  
 +                if (this.mc.showSplashScreen)
@@ -829,7 +982,7 @@
                  try
                  {
                      boolean var12 = false;
-@@ -1368,7 +1645,12 @@
+@@ -1368,7 +1681,14 @@
                      });
                      throw new ReportedException(var10);
                  }
@@ -838,11 +991,13 @@
 +
 +            // Minecrift - display calibration text
 +            displayCalibrationText();
++
++            this.mc.disableGuiSizeHack();
 +            /** END MINECRIFT */    
          }
  
          this.frameFinish();
-@@ -1424,9 +1706,22 @@
+@@ -1424,9 +1744,22 @@
          EntityLivingBase var4 = this.mc.renderViewEntity;
          RenderGlobal var5 = this.mc.renderGlobal;
          EffectRenderer var6 = this.mc.effectRenderer;
@@ -868,7 +1023,7 @@
          this.mc.mcProfiler.endStartSection("center");
  
          for (int var13 = 0; var13 < 2; ++var13)
-@@ -1452,6 +1747,12 @@
+@@ -1452,6 +1785,12 @@
              GL11.glEnable(GL11.GL_CULL_FACE);
              this.mc.mcProfiler.endStartSection("camera");
              this.setupCameraTransform(par1, var13);
@@ -881,7 +1036,7 @@
              ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
              this.mc.mcProfiler.endStartSection("frustrum");
              ClippingHelperImpl.getInstance();
-@@ -1477,11 +1778,13 @@
+@@ -1477,11 +1816,13 @@
  
              this.mc.mcProfiler.endStartSection("culling");
              Frustrum var14 = new Frustrum();
@@ -897,7 +1052,7 @@
                  this.mc.mcProfiler.endStartSection("updatechunks");
  
                  while (!this.mc.renderGlobal.updateRenderers(var4, false) && par2 != 0L)
-@@ -1514,6 +1817,10 @@
+@@ -1514,6 +1855,10 @@
              boolean hasForge = Reflector.ForgeHooksClient.exists();
              EntityPlayer var18;
  
@@ -908,7 +1063,7 @@
              if (this.debugViewDirection == 0)
              {
                  GL11.glMatrixMode(GL11.GL_MODELVIEW);
-@@ -1539,14 +1846,14 @@
+@@ -1539,14 +1884,14 @@
                  GL11.glMatrixMode(GL11.GL_MODELVIEW);
                  GL11.glPopMatrix();
                  GL11.glPushMatrix();
@@ -926,7 +1081,7 @@
                      {
                          var5.drawSelectionBox(var18, this.mc.objectMouseOver, 0, par1);
                      }
-@@ -1557,18 +1864,19 @@
+@@ -1557,18 +1902,19 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glPopMatrix();
  
@@ -948,7 +1103,7 @@
  
              this.mc.mcProfiler.endStartSection("destroyProgress");
              GL11.glEnable(GL11.GL_BLEND);
-@@ -1671,14 +1979,24 @@
+@@ -1671,14 +2017,24 @@
                  Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, new Object[] {var5, Float.valueOf(par1)});
              }
  
@@ -976,7 +1131,7 @@
  
              if (!this.mc.gameSettings.anaglyph)
              {
-@@ -2544,6 +2862,8 @@
+@@ -2544,6 +2900,8 @@
  
      private void frameFinish()
      {
@@ -985,7 +1140,7 @@
          if (this.mc.theWorld != null)
          {
              long now = System.currentTimeMillis();
-@@ -2561,6 +2881,8 @@
+@@ -2561,6 +2919,8 @@
                  }
              }
          }
@@ -994,7 +1149,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2605,4 +2927,1013 @@
+@@ -2605,4 +2965,982 @@
              ;
          }
      }
@@ -1024,25 +1179,6 @@
 +            guiYawOrientationResetRequested = true;
 +            this.mc.vrSettings.posTrackResetPosition = false;
 +        }
-+
-+        // TODO: PollAll can call controller code that updates the GUI.
-+        // All controller code should be moved to UpdateTick really. For
-+        // now, hack the displaySize so that any gui screens changed use
-+        // the correct size...
-+        int currentDisplayWidth = this.mc.displayWidth;
-+        int currentDisplayHeight = this.mc.displayHeight;
-+        this.mc.displayWidth = this.mc.displayFBWidth;
-+        this.mc.displayHeight = this.mc.displayFBHeight;
-+
-+        // Poll sensors
-+        PluginManager.pollAll();
-+
-+        this.mc.displayWidth = currentDisplayWidth;
-+        this.mc.displayHeight = currentDisplayHeight;
-+        // TODO: End display size hack
-+
-+//        if(JoystickAim.selectedJoystickMode != null)
-+//            JoystickAim.selectedJoystickMode.update( renderPartialTicks );
 +
 +        lookYawOffset   = mc.lookaimController.getBodyYawDegrees();
 +        lookPitchOffset = mc.lookaimController.getBodyPitchDegrees();
@@ -1131,12 +1267,15 @@
 +            switch(this.mc.vrSettings.lookMoveDecoupled) {
 +                case VRSettings.DECOUPLE_OFF:
 +                entity.rotationYaw = (float)cameraYaw;
++                    entity.headPitch = (float)cameraPitch;
 +                    break;
 +                case VRSettings.DECOUPLE_WITH_HUD:
 +                    entity.rotationYaw = lookYawOffset;
++                    entity.headPitch = lookPitchOffset;
 +                    break;
 +                case VRSettings.DECOUPLE_WITH_CROSSHAIR:
 +                    entity.rotationYaw = mc.lookaimController.getAimYaw();
++                    entity.headPitch = mc.lookaimController.getAimPitch();
 +                    break;
 +            }
 +            entity.rotationYawHead = (float)cameraYaw;
@@ -1342,11 +1481,11 @@
 +    {
 +        SoundSystem sndSystem = null;
 +
-+        // Get the soundManager from mc.mcSoundHandler (field_147694_f)
-+        // then get SoundSystem from it (field_148620_e)
++        // Get the soundManager from mc.mcSoundHandler (sndManager or field_147694_f)
++        // then get SoundSystem from it (sndSystem or field_148620_e)
 +        // Obfuscated names (from MCP908/conf/joined.srg):
-+        //    SoundHandler.field_147694_f = btp/a
-+        //    SoundSystem.field_148620_e = btj/e
++        //    SoundHandler.sndManager = SoundHandler.field_147694_f = btp/a
++        //    stem.sndSystem = SoundSySoundSystem.field_148620_e = btj/e
 +
 +        // Use reflection to get the sndManager
 +        if (sndSystemReflect && _soundManagerSndSystemField == null && this.trySoundSystemReflect)
@@ -1354,7 +1493,7 @@
 +            try
 +            {
 +                // Get SoundManager from the SoundHandler...
-+                Field soundManagerField = getDeclaredField(mc.mcSoundHandler.getClass(), "field_147694_f", "f");
++                Field soundManagerField = getDeclaredField(mc.mcSoundHandler.getClass(), "sndManager", "f");
 +                if (soundManagerField != null)
 +                {
 +                    soundManagerField.setAccessible(true);
@@ -1364,7 +1503,7 @@
 +                // ...get SoundSystem from SoundManager
 +                if (this.mc.sndManager != null)
 +                {
-+                    _soundManagerSndSystemField = getDeclaredField(this.mc.sndManager.getClass(), "field_148620_e", "e");
++                    _soundManagerSndSystemField = getDeclaredField(this.mc.sndManager.getClass(), "sndSystem", "e");
 +                    if (_soundManagerSndSystemField != null)
 +                    {
 +                        _soundManagerSndSystemField.setAccessible(true);
@@ -1623,15 +1762,6 @@
 +    
 +    public void orientModelView(boolean correctOffsets)
 +    {
-+        // View adjust (for IPD, eye relief)
-+        if (this.mc.stereoProvider.isStereo())
-+        {
-+            Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
-+            GL11.glTranslatef(viewAdjust.x * (this.mc.gameSettings.thirdPersonView == 2 ? -1f : 1f),
-+                              viewAdjust.y,
-+                              viewAdjust.z);
-+        }
-+
 +        // Orientation
 +        if (this.mc.gameSettings.thirdPersonView == 2)
 +            GL11.glRotatef((float) -this.headRoll, 0.0F, 0.0F, 1.0F);
@@ -1728,13 +1858,13 @@
 +                float guiPitch = 0f;
 +
 +                // View adjust (for IPD, eye relief)
-+                if (this.mc.stereoProvider.isStereo())
-+                {
-+                    Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
-+                    GL11.glTranslatef(viewAdjust.x,
-+                                      viewAdjust.y,
-+                                      viewAdjust.z);
-+                }
++//                if (this.mc.stereoProvider.isStereo())
++//                {
++//                    Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
++//                    GlStateManager.translate(viewAdjust.x,
++//                                             viewAdjust.y,
++//                                             viewAdjust.z);
++//                }
 +
 +                // Orientation adjust
 +                GL11.glRotatef((float)headRoll, 0f, 0f, 1f);
@@ -1788,16 +1918,11 @@
 +        this.guiScreenShowingThisFrame = false;
 +        this.inWorldGuiScreenShowingThisFrame = false;
 +
-+        int currentDisplayWidth = this.mc.displayWidth;
-+        int currentDisplayHeight = this.mc.displayHeight;
-+
-+        // Hack the GUI w & h
-+        this.mc.displayWidth = this.mc.displayFBWidth;
-+        this.mc.displayHeight = this.mc.displayFBHeight;
++        this.mc.enableGuiSizeHack();
 +
 +        int mouseX = 0;
 +        int mouseY = 0;
-+        final ScaledResolution var15 = new ScaledResolution(this.mc, this.mc.displayFBWidth, this.mc.displayFBHeight);
++        final ScaledResolution var15 = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
 +
 +        if (this.mc.showSplashScreen)
 +        {
@@ -1914,8 +2039,7 @@
 +        this.mc.guiFramebuffer.genMipMaps();
 +        this.mc.guiFramebuffer.unbindFramebufferTexture();
 +
-+        this.mc.displayWidth = currentDisplayWidth;
-+        this.mc.displayHeight = currentDisplayHeight;
++        this.mc.disableGuiSizeHack();
 +    }
 +
 +    public void drawMouseMenuQuad(int mouseX, int mouseY)
@@ -1996,7 +2120,7 @@
 +    public Vector3f getViewAdjust(EyeType eye)
 +    {
 +        Vector3f viewAdjust = new Vector3f();
-+        viewAdjust.x = -this.mc.vrSettings.getHalfIPD(eye) * this.mc.vrSettings.worldScale;
++        viewAdjust.x = -this.mc.vrSettings.getHalfIPD(eye)* this.mc.vrSettings.worldScale;
 +        viewAdjust.y = this.mc.eyeRenderParams.Eyes[eye.value()].ViewAdjust.y * this.mc.vrSettings.worldScale;
 +        viewAdjust.z = (Math.abs(this.mc.eyeRenderParams.Eyes[eye.value()].ViewAdjust.z) + this.mc.vrSettings.eyeReliefAdjust) * this.mc.vrSettings.worldScale;
 +        //System.out.println("Viewadjust [" + eye.toString() + "] x=" + viewAdjust.x + ", y=" + viewAdjust.y + ", z=" + viewAdjust.z + ", worldscale=" +  this.mc.vrSettings.worldScale);
@@ -2006,5 +2130,5 @@
 +    public float getBaseEyeRelief()
 +    {
 +        return Math.abs(this.mc.eyeRenderParams.Eyes[EyeType.ovrEye_Left.value()].ViewAdjust.z);
-+    }
++    }    
  }

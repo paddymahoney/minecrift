@@ -1,4 +1,4 @@
-package com.mtbs3d.minecrift.gui;
+package com.mtbs3d.minecrift.gui.framework;
 
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
@@ -15,10 +15,10 @@ public class VROption
     public static final boolean ENABLED = true;
     public static final boolean DISABLED = false;
 
-    VRSettings.VrOptions _e;
+    public VRSettings.VrOptions _e;
     Position _pos;
     float _row;
-    boolean _enabled;
+    public boolean _enabled;
     String _title = "";
     int _ordinal;
 
@@ -34,7 +34,7 @@ public class VROption
     int _mini;
     int _incrementi;
 
-    VROption(VRSettings.VrOptions e, Position pos, float row, boolean enabled, String title)
+    public VROption(VRSettings.VrOptions e, Position pos, float row, boolean enabled, String title)
     {
         _e = e;
         _pos = pos;
@@ -44,7 +44,7 @@ public class VROption
         _enabled = enabled;
     }
 
-    VROption(int ordinal, Position pos, float row, boolean enabled, String title)
+    public VROption(int ordinal, Position pos, float row, boolean enabled, String title)
     {
         _ordinal = ordinal;
         _pos = pos;

@@ -1,6 +1,29 @@
 --- a/net/minecraft/client/settings/GameSettings.java
 +++ b/net/minecraft/client/settings/GameSettings.java
-@@ -1234,7 +1234,9 @@
+@@ -2,17 +2,20 @@
+ 
+ import com.google.common.collect.Maps;
+ import com.google.gson.Gson;
+-import java.io.BufferedReader;
++
+ import java.io.File;
+ import java.io.FileReader;
+ import java.io.FileWriter;
+-import java.io.PrintWriter;
+ import java.lang.reflect.ParameterizedType;
+ import java.lang.reflect.Type;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.List;
+ import java.util.Map;
++
++import com.mtbs3d.minecrift.settings.profile.ProfileManager;
++import com.mtbs3d.minecrift.settings.profile.ProfileReader;
++import com.mtbs3d.minecrift.settings.profile.ProfileWriter;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.audio.SoundCategory;
+ import net.minecraft.client.gui.GuiNewChat;
+@@ -1234,7 +1237,9 @@
          if (par1EnumOptions == GameSettings.Options.ENABLE_VSYNC)
          {
              this.enableVsync = !this.enableVsync;
@@ -11,7 +34,61 @@
          }
  
          this.saveOptions();
-@@ -2918,8 +2920,10 @@
+@@ -1840,8 +1845,9 @@
+             {
+                 return;
+             }
+-
+-            BufferedReader var9 = new BufferedReader(new FileReader(this.optionsFile));
++            /** MINECRIFT **/
++            ProfileReader var9 = new ProfileReader(ProfileManager.PROFILE_SET_MC);
++            /** END MINECRIFT **/
+             String var2 = "";
+             this.mapSoundLevels.clear();
+ 
+@@ -2221,13 +2227,17 @@
+ 
+             if (var6 != null && Reflector.callBoolean(var6, Reflector.FMLClientHandler_isLoading, new Object[0]))
+             {
++                // TODO: Compat with Forge for profile support?
++
+                 return;
+             }
+         }
+ 
+         try
+         {
+-            PrintWriter var81 = new PrintWriter(new FileWriter(this.optionsFile));
++            /** MINECRIFT **/
++            ProfileWriter var81 = new ProfileWriter(ProfileManager.PROFILE_SET_MC);
++            /** END MINECRIFT **/
+             var81.println("invertYMouse:" + this.invertMouse);
+             var81.println("mouseSensitivity:" + this.mouseSensitivity);
+             var81.println("fov:" + (this.fovSetting - 70.0F) / 40.0F);
+@@ -2358,8 +2368,9 @@
+             {
+                 return;
+             }
+-
+-            BufferedReader bufferedreader = new BufferedReader(new FileReader(exception));
++            /** MINECRIFT **/
++            ProfileReader bufferedreader = new ProfileReader(ProfileManager.PROFILE_SET_OF);
++            /** END MINECRIFT **/
+             String s = "";
+ 
+             while ((s = bufferedreader.readLine()) != null)
+@@ -2753,7 +2764,9 @@
+     {
+         try
+         {
+-            PrintWriter exception = new PrintWriter(new FileWriter(this.optionsFileOF));
++            /** MINECRIFT **/
++            ProfileWriter exception = new ProfileWriter(ProfileManager.PROFILE_SET_OF);
++            /** END MINECRIFT **/
+             exception.println("ofRenderDistanceChunks:" + this.renderDistanceChunks);
+             exception.println("ofFogType:" + this.ofFogType);
+             exception.println("ofFogStart:" + this.ofFogStart);
+@@ -2918,8 +2931,10 @@
  
      public void updateVSync()
      {

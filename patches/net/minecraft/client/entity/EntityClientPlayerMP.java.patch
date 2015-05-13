@@ -1,0 +1,13 @@
+--- a/net/minecraft/client/entity/EntityClientPlayerMP.java
++++ b/net/minecraft/client/entity/EntityClientPlayerMP.java
+@@ -213,7 +213,9 @@
+     /**
+      * Joins the passed in entity item with the world. Args: entityItem
+      */
+-    protected void joinEntityItemWithWorld(EntityItem p_71012_1_) {}
++    /** MINECRIFT FORGE **/
++    public void joinEntityItemWithWorld(EntityItem p_71012_1_) {}
++    /** END MINECRIFT FORGE **/
+ 
+     /**
+      * Sends a chat message from the player. Args: chatMessage

@@ -6,6 +6,8 @@ package com.mtbs3d.minecrift.gui;
 
 import com.mtbs3d.minecrift.control.ControlBinding;
 import com.mtbs3d.minecrift.control.ControlBinding.ControlBindCallback;
+import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
+import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;

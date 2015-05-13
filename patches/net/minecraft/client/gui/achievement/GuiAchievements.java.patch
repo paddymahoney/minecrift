@@ -1,15 +1,83 @@
 --- a/net/minecraft/client/gui/achievement/GuiAchievements.java
 +++ b/net/minecraft/client/gui/achievement/GuiAchievements.java
-@@ -1,6 +1,8 @@
+@@ -1,6 +1,11 @@
  package net.minecraft.client.gui.achievement;
  
++import java.util.LinkedList;
++import java.util.List;
  import java.util.Random;
++import java.util.Set;
 +
 +import com.mtbs3d.minecrift.control.GuiScreenNavigator;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.GuiButton;
  import net.minecraft.client.gui.GuiOptionButton;
-@@ -109,8 +111,9 @@
+@@ -12,6 +17,7 @@
+ import net.minecraft.client.resources.I18n;
+ import net.minecraft.init.Blocks;
+ import net.minecraft.network.play.client.C16PacketClientStatus;
++import net.minecraft.src.Reflector;
+ import net.minecraft.stats.Achievement;
+ import net.minecraft.stats.AchievementList;
+ import net.minecraft.stats.StatFileWriter;
+@@ -46,7 +52,11 @@
+     private StatFileWriter statFileWriter;
+     private boolean loadingAchievements = true;
+     private static final String __OBFID = "CL_00000722";
+-
++	/** MINECRIFT FORGE **/
++    private int currentPage = -1;
++    private GuiButton button;
++    private LinkedList<Achievement> minecraftAchievements = new LinkedList<Achievement>();
++	/** END MINECRIFT FORGE **/
+     public GuiAchievements(GuiScreen p_i45026_1_, StatFileWriter p_i45026_2_)
+     {
+         this.parentScreen = p_i45026_1_;
+@@ -55,6 +65,18 @@
+         short var4 = 141;
+         this.field_146569_s = this.field_146567_u = this.field_146565_w = (double)(AchievementList.openInventory.displayColumn * 24 - var3 / 2 - 12);
+         this.field_146568_t = this.field_146566_v = this.field_146573_x = (double)(AchievementList.openInventory.displayRow * 24 - var4 / 2);
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists()) {
++	        minecraftAchievements.clear();
++	        for (Object achievement : AchievementList.achievementList)
++	        {
++	            if (!Reflector.callBoolean(Reflector.ForgeAchievementPage_isAchievementInPages, new Object[] { achievement }))
++	            {
++	                minecraftAchievements.add((Achievement)achievement);
++	            }
++	        }
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -74,7 +96,23 @@
+             if (button.id == 1)
+             {
+                 this.mc.displayGuiScreen(this.parentScreen);
+-            }
++			}
++            /** MINECRIFT FORGE **/
++			if (Reflector.forgeExists()) {
++	            if (button.id == 2)
++	            {
++	                currentPage++;
++                    Set<?> achievementPages = (Set<?>)Reflector.call(Reflector.ForgeAchievementPage_getAchievementPages, new Object[] {});
++	                //if (currentPage >= AchievementPage.getAchievementPages().size())
++                    if (currentPage >= (achievementPages.size()))
++	                {
++	                    currentPage = -1;
++	                }
++	                //button.displayString = AchievementPage.getTitle(currentPage);
++                    button.displayString = Reflector.callString(Reflector.ForgeAchievementPage_getTitle, new Object[] { currentPage });
++	            }
++			}
++            /** END MINECRIFT FORGE **/
+         }
+     }
+ 
+@@ -109,8 +147,9 @@
          else
          {
              int var4;
@@ -21,3 +89,68 @@
              {
                  var4 = (this.width - this.field_146555_f) / 2;
                  int var5 = (this.height - this.field_146557_g) / 2;
+@@ -348,13 +387,21 @@
+         int var30;
+         int var31;
+         int var39;
+-
++		/** MINECRIFT FORGE **/
++		List<Achievement> achievementList = new LinkedList<Achievement>();
++		if (Reflector.forgeExists()) {
++            Object page = Reflector.call(Reflector.ForgeAchievementPage_getAchievementPage, new Object[] { currentPage });
++            List<Achievement> forgeAchievements = (List<Achievement>)Reflector.call(page, Reflector.ForgeAchievementPage_getAchievements, new Object [] {});
++			//achievementList = (currentPage == -1 ? minecraftAchievements : AchievementPage.getAchievementPage(currentPage).getAchievements());
++            achievementList = (currentPage == -1 ? minecraftAchievements : forgeAchievements);
++		}	
+         for (var22 = 0; var22 < AchievementList.achievementList.size(); ++var22)
+         {
+             Achievement var35 = (Achievement)AchievementList.achievementList.get(var22);
+ 
+-            if (var35.parentAchievement != null)
+-            {
++            if (var35.parentAchievement != null && (!Reflector.forgeExists() || achievementList.contains(var35.parentAchievement)))
++            /** END MINECRIFT FORGE **/
++			{
+                 var24 = var35.displayColumn * 24 - var4 + 11;
+                 var25 = var35.displayRow * 24 - var5 + 11;
+                 var39 = var35.parentAchievement.displayColumn * 24 - var4 + 11;
+@@ -453,7 +500,12 @@
+                 }
+ 
+                 this.mc.getTextureManager().bindTexture(field_146561_C);
+-
++				/** MINECRIFT FORGE **/
++                boolean Forge = Reflector.forgeExists();
++                if (Forge) {
++					GL11.glEnable(GL11.GL_BLEND);// Forge: Specifically enable blend because it is needed here. And we fix Generic RenderItem's leakage of it.
++				}
++				/** END MINECRIFT FORGE **/
+                 if (var41.getSpecial())
+                 {
+                     this.drawTexturedModalRect(var43 - 2, var44 - 2, 26, 202, 26, 26);
+@@ -462,15 +514,22 @@
+                 {
+                     this.drawTexturedModalRect(var43 - 2, var44 - 2, 0, 202, 26, 26);
+                 }
+-
++				/** MINECRIFT FORGE **/
++				if (Forge) {
++                	GL11.glDisable(GL11.GL_BLEND); //Forge: Cleanup states we set.
++				}
++				/** END MINECRIFT FORGE **/
+                 if (!this.statFileWriter.canUnlockAchievement(var41))
+                 {
+                     var45 = 0.1F;
+                     GL11.glColor4f(var45, var45, var45, 1.0F);
+                     var36.renderWithColor = false;
+                 }
+-
+-                GL11.glEnable(GL11.GL_LIGHTING);
++				/** MINECRIFT FORGE **/
++                if (Forge) {
++					GL11.glEnable(GL11.GL_LIGHTING);
++				}
++				/** END MINECRIFT FORGE **/	
+                 GL11.glEnable(GL11.GL_CULL_FACE);
+                 var36.renderItemAndEffectIntoGUI(this.mc.fontRendererObj, this.mc.getTextureManager(), var41.theItemStack, var43 + 3, var44 + 3);
+                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);

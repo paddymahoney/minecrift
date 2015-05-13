@@ -1,0 +1,533 @@
+--- a/net/minecraft/entity/Entity.java
++++ b/net/minecraft/entity/Entity.java
+@@ -1,19 +1,22 @@
+ package net.minecraft.entity;
+ 
+-import java.util.List;
+-import java.util.Random;
+-import java.util.UUID;
++import java.util.*;
+ import java.util.concurrent.Callable;
++
++import com.mtbs3d.minecrift.settings.VRSettings;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.BlockLiquid;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.entity.EntityPlayerSP;
+ import net.minecraft.crash.CrashReport;
+ import net.minecraft.crash.CrashReportCategory;
+ import net.minecraft.enchantment.EnchantmentProtection;
+ import net.minecraft.entity.effect.EntityLightningBolt;
+-import net.minecraft.entity.item.EntityItem;
++import net.minecraft.entity.item.*;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.init.Blocks;
++import net.minecraft.init.Items;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.nbt.NBTTagCompound;
+@@ -21,16 +24,8 @@
+ import net.minecraft.nbt.NBTTagFloat;
+ import net.minecraft.nbt.NBTTagList;
+ import net.minecraft.server.MinecraftServer;
+-import net.minecraft.util.AxisAlignedBB;
+-import net.minecraft.util.ChatComponentText;
+-import net.minecraft.util.ChunkCoordinates;
+-import net.minecraft.util.DamageSource;
+-import net.minecraft.util.Direction;
+-import net.minecraft.util.IChatComponent;
+-import net.minecraft.util.MathHelper;
+-import net.minecraft.util.ReportedException;
+-import net.minecraft.util.StatCollector;
+-import net.minecraft.util.Vec3;
++import net.minecraft.src.Reflector;
++import net.minecraft.util.*;
+ import net.minecraft.world.Explosion;
+ import net.minecraft.world.World;
+ import net.minecraft.world.WorldServer;
+@@ -220,7 +215,26 @@
+     protected UUID entityUniqueID;
+     public Entity.EnumEntitySize myEntitySize;
+     private static final String __OBFID = "CL_00001533";
+-
++	/** MINECRIFT FORGE **/
++    /** Forge: Used to store custom data for each entity. */
++    private NBTTagCompound customEntityData;
++    public boolean captureDrops = false;
++    public ArrayList<EntityItem> capturedDrops = new ArrayList<EntityItem>();
++    private UUID persistentID;
++
++    //protected HashMap<String, IExtendedEntityProperties> extendedProperties;  
++    protected HashMap<String, Object> extendedProperties;
++	/** END MINECRIFT FORGE **/
++    
++    /** MINECRIFT **/
++    public float headPitch = 0;
++    public double additionX = 0;
++    public double additionZ = 0;
++    public double additionY = 0;
++    public final float PIOVER180 = (float)Math.PI / 180.0F;
++    public Vec3 directionVec = Vec3.createVectorHelper(0, 0, 0);
++    /** END MINECRIFT **/
++    
+     public int getEntityId()
+     {
+         return this.entityId;
+@@ -257,6 +271,27 @@
+         this.dataWatcher.addObject(0, Byte.valueOf((byte)0));
+         this.dataWatcher.addObject(1, Short.valueOf((short)300));
+         this.entityInit();
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++//	        extendedProperties = new HashMap<String, IExtendedEntityProperties>();
++//
++//	        MinecraftForge.EVENT_BUS.post(new EntityEvent.EntityConstructing(this));
++//
++//	        for (IExtendedEntityProperties props : this.extendedProperties.values())
++//	        {
++//	            props.init(this, worldIn);
++//	        }
++            extendedProperties = new HashMap<String, Object>();
++
++            Reflector.postForgeBusEvent(Reflector.ForgeEntityEvent_EntityConstructing_Constructor, new Object[] {this});
++
++            for (Object props : this.extendedProperties.values())
++            {
++                Reflector.callVoid(props, Reflector.ForgeIExtendedEntityProperties_init, new Object[] {this, worldIn});
++            }
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     protected abstract void entityInit();
+@@ -1171,9 +1206,38 @@
+ 
+         if (var7.getMaterial() == materialIn)
+         {
+-            float var8 = BlockLiquid.getLiquidHeightPercent(this.worldObj.getBlockMetadata(var4, var5, var6)) - 0.11111111F;
+-            float var9 = (float)(var5 + 1) - var8;
+-            return var2 < (double)var9;
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++	            double filled = 1.0f; //If it's not a liquid assume it's a solid block
++
++//	            if (var7 instanceof IFluidBlock)
++//	            {
++//	                filled = ((IFluidBlock)var7).getFilledPercentage(worldObj, var4, var5, var6);
++//	            }
++                if (Reflector.isInstanceOf(Reflector.ForgeIFluidBlock, var7))
++                {
++                    filled = (Double)Reflector.call(var7, Reflector.ForgeIFluidBlock_getFilledPercentage, new Object[]{worldObj, var4, var5, var6});
++                }
++
++	            if (filled < 0)
++	            {
++	                filled *= -1;
++	                //filled -= 0.11111111F; //Why this is needed.. not sure...
++	                return var2 > (double)(var5 + (1 - filled));
++	            }
++	            else
++	            {
++	                return var2 < (double)(var5 + filled);
++	            }			
++			}
++			else
++			{
++	            float var8 = BlockLiquid.getLiquidHeightPercent(this.worldObj.getBlockMetadata(var4, var5, var6)) - 0.11111111F;
++	            float var9 = (float)(var5 + 1) - var8;
++	            return var2 < (double)var9;
++			}
++			/** END MINECRIFT FORGE **/
+         }
+         else
+         {
+@@ -1193,13 +1257,25 @@
+     {
+         return this.worldObj.isMaterialInBB(this.boundingBox.expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava);
+     }
+-
++    
++/** MINECRIFT **/
++    public void moveFlying(float strafe, float forward, float friction)
++    {
++        moveFlying(strafe, forward, friction, false);
++    }
++    
+     /**
+      * Used in both water and by flying objects
+      */
+-    public void moveFlying(float strafe, float forward, float friction)
++    public void moveFlying(float strafe, float forward, float friction, boolean allowYAdjust)
+     {
+         float var4 = strafe * strafe + forward * forward;
++        int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
++        double mX = 0d;
++        double mZ = 0d;
++        double mY = 0d;
++        double addFactor = 1f;
++        double yAddFactor = 0f;
+ 
+         if (var4 >= 1.0E-4F)
+         {
+@@ -1213,11 +1289,42 @@
+             var4 = friction / var4;
+             strafe *= var4;
+             forward *= var4;
+-            float var5 = MathHelper.sin(this.rotationYaw * (float)Math.PI / 180.0F);
+-            float var6 = MathHelper.cos(this.rotationYaw * (float)Math.PI / 180.0F);
+-            this.motionX += (double)(strafe * var6 - forward * var5);
+-            this.motionZ += (double)(forward * var6 + strafe * var5);
++
++            directionVec.xCoord = strafe;
++            directionVec.yCoord = 0;
++            directionVec.zCoord = forward;
++
++            if (this instanceof EntityPlayerSP)
++            {
++                // Modify acceleration sequence (each tick)
++                addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
++
++                // Account for pitch if required
++                if (allowYAdjust & Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
++                    yAddFactor = addFactor;
++                    directionVec.rotateAroundX(-this.headPitch * PIOVER180);
++                }
++            }
++
++            // Account for yaw
++            directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
++            mX = directionVec.xCoord;
++            mY = directionVec.yCoord;
++            mZ = directionVec.zCoord;
++
++            this.motionX = this.motionX + (mX * addFactor);
++            this.motionZ = this.motionZ + (mZ * addFactor);
++            this.motionY = this.motionY + (mY * yAddFactor);
+         }
++
++        //if (this instanceof EntityPlayerSP) {
++        //    System.out.println(String.format("FLYING: %B, forward: %.4f, strafe: %.4f, pitch: %.4f, yaw: %.4f, mx: %.4f, mz: %.4f, my: %.4f", allowYAdjust, forward, strafe, this.headPitch, this.rotationYaw, mX, mZ, mY));
++        //}
++
++        this.additionX = mX;
++        this.additionZ = mZ;
++        this.additionY = mY;
++/** END MINECRIFT **/
+     }
+ 
+     public int getBrightnessForRender(float p_70070_1_)
+@@ -1526,6 +1633,32 @@
+             tagCompund.setInteger("PortalCooldown", this.timeUntilPortal);
+             tagCompund.setLong("UUIDMost", this.getUniqueID().getMostSignificantBits());
+             tagCompund.setLong("UUIDLeast", this.getUniqueID().getLeastSignificantBits());
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++	            if (customEntityData != null)
++	            {
++	                tagCompund.setTag("ForgeData", customEntityData);
++	            }
++
++	           for (String identifier : this.extendedProperties.keySet())
++	           {
++	                try
++	                {
++//	                    IExtendedEntityProperties props = this.extendedProperties.get(identifier);
++//	                    props.saveNBTData(tagCompund);
++                        Object props = this.extendedProperties.get(identifier);
++                        Reflector.callVoid(props, Reflector.ForgeIExtendedEntityProperties_saveNBTData, new Object[] {tagCompund});
++	                }
++	                catch (Throwable t)
++	                {
++                        //FMLLog.severe("Failed to save extended properties for %s.  This is a mod issue.", identifier);
++	                    Reflector.callVoid(Reflector.FMLLog_severe, new Object[] {"Failed to save extended properties for %s.  This is a mod issue.", identifier});
++	                    t.printStackTrace();
++	                }
++	            }
++			}
++			/** END MINECRIFT FORGE **/
+             this.writeEntityToNBT(tagCompund);
+ 
+             if (this.ridingEntity != null)
+@@ -1596,6 +1729,38 @@
+ 
+             this.setPosition(this.posX, this.posY, this.posZ);
+             this.setRotation(this.rotationYaw, this.rotationPitch);
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++	            if (tagCompund.hasKey("ForgeData"))
++	            {
++	                customEntityData = tagCompund.getCompoundTag("ForgeData");
++	            }
++
++	            for (String identifier : this.extendedProperties.keySet())
++	            {
++	                try
++	                {
++//	                    IExtendedEntityProperties props = this.extendedProperties.get(identifier);
++//	                    props.loadNBTData(tagCompund);
++                        Object props = this.extendedProperties.get(identifier);
++                        Reflector.callVoid(props, Reflector.ForgeIExtendedEntityProperties_loadNBTData, new Object[] {tagCompund});
++	                }
++	                catch (Throwable t)
++	                {
++	                    //FMLLog.severe("Failed to load extended properties for %s.  This is a mod issue.", identifier);
++                        Reflector.callVoid(Reflector.FMLLog_severe, new Object[] {"Failed to load extended properties for %s.  This is a mod issue.", identifier});
++	                    t.printStackTrace();
++	                }
++	            }
++
++	            //Rawr, legacy code, Vanilla added a UUID, keep this so older maps will convert properly
++	            if (tagCompund.hasKey("PersistentIDMSB") && tagCompund.hasKey("PersistentIDLSB"))
++	            {
++	                this.entityUniqueID = new UUID(tagCompund.getLong("PersistentIDMSB"), tagCompund.getLong("PersistentIDLSB"));
++	            }
++			}
++			/** END MINECRIFT FORGE **/
+             this.readEntityFromNBT(tagCompund);
+ 
+             if (this.shouldSetPosAfterLoading())
+@@ -1697,7 +1862,16 @@
+         {
+             EntityItem var3 = new EntityItem(this.worldObj, this.posX, this.posY + (double)offsetY, this.posZ, itemStackIn);
+             var3.delayBeforeCanPickup = 10;
+-            this.worldObj.spawnEntityInWorld(var3);
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists() && captureDrops)
++            {
++                capturedDrops.add(var3);
++            }
++            else
++            {
++            	this.worldObj.spawnEntityInWorld(var3);
++			}
++			/** END MINECRIFT FORGE **/
+             return var3;
+         }
+         else
+@@ -2008,7 +2182,16 @@
+      */
+     public boolean isRiding()
+     {
+-        return this.ridingEntity != null;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			return this.ridingEntity != null && ridingEntity.shouldRiderSit();
++		}
++		else
++		{
++        	return this.ridingEntity != null;
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -2375,7 +2558,17 @@
+      */
+     public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
+     {
+-        return blockIn.getExplosionResistance(this);
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//return blockIn.getExplosionResistance(this, worldIn, x, y, z, posX, posY + getEyeHeight(), posZ);
++            return Reflector.callFloat(blockIn, Reflector.ForgeBlock_getExplosionResistance, new Object[] {this, worldIn, x, y, z, posX, posY + getEyeHeight(), posZ});
++		}
++		else
++		{
++        	return blockIn.getExplosionResistance(this);
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
+@@ -2453,6 +2646,184 @@
+ 
+     public void func_145781_i(int p_145781_1_) {}
+ 
++/** MINECRIFT FORGE **/
++    /* ================================== Forge Start =====================================*/
++    /**
++     * Returns a NBTTagCompound that can be used to store custom data for this entity.
++     * It will be written, and read from disc, so it persists over world saves.
++     * @return A NBTTagCompound
++     */
++    public NBTTagCompound getEntityData()
++    {
++        if (customEntityData == null)
++        {
++            customEntityData = new NBTTagCompound();
++        }
++        return customEntityData;
++    }
++
++    /**
++     * Used in model rendering to determine if the entity riding this entity should be in the 'sitting' position.
++     * @return false to prevent an entity that is mounted to this entity from displaying the 'sitting' animation.
++     */
++    public boolean shouldRiderSit()
++    {
++        return true;
++    }
++
++    /**
++     * Called when a user uses the creative pick block button on this entity.
++     *
++     * @param target The full target the player is looking at
++     * @return A ItemStack to add to the player's inventory, Null if nothing should be added.
++     */
++    public ItemStack getPickedResult(MovingObjectPosition target)
++    {
++        if (this instanceof EntityPainting)
++        {
++            return new ItemStack(Items.painting);
++        }
++        else if (this instanceof EntityLeashKnot)
++        {
++            return new ItemStack(Items.lead);
++        }
++        else if (this instanceof EntityItemFrame)
++        {
++            ItemStack held = ((EntityItemFrame)this).getDisplayedItem();
++            if (held == null)
++            {
++                return new ItemStack(Items.item_frame);
++            }
++            else
++            {
++                return held.copy();
++            }
++        }
++        else if (this instanceof EntityMinecart)
++        {
++            //return ((EntityMinecart)this).getCartItem();
++            return (ItemStack)Reflector.call(this, Reflector.ForgeEntityMinecart_getCartItem, new Object[] {});
++        }
++        else if (this instanceof EntityBoat)
++        {
++            return new ItemStack(Items.boat);
++        }
++        else
++        {
++            int id = EntityList.getEntityID(this);
++            if (id > 0 && EntityList.entityEggs.containsKey(id))
++            {
++                return new ItemStack(Items.spawn_egg, 1, id);
++            }
++        }
++        return null;
++    }
++
++    public UUID getPersistentID()
++    {
++        return entityUniqueID;
++    }
++
++    /**
++     * Reset the entity ID to a new value. Not to be used from Mod code
++     */
++    public final void resetEntityId()
++    {
++        this.entityId = nextEntityID++;
++    }
++
++    public boolean shouldRenderInPass(int pass)
++    {
++        return pass == 0;
++    }
++
++    /**
++     * Returns true if the entity is of the @link{EnumCreatureType} provided
++     * @param type The EnumCreatureType type this entity is evaluating
++     * @param forSpawnCount If this is being invoked to check spawn count caps.
++     * @return If the creature is of the type provided
++     */
++    public boolean isCreatureType(EnumCreatureType type, boolean forSpawnCount)
++    {
++        return type.getCreatureClass().isAssignableFrom(this.getClass());
++    }
++
++    /**
++     * Register the instance of IExtendedProperties into the entity's collection.
++     * @param identifier The identifier which you can use to retrieve these properties for the entity.
++     * @param properties The instanceof IExtendedProperties to register
++     * @return The identifier that was used to register the extended properties.  Empty String indicates an error.  If your requested key already existed, this will return a modified one that is unique.
++     */
++    public String registerExtendedProperties(String identifier, Object properties)
++    {
++        if (Reflector.forgeExists()) {
++            if (identifier == null) {
++                //FMLLog.warning("Someone is attempting to register extended properties using a null identifier.  This is not allowed.  Aborting.  This may have caused instability.");
++                Reflector.callVoid(Reflector.FMLLog_warning, new Object[] {"Someone is attempting to register extended properties using a null identifier.  This is not allowed.  Aborting.  This may have caused instability."});
++                return "";
++            }
++            if (properties == null) {
++                //FMLLog.warning("Someone is attempting to register null extended properties.  This is not allowed.  Aborting.  This may have caused instability.");
++                Reflector.callVoid(Reflector.FMLLog_warning, new Object[] {"Someone is attempting to register null extended properties.  This is not allowed.  Aborting.  This may have caused instability."});
++                return "";
++            }
++
++            String baseIdentifier = identifier;
++            int identifierModCount = 1;
++            while (this.extendedProperties.containsKey(identifier)) {
++                identifier = String.format("%s%d", baseIdentifier, identifierModCount++);
++            }
++
++            if (baseIdentifier != identifier) {
++                //FMLLog.info("An attempt was made to register exended properties using an existing key.  The duplicate identifier (%s) has been remapped to %s.", baseIdentifier, identifier);
++                Reflector.callVoid(Reflector.FMLLog_info, new Object[] {"An attempt was made to register exended properties using an existing key.  The duplicate identifier (%s) has been remapped to %s.", baseIdentifier, identifier});
++            }
++
++            this.extendedProperties.put(identifier, properties);
++            return identifier;
++        }
++
++        return null;
++    }
++
++    /**
++     * Gets the extended properties identified by the passed in key
++     * @param identifier The key that identifies the extended properties.
++     * @return The instance of IExtendedProperties that was found, or null.
++     */
++    public Object getExtendedProperties(String identifier)
++    {
++        if (Reflector.forgeExists())
++        {
++            return this.extendedProperties.get(identifier);
++        }
++
++        return null;
++    }
++
++    /**
++     * If a rider of this entity can interact with this entity. Should return true on the
++     * ridden entity if so.
++     *
++     * @return if the entity can be interacted with from a rider
++     */
++    public boolean canRiderInteract()
++    {
++        return false;
++    }
++
++    /**
++     * If the rider should be dismounted from the entity when the entity goes under water
++     *
++     * @param rider The entity that is riding
++     * @return if the entity should be dismounted when under water
++     */
++    public boolean shouldDismountInWater(Entity rider)
++    {
++        return this instanceof EntityLivingBase;
++    }
++    /* ================================== Forge End =====================================*/
++/** END MINECRIFT FORGE **/
+     public static enum EnumEntitySize
+     {
+         SIZE_1("SIZE_1", 0),

@@ -1,6 +1,7 @@
 package com.mtbs3d.minecrift.control;
 
 import com.mtbs3d.minecrift.settings.VRSettings;
+import de.fruitfly.ovr.enums.EyeType;
 import net.minecraft.client.Minecraft;
 
 /**
@@ -36,7 +37,7 @@ public class Aim
 
         configureComfortMode();
 
-        float headPitch = this.mc.headTracker.getHeadPitchDegrees();
+        float headPitch = this.mc.headTracker.getHeadPitchDegrees(EyeType.ovrEye_Center);
         float headPitchDelta = headPitch - this.prevHeadPitch;
         this.prevHeadPitch = headPitch;
 
@@ -161,7 +162,7 @@ public class Aim
 
         boolean pitchGood = aimPitch != 90 && aimPitch != -90;
 
-        float headYaw = this.mc.headTracker.getHeadYawDegrees();
+        float headYaw = this.mc.headTracker.getHeadYawDegrees(EyeType.ovrEye_Center);
         float headYawDelta = headYaw - this.prevHeadYaw;
         this.prevHeadYaw = headYaw;
 

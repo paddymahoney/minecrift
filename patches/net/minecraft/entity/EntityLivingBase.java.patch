@@ -1,0 +1,500 @@
+--- a/net/minecraft/entity/EntityLivingBase.java
++++ b/net/minecraft/entity/EntityLivingBase.java
+@@ -6,8 +6,12 @@
+ import java.util.List;
+ import java.util.Random;
+ import java.util.UUID;
++
++import com.mtbs3d.minecrift.settings.VRSettings;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.entity.EntityPlayerSP;
+ import net.minecraft.enchantment.EnchantmentHelper;
+ import net.minecraft.entity.ai.attributes.AttributeModifier;
+ import net.minecraft.entity.ai.attributes.BaseAttributeMap;
+@@ -17,6 +21,7 @@
+ import net.minecraft.entity.item.EntityItem;
+ import net.minecraft.entity.item.EntityXPOrb;
+ import net.minecraft.entity.monster.EntityZombie;
++import net.minecraft.entity.passive.EntityPig;
+ import net.minecraft.entity.passive.EntityWolf;
+ import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.entity.player.EntityPlayerMP;
+@@ -37,6 +42,7 @@
+ import net.minecraft.potion.PotionEffect;
+ import net.minecraft.potion.PotionHelper;
+ import net.minecraft.scoreboard.Team;
++import net.minecraft.src.Reflector;
+ import net.minecraft.util.AxisAlignedBB;
+ import net.minecraft.util.CombatTracker;
+ import net.minecraft.util.DamageSource;
+@@ -304,11 +310,22 @@
+                     this.attackEntityFrom(DamageSource.drown, 2.0F);
+                 }
+             }
+-
+-            if (!this.worldObj.isRemote && this.isRiding() && this.ridingEntity instanceof EntityLivingBase)
+-            {
+-                this.mountEntity((Entity)null);
+-            }
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++	            if (!this.worldObj.isRemote && this.isRiding() && this.ridingEntity != null && ridingEntity.shouldDismountInWater(this))
++	            {
++	                this.mountEntity((Entity)null);
++	            }			
++			}
++			else
++			{
++	            if (!this.worldObj.isRemote && this.isRiding() && this.ridingEntity instanceof EntityLivingBase)
++	            {
++	                this.mountEntity((Entity)null);
++	            }
++			}
++			/** END MINECRIFT FORGE **/
+         }
+         else
+         {
+@@ -469,6 +486,13 @@
+     {
+         this.entityLivingToAttack = p_70604_1_;
+         this.revengeTimer = this.ticksExisted;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++        	//ForgeHooks.onLivingSetAttackTarget(this, p_70604_1_);
++            Reflector.callVoid(Reflector.ForgeHooks_onLivingSetAttackTarget, new Object[] {this, p_70604_1_});
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     public EntityLivingBase getLastAttacker()
+@@ -828,6 +852,14 @@
+      */
+     public void heal(float p_70691_1_)
+     {
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++	        //p_70691_1_ = ForgeEventFactory.onLivingHeal(this, p_70691_1_);
++            Reflector.callFloat(Reflector.ForgeEventFactory_onLivingHeal, new Object[] {this, p_70691_1_});
++	        if (p_70691_1_ <= 0) return;
++		}
++		/** END MINECRIFT FORGE **/
+         float var2 = this.getHealth();
+ 
+         if (var2 > 0.0F)
+@@ -851,6 +883,14 @@
+      */
+     public boolean attackEntityFrom(DamageSource source, float amount)
+     {
++		/** MINECRIFT FORGE **/
++        boolean Forge = Reflector.forgeExists();
++		if (Forge)
++		{
++	        //if (ForgeHooks.onLivingAttack(this, source, amount)) return false;
++            if (Reflector.callBoolean(Reflector.ForgeHooks_onLivingAttack, new Object[] {this, source, amount})) return false;
++		}
++		/** END MINECRIFT FORGE **/
+         if (this.isEntityInvulnerable())
+         {
+             return false;
+@@ -917,7 +957,18 @@
+                         this.recentlyHit = 100;
+                         this.attackingPlayer = (EntityPlayer)var4;
+                     }
+-                    else if (var4 instanceof EntityWolf)
++					/** MINECRIFT FORGE **/
++                    else if (Forge && var4 instanceof net.minecraft.entity.passive.EntityTameable)
++                    {
++                        net.minecraft.entity.passive.EntityTameable entitywolf = (net.minecraft.entity.passive.EntityTameable)var4;
++
++                        if (entitywolf.isTamed())
++                        {
++                            this.recentlyHit = 100;
++                            this.attackingPlayer = null;
++                        }
++                    }					
++                    else if (!Forge && var4 instanceof EntityWolf)
+                     {
+                         EntityWolf var5 = (EntityWolf)var4;
+ 
+@@ -927,6 +978,7 @@
+                             this.attackingPlayer = null;
+                         }
+                     }
++					/** END MINECRIFT FORGE **/
+                 }
+ 
+                 if (var3)
+@@ -1010,6 +1062,14 @@
+      */
+     public void onDeath(DamageSource p_70645_1_)
+     {
++		/** MINECRIFT FORGE **/
++        boolean Forge = Reflector.forgeExists();
++		if (Forge)
++		{
++	        //if (ForgeHooks.onLivingDeath(this, p_70645_1_)) return;
++            if (Reflector.callBoolean(Reflector.ForgeHooks_onLivingDeath, new Object[] {this, p_70645_1_})) return;
++		}
++		/** END MINECRIFT FORGE **/
+         Entity var2 = p_70645_1_.getEntity();
+         EntityLivingBase var3 = this.func_94060_bK();
+ 
+@@ -1035,6 +1095,14 @@
+                 var4 = EnchantmentHelper.getLootingModifier((EntityLivingBase)var2);
+             }
+ 
++			/** MINECRIFT FORGE **/
++			int var5 = 0;
++			if (Forge)
++			{
++				captureDrops = true;
++            	capturedDrops.clear();
++			}
++						
+             if (this.func_146066_aG() && this.worldObj.getGameRules().getGameRuleBooleanValue("doMobLoot"))
+             {
+                 this.dropFewItems(this.recentlyHit > 0, var4);
+@@ -1042,14 +1110,29 @@
+ 
+                 if (this.recentlyHit > 0)
+                 {
+-                    int var5 = this.rand.nextInt(200) - var4;
++                    var5 = this.rand.nextInt(200) - var4;
+ 
+                     if (var5 < 5)
+                     {
+                         this.dropRareDrop(var5 <= 0 ? 1 : 0);
+                     }
+-                }
++				}
++			}
++            
++			if (Forge)
++			{
++				captureDrops = false;
++
++	            //if (!ForgeHooks.onLivingDrops(this, p_70645_1_, capturedDrops, var4, recentlyHit > 0, var5))
++                if (!Reflector.callBoolean(Reflector.ForgeHooks_onLivingDrops, new Object[]{this, p_70645_1_, capturedDrops, var4, recentlyHit > 0, var5}))
++	            {
++	                for (EntityItem item : capturedDrops)
++	                {
++	                    worldObj.spawnEntityInWorld(item);
++	                }
++	            }
+             }
++			/** END MINECRIFT FORGE **/
+         }
+ 
+         this.worldObj.setEntityState(this, (byte)3);
+@@ -1116,8 +1199,18 @@
+         int var2 = MathHelper.floor_double(this.boundingBox.minY);
+         int var3 = MathHelper.floor_double(this.posZ);
+         Block var4 = this.worldObj.getBlock(var1, var2, var3);
+-        return var4 == Blocks.ladder || var4 == Blocks.vine;
+-    }
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//return ForgeHooks.isLivingOnLadder(var4, worldObj, var1, var2, var3, this);
++            return Reflector.callBoolean(Reflector.ForgeHooks_isLivingOnLadder, new Object[] {var4, worldObj, var1, var2, var3, this});
++		}
++		else
++		{
++        	return var4 == Blocks.ladder || var4 == Blocks.vine;
++    	}
++		/** END MINECRIFT FORGE **/
++	}
+ 
+     /**
+      * Checks whether target entity is alive.
+@@ -1132,6 +1225,14 @@
+      */
+     protected void fall(float distance)
+     {
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//distance = ForgeHooks.onLivingFall(this, distance);
++            distance = Reflector.callFloat(Reflector.ForgeHooks_onLivingFall, new Object[] {this, distance});
++        	if (distance <= 0) return;
++    	}
++		/** END MINECRIFT FORGE **/
+         super.fall(distance);
+         PotionEffect var2 = this.getActivePotionEffect(Potion.jump);
+         float var3 = var2 != null ? (float)(var2.getAmplifier() + 1) : 0.0F;
+@@ -1270,6 +1371,14 @@
+     {
+         if (!this.isEntityInvulnerable())
+         {
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++	            //p_70665_2_ = ForgeHooks.onLivingHurt(this, p_70665_1_, p_70665_2_);
++                p_70665_2_ = Reflector.callFloat(Reflector.ForgeHooks_onLivingHurt, new Object[] {this, p_70665_1_, p_70665_2_});
++	            if (p_70665_2_ <= 0) return;			
++			}
++			/** END MINECRIFT FORGE **/
+             p_70665_2_ = this.applyArmorCalculations(p_70665_1_, p_70665_2_);
+             p_70665_2_ = this.applyPotionDamageCalculations(p_70665_1_, p_70665_2_);
+             float var3 = p_70665_2_;
+@@ -1331,6 +1440,23 @@
+      */
+     public void swingItem()
+     {
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++	        ItemStack stack = this.getHeldItem();
++
++	        if (stack != null && stack.getItem() != null)
++	        {
++	            Item item = stack.getItem();
++	            //if (item.onEntitySwing(this, stack))
++                if (Reflector.callBoolean(item, Reflector.ForgeItem_onEntitySwing, new Object[]{this, stack}))
++	            {
++	                return;
++	            }
++	        }
++			
++		}
++		/** END MINECRIFT FORGE **/
+         if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0)
+         {
+             this.swingProgressInt = -1;
+@@ -1568,6 +1694,13 @@
+         }
+ 
+         this.isAirBorne = true;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//ForgeHooks.onLivingJump(this);
++            Reflector.callVoid(Reflector.ForgeHooks_onLivingJump, new Object[] {this});
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -1577,6 +1710,15 @@
+     {
+         double var8;
+ 
++        /** MINECRIFT **/
++        boolean isFlying = false;
++
++        if (this instanceof EntityPlayerSP)
++        {
++            isFlying = ((EntityPlayerSP)this).capabilities.isFlying;
++        }
++        /** END MINECRIFT **/
++
+         if (this.isInWater() && (!(this instanceof EntityPlayer) || !((EntityPlayer)this).capabilities.isFlying))
+         {
+             var8 = this.posY;
+@@ -1627,8 +1769,8 @@
+             {
+                 var5 = this.jumpMovementFactor;
+             }
+-
+-            this.moveFlying(p_70612_1_, p_70612_2_, var5);
++            /** MINECRIFT **/
++            this.moveFlying(p_70612_1_, p_70612_2_, var5, isFlying);
+             var3 = 0.91F;
+ 
+             if (this.onGround)
+@@ -1636,6 +1778,8 @@
+                 var3 = this.worldObj.getBlock(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.boundingBox.minY) - 1, MathHelper.floor_double(this.posZ)).slipperiness * 0.91F;
+             }
+ 
++            doDrag(var3, isFlying);
++            /** END MINECRIFT **/
+             if (this.isOnLadder())
+             {
+                 float var6 = 0.15F;
+@@ -1675,7 +1819,9 @@
+                 }
+             }
+ 
+-            this.moveEntity(this.motionX, this.motionY, this.motionZ);
++            /** MINECRIFT **/
++            this.moveEntity(this.motionX / var3, this.motionY / (canAffectFlightPitch(isFlying) ? var3 : 1f), this.motionZ / var3);
++            /** END MINECRIFT **/
+ 
+             if (this.isCollidedHorizontally && this.isOnLadder())
+             {
+@@ -1695,12 +1841,16 @@
+             }
+             else
+             {
+-                this.motionY -= 0.08D;
+-            }
++            /** MINECRIFT **/
++                if (!canAffectFlightPitch(isFlying)) {
++                    this.motionY -= 0.08D;
++                }
+ 
+-            this.motionY *= 0.9800000190734863D;
+-            this.motionX *= (double)var3;
+-            this.motionZ *= (double)var3;
++                //this.motionY *= 0.9800000190734863D;
++                //this.motionX *= (double)var3;
++                //this.motionZ *= (double)var3;
++            }
++            /** END MINECRIFT **/
+         }
+ 
+         this.prevLimbSwingAmount = this.limbSwingAmount;
+@@ -1716,6 +1866,61 @@
+         this.limbSwingAmount += (var10 - this.limbSwingAmount) * 0.4F;
+         this.limbSwing += this.limbSwingAmount;
+     }
++    
++    /** MINECRIFT **/
++    public void doDrag(float var3, boolean isFlying)
++    {
++        double xFactor = var3;
++        double zFactor = var3;
++        double yFactor = 0.9800000190734863D;
++
++        if (this instanceof EntityPlayerSP)
++        {
++            int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
++            double addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
++
++            double boundedAdditionX = getBoundedAddition(additionX);
++            double targetLimitX = (var3 * boundedAdditionX) / (1f - var3);
++            double multiFactorX = targetLimitX / (var3 * (targetLimitX + (boundedAdditionX * addFactor)));
++            xFactor *= multiFactorX;
++
++            double boundedAdditionZ = getBoundedAddition(additionZ);
++            double targetLimitZ = (var3 * boundedAdditionZ) / (1f - var3);
++            double multiFactorZ = targetLimitZ / (var3 * (targetLimitZ + (boundedAdditionZ * addFactor)));
++            zFactor *= multiFactorZ;
++
++            if (canAffectFlightPitch(isFlying)) {
++                yFactor = var3;
++                double boundedAdditionY = getBoundedAddition(additionY);
++                double targetLimitY = (var3 * boundedAdditionY) / (1f - var3);
++                double multiFactorY = targetLimitY / (var3 * (targetLimitY + (boundedAdditionY * addFactor)));
++                yFactor *= multiFactorY;
++            }
++        }
++
++        this.motionY *= yFactor;
++        this.motionX *= xFactor;
++        this.motionZ *= zFactor;
++    }
++
++    public double getBoundedAddition(double orig)
++    {
++        if (orig >= -1.0E-6D && orig <= 1.0E-6D) {
++            return 1.0E-6D;
++        }
++        else {
++            return orig;
++        }
++    }
++
++    public boolean canAffectFlightPitch(boolean isFlying)
++    {
++        if (this instanceof EntityPlayerSP && isFlying && Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying)
++            return true;
++
++        return false;
++    }
++    /** END MINECRIFT **/    
+ 
+     /**
+      * Returns true if the newer Entity AI code should be run
+@@ -1760,6 +1965,13 @@
+      */
+     public void onUpdate()
+     {
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//if (ForgeHooks.onLivingUpdate(this)) return;
++            if (Reflector.callBoolean(Reflector.ForgeHooks_onLivingUpdate, new Object[] {this})) return;
++		}
++		/** END MINECRIFT FORGE **/
+         super.onUpdate();
+ 
+         if (!this.worldObj.isRemote)
+@@ -1948,20 +2160,22 @@
+             this.motionZ *= 0.98D;
+         }
+ 
+-        if (Math.abs(this.motionX) < 0.005D)
++        /** MINECRIFT **/
++        if (Math.abs(this.motionX) < 1.0E-6D)
+         {
+             this.motionX = 0.0D;
+         }
+ 
+-        if (Math.abs(this.motionY) < 0.005D)
++        if (Math.abs(this.motionY) < 1.0E-6D)
+         {
+             this.motionY = 0.0D;
+         }
+ 
+-        if (Math.abs(this.motionZ) < 0.005D)
++        if (Math.abs(this.motionZ) < 1.0E-6D)
+         {
+             this.motionZ = 0.0D;
+         }
++        /** END MINECRIFT **/
+ 
+         this.worldObj.theProfiler.startSection("ai");
+ 
+@@ -2293,7 +2507,46 @@
+     {
+         return this.getTeam() != null ? this.getTeam().isSameTeam(p_142012_1_) : false;
+     }
++/** MINECRIFT FORGE **/
++    /***
++     * Removes all potion effects that have curativeItem as a curative item for its effect
++     * @param curativeItem The itemstack we are using to cure potion effects
++     */
++    public void curePotionEffects(ItemStack curativeItem)
++    {
++        Iterator<Integer> potionKey = activePotionsMap.keySet().iterator();
++
++        if (worldObj.isRemote)
++        {
++            return;
++        }
++
++        while (potionKey.hasNext())
++        {
++            Integer key = potionKey.next();
++            PotionEffect effect = (PotionEffect)activePotionsMap.get(key);
++
++            //if (effect.isCurativeItem(curativeItem))
++            if (Reflector.callBoolean(effect, Reflector.ForgePotionEffect_isCurativeItem, new Object[] {curativeItem}))
++            {
++                potionKey.remove();
++                onFinishedPotionEffect(effect);
++            }
++        }
++    }
+ 
++    /**
++     * Returns true if the entity's rider (EntityPlayer) should face forward when mounted.
++     * currently only used in vanilla code by pigs.
++     *
++     * @param player The player who is riding the entity.
++     * @return If the player should orient the same direction as this entity.
++     */
++    public boolean shouldRiderFaceForward(EntityPlayer player)
++    {
++        return this instanceof EntityPig;
++    }
++/** END MINECRIFT FORGE **/
+     public void func_152111_bt() {}
+ 
+     public void func_152112_bu() {}

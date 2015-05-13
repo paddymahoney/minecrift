@@ -20,9 +20,6 @@ public abstract class BasePlugin implements IBasePlugin, IEventListener
 	public String getName(){ return pluginName; };
 	public String pluginName = "BasePlugin - Not Named!";
 
-    public boolean getPolledThisFrame() { return polledThisFrame; }
-    public boolean polledThisFrame = false;
-	
 	/**
 	 * Constructs, initializes, and registers plugin
 	 */

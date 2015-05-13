@@ -1,5 +1,6 @@
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.settings.VRSettings;
 
 import de.fruitfly.ovr.enums.EyeType;
@@ -196,10 +197,11 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
     }
 
     @Override
-    public void event(int id, VRSettings.VrOptions enumm)
+    public boolean event(int id, VRSettings.VrOptions enumm)
     {
         if (enumm == VRSettings.VrOptions.FOV_CHANGE ||
-            enumm == VRSettings.VrOptions.MAX_FOV)
+            enumm == VRSettings.VrOptions.MAX_FOV ||
+            enumm == VRSettings.VrOptions.WORLD_SCALE)
         {
             this.mc.reinitFramebuffers = true;
         }
@@ -209,6 +211,13 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
         {
             this.reinit = true;
         }
+
+        return true;
+    }
+
+    @Override
+    public boolean event(int id, String s) {
+        return true;
     }
 
     @Override

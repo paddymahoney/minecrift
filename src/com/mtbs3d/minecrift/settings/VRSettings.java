@@ -5,8 +5,13 @@
 package com.mtbs3d.minecrift.settings;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.SortedSet;
 
 import com.mtbs3d.minecrift.provider.MCHydra;
+import com.mtbs3d.minecrift.settings.profile.ProfileReader;
+import com.mtbs3d.minecrift.settings.profile.ProfileManager;
+import com.mtbs3d.minecrift.settings.profile.ProfileWriter;
 import de.fruitfly.ovr.IOculusRift;
 import de.fruitfly.ovr.enums.EyeType;
 import net.minecraft.client.Minecraft;
@@ -14,13 +19,14 @@ import net.minecraft.client.settings.GameSettings;
 import net.minecraft.util.MathHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 public class VRSettings
 {
-    public static final int VERSION = 1;
+    public static final int VERSION = 2;
     public static final Logger logger = LogManager.getLogger();
 	public static VRSettings inst;
-	public String defaults = new String();
+	public JSONObject defaults = new JSONObject();
     public static final int UNKNOWN_VERSION = 0;
     public final String DEGREE  = "\u00b0";
 
@@ -45,6 +51,16 @@ public class VRSettings
     public static final int MOVEMENT_QUANTISATION_2 = 2;
     public static final int MOVEMENT_QUANTISATION_1 = 1;
 
+    public static final int INERTIA_NONE = 0;
+    public static final int INERTIA_NORMAL = 1;
+    public static final int INERTIA_LARGE = 2;
+    public static final int INERTIA_MASSIVE = 3;
+
+    public static final float INERTIA_NONE_ADD_FACTOR = 1f / 0.01f;
+    public static final float INERTIA_NORMAL_ADD_FACTOR = 1f;
+    public static final float INERTIA_LARGE_ADD_FACTOR = 1f / 4f;
+    public static final float INERTIA_MASSIVE_ADD_FACTOR = 1f / 16f;
+
     public static final int CALIBRATION_STRATEGY_AT_STARTUP = 0;
 
     public static final int RENDER_FIRST_PERSON_FULL = 0;
@@ -67,10 +83,13 @@ public class VRSettings
     public static final int DECOUPLE_WITH_HUD = 1;
     public static final int DECOUPLE_WITH_CROSSHAIR = 2;
 
+    public static final int NO_SHADER = -1;
+
     public int version = UNKNOWN_VERSION;
     public boolean newlyCreated = true;
     public boolean useVRRenderer  = false; //default to false
     public boolean debugPose = false;
+    public boolean debugPos = false;
 	protected float playerEyeHeight = 1.74f;  // Use getPlayerEyeHeight()
 	public float eyeProtrusion = 0.185f;
     public float eyeReliefAdjust = 0f;
@@ -94,10 +113,12 @@ public class VRSettings
     public boolean menuBackground = false;
     public boolean renderHeadWear = false;
     public int renderFullFirstPersonModelMode = RENDER_FIRST_PERSON_FULL;
+    public int shaderIndex = NO_SHADER;
     public float renderPlayerOffset = 0.0f;
-    public boolean useChromaticAbCorrection = true;
+    //public boolean useChromaticAbCorrection = true; // Removed in 0.5+
     // SDK 0.4.0
     public boolean useTimewarp = true;
+    public boolean useTimewarpJitDelay = false;
     public boolean useVignette = true;
     public boolean useLowPersistence = true;
     public boolean useDynamicPrediction = true;
@@ -185,6 +206,8 @@ public class VRSettings
 	public float chatOffsetX = 0;
 	public float chatOffsetY = 0.4f;
 	public float aimPitchOffset = 0;
+    public int inertiaFactor = INERTIA_NORMAL;
+    public boolean allowPitchAffectsHeightWhileFlying = true;
     public boolean storeDebugAim = false;
     public int useVrComfort = VR_COMFORT_OFF;
     public boolean allowForwardPlusStrafe = true;
@@ -197,6 +220,8 @@ public class VRSettings
     public boolean mouseKeyholeTight = false;
     public int smoothRunTickCount = 20;
     public boolean smoothTick = false;
+    public static final String LEGACY_OPTIONS_VR_FILENAME = "optionsvr.txt";
+    public static final String LEGACY_OPTIONS_VR_BACKUP_FILENAME = "optionsvr.bak";
 
     private Minecraft mc;
 
@@ -205,45 +230,42 @@ public class VRSettings
     
     public VRSettings( Minecraft minecraft, File dataDir )
     {
+        // Assumes GameSettings (and hence optifine's settings) have been read first
+
     	mc = minecraft;
     	inst = this;
+
+        // Store our class defaults to a member variable for later use
     	storeDefaults();
 
-        this.optionsVRFile = new File(dataDir, "optionsvr.txt");
-        this.optionsVRBackupFile = new File(dataDir, "optionsvr.bak");
+        // Legacy config files. Note that in general these files will be by-passed
+        // by the Profile handling in ProfileManager. loadOptions and saveOptions ill
+        // be redirected to the profile manager using ProfileReader and ProfileWriter
+        // respectively.
+
+        // Load settings from the file
         this.loadOptions();
-        this.setDefaults();
-        this.saveOptions();  // Make sure defaults are initialised in the file
+
+        // Make sure defaults are initialised back to the file
+        this.saveOptions();
     }
 
     public void loadOptions()
     {
-        if (!this.optionsVRFile.exists())
-            return;
-
-        try
-        {
-            loadOptions(new FileReader(this.optionsVRFile));
-        }
-        catch (IOException e)
-        {
-            logger.warn("Failed to load VR options: " + e.getMessage());
-            e.printStackTrace();
-        }
+        loadOptions(null);
     }
 
     private void loadDefaults()
     {
-        StringReader sr = new StringReader(this.defaults);
-        loadOptions(sr);
+        loadOptions(this.defaults);
     }
     
-    public void loadOptions(Reader reader)
+    public void loadOptions(JSONObject theProfiles)
     {
         // Load Minecrift options
         try
         {
-            BufferedReader optionsVRReader = new BufferedReader(reader);
+            ProfileReader optionsVRReader = new ProfileReader(ProfileManager.PROFILE_SET_VR, theProfiles);
 
             String var2 = "";
 
@@ -385,14 +407,19 @@ public class VRSettings
                         this.renderFullFirstPersonModelMode = Integer.parseInt(optionTokens[1]);
                     }
 
-                    if (optionTokens[0].equals("useChromaticAbCorrection"))
+                    if (optionTokens[0].equals("shaderIndex"))
                     {
-                        this.useChromaticAbCorrection = optionTokens[1].equals("true");
+                        this.shaderIndex = Integer.parseInt(optionTokens[1]);
                     }
 
                     if (optionTokens[0].equals("useTimewarp"))
                     {
                         this.useTimewarp = optionTokens[1].equals("true");
+                    }
+
+                    if (optionTokens[0].equals("useTimewarpJitDelay"))
+                    {
+                        this.useTimewarpJitDelay = optionTokens[1].equals("true");
                     }
 
                     if (optionTokens[0].equals("useVignette"))
@@ -408,6 +435,11 @@ public class VRSettings
                     if (optionTokens[0].equals("walkUpBlocks"))
                     {
                         this.walkUpBlocks = optionTokens[1].equals("true");
+                    }
+
+                    if (optionTokens[0].equals("allowPitchAffectsHeightWhileFlying"))
+                    {
+                        this.allowPitchAffectsHeightWhileFlying = optionTokens[1].equals("true");
                     }
 
                     if (optionTokens[0].equals("useLowPersistence"))
@@ -539,11 +571,6 @@ public class VRSettings
                     if (optionTokens[0].equals("posTrackHydraLoc"))
                     {
                         this.posTrackHydraLoc = Integer.parseInt(optionTokens[1]);
-                    }
-
-                    if (optionTokens[0].equals("renderFullFirstPersonModelMode"))
-                    {
-                        this.renderFullFirstPersonModelMode = Integer.parseInt(optionTokens[1]);
                     }
 
                     if (optionTokens[0].equals("renderInGameCrosshairMode"))
@@ -771,6 +798,11 @@ public class VRSettings
                         this.aimPitchOffset = this.parseFloat(optionTokens[1]);
                     }
 
+                    if (optionTokens[0].equals("inertiaFactor"))
+                    {
+                        this.inertiaFactor = Integer.parseInt(optionTokens[1]);
+                    }
+
                     if (optionTokens[0].equals("joystickSensitivity"))
                     {
                         this.joystickSensitivity = this.parseFloat(optionTokens[1]);
@@ -891,34 +923,18 @@ public class VRSettings
         }
     }
 
-    public void setDefaults()
+    public void resetSettings()
     {
-        if (newlyCreated)
-        {
-            // Set reasonable Optifine / game defaults
-            this.mc.gameSettings.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
-            this.mc.gameSettings.enableVsync = true;
-            this.mc.gameSettings.ofChunkLoading = 1;
-            this.mc.gameSettings.renderDistanceChunks = 8;
-            this.mc.gameSettings.ofFogType = 2; // Fancy fog to prevent draw distance changes in edge of FOV
-        }
+        // Set reasonable Optifine / game defaults
+        this.mc.gameSettings.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
+        this.mc.gameSettings.enableVsync = true;
+        this.mc.gameSettings.ofChunkLoading = 1;
+        this.mc.gameSettings.renderDistanceChunks = 8;
+        this.mc.gameSettings.ofFogType = 2; // Fancy fog to prevent draw distance changes in edge of FOV
+        this.mc.gameSettings.saveOptions(); // Write back to gameSettings!
 
-        if (version == UNKNOWN_VERSION)
-        {
-            // Minecrift 1.6 or below --> 1.7.10 - wipe the file
-            try
-            {
-                saveOptions(new FileWriter(this.optionsVRBackupFile));
-            }
-            catch (IOException e)
-            {
-                logger.warn("Failed to backup VR options: " + e.getMessage());
-                e.printStackTrace();
-            }
-            loadDefaults();
-        }
-
-        version = VERSION;
+        // Get the Minecrift defaults
+        loadDefaults();
     }
     
     public String getKeyBinding( VRSettings.VrOptions par1EnumOptions )
@@ -998,10 +1014,12 @@ public class VRSettings
                 else if (this.renderFullFirstPersonModelMode == RENDER_FIRST_PERSON_NONE)
                     return var4 + "None";
 	        case CHROM_AB_CORRECTION:
-	            return this.useChromaticAbCorrection ? var4 + "ON" : var4 + "OFF";
+	            return var4 + "ON";
             // 0.4.0
             case TIMEWARP:
                 return this.useTimewarp ? var4 + "ON" : var4 + "OFF";
+            case TIMEWARP_JIT_DELAY:
+                return this.useTimewarpJitDelay ? var4 + "ON" : var4 + "OFF";
             case VIGNETTE:
                 return this.useVignette ? var4 + "ON" : var4 + "OFF";
             case LOW_PERSISTENCE:
@@ -1018,6 +1036,10 @@ public class VRSettings
                 return this.posTrackBlankOnCollision ? var4 + "YES" : var4 + "NO";
             case WALK_UP_BLOCKS:
                 return this.walkUpBlocks ? var4 + "YES" : var4 + "NO";
+            case PITCH_AFFECTS_FLYING:
+                return this.allowPitchAffectsHeightWhileFlying ? var4 + "YES" : var4 + "NO";
+            case VIEW_BOBBING:
+                return this.mc.gameSettings.viewBobbing ? var4 + "YES" : var4 + "NO";
             case RENDER_SCALEFACTOR:
                 return var4 + String.format("%.1f", new Object[] { Float.valueOf(this.renderScaleFactor) });
 
@@ -1073,9 +1095,9 @@ public class VRSettings
                     case DECOUPLE_OFF:
                         return var4 + "OFF";
                     case DECOUPLE_WITH_CROSSHAIR:
-                        return var4 + "Crosshair";
+                        return var4 + "Cross";
                     case DECOUPLE_WITH_HUD:
-                        return var4 + "GUI";
+                        return var4 + "HUD";
                 }
 	        case JOYSTICK_SENSITIVITY:
 	            return var4 + String.format("%.1f", new Object[] { Float.valueOf(this.joystickSensitivity) });
@@ -1232,6 +1254,15 @@ public class VRSettings
 	            return var4 + String.format("%.0f%%", new Object[] { Float.valueOf(100*this.chatOffsetY) });
 	        case AIM_PITCH_OFFSET:
 	            return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.aimPitchOffset) });
+            case INERTIA_FACTOR:
+                if (this.inertiaFactor == INERTIA_NONE)
+                    return var4 + "Automan";
+                else if (this.inertiaFactor == INERTIA_NORMAL)
+                    return var4 + "Normal";
+                else if (this.inertiaFactor == INERTIA_LARGE)
+                    return var4 + "A lot";
+                else if (this.inertiaFactor == INERTIA_MASSIVE)
+                    return var4 + "Even more";
             case USE_VR_COMFORT:
                 switch( this.useVrComfort )
                 {
@@ -1453,12 +1484,12 @@ public class VRSettings
 	        case HEAD_TRACK_PREDICTION:
 	            this.useHeadTrackPrediction = !this.useHeadTrackPrediction;
 	            break;
-	        case CHROM_AB_CORRECTION:
-	            this.useChromaticAbCorrection = !this.useChromaticAbCorrection;
-	            break;
             // 0.4.0
             case TIMEWARP:
                 this.useTimewarp = !this.useTimewarp;
+                break;
+            case TIMEWARP_JIT_DELAY:
+                this.useTimewarpJitDelay = !this.useTimewarpJitDelay;
                 break;
             case VIGNETTE:
                 this.useVignette = !this.useVignette;
@@ -1480,6 +1511,12 @@ public class VRSettings
                 break;
             case WALK_UP_BLOCKS:
                 this.walkUpBlocks = !this.walkUpBlocks;
+                break;
+            case PITCH_AFFECTS_FLYING:
+                this.allowPitchAffectsHeightWhileFlying = !this.allowPitchAffectsHeightWhileFlying;
+                break;
+            case VIEW_BOBBING:
+                this.mc.gameSettings.viewBobbing = !this.mc.gameSettings.viewBobbing;
                 break;
             case TEXTURE_LOOKUP_OPT:
                 this.useDistortionTextureLookupOptimisation = !this.useDistortionTextureLookupOptimisation;
@@ -1591,6 +1628,11 @@ public class VRSettings
                 this.useVrComfort += 1;
                 if (this.useVrComfort > VR_COMFORT_PITCHANDYAW)
                     this.useVrComfort = VR_COMFORT_OFF;
+                break;
+            case INERTIA_FACTOR:
+                this.inertiaFactor +=1;
+                if (this.inertiaFactor > INERTIA_MASSIVE)
+                    this.inertiaFactor = INERTIA_NONE;
                 break;
             case ALLOW_FORWARD_PLUS_STRAFE:
                 this.allowForwardPlusStrafe = !this.allowForwardPlusStrafe;
@@ -1909,30 +1951,20 @@ public class VRSettings
 
     public void saveOptions()
     {
-        try
-        {
-            saveOptions(new FileWriter(this.optionsVRFile));
-        }
-        catch (IOException e)
-        {
-            logger.warn("Failed to save VR options: " + e.getMessage());
-            e.printStackTrace();
-        }
+        saveOptions(null);
     }
 
     private void storeDefaults()
     {
-        StringWriter sw = new StringWriter();
-        saveOptions(sw);
-        this.defaults = sw.toString();
+        saveOptions(this.defaults);
     }
 
-    private void saveOptions(Writer writer)
+    private void saveOptions(JSONObject theProfiles)
     {
         // Save Minecrift settings
         try
         {
-            PrintWriter var5 = new PrintWriter(writer);
+            ProfileWriter var5 = new ProfileWriter(ProfileManager.PROFILE_SET_VR, theProfiles);
 
             var5.println("version:" + version);
             var5.println("newlyCreated:" + false );
@@ -1960,9 +1992,10 @@ public class VRSettings
             var5.println("menuBackground:" + this.menuBackground);
             var5.println("hideGUI:" + this.mc.gameSettings.hideGUI);
             var5.println("renderFullFirstPersonModelMode:" + this.renderFullFirstPersonModelMode);
-            var5.println("useChromaticAbCorrection:" + this.useChromaticAbCorrection);
+            var5.println("shaderIndex:" + this.shaderIndex);
             // 0.4.0
             var5.println("useTimewarp:" + this.useTimewarp);
+            var5.println("useTimewarpJitDelay:" + this.useTimewarpJitDelay);
             var5.println("useVignette:" + this.useVignette);
             var5.println("useLowPersistence:" + this.useLowPersistence);
             var5.println("useDynamicPrediction:" + this.useDynamicPrediction);
@@ -1970,6 +2003,7 @@ public class VRSettings
             var5.println("useDisplayMirroring:" + this.useDisplayMirroring);
             var5.println("posTrackBlankOnCollision:" + this.posTrackBlankOnCollision);
             var5.println("walkUpBlocks:" + this.walkUpBlocks);
+            var5.println("allowPitchAffectsHeightWhileFlying:" + this.allowPitchAffectsHeightWhileFlying);
             var5.println("useDistortionTextureLookupOptimisation:" + this.useDistortionTextureLookupOptimisation);
             var5.println("useFXAA:" + this.useFXAA);
             var5.println("hudScale:" + this.hudScale);
@@ -2046,6 +2080,7 @@ public class VRSettings
             var5.println("chatOffsetX:" + this.chatOffsetX);
             var5.println("chatOffsetY:" + this.chatOffsetY);
             var5.println("aimPitchOffset:" + this.aimPitchOffset);
+            var5.println("inertiaFactor:" + this.inertiaFactor);
             var5.println("useVrComfort:" + this.useVrComfort);
             var5.println("allowForwardPlusStrafe:" + this.allowForwardPlusStrafe);
             var5.println("vrComfortTransitionLinear:" + this.vrComfortTransitionLinear);
@@ -2218,6 +2253,24 @@ public class VRSettings
         //return this.headTrackSensitivity;  // TODO: If head track sensitivity is working again... if
     }
 
+    public static double getInertiaAddFactor(int inertiaFactor)
+    {
+        float addFac = INERTIA_NORMAL_ADD_FACTOR;
+        switch (inertiaFactor)
+        {
+            case INERTIA_NONE:
+                addFac = INERTIA_NONE_ADD_FACTOR;
+                break;
+            case INERTIA_LARGE:
+                addFac = INERTIA_LARGE_ADD_FACTOR;
+                break;
+            case INERTIA_MASSIVE:
+                addFac = INERTIA_MASSIVE_ADD_FACTOR;
+                break;
+        }
+        return addFac;
+    }
+
     public static enum VrOptions
     {
         // Minecrift below here
@@ -2280,6 +2333,7 @@ public class VRSettings
         USE_DISTORTION("Distortion", false, true),
         CHROM_AB_CORRECTION("Chrom. Ab. Correction", false, true),
         TIMEWARP("Timewarp", false, true),
+        TIMEWARP_JIT_DELAY("Timewarp JIT Delay", false, true),
         VIGNETTE("Vignette", false, true),
         TEXTURE_LOOKUP_OPT("Dist. Method", false, true),
         FXAA("FXAA", false, true),
@@ -2321,6 +2375,8 @@ public class VRSettings
         // SDK 0.4.0 up
         POS_TRACK_HIDE_COLLISION("Blank on collision", false, true),
         WALK_UP_BLOCKS("Walk up blocks", false, true),
+        VIEW_BOBBING("View Bobbing", false, true),
+        PITCH_AFFECTS_FLYING("Pitch Affects Flying", false, true),
         //Movement/aiming controls
         DECOUPLE_LOOK_MOVE("Decouple Look/Move", false, true),
         MOVEMENT_MULTIPLIER("Move. Speed Multiplier", true, false),
@@ -2335,6 +2391,7 @@ public class VRSettings
         MOVEAIM_HYDRA_USE_CONTROLLER_ONE("Controller", false, true),
         JOYSTICK_AIM_TYPE("Aim Type", false, false),
         AIM_PITCH_OFFSET("Vertical Cursor Offset",true,false),
+        INERTIA_FACTOR("Player Inertia",false,true),
         USE_VR_COMFORT("VR Comfort", false, true),
         ALLOW_FORWARD_PLUS_STRAFE("Forward + Strafe", false, true),
         VR_COMFORT_TRANSITION_LINEAR("Transition Mode", false, true),
@@ -2463,5 +2520,155 @@ public class VRSettings
         {
             this(p_i45005_3_, p_i45005_4_, p_i45005_5_, p_i45005_6_, p_i45005_7_, p_i45005_8_);
         }
+    }
+
+    public static synchronized void initSettings( Minecraft mc, File dataDir )
+    {
+        ProfileManager.init(dataDir);
+        mc.gameSettings = new GameSettings( mc, dataDir );
+        mc.gameSettings.saveOptions();
+        mc.vrSettings = new VRSettings( mc, dataDir );
+    }
+
+    public static synchronized void loadAll( Minecraft mc )
+    {
+        mc.gameSettings.loadOptions();
+        mc.vrSettings.loadOptions();
+    }
+
+    public static synchronized void saveAll( Minecraft mc )
+    {
+        mc.gameSettings.saveOptions();
+        mc.vrSettings.saveOptions();
+    }
+
+    public static synchronized void resetAll( Minecraft mc )
+    {
+        mc.gameSettings.resetSettings();
+        mc.vrSettings.resetSettings();
+    }
+
+    public static synchronized String getCurrentProfile()
+    {
+        return ProfileManager.getCurrentProfileName();
+    }
+
+    public static synchronized boolean profileExists(String profile)
+    {
+        return ProfileManager.profileExists(profile);
+    }
+
+    public static synchronized SortedSet<String> getProfileList()
+    {
+        return ProfileManager.getProfileList();
+    }
+
+    public static synchronized boolean setCurrentProfile(String profile)
+    {
+        StringBuilder error = new StringBuilder();
+        return setCurrentProfile(profile, error);
+    }
+
+    public static synchronized boolean setCurrentProfile(String profile, StringBuilder error)
+    {
+        boolean result = true;
+        Minecraft mc = Minecraft.getMinecraft();
+
+        // Save settings in current profile
+        VRSettings.saveAll(mc);
+
+        // Set the new profile
+        result = ProfileManager.setCurrentProfile(profile, error);
+
+        if (result) {
+            // Load new profile
+            VRSettings.loadAll(mc);
+        }
+
+        return result;
+    }
+
+    public static synchronized boolean createProfile(String profile, boolean useDefaults, StringBuilder error)
+    {
+        boolean result = true;
+        Minecraft mc = Minecraft.getMinecraft();
+        String originalProfile = VRSettings.getCurrentProfile();
+
+        // Save settings in original profile
+        VRSettings.saveAll(mc);
+
+        // Create the new profile
+        if (!ProfileManager.createProfile(profile, error))
+            return false;
+
+        // Set the new profile
+        ProfileManager.setCurrentProfile(profile, error);
+
+        // Save existing settings as new profile...
+
+        if (useDefaults) {
+            // ...unless set to use defaults
+            VRSettings.resetAll(mc);
+        }
+
+        // Save new profile settings to file
+        VRSettings.saveAll(mc);
+
+        // Select the original profile
+        ProfileManager.setCurrentProfile(originalProfile, error);
+        VRSettings.loadAll(mc);
+
+        return result;
+    }
+
+    public static synchronized boolean deleteProfile(String profile)
+    {
+        StringBuilder error = new StringBuilder();
+        return deleteProfile(profile, error);
+    }
+
+    public static synchronized boolean deleteProfile(String profile, StringBuilder error)
+    {
+        Minecraft mc = Minecraft.getMinecraft();
+
+        // Save settings in current profile
+        VRSettings.saveAll(mc);
+
+        // Nuke the profile data
+        if (!ProfileManager.deleteProfile(profile, error))
+            return false;
+
+        // Load settings in case the selected profile has changed
+        VRSettings.loadAll(mc);
+
+        return true;
+    }
+
+    public static synchronized boolean duplicateProfile(String originalProfile, String newProfile, StringBuilder error)
+    {
+        Minecraft mc = Minecraft.getMinecraft();
+
+        // Save settings in current profile
+        VRSettings.saveAll(mc);
+
+        // Duplicate the profile data
+        if (!ProfileManager.duplicateProfile(originalProfile, newProfile, error))
+            return false;
+
+        return true;
+    }
+
+    public static synchronized boolean renameProfile(String originalProfile, String newProfile, StringBuilder error)
+    {
+        Minecraft mc = Minecraft.getMinecraft();
+
+        // Save settings in current profile
+        VRSettings.saveAll(mc);
+
+        // Rename the profile
+        if (!ProfileManager.renameProfile(originalProfile, newProfile, error))
+            return false;
+
+        return true;
     }
 }

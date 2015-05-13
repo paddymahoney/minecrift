@@ -21,6 +21,7 @@ import com.mtbs3d.minecrift.control.ControlBinding;
 public class MCMouse extends BasePlugin implements IBodyAimController {
 
     private Aim aim = new Aim();
+    int lastIndex = -1;
 
 	private Minecraft mc;
 
@@ -60,14 +61,13 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	}
 
 	@Override
-	public void poll(float delta)
+	public void poll(int index)
     {
-        if (polledThisFrame)
+        if (index <= this.lastIndex)
             return;
 
-        polledThisFrame = true;
-
-		if(this.mc.currentScreen == null && Display.isActive())
+        lastIndex = index;
+        if(this.mc.currentScreen == null && Display.isActive())
         {
             this.mc.mouseHelper.mouseXYChange();
             float mouseSensitivityMultiplier1 = this.mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
@@ -130,7 +130,8 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	@Override
 	public void mapBinding(ControlBinding binding) {
 	}
-    public void beginFrame() { polledThisFrame = false; }
+    public void beginFrame() { beginFrame(0); }
+    public void beginFrame(int frameIndex) { }
     public void endFrame() { }
 
     @Override

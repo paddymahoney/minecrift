@@ -1,9 +1,10 @@
-package com.mtbs3d.minecrift.gui;
+package com.mtbs3d.minecrift.gui.framework;
 
 import java.util.Iterator;
 import java.util.List;
 
 import com.mtbs3d.minecrift.api.IBasePlugin;
+import com.mtbs3d.minecrift.gui.framework.GuiSmallButtonEx;
 import net.minecraft.client.Minecraft;
 
 public class PluginModeChangeButton extends GuiSmallButtonEx {

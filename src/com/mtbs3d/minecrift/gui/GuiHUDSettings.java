@@ -1,12 +1,14 @@
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
+import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
+import com.mtbs3d.minecrift.gui.framework.GuiSliderEx;
+import com.mtbs3d.minecrift.gui.framework.GuiSmallButtonEx;
 import com.mtbs3d.minecrift.settings.VRSettings;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.src.*;
-import net.minecraft.util.StringTranslate;
 
 public class GuiHUDSettings extends BaseGuiSettings
 {

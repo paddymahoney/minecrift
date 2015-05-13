@@ -6,6 +6,7 @@ package com.mtbs3d.minecrift.gui;
 
 import java.util.List;
 
+import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.provider.MCController;
 import com.mtbs3d.minecrift.provider.MCHydra;
 import com.mtbs3d.minecrift.provider.MCMouse;
@@ -38,6 +39,8 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             VRSettings.VrOptions.CROSSHAIR_HEAD_RELATIVE,
             VRSettings.VrOptions.AIM_PITCH_OFFSET,
             VRSettings.VrOptions.PITCH_AFFECTS_CAMERA,
+            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.LOCOMOTION_SETTINGS,
     };
@@ -72,11 +75,11 @@ public class GuiMoveAimSettings extends BaseGuiSettings
     public void initGui()
     {
         this.buttonList.clear();
-        GuiButtonEx reinit = new GuiButtonEx(ID_GENERIC_REINIT, (this.width / 2) - 100, (this.height / 6) + 168, 100, 20, "Reinit");
+        GuiButtonEx reinit = new GuiButtonEx(ID_GENERIC_REINIT, (this.width / 2) - 100, (this.height / 6) + 148, 100, 20, "Reinit");
         reinit.enabled = false; // Disabled until LWJGL supports (or has been hacked)
         this.buttonList.add(reinit);
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, (this.width / 2) - 0, (this.height / 6) + 168, 100, 20, "Defaults"));
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 188, "Done"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, (this.width / 2) - 0, (this.height / 6) + 148, 100, 20, "Defaults"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 168, "Done"));
         if(! ( Minecraft.getMinecraft().lookaimController instanceof MCMouse )  )
         {
         	this.buttonList.add(new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 148, "Remap Controls"));

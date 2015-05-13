@@ -4,6 +4,7 @@
  */
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
@@ -37,8 +38,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.MIRROR_DISPLAY,
             VRSettings.VrOptions.FSAA,
             VRSettings.VrOptions.FSAA_SCALEFACTOR,
-            VRSettings.VrOptions.CHROM_AB_CORRECTION,
             VRSettings.VrOptions.TIMEWARP,
+            VRSettings.VrOptions.TIMEWARP_JIT_DELAY,
             VRSettings.VrOptions.VIGNETTE,
             VRSettings.VrOptions.LOW_PERSISTENCE,
             VRSettings.VrOptions.DYNAMIC_PREDICTION,
@@ -54,8 +55,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.MIRROR_DISPLAY,
             VRSettings.VrOptions.FSAA,
             VRSettings.VrOptions.FSAA_SCALEFACTOR,
-            VRSettings.VrOptions.CHROM_AB_CORRECTION,
             VRSettings.VrOptions.TIMEWARP,
+            VRSettings.VrOptions.TIMEWARP_JIT_DELAY,
             VRSettings.VrOptions.VIGNETTE,
             VRSettings.VrOptions.HIGH_QUALITY_DISTORTION,
             VRSettings.VrOptions.OTHER_RENDER_SETTINGS,
@@ -125,10 +126,10 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                     maxValue = 2.5f;
                     increment = 0.1f;
                 }
-                else if (var8 == VRSettings.VrOptions.FSAA_SCALEFACTOR) // TODO: Only 2X is currently scaling GUI correctly (on AUTO gui size only)
+                else if (var8 == VRSettings.VrOptions.FSAA_SCALEFACTOR)
                 {
                     minValue = 1.1f;
-                    maxValue = 2.5f;
+                    maxValue = 2.0f;
                     increment = 0.1f;
                 }
                 else if (var8 == VRSettings.VrOptions.MONO_FOV)
@@ -179,9 +180,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             }
             else if (par1GuiButton.id == ID_GENERIC_DEFAULTS)
             {
-                minecraft.vrSettings.useChromaticAbCorrection = true;
-
                 minecraft.vrSettings.useTimewarp = true;
+                minecraft.vrSettings.useTimewarpJitDelay = false;
                 minecraft.vrSettings.useVignette = true;
                 minecraft.vrSettings.useLowPersistence = true;
                 minecraft.vrSettings.useDynamicPrediction = true;
@@ -215,10 +215,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 par1GuiButton.displayString = this.guivrSettings.getKeyBinding(VRSettings.VrOptions.getEnumOptions(par1GuiButton.id));
             }
 
-            if (num == VRSettings.VrOptions.CHROM_AB_CORRECTION ||
-                num == VRSettings.VrOptions.TIMEWARP ||
+            if (num == VRSettings.VrOptions.TIMEWARP ||
+                num == VRSettings.VrOptions.TIMEWARP_JIT_DELAY ||
                 num == VRSettings.VrOptions.VIGNETTE ||
-                num == VRSettings.VrOptions.RENDER_SCALEFACTOR ||
                 num == VRSettings.VrOptions.MIRROR_DISPLAY ||
                 num == VRSettings.VrOptions.ENABLE_DIRECT ||
                 num == VRSettings.VrOptions.LOW_PERSISTENCE ||
@@ -245,13 +244,20 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     }
 
     @Override
-    public void event(int id, VRSettings.VrOptions enumm)
+    public boolean event(int id, VRSettings.VrOptions enumm)
     {
         if (enumm == VRSettings.VrOptions.RENDER_SCALEFACTOR ||
             enumm == VRSettings.VrOptions.FSAA_SCALEFACTOR)
         {
             Minecraft.getMinecraft().reinitFramebuffers = true;
         }
+
+        return true;
+    }
+
+    @Override
+    public boolean event(int id, String s) {
+        return true;
     }
 
     @Override
@@ -279,7 +285,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     		return new String[] {
     				"Chromatic aberration correction", 
     				"Corrects for color distortion due to lenses", 
-    				"  OFF - no correction", 
+    				"  OFF - no correction",
     				"  ON - correction applied"} ;
         case TIMEWARP:
             return new String[] {
@@ -292,6 +298,16 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                     "  OFF - No timewarp applied, higher latency head",
                     "        tracking."
             };
+            case TIMEWARP_JIT_DELAY:
+                return new String[] {
+                        "Enables a spin-wait that tries to push time-warp to",
+                        "be as close to V-sync as possible. WARNING - this",
+                        "may backfire and cause framerate loss and / or","" +
+                        "judder- use with caution.",
+                        "  ON  - Timewarp JIT delay applied. Lowest latency.",
+                        "  OFF - (Default) No timewarp JIT delay applied,",
+                        "        slightly higher latency head tracking."
+                };
             case RENDER_SCALEFACTOR:
                 return new String[] {
                         "Determines quality of rendered image. Higher values",
@@ -381,7 +397,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     {
         String s = var8.getEnumString();
 
-        if (var8 == VRSettings.VrOptions.ENABLE_DIRECT)
+        if (var8 == VRSettings.VrOptions.ENABLE_DIRECT ||
+            var8 == VRSettings.VrOptions.CHROM_AB_CORRECTION)
         {
             return false;
         }

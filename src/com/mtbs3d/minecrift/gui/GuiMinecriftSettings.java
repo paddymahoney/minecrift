@@ -4,6 +4,10 @@
  */
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
+import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
+import com.mtbs3d.minecrift.gui.framework.GuiSmallButtonEx;
+import com.mtbs3d.minecrift.gui.framework.VROption;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -13,6 +17,8 @@ import net.minecraft.client.settings.GameSettings;
 
 public class GuiMinecriftSettings extends BaseGuiSettings
 {
+    public static final int PROFILES_ID = 915;
+
     static VROption[] vrOffDeviceList = new VROption[]
         {
             new VROption(201,                                      VROption.Position.POS_LEFT,   1,     VROption.DISABLED, "Player Preferences..."),
@@ -61,9 +67,9 @@ public class GuiMinecriftSettings extends BaseGuiSettings
     {
         GuiButtonEx buttonOrigin, buttonRecali;
         this.buttonList.clear();
-        GuiSmallButtonEx useVRButton = new GuiSmallButtonEx(VRSettings.VrOptions.USE_VR.returnEnumOrdinal(), this.width / 2 - 155 + 1 * 160 / 2, this.height / 6 - 14, VRSettings.VrOptions.USE_VR, this.guivrSettings.getKeyBinding(VRSettings.VrOptions.USE_VR));
-        useVRButton.enabled = false;
-        this.buttonList.add(useVRButton);
+        int profileButtonWidth = 240;
+        GuiSmallButtonEx profilesButton = new GuiSmallButtonEx(PROFILES_ID, (this.width / 2 - 155 + 1 * 160 / 2) - ((profileButtonWidth - 150) / 2), this.height / 6 - 14, profileButtonWidth, 20, "Profile: " + VRSettings.getCurrentProfile());
+        this.buttonList.add(profilesButton);
         buttonOrigin = new GuiButtonEx(211, this.width / 2 - 100, this.height / 6 + 128, "Reset Origin");
         buttonRecali = new GuiButtonEx(210, this.width / 2 - 100, this.height / 6 + 148, "Recalibrate...");
         this.buttonList.add(new GuiButtonEx(200, this.width / 2 - 100, this.height / 6 + 168, "Done"));
@@ -175,6 +181,11 @@ public class GuiMinecriftSettings extends BaseGuiSettings
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 this.mc.displayGuiScreen(this.parentGuiScreen);
             }
+            else if (par1GuiButton.id == PROFILES_ID)
+            {
+                Minecraft.getMinecraft().vrSettings.saveOptions();
+                this.mc.displayGuiScreen(new GuiSelectSettingsProfile(this, this.guivrSettings));
+            }
         }
     }
 
@@ -245,6 +256,11 @@ public class GuiMinecriftSettings extends BaseGuiSettings
                 return new String[] {
                         "Resets the origin point to your current head",
                         "position. HOTKEY - F12 or RCtrl-Ret"
+                };
+            case PROFILES_ID:
+                return new String[] {
+                        "Open this configuration screen to manage",
+                        "configuration profiles."
                 };
     		default:
     			return null;

@@ -6,6 +6,7 @@ package com.mtbs3d.minecrift.gui;
 
 import java.util.List;
 
+import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.provider.MCHydra;
 import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
@@ -138,13 +139,20 @@ public class GuiHeadOrientationSettings  extends BaseGuiSettings implements GuiE
     }
 
     @Override
-    public void event(int id, VRSettings.VrOptions enumm)
+    public boolean event(int id, VRSettings.VrOptions enumm)
     {
         if (enumm == VRSettings.VrOptions.HEAD_TRACK_PREDICTION_TIME)
         {
             // TODO: Prediction
             //mc.headTracker.setPrediction(this.mc.vrSettings.headTrackPredictionTimeSecs, this.mc.vrSettings.useHeadTrackPrediction);
         }
+
+        return true;
+    }
+
+    @Override
+    public boolean event(int id, String s) {
+        return true;
     }
 
     private boolean getEnabledState(VRSettings.VrOptions var8)

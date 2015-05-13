@@ -1,8 +1,8 @@
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.settings.VRSettings;
 
-import de.fruitfly.ovr.enums.EyeType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -14,7 +14,9 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.ALLOW_FORWARD_PLUS_STRAFE,
             VRSettings.VrOptions.WALK_UP_BLOCKS,
             VRSettings.VrOptions.MOVEMENT_MULTIPLIER,
-            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.INERTIA_FACTOR,
+            VRSettings.VrOptions.VIEW_BOBBING,
+            VRSettings.VrOptions.PITCH_AFFECTS_FLYING,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.USE_VR_COMFORT,
@@ -73,14 +75,14 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                     increment = 0.005f;
                 }
 
-                GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
+                GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height - 20, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.setEventHandler(this);
                 slider.enabled = getEnabledState(var8);
                 this.buttonList.add(slider);
             }
             else
             {
-                GuiSmallButtonEx smallButton = new GuiSmallButtonEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8));
+                GuiSmallButtonEx smallButton = new GuiSmallButtonEx(var8.returnEnumOrdinal(), width, height - 20, var8, this.guivrSettings.getKeyBinding(var8));
                 smallButton.setEventHandler(this);
                 smallButton.enabled = getEnabledState(var8);
                 this.buttonList.add(smallButton);
@@ -128,6 +130,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
         {
             if (par1GuiButton.id == ID_GENERIC_DONE)
             {
+                Minecraft.getMinecraft().gameSettings.saveOptions();
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 this.mc.displayGuiScreen(this.parentGuiScreen);
             }
@@ -141,6 +144,11 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 vr.vrComfortTransitionAngleDegs = 30f;
                 vr.vrComfortTransitionBlankingMode = VRSettings.VR_COMFORT_TRANS_BLANKING_MODE_OFF;
                 vr.movementQuantisation = 0;
+                vr.inertiaFactor = VRSettings.INERTIA_NORMAL;
+                vr.allowPitchAffectsHeightWhileFlying = false;
+                Minecraft.getMinecraft().gameSettings.viewBobbing = true;
+
+                Minecraft.getMinecraft().gameSettings.saveOptions();
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 this.reinit = true;
             }
@@ -154,12 +162,19 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
     }
 
     @Override
-    public void event(int id, VRSettings.VrOptions enumm)
+    public boolean event(int id, VRSettings.VrOptions enumm)
     {
         if (enumm == VRSettings.VrOptions.USE_VR_COMFORT)
         {
             this.reinit = true;
         }
+
+        return true;
+    }
+
+    @Override
+    public boolean event(int id, String s) {
+        return true;
     }
 
     @Override
@@ -242,6 +257,38 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "  movement will cause any strafe input to be zeroed.",
                             "  This can help make movement more 'natural'."
                     } ;
+                case INERTIA_FACTOR:
+                    return new String[]{
+                            "Sets the player's movement inertia in single player",
+                            "mode. Lower inertia means faster acceleration, higher",
+                            "inertia slower accelaration. High inertia may reduce",
+                            "motion sickness for some, but beware of cliff edges!!",
+                            "  Normal: (Default) Standard Minecraft player",
+                            "           movement.",
+                            "  Automan < Normal < A lot < Even More. Does not",
+                            "  affect lava, water or jumping movement currently."
+                    };
+                case VIEW_BOBBING:
+                    return new String[]{
+                            "If enabled, makes player movement more realistic by",
+                            "simulating the players view changing subtly as they",
+                            "walk along. Can cause motion sickness when ON for",
+                            "some. Yet others need this ON for a comfortable",
+                            "experience!",
+                            "  ON: (Default) View bobs up and down while moving.",
+                            "  OFF: No view bobbing, the player view 'floats' at",
+                            "       a constant height above the ground."
+                    };
+                case PITCH_AFFECTS_FLYING:
+                    return new String[]{
+                            "If enabled, uses controller pitch or HMD orientation",
+                            "pitch to create height changes while flying. Pitch up",
+                            "to move up, pitch down to move down.",
+                            "  OFF: (Default) No elevation changes based on pitch",
+                            "       input. Normal Minecraft operation.",
+                            "  ON:  (Recommended) Pitch input affects elevation",
+                            "       while flying. An enjoyable travel experience!"
+                    };
                 default:
                     return null;
             }

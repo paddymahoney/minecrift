@@ -25,14 +25,16 @@ public interface IStereoProvider extends IBasePlugin
                                               Sizei OutTextureSize,
                                               GLConfig glConfig,
                                               FovPort LeftFov,
-                                              FovPort RightFov);
+                                              FovPort RightFov,
+                                              float worldScale);
 
     public EyeRenderParams configureRenderingDualTexture(Sizei InTexture1Size,
                                                          Sizei InTexture2Size,
                                                          Sizei OutDisplaySize,
                                                          GLConfig glConfig,
                                                          FovPort LeftFov,
-                                                         FovPort RightFov);
+                                                         FovPort RightFov,
+                                                         float worldScale);
 
     public void resetRenderConfig();
 
@@ -47,6 +49,8 @@ public interface IStereoProvider extends IBasePlugin
     public FrameTiming getFrameTiming();
 
     public Posef getEyePose(EyeType eye);
+
+    public FullPoseState getEyePoses(int frameIndex);
 
     public Matrix4f getMatrix4fProjection(FovPort fov,
                                           float nearClip,

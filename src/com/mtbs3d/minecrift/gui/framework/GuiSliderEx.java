@@ -2,8 +2,10 @@
  * Copyright 2013 Mark Browning, StellaArtois
  * Licensed under the LGPL 3.0 or later (See LICENSE.md for details)
  */
-package com.mtbs3d.minecrift.gui;
+package com.mtbs3d.minecrift.gui.framework;
 
+import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
+import com.mtbs3d.minecrift.gui.framework.GuiEventEx;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
@@ -34,6 +36,9 @@ public class GuiSliderEx extends GuiButtonEx
     /** The last known value x position of the mouse pointer */
     private int lastMouseX = -1;
 
+    /** The value at the start of a mouse down event */
+    private float mouseDownStartValue = -1f;
+
     GuiEventEx _eventHandler = null;
 
     public GuiSliderEx(int par1, int par2, int par3,
@@ -56,7 +61,7 @@ public class GuiSliderEx extends GuiButtonEx
         this.sliderValue = (this.lastValue - this.minValue) / range;
     }
 
-    void setEventHandler(GuiEventEx eventHandler)
+    public void setEventHandler(GuiEventEx eventHandler)
     {
         _eventHandler = eventHandler;
     }
@@ -77,30 +82,35 @@ public class GuiSliderEx extends GuiButtonEx
     {
         if (this.enabled && this.visible)
         {
-            if (this.dragging && par2 != this.lastMouseX)
+            if (this.dragging)
             {
-                float startValue = this.lastValue;
-                this.lastMouseX = -1;
-                this.sliderValue = (float)(par2 - (this.xPosition + 4)) / (float)(this.width - 8);
-
-                if (this.sliderValue < 0.0F)
+                if (par2 != this.lastMouseX)
                 {
-                    this.sliderValue = 0.0F;
+                    this.lastMouseX = -1;
+                    this.sliderValue = (float) (par2 - (this.xPosition + 4)) / (float) (this.width - 8);
+
+                    if (this.sliderValue < 0.0F) {
+                        this.sliderValue = 0.0F;
+                    }
+
+                    if (this.sliderValue > 1.0F) {
+                        this.sliderValue = 1.0F;
+                    }
+
+                    float range = this.maxValue - this.minValue;
+                    this.lastValue = this.minValue + (this.sliderValue * range);
+                    this.lastValue = Math.round(this.lastValue / this.increment) * this.increment;
+                    
+                    // Save original
+                    float original = par1Minecraft.vrSettings.getOptionFloatValue(this.idFloat);
+
+                    // Get updated display string...
+                    par1Minecraft.vrSettings.setOptionFloatValue(this.idFloat, this.lastValue);
+                    this.displayString = par1Minecraft.vrSettings.getKeyBinding(this.idFloat);
+
+                    // ...but then set back to original value for now, until mouse released
+                    par1Minecraft.vrSettings.setOptionFloatValue(this.idFloat, original);
                 }
-
-                if (this.sliderValue > 1.0F)
-                {
-                    this.sliderValue = 1.0F;
-                }
-
-                float range = this.maxValue - this.minValue;
-                this.lastValue = this.minValue + (this.sliderValue * range);
-                this.lastValue = Math.round(this.lastValue / this.increment) * this.increment;
-                par1Minecraft.vrSettings.setOptionFloatValue(this.idFloat, this.lastValue);
-                this.displayString = par1Minecraft.vrSettings.getKeyBinding(this.idFloat);
-
-                if (_eventHandler != null && startValue != this.lastValue)
-                    _eventHandler.event(GuiEventEx.ID_VALUE_CHANGED, this.idFloat);
             }
 
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -117,15 +127,17 @@ public class GuiSliderEx extends GuiButtonEx
     {
         if (this.enabled && super.mousePressed(par1Minecraft, par2, par3))
         {
-            float tempSliderValue = (float)(par2 - (this.xPosition + 4)) / (float)(this.width - 8);
+            if (this.mouseDownStartValue == -1f) {
+                this.mouseDownStartValue = this.sliderValue;
+            }
 
-            if (tempSliderValue < 0.0F)
-            {
+            float tempSliderValue = (float) (par2 - (this.xPosition + 4)) / (float) (this.width - 8);
+
+            if (tempSliderValue < 0.0F) {
                 tempSliderValue = 0.0F;
             }
 
-            if (tempSliderValue > 1.0F)
-            {
+            if (tempSliderValue > 1.0F) {
                 tempSliderValue = 1.0F;
             }
 
@@ -146,20 +158,23 @@ public class GuiSliderEx extends GuiButtonEx
                 this.lastValue = this.minValue;
 
             this.sliderValue = (this.lastValue - this.minValue) / range;
+
+            // Save original
+            float original = par1Minecraft.vrSettings.getOptionFloatValue(this.idFloat);
+
+            // Get updated display string...
             par1Minecraft.vrSettings.setOptionFloatValue(this.idFloat, this.lastValue);
             this.displayString = par1Minecraft.vrSettings.getKeyBinding(this.idFloat);
+
+            // ...but then set back to original value for now, until mouse released
+            par1Minecraft.vrSettings.setOptionFloatValue(this.idFloat, original);
             this.lastMouseX = par2;
             this.dragging = true;
 
-            if (_eventHandler != null)
-                _eventHandler.event(GuiEventEx.ID_VALUE_CHANGED, this.idFloat);
-
             return true;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
     }
 
     /**
@@ -173,6 +188,20 @@ public class GuiSliderEx extends GuiButtonEx
             float range = this.maxValue - this.minValue;
             this.sliderValue = (this.lastValue - this.minValue) / range;  // Sync slider pos with last (actual) value
             this.dragging = false;
+        }
+
+        if (this.mouseDownStartValue != -1f && this.mouseDownStartValue != this.sliderValue)
+        {
+            this.mouseDownStartValue = -1f;
+
+            // Now set the value
+            Minecraft.getMinecraft().vrSettings.setOptionFloatValue(this.idFloat, this.lastValue);
+
+            // Notify any listeners
+            if (_eventHandler != null)
+            {
+                _eventHandler.event(GuiEventEx.ID_VALUE_CHANGED, this.idFloat);
+            }
         }
     }
 }

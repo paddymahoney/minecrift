@@ -1,16 +1,17 @@
 --- a/net/minecraft/client/gui/GuiOptions.java
 +++ b/net/minecraft/client/gui/GuiOptions.java
-@@ -1,5 +1,9 @@
+@@ -1,5 +1,10 @@
  package net.minecraft.client.gui;
  
-+import com.mtbs3d.minecrift.gui.BaseGuiSettings;
-+import com.mtbs3d.minecrift.gui.GuiButtonEx;
++import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
++import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
 +import com.mtbs3d.minecrift.gui.GuiMinecriftSettings;
++import com.mtbs3d.minecrift.settings.VRSettings;
 +import net.minecraft.client.Minecraft;
  import net.minecraft.client.audio.PositionedSoundRecord;
  import net.minecraft.client.audio.SoundCategory;
  import net.minecraft.client.audio.SoundEventAccessorComposite;
-@@ -9,8 +13,11 @@
+@@ -9,8 +14,11 @@
  import net.minecraft.client.resources.I18n;
  import net.minecraft.client.settings.GameSettings;
  import net.minecraft.client.stream.IStream;
@@ -23,7 +24,7 @@
  {
      private static final GameSettings.Options[] field_146440_f = new GameSettings.Options[] {GameSettings.Options.FOV, GameSettings.Options.DIFFICULTY};
      private final GuiScreen field_146441_g;
-@@ -22,6 +29,9 @@
+@@ -22,6 +30,9 @@
  
      public GuiOptions(GuiScreen p_i1046_1_, GameSettings p_i1046_2_)
      {
@@ -33,7 +34,7 @@
          this.field_146441_g = p_i1046_1_;
          this.game_settings_1 = p_i1046_2_;
      }
-@@ -42,7 +52,17 @@
+@@ -42,7 +53,17 @@
  
              if (var5.getEnumFloat())
              {
@@ -52,7 +53,7 @@
              }
              else
              {
-@@ -60,8 +80,10 @@
+@@ -60,8 +81,10 @@
              ++var1;
          }
  
@@ -65,15 +66,17 @@
              private static final String __OBFID = "CL_00000701";
              public void playPressSound(SoundHandler soundHandlerIn)
              {
-@@ -97,6 +119,7 @@
+@@ -97,6 +120,9 @@
              if (button.id == 8675309)
              {
                  this.mc.entityRenderer.activateNextShader();
++				/** MINECRIFT **/
 +                this.reinit = true;
++				/** END MINECRIFT **/
              }
  
              if (button.id == 101)
-@@ -161,6 +184,14 @@
+@@ -161,6 +187,14 @@
                      GuiStreamUnavailable.func_152321_a(this);
                  }
              }
@@ -88,7 +91,7 @@
          }
      }
  
-@@ -173,4 +204,15 @@
+@@ -173,4 +207,15 @@
          this.drawCenteredString(this.fontRendererObj, this.field_146442_a, this.width / 2, 15, 16777215);
          super.drawScreen(mouseX, mouseY, partialTicks);
      }
@@ -96,8 +99,8 @@
 +    /** MINECRIFT ADDITIONS BELOW */
 +    public String getShaderButtonName()
 +    {
-+        String shaderFileName = (this.mc.entityRenderer.shaderIndex != this.mc.entityRenderer.shaderCount ? this.mc.entityRenderer.shaderResourceLocations[this.mc.entityRenderer.shaderIndex].toString() : "None");
-+        System.out.println("ShaderIndex: " + this.mc.entityRenderer.shaderIndex);
++        String shaderFileName = (this.mc.vrSettings.shaderIndex != VRSettings.NO_SHADER ? this.mc.entityRenderer.shaderResourceLocations[this.mc.vrSettings.shaderIndex].toString() : "None");
++        System.out.println("ShaderIndex: " + this.mc.vrSettings.shaderIndex);
 +        File shaderFile = new File(shaderFileName);
 +        String shaderName = FilenameUtils.removeExtension(shaderFile.getName());
 +        String shaderButtonName = "Shader: " + shaderName;

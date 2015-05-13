@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/GuiNewChat.java
 +++ b/net/minecraft/client/gui/GuiNewChat.java
-@@ -4,6 +4,8 @@
+@@ -4,8 +4,11 @@
  import java.util.ArrayList;
  import java.util.Iterator;
  import java.util.List;
@@ -8,8 +8,11 @@
 +import com.mtbs3d.minecrift.settings.VRSettings;
  import net.minecraft.client.Minecraft;
  import net.minecraft.entity.player.EntityPlayer;
++import net.minecraft.src.Reflector;
  import net.minecraft.util.ChatComponentText;
-@@ -51,10 +53,19 @@
+ import net.minecraft.util.EnumChatFormatting;
+ import net.minecraft.util.IChatComponent;
+@@ -51,10 +54,19 @@
                      var3 = true;
                  }
  
@@ -31,3 +34,15 @@
                  GL11.glScalef(var7, var7, 1.0F);
                  int var9;
                  int var11;
+@@ -100,6 +112,11 @@
+                                 byte var15 = 0;
+                                 int var16 = -var9 * 9;
+                                 drawRect(var15, var16 - 9, var15 + var8 + 4, var16, var14 / 2 << 24);
++                                /** MINECRIFT FORGE **/
++								if (Reflector.forgeExists()) {
++									GL11.glEnable(GL11.GL_BLEND); // FORGE: BugFix MC-36812 Chat Opacity Broken in 1.7.x
++								}
++								/** END MINECRIFT FORGE **/
+                                 String var17 = var10.getChatComponent().getFormattedText();
+                                 this.mc.fontRendererObj.drawStringWithShadow(var17, var15, var16 - 8, 16777215 + (var14 << 24));
+                                 GL11.glDisable(GL11.GL_ALPHA_TEST);

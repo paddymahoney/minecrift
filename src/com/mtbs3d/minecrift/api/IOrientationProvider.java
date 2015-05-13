@@ -4,6 +4,7 @@
  */
 package com.mtbs3d.minecrift.api;
 
+import de.fruitfly.ovr.enums.EyeType;
 import org.lwjgl.util.vector.Quaternion;
 
 /**
@@ -22,28 +23,28 @@ public interface IOrientationProvider extends IBasePlugin {
      * 
      * @return The Head Yaw, in degrees 
      */
-    public float getHeadYawDegrees();
+    public float getHeadYawDegrees(EyeType eye);
 
     /**
      * Gets the Pitch(X) from YXZ Euler angle representation of orientation
      * 
      * @return The Head Pitch, in degrees 
      */
-    public float getHeadPitchDegrees();
+    public float getHeadPitchDegrees(EyeType eye);
 
     /**
      * Gets the Roll(Z) from YXZ Euler angle representation of orientation
      * 
      * @return The Head Roll, in degrees 
      */
-    public float getHeadRollDegrees();
+    public float getHeadRollDegrees(EyeType eye);
 
     /**
      * Gets the orientation quaternion
      *
      * @return quaternion w, x, y & z components
      */
-    public Quaternion getOrientationQuaternion();
+    public Quaternion getOrientationQuaternion(EyeType eye);
 
     /**
      * Resets the current position/orientation to the origin

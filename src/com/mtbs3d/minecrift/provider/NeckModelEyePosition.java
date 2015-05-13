@@ -14,11 +14,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.Vec3;
 
 /**
- * "None" head position plugin
- * @author mabrowning
+ * "Neck" head position plugin
+ * @author mabrowning, StellaArtois
  *
  */
-public class NullEyePosition extends BasePlugin implements IEyePositionProvider {
+public class NeckModelEyePosition extends BasePlugin implements IEyePositionProvider {
 
 	private Vec3 headPos;
     private Vec3 leftEyePos;
@@ -60,7 +60,7 @@ public class NullEyePosition extends BasePlugin implements IEyePositionProvider 
 	}
 
 	@Override
-	public void poll(float delta) {
+	public void poll(int index) {
 	}
 
 	@Override
@@ -129,6 +129,7 @@ public class NullEyePosition extends BasePlugin implements IEyePositionProvider 
     public void eventNotification(int eventId) {
     }
 
-    public void beginFrame() { polledThisFrame = false; }
+    public void beginFrame() { beginFrame(0); }
+    public void beginFrame(int frameIndex) { }
     public void endFrame() { }
 }

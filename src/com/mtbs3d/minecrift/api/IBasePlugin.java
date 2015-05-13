@@ -14,6 +14,7 @@ public interface IBasePlugin {
 
     public static final int EVENT_CALIBRATION_SET_ORIGIN = 0;
     public static final int EVENT_SET_ORIGIN = 1;
+    public static final int EVENT_CALIBRATION_ABORT = 2;
 
 	/**
 	 * Plugin ID: should be fixed per plugin! Used in optionsvr.txt
@@ -35,7 +36,7 @@ public interface IBasePlugin {
 
 	public boolean isInitialized();
 
-	public void poll(float delta);
+	public void poll(int index);
 
 	public void destroy();
 
@@ -48,6 +49,8 @@ public interface IBasePlugin {
 	public String getCalibrationStep(PluginType type);
 
     public void beginFrame();
+
+    public void beginFrame(int frameIndex);
 
     public void endFrame();
 }

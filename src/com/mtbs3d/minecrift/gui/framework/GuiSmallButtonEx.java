@@ -2,8 +2,10 @@
  * Copyright 2013 Mark Browning, StellaArtois
  * Licensed under the LGPL 3.0 or later (See LICENSE.md for details)
  */
-package com.mtbs3d.minecrift.gui;
+package com.mtbs3d.minecrift.gui.framework;
 
+import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
+import com.mtbs3d.minecrift.gui.framework.GuiEventEx;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 
@@ -34,7 +36,7 @@ public class GuiSmallButtonEx extends GuiButtonEx
         return this.vrOptions;
     }
 
-    void setEventHandler(GuiEventEx eventHandler)
+    public void setEventHandler(GuiEventEx eventHandler)
     {
         _eventHandler = eventHandler;
     }
