@@ -1149,7 +1149,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2605,4 +2965,982 @@
+@@ -2605,4 +2965,993 @@
              ;
          }
      }
@@ -1448,7 +1448,7 @@
 +    }
 +
 +    // TODO: Move this into Reflector OR use existing Reflector function!
-+    public Field getDeclaredField(Class clazz, String unObfuscatedName, String obfuscatedName)
++    public Field getDeclaredField(Class clazz, String unObfuscatedName, String obfuscatedName, String srgName)
 +    {
 +        Field field = null;
 +        String s = clazz.getName();
@@ -1468,6 +1468,15 @@
 +            catch (NoSuchFieldException e1)
 +            {
 +                e1.printStackTrace();
++
++                try
++                {
++                    field = clazz.getDeclaredField(srgName);
++                }
++                catch (NoSuchFieldException e2)
++                {
++                    e2.printStackTrace();
++                };
 +            };
 +        }
 +
@@ -1493,7 +1502,7 @@
 +            try
 +            {
 +                // Get SoundManager from the SoundHandler...
-+                Field soundManagerField = getDeclaredField(mc.mcSoundHandler.getClass(), "sndManager", "f");
++                Field soundManagerField = getDeclaredField(mc.mcSoundHandler.getClass(), "sndManager", "f", "field_147694_f");
 +                if (soundManagerField != null)
 +                {
 +                    soundManagerField.setAccessible(true);
@@ -1503,11 +1512,10 @@
 +                // ...get SoundSystem from SoundManager
 +                if (this.mc.sndManager != null)
 +                {
-+                    _soundManagerSndSystemField = getDeclaredField(this.mc.sndManager.getClass(), "sndSystem", "e");
++                    _soundManagerSndSystemField = getDeclaredField(this.mc.sndManager.getClass(), "sndSystem", "e", "field_148620_e");
 +                    if (_soundManagerSndSystemField != null)
 +                    {
 +                        _soundManagerSndSystemField.setAccessible(true);
-+                        System.out.println("[Minecrift]: Reflected sndSystem");
 +                    }
 +                }
 +            }
@@ -1519,6 +1527,9 @@
 +            if (_soundManagerSndSystemField == null) {
 +                this.trySoundSystemReflect = false;
 +                System.out.println("[Minecrift]: FAILED to reflect sndSystem");
++            }
++            else {
++                System.out.println("[Minecrift]: Reflected sndSystem");
 +            }
 +        }
 +
