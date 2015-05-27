@@ -33,7 +33,7 @@
  import net.minecraft.world.ChunkCoordIntPair;
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
-@@ -134,6 +147,173 @@
+@@ -134,6 +147,175 @@
      public static ReflectorClass ForgeItemRecord = new ReflectorClass(ItemRecord.class);
      public static ReflectorMethod ForgeItemRecord_getRecordResource = new ReflectorMethod(ForgeItemRecord, "getRecordResource", new Class[] {String.class});
  
@@ -192,6 +192,8 @@
 +    public static ReflectorMethod ForgeBlock_setBedOccupied = new ReflectorMethod(ForgeBlock, "setBedOccupied");
 +    public static ReflectorMethod ForgeBlock_getBedSpawnPosition = new ReflectorMethod(ForgeBlock, "getBedSpawnPosition");
 +    public static ReflectorMethod ForgeHooks_isLivingOnLadder = new ReflectorMethod(ForgeHooks, "isLivingOnLadder");
++    public static ReflectorClass ForgeGuiScreen = new ReflectorClass(GuiScreen.class);
++    public static ReflectorMethod ForgeGuiScreen_drawHoveringText = new ReflectorMethod(ForgeGuiScreen, "drawHoveringText");
 +
 +    public static boolean forgeExists()
 +    {

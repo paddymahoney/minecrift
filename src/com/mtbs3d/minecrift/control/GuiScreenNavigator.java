@@ -441,9 +441,12 @@ public class GuiScreenNavigator {
 	@SuppressWarnings("unchecked")
 	protected void parsePoints() {
 		points.clear();
-        for (GuiButton button : screen.buttonList ) {
-        	if( button.visible )
-        		points.add(Pair.of(button.xPosition+5,button.yPosition+5));
+        for ( Object obj : screen.getButtonList() ) {
+			if ( obj instanceof GuiButton ) {
+				GuiButton button = (GuiButton)obj;
+				if (button.visible)
+					points.add(Pair.of(button.xPosition + 5, button.yPosition + 5));
+			}
         }
         if( screen instanceof GuiContainer ) {
         	GuiContainer container = (GuiContainer)screen;
