@@ -2,10 +2,7 @@ package com.mtbs3d.minecrift.tweaker;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -82,7 +79,44 @@ public class MinecriftClassTransformer implements IClassTransformer
     public byte[] transform(String name, String transformedName, byte[] bytes)
     {
         byte[] minecriftClass = this.getMinecriftClass(name);
+        if (minecriftClass == null) {
+            //debug(String.format("Minecrift: Passthrough '%s' -> '%s'", name, transformedName));
+        }
+        else {
+            //debug(String.format("Minecrift: Transforming '%s' -> '%s'", name, transformedName));
+
+            //writeToFile("original", transformedName, name, bytes);
+            //writeToFile("transformed", transformedName, name, minecriftClass);
+        }
         return minecriftClass != null ? minecriftClass : bytes;
+    }
+
+    private void writeToFile(String dir, String transformedName, String name, byte[] bytes)
+    {
+        FileOutputStream stream = null;
+        ;
+        String filepath = String.format("%s/%s/%s/%s_%s.%s", System.getProperty("user.home"), "minecrift_transformed_classes", dir, transformedName.replace(".", "/"), name, "class");
+        File file = new File(filepath);
+        debug("Writing to: " + filepath);
+        try {
+            File dir1 = file.getParentFile();
+            dir1.mkdirs();
+            file.createNewFile();
+            stream = new FileOutputStream(filepath);
+            stream.write(bytes);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (stream != null) {
+                    stream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private byte[] getMinecriftClass(String name)
