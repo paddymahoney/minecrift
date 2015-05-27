@@ -612,12 +612,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
             if (!downloadedOptifine) {
                 finalMessage = "Installed (but failed to download OptiFine). Restart Minecraft" +
-                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName() + "' profile.") +
+                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName(useForge.isSelected()) + "' profile.") +
                         "\nPlease download and install Optifine " + OF_FILE_NAME + " from https://optifine.net/downloads before attempting to play.";
             }
             else {
                 finalMessage = "Installed successfully! Restart Minecraft" +
-                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName() + "' profile.");
+                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName(useForge.isSelected()) + "' profile.");
             }
             monitor.setProgress(100);
             monitor.close();
@@ -700,7 +700,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
         try {
             int jsonIndentSpaces = 2;
-            String profileName = getMinecraftProfileName();
+            String profileName = getMinecraftProfileName(useForge.isSelected());
             File fileJson = new File(mcBaseDirFile, "launcher_profiles.json");
             String json = readAsciiFile(fileJson);
             JSONObject root = new JSONObject(json);
@@ -721,7 +721,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 prof.put("launcherVisibilityOnGameClose", "keep the launcher open");
                 profiles.put(profileName, prof);
             }
-            prof.put("lastVersionId", minecriftVer);
+            prof.put("lastVersionId", minecriftVer + mod);
             root.put("selectedProfile", profileName);
 
             FileWriter fwJson = new FileWriter(fileJson);
@@ -901,7 +901,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         //forgePanel.add(forgeVersion);
 
         // Profile creation / update support
-        createProfile = new JCheckBox("Add/update '" + getMinecraftProfileName() + "' profile", false);
+        createProfile = new JCheckBox("Add/update Minecrift launcher profile", false);
         createProfile.setAlignmentX(LEFT_ALIGNMENT);
         createProfile.setSelected(true);
         createProfile.setToolTipText(
@@ -1064,9 +1064,14 @@ public class Installer extends JPanel  implements PropertyChangeListener
         return link;
     }
 
-    private String getMinecraftProfileName()
+    private String getMinecraftProfileName(boolean usingForge)
     {
-        return "Minecrift " + MINECRAFT_VERSION;
+        if(!usingForge) {
+            return "Minecrift " + MINECRAFT_VERSION;
+        }
+        else {
+            return "Minecrift " + MINECRAFT_VERSION + " Forge";
+        }
     }
 
     public static String readAsciiFile(File file)
