@@ -884,7 +884,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         JPanel forgePanel = new JPanel();
         forgePanel.setLayout( new BoxLayout(forgePanel, BoxLayout.X_AXIS));
         //Create forge: no/yes buttons
-        useForge = new JCheckBox("Install with Forge " + FORGE_VERSION,false);
+        useForge = new JCheckBox("Forge " + FORGE_VERSION + " compatibility",false);
         forgeVersion = new JComboBox();
         if (!ALLOW_FORGE_INSTALL)
             useForge.setEnabled(false);
@@ -911,7 +911,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 "current version.<br>" +
                 "</html>");
 
-        useHydra = new JCheckBox("Include Razer Hydra support",false);
+        useHydra = new JCheckBox("Razer Hydra support",false);
         useHydra.setAlignmentX(LEFT_ALIGNMENT);
         if (!ALLOW_HYDRA_INSTALL)
             useHydra.setEnabled(false);
