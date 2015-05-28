@@ -137,7 +137,7 @@
 +    public static ReflectorClass ForgeAchievementPage = new ReflectorClass("net.minecraftforge.common.AchievementPage");
 +    public static ReflectorMethod ForgeAchievementPage_isAchievementInPages = new ReflectorMethod(ForgeAchievementPage, "isAchievementInPages");
 +    public static ReflectorMethod ForgeAchievementPage_getAchievementPages = new ReflectorMethod(ForgeAchievementPage, "getAchievementPages");
-+    public static ReflectorMethod ForgeAchievementPage_getAchievementPage = new ReflectorMethod(ForgeAchievementPage, "getAchievementPage");
++    public static ReflectorMethod ForgeAchievementPage_getAchievementPage = new ReflectorMethod(ForgeAchievementPage, "getAchievementPage", new Class[] {Integer.TYPE});
 +    public static ReflectorMethod ForgeAchievementPage_getAchievements = new ReflectorMethod(ForgeAchievementPage, "getAchievements");
 +    public static ReflectorMethod ForgeAchievementPage_getTitle = new ReflectorMethod(ForgeAchievementPage, "getTitle");
 +    public static ReflectorClass MinecraftCreativeTabs = new ReflectorClass(CreativeTabs.class);
