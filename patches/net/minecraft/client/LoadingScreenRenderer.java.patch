@@ -84,7 +84,7 @@
 +            if( Reflector.FMLClientHandler_instance.exists())
 +            {
 +                fmlClientHandler = Reflector.call( Reflector.FMLClientHandler_instance, new Object[0]);
-+                if (fmlClientHandler != null && Reflector.callBoolean(Reflector.FMLClientHandler_handleLoadingScreen, new Object[]{var4})) {
++                if (fmlClientHandler != null && Reflector.callBoolean(fmlClientHandler, Reflector.FMLClientHandler_handleLoadingScreen, new Object[]{var4})) {
 +                    draw = false;
 +                }
 +            }
