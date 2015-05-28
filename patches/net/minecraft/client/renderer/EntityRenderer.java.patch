@@ -1149,7 +1149,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2605,4 +2965,993 @@
+@@ -2605,4 +2965,991 @@
              ;
          }
      }
@@ -1459,22 +1459,20 @@
 +        }
 +        catch (NoSuchFieldException e)
 +        {
-+            e.printStackTrace();
-+
 +            try
 +            {
 +                field = clazz.getDeclaredField(obfuscatedName);
 +            }
 +            catch (NoSuchFieldException e1)
 +            {
-+                e1.printStackTrace();
-+
 +                try
 +                {
 +                    field = clazz.getDeclaredField(srgName);
 +                }
 +                catch (NoSuchFieldException e2)
 +                {
++                    e.printStackTrace();
++                    e1.printStackTrace();
 +                    e2.printStackTrace();
 +                };
 +            };
