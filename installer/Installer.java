@@ -884,7 +884,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         JPanel forgePanel = new JPanel();
         forgePanel.setLayout( new BoxLayout(forgePanel, BoxLayout.X_AXIS));
         //Create forge: no/yes buttons
-        useForge = new JCheckBox("Forge " + FORGE_VERSION + " compatibility",false);
+        useForge = new JCheckBox("Install with Forge " + FORGE_VERSION,false);
         forgeVersion = new JComboBox();
         if (!ALLOW_FORGE_INSTALL)
             useForge.setEnabled(false);
