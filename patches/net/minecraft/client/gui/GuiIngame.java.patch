@@ -67,31 +67,7 @@
      private static final String __OBFID = "CL_00000661";
  
      public GuiIngame(Minecraft p_i46379_1_)
-@@ -92,7 +97,10 @@
- 
-         if (Minecraft.isFancyGraphicsEnabled())
-         {
--            this.renderVignette(this.mc.thePlayer.getBrightness(p_73830_1_), var6, var7);
-+            /** MINECRIFT **/
-+            if (!this.mc.stereoProvider.isStereo())
-+				this.renderVignette(this.mc.thePlayer.getBrightness(p_73830_1_), var6, var7);
-+			/** END MINECRIFT **/	   
-         }
-         else
-         {
-@@ -103,7 +111,10 @@
- 
-         if (this.mc.gameSettings.thirdPersonView == 0 && var9 != null && var9.getItem() == Item.getItemFromBlock(Blocks.pumpkin))
-         {
--            this.renderPumpkinBlur(var6, var7);
-+            /** MINECRIFT **/
-+            if (!this.mc.stereoProvider.isStereo())
-+				this.renderPumpkinBlur(var6, var7);
-+			/** END MINECRIFT **/   
-         }
- 
-         if (!this.mc.thePlayer.isPotionActive(Potion.confusion))
-@@ -130,8 +141,13 @@
+@@ -130,8 +135,13 @@
              this.drawTexturedModalRect(var6 / 2 - 91 - 1 + var31.currentItem * 20, var7 - 22 - 1, 0, 22, 24, 22);
              this.mc.getTextureManager().bindTexture(icons);
              GL11.glEnable(GL11.GL_BLEND);
@@ -107,7 +83,7 @@
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
              this.mc.mcProfiler.startSection("bossHealth");
              this.renderBossHealth();
-@@ -312,7 +328,9 @@
+@@ -312,7 +322,9 @@
          {
              this.mc.mcProfiler.startSection("debug");
              GL11.glPushMatrix();
@@ -118,7 +94,7 @@
              var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 12, 16777215);
              var8.drawStringWithShadow(this.mc.getEntityDebug(), 2, 22, 16777215);
              var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 32, 16777215);
-@@ -326,6 +344,19 @@
+@@ -326,6 +338,19 @@
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 2, 14737632);
              var20 = "Allocated memory: " + var41 * 100L / var36 + "% (" + var41 / 1024L / 1024L + "MB)";
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 12, 14737632);
@@ -138,7 +114,7 @@
              var22 = MathHelper.floor_double(this.mc.thePlayer.posX);
              var23 = MathHelper.floor_double(this.mc.thePlayer.posY);
              int var24 = MathHelper.floor_double(this.mc.thePlayer.posZ);
-@@ -501,9 +532,10 @@
+@@ -501,9 +526,10 @@
      {
          this.streamIndicator.render((int)(p_152126_1_ - 10.0F), 10);
      }
@@ -152,7 +128,7 @@
          Scoreboard var5 = p_96136_1_.getScoreboard();
          Collection var6 = var5.getSortedScores(p_96136_1_);
  
-@@ -549,9 +581,10 @@
+@@ -549,9 +575,10 @@
              }
          }
      }
@@ -166,7 +142,7 @@
          boolean var3 = this.mc.thePlayer.hurtResistantTime / 3 % 2 == 1;
  
          if (this.mc.thePlayer.hurtResistantTime < 10)
-@@ -830,7 +863,9 @@
+@@ -830,7 +857,9 @@
      /**
       * Renders dragon's (boss) health on the HUD
       */
@@ -177,7 +153,7 @@
      {
          if (BossStatus.bossName != null && BossStatus.statusBarTime > 0)
          {
-@@ -856,8 +891,9 @@
+@@ -856,9 +885,15 @@
              this.mc.getTextureManager().bindTexture(icons);
          }
      }
@@ -187,9 +163,15 @@
 +    protected void renderPumpkinBlur(int p_73836_1_, int p_73836_2_)
 +	/** END MINECRIFT FORGE **/
      {
++        /** MINECRIFT **/
++        if (this.mc.stereoProvider.isStereo())
++            return;
++        /** END MINECRIFT **/
++
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glDepthMask(false);
-@@ -881,7 +917,9 @@
+         OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+@@ -881,8 +916,15 @@
      /**
       * Renders the vignette. Args: vignetteBrightness, width, height
       */
@@ -198,9 +180,15 @@
 +    protected void renderVignette(float p_73829_1_, int p_73829_2_, int p_73829_3_)
 +	/** END MINECRIFT FORGE **/
      {
++        /** MINECRIFT **/
++        if (this.mc.stereoProvider.isStereo())
++            return;
++        /** END MINECRIFT **/
++
          p_73829_1_ = 1.0F - p_73829_1_;
  
-@@ -913,8 +951,9 @@
+         if (p_73829_1_ < 0.0F)
+@@ -913,8 +955,9 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
      }
@@ -212,7 +200,7 @@
      {
          if (p_130015_1_ < 1.0F)
          {
-@@ -950,7 +989,9 @@
+@@ -950,7 +993,9 @@
      /**
       * Renders the specified item of the inventory slot at the specified location. Args: slot, x, y, partialTick
       */
@@ -223,7 +211,7 @@
      {
          ItemStack var5 = this.mc.thePlayer.inventory.mainInventory[p_73832_1_];
  
-@@ -1039,4 +1080,22 @@
+@@ -1039,4 +1084,22 @@
      {
          return this.updateCounter;
      }
