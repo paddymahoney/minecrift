@@ -1149,7 +1149,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2605,4 +2965,991 @@
+@@ -2605,4 +2965,993 @@
              ;
          }
      }
@@ -2099,7 +2099,9 @@
 +            if (!this.mc.vrSettings.useCrosshairOcclusion)
 +                GL11.glDisable(GL11.GL_DEPTH_TEST);
 +            GL11.glEnable(GL11.GL_BLEND);
-+            GL11.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR);
++            GL11.glDisable(GL11.GL_ALPHA_TEST);
++            GL11.glDisable(GL11.GL_ALPHA);
++            GL11.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE);//GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR);
 +            this.mc.getTextureManager().bindTexture(Gui.icons);
 +
 +            if (!generatedIconMipmaps[this.mc.currentEye.value()])
