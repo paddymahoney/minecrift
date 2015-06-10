@@ -32,7 +32,7 @@
  import net.minecraft.world.ChunkCoordIntPair;
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
-@@ -136,6 +148,175 @@
+@@ -136,6 +148,183 @@
      public static ReflectorClass ForgeItemRecord = new ReflectorClass(ItemRecord.class);
      public static ReflectorMethod ForgeItemRecord_getRecordResource = new ReflectorMethod(ForgeItemRecord, "getRecordResource", new Class[] {String.class});
  
@@ -193,6 +193,14 @@
 +    public static ReflectorMethod ForgeHooks_isLivingOnLadder = new ReflectorMethod(ForgeHooks, "isLivingOnLadder");
 +    public static ReflectorClass ForgeGuiScreen = new ReflectorClass(GuiScreen.class);
 +    public static ReflectorMethod ForgeGuiScreen_drawHoveringText = new ReflectorMethod(ForgeGuiScreen, "drawHoveringText");
++    public static ReflectorClass FMLClientSplashProgress = new ReflectorClass("cpw.mods.fml.client.SplashProgress");
++    public static ReflectorMethod FMLClientSplashProgress_drawVanillaScreen = new ReflectorMethod(FMLClientSplashProgress, "drawVanillaScreen");
++    public static ReflectorMethod FMLClientSplashProgress_clearVanillaResources = new ReflectorMethod(FMLClientSplashProgress, "clearVanillaResources");
++    public static ReflectorClass FMLCommonProgressManager = new ReflectorClass("cpw.mods.fml.common.ProgressManager");
++    public static ReflectorMethod FMLCommonProgressManager_push = new ReflectorMethod(FMLCommonProgressManager, "push");
++    public static ReflectorMethod FMLCommonProgressManager_pop = new ReflectorMethod(FMLCommonProgressManager, "pop");
++    public static ReflectorClass FMLCommonProgressManager_ProgressBar = new ReflectorClass("cpw.mods.fml.common.ProgressManager$ProgressBar");
++    public static ReflectorMethod FMLCommonProgressManager_ProgressBar_step = new ReflectorMethod(FMLCommonProgressManager_ProgressBar, "step");
 +
 +    public static boolean forgeExists()
 +    {
