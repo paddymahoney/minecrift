@@ -9,7 +9,7 @@ import time
 from shutil import move
 from tempfile import mkstemp
 from os import remove, close
-from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5
+from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5, mcp_download_url
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
 from applychanges import applychanges, apply_patch
@@ -108,20 +108,22 @@ def installAndPatchMcp( mcp_dir ):
     mcp_exists = True
     if not os.path.exists(mcp_dir+"/runtime/commands.py"):
         mcp_exists = False
-        try:
-            mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
-            if os.path.exists( mcp_zip_file ):
-                if not os.path.exists( mcp_dir ):
-                    os.mkdir( mcp_dir )
-                mcp_zip = zipfile.ZipFile( mcp_zip_file )
-                mcp_zip.extractall( mcp_dir )
-                import stat
-                astyle = os.path.join(mcp_dir,"runtime","bin","astyle-osx")
-                st = os.stat( astyle )
-                os.chmod(astyle, st.st_mode | stat.S_IEXEC)
-                mcp_exists = True
-        except:
-            pass
+        mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
+        print( "Checking for mcp zip file: %s" % mcp_zip_file )
+        if not os.path.exists( mcp_zip_file ) and mcp_download_url:
+            # Attempt download
+            download_file( mcp_download_url, mcp_zip_file )
+
+        if os.path.exists( mcp_zip_file ):
+            if not os.path.exists( mcp_dir ):
+                os.mkdir( mcp_dir )
+            mcp_zip = zipfile.ZipFile( mcp_zip_file )
+            mcp_zip.extractall( mcp_dir )
+            import stat
+            astyle = os.path.join(mcp_dir,"runtime","bin","astyle-osx")
+            st = os.stat( astyle )
+            os.chmod(astyle, st.st_mode | stat.S_IEXEC)
+            mcp_exists = True
 
     if mcp_exists == False:
         print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_version, mcp_version, base_dir)
