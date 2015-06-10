@@ -55,7 +55,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final String OF_JSON_NAME      = "1.7.10_HD_U_B7";
     private static final String OF_MD5            = "c19ca972dab5b59a485d8af217ddd830";
     private static final String OF_VERSION_EXT    = ".jar";
-    private static final String FORGE_VERSION     = "10.13.2.1291";
+    private static final String FORGE_VERSION     = "10.13.4.1448";
     /* END OF DO NOT RENAME */
 
     private InstallTask task;
