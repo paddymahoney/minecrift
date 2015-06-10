@@ -33,14 +33,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final long serialVersionUID = -562178983462626162L;
 
     private static final boolean ALLOW_FORGE_INSTALL = true;
-    private static final boolean ALLOW_HYDRA_INSTALL = false;
+    private static final boolean ALLOW_HYDRA_INSTALL = false;  // TODO: Change to true once Hydra is fixed up
 
     // Currently needed for Win boxes - C++ redists
-
-    // Annoyingly we need two redists at the moment - we can only build jherico's OculusSDK with
-    // VS2012 in cmake currently (for some reason it will not build under VS2010). All other win
-    // native libs are compiled under VS2010. Hence we need *two* redists, and then one for 32 bit,
-    // and one for 64bit (so we account for all windows / JRE 32 / 64 bit combinations). Bad.
 
     public static String winredist2012_64url = "http://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x64.exe";
     public static String winredist2012_32url = "http://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x86.exe";
@@ -77,6 +72,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private JCheckBox useHrtf;
     private final boolean QUIET_DEV = false;
 	private File releaseNotes = null;
+    private static String releaseNotePathAddition = "";
 
     static private final String forgeNotFound = "Forge not found..." ;
 
@@ -390,7 +386,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     progressdialog.setAccessible(true);
                     Dialog dlg = (Dialog) progressdialog.get(monitor);
                     if (dlg != null) {
-                        dlg.setSize(450, 150);
+                        dlg.setSize(550, 200);
                         dlg.setLocationRelativeTo(null);
                     }
                 }
@@ -657,13 +653,27 @@ public class Installer extends JPanel  implements PropertyChangeListener
         dialog.setVisible(true);
         if (((String)optionPane.getValue()).equalsIgnoreCase("Install"))
         {
-            monitor = new ProgressMonitor(null, "Installing Minecrift...", "", 0, 100);
-            monitor.setMillisToDecideToPopup(0);
-            monitor.setMillisToPopup(0);
+            int option = JOptionPane.showOptionDialog(
+                                         null,
+                                         "Please ensure you have closed the Minecraft launcher before proceeding.\n" +
+                                         "Also, if installing with Forge please ensure you have installed Forge " + FORGE_VERSION + " first.",
+                                         "Important!",
+                                         JOptionPane.OK_CANCEL_OPTION,
+                                         JOptionPane.WARNING_MESSAGE, null, null, null);
+            
+            if (option == JOptionPane.OK_OPTION) {
+                monitor = new ProgressMonitor(null, "Installing Minecrift...", "", 0, 100);
+                monitor.setMillisToDecideToPopup(0);
+                monitor.setMillisToPopup(0);
 
-            task = new InstallTask();
-            task.addPropertyChangeListener(this);
-            task.execute();
+                task = new InstallTask();
+                task.addPropertyChangeListener(this);
+                task.execute();
+            }
+            else{
+                dialog.dispose();
+                emptyFrame.dispose();
+            }
         }
         else{
             dialog.dispose();
@@ -688,6 +698,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         else
         {
             minecraftDir = new File(userHomeDir, mcDir);
+            releaseNotePathAddition = "/";
         }
 
         Installer panel = new Installer(minecraftDir);
@@ -808,7 +819,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         } catch (IOException e) { }
 
         // Read release notes, save to file
-        String tmpFileName = System.getProperty("java.io.tmpdir") + "Minecrift_" + version.toLowerCase() + "_release_notes.txt";
+        String tmpFileName = System.getProperty("java.io.tmpdir") + releaseNotePathAddition + "Minecrift_" + version.toLowerCase() + "_release_notes.txt";
         releaseNotes = new File(tmpFileName);
         InputStream is = Installer.class.getResourceAsStream("release_notes.txt");
         if (!copyInputStreamToFile(is, releaseNotes)) {
