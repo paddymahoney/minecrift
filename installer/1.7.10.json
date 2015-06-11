@@ -105,7 +105,7 @@
 	    "url": "http://repo.minecraft-vr.com/"
     },
     {
-      "name": "net.aib42.mumblelink:JMumble:1.0",
+      "name": "net.aib42.mumblelink:JMumble:1.11",
 	    "url": "http://repo.minecraft-vr.com/"
     },    
     {
@@ -195,7 +195,7 @@
       }
     },
     {
-      "name": "net.aib42.mumblelink:JMumbleLibrary:1.1",
+      "name": "net.aib42.mumblelink:JMumbleLibrary:1.11",
 	    "url": "http://repo.minecraft-vr.com/",
       "natives": {
         "linux": "natives-linux",
