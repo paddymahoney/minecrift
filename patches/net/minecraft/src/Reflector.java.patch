@@ -117,8 +117,8 @@
 +    public static ReflectorMethod ForgeIItemRenderer_shouldUseRenderHelper = new ReflectorMethod(ForgeIItemRenderer, "shouldUseRenderHelper");
 +    public static ReflectorClass ForgeItemRendererHelper = new ReflectorClass("net.minecraftforge.client.IItemRenderer$ItemRendererHelper");
 +    public static ReflectorField ForgeItemRendererHelper_BLOCK_3D = new ReflectorField(ForgeItemRendererHelper, "BLOCK_3D");
-+    public static ReflectorClass ForgePlayerInteractEvent = new ReflectorClass("net.minecraftforge.event.entity.player.PlayerInteractEvent");
-+    public static ReflectorMethod ForgePlayerInteractEvent_isCanceled = new ReflectorMethod(ForgePlayerInteractEvent, "isCanceled");
++    public static ReflectorClass ForgeEvent = new ReflectorClass("cpw.mods.fml.common.eventhandler.Event");
++    public static ReflectorMethod ForgeEvent_isCanceled = new ReflectorMethod(ForgeEvent, "isCanceled");
 +    public static ReflectorClass ForgePlayerInteractEvent_Action = new ReflectorClass("net.minecraftforge.event.entity.player.PlayerInteractEvent$Action");
 +    public static ReflectorField ForgePlayerInteractEvent_Action_RIGHT_CLICK_BLOCK = new ReflectorField(ForgePlayerInteractEvent_Action, "RIGHT_CLICK_BLOCK");
 +    public static ReflectorField ForgePlayerInteractEvent_Action_RIGHT_CLICK_AIR = new ReflectorField(ForgePlayerInteractEvent_Action, "RIGHT_CLICK_AIR");
@@ -149,7 +149,7 @@
 +    public static ReflectorClass Minecraft_Server = new ReflectorClass(MinecraftServer.class);
 +    public static ReflectorField MinecraftServer_timeOfLastDimensionTick = new ReflectorField(Minecraft_Server, "timeOfLastDimensionTick");
 +    public static ReflectorClass ForgePlayerDropsEvent = new ReflectorClass("net.minecraftforge.event.entity.player.PlayerDropsEvent");
-+    public static ReflectorConstructor ForgePlayerDropsEvent_Constructor = new ReflectorConstructor(ForgePlayerDropsEvent, new Class[] {EntityPlayer.class, DamageSource.class, List.class, Boolean.TYPE});
++    public static ReflectorConstructor ForgePlayerDropsEvent_Constructor = new ReflectorConstructor(ForgePlayerDropsEvent, new Class[] {EntityPlayer.class, DamageSource.class, ArrayList.class, Boolean.TYPE});
 +    public static ReflectorClass ForgeArmorProperties = new ReflectorClass("net.minecraftforge.common.ISpecialArmor$ArmorProperties");
 +    public static ReflectorMethod ForgeArmorProperties_ApplyArmor = new ReflectorMethod(ForgeArmorProperties, "ApplyArmor");
 +    public static ReflectorClass ForgeEntityInteractEvent = new ReflectorClass("net.minecraftforge.event.entity.player.EntityInteractEvent");
