@@ -184,7 +184,7 @@
 +    public static ReflectorMethod ForgeItem_onDroppedByPlayer = new ReflectorMethod(ForgeItem, "onDroppedByPlayer");
 +    public static ReflectorMethod ForgeItem_getDigSpeed = new ReflectorMethod(ForgeItem, "getDigSpeed");
 +    public static ReflectorMethod ForgeItem_onLeftClickEntity = new ReflectorMethod(ForgeItem, "onLeftClickEntity");
-+    public static ReflectorMethod ForgeItem_getIcon = new ReflectorMethod(ForgeItem, "getIcon");
++    public static ReflectorMethod ForgeItem_getIcon = new ReflectorMethod(ForgeItem, "getIcon", new Class[] {ItemStack.class, Integer.TYPE, EntityPlayer.class, ItemStack.class, Integer.TYPE});
 +    public static ReflectorClass ForgeEntityLivingBase = new ReflectorClass(EntityLivingBase.class);
 +    public static ReflectorMethod ForgeEntityLivingBase_shouldRiderFaceForward = new ReflectorMethod(ForgeEntityLivingBase, "shouldRiderFaceForward");
 +    public static ReflectorMethod ForgeBlock_isBed = new ReflectorMethod(ForgeBlock, "isBed");

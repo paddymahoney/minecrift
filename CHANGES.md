@@ -1,3 +1,14 @@
+Minecrift 1.7.10 R1a
+====================
+
+Bug fixes
+-------------
+
+- Forge - Fix #151 
+- Forge - Fix no player held items visible
+- Forge - Fix player held event issue
+
+
 Minecrift 1.7.10 R1
 ===================
 
