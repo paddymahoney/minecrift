@@ -346,7 +346,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2646,184 @@
+@@ -2453,6 +2646,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  
@@ -458,6 +458,16 @@
 +     * @param properties The instanceof IExtendedProperties to register
 +     * @return The identifier that was used to register the extended properties.  Empty String indicates an error.  If your requested key already existed, this will return a modified one that is unique.
 +     */
++    /** MINECRIFT FORGE **
++     *
++     * NOTE: we define registerExtendedProperties here to take String, Object as params.
++     *  I don't know of a way to modify param types via reflection, but we need to take
++     *  String, net.minecraftforge.common.IExtendedEntityProperties objects as params here.
++     *  This is performed via ASM on class load in MinecriftClassTransformer$EntityTransform.
++     * ANY CHANGES TO THIS FUNCTION MUST ALSO BE MADE IN
++     * com.mtbs.minecrift.tweaker.MinecriftClassTransformer$EntityTransform via ASMifier!!
++     *
++     ** END MINECRIFT FORGE **/
 +    public String registerExtendedProperties(String identifier, Object properties)
 +    {
 +        if (Reflector.forgeExists()) {
@@ -495,6 +505,16 @@
 +     * @param identifier The key that identifies the extended properties.
 +     * @return The instance of IExtendedProperties that was found, or null.
 +     */
++    /** MINECRIFT FORGE **
++     *
++     * NOTE: we define getExtendedProperties here to return an Object. I don't know
++     *  of a way to modify return values via reflection, but we need to return a
++     *  net.minecraftforge.common.IExtendedEntityProperties object here.
++     *  This is performed via ASM on class load within MinecriftClassTransformer$EntityTransform.
++     * ANY CHANGES TO THIS FUNCTION MUST ALSO BE MADE IN
++     * com.mtbs.minecrift.tweaker.MinecriftClassTransformer$EntityTransform via ASMifier!!
++     *
++    ** END MINECRIFT FORGE **/
 +    public Object getExtendedProperties(String identifier)
 +    {
 +        if (Reflector.forgeExists())
