@@ -120,7 +120,7 @@
 +//	            }
 +                if (Reflector.isInstanceOf(Reflector.ForgeIFluidBlock, var7))
 +                {
-+                    filled = (Double)Reflector.call(var7, Reflector.ForgeIFluidBlock_getFilledPercentage, new Object[]{worldObj, var4, var5, var6});
++                    filled = Reflector.callFloat(var7, Reflector.ForgeIFluidBlock_getFilledPercentage, new Object[]{worldObj, var4, var5, var6});
 +                }
 +
 +	            if (filled < 0)

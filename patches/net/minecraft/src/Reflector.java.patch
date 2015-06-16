@@ -1,6 +1,6 @@
 --- a/net/minecraft/src/Reflector.java
 +++ b/net/minecraft/src/Reflector.java
-@@ -4,19 +4,31 @@
+@@ -4,19 +4,36 @@
  import java.lang.reflect.Field;
  import java.lang.reflect.InvocationTargetException;
  import java.lang.reflect.Method;
@@ -13,8 +13,12 @@
  import net.minecraft.client.gui.GuiScreen;
 +import net.minecraft.client.gui.GuiTextField;
  import net.minecraft.client.renderer.EntityRenderer;
++import net.minecraft.client.renderer.ItemRenderer;
++import net.minecraft.client.renderer.RenderGlobal;
++import net.minecraft.client.renderer.culling.Frustrum;
 +import net.minecraft.client.renderer.entity.RenderBiped;
 +import net.minecraft.client.renderer.entity.RenderPlayer;
++import net.minecraft.client.settings.GameSettings;
 +import net.minecraft.creativetab.CreativeTabs;
  import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLivingBase;
@@ -29,10 +33,11 @@
 +import net.minecraft.server.MinecraftServer;
  import net.minecraft.tileentity.TileEntity;
 +import net.minecraft.util.DamageSource;
++import net.minecraft.util.Vec3;
  import net.minecraft.world.ChunkCoordIntPair;
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
-@@ -136,6 +148,183 @@
+@@ -136,6 +153,266 @@
      public static ReflectorClass ForgeItemRecord = new ReflectorClass(ItemRecord.class);
      public static ReflectorMethod ForgeItemRecord_getRecordResource = new ReflectorMethod(ForgeItemRecord, "getRecordResource", new Class[] {String.class});
  
@@ -83,7 +88,7 @@
 +    public static ReflectorMethod ForgeHooksClient_getArmorModel = new ReflectorMethod(ForgeHooksClient, "getArmorModel");
 +    public static ReflectorMethod ForgeHooksClient_getOffsetFov = new ReflectorMethod(ForgeHooksClient, "getOffsetFOV");
 +    public static ReflectorMethod ForgeHooksClient_renderMainMenu = new ReflectorMethod(ForgeHooksClient, "renderMainMenu");
-+    public static ReflectorMethod ForgeEventFactory_onPlayerInteract = new ReflectorMethod(ForgeEventFactory, "onPlayerInteract");
++    public static ReflectorMethod ForgeEventFactory_onPlayerInteract = null;
 +    public static ReflectorMethod ForgeEventFactory_onUseItemStop = new ReflectorMethod(ForgeEventFactory, "onUseItemStop");
 +    public static ReflectorMethod ForgeEventFactory_onItemUseTick = new ReflectorMethod(ForgeEventFactory, "onItemUseTick");
 +    public static ReflectorMethod ForgeEventFactory_onItemUseFinish = new ReflectorMethod(ForgeEventFactory, "onItemUseFinish");
@@ -200,7 +205,85 @@
 +    public static ReflectorMethod FMLCommonProgressManager_push = new ReflectorMethod(FMLCommonProgressManager, "push");
 +    public static ReflectorMethod FMLCommonProgressManager_pop = new ReflectorMethod(FMLCommonProgressManager, "pop");
 +    public static ReflectorClass FMLCommonProgressManager_ProgressBar = new ReflectorClass("cpw.mods.fml.common.ProgressManager$ProgressBar");
-+    public static ReflectorMethod FMLCommonProgressManager_ProgressBar_step = new ReflectorMethod(FMLCommonProgressManager_ProgressBar, "step");
++    public static ReflectorMethod FMLCommonProgressManager_ProgressBar_step = new ReflectorMethod(FMLCommonProgressManager_ProgressBar, "step", new Class[] {String.class});
++
++    /** MINECRIFT SHADERSMOD **/
++    public static ReflectorClass ShadersMod_Shaders = new ReflectorClass("shadersmodcore.client.Shaders");
++    public static ReflectorMethod ShadersMod_Shaders_applyHandDepth = new ReflectorMethod(ShadersMod_Shaders, "applyHandDepth");
++    public static ReflectorMethod ShadersMod_Shaders_startup = new ReflectorMethod(ShadersMod_Shaders, "startup");
++    public static ReflectorMethod ShadersMod_Shaders_disableLightmap = new ReflectorMethod(ShadersMod_Shaders, "disableLightmap");
++    public static ReflectorMethod ShadersMod_Shaders_enableLightmap = new ReflectorMethod(ShadersMod_Shaders, "enableLightmap");
++    public static ReflectorMethod ShadersMod_Shaders_beginRender = new ReflectorMethod(ShadersMod_Shaders, "beginRender", new Class[] {Minecraft.class, Float.TYPE, Long.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_setViewport = new ReflectorMethod(ShadersMod_Shaders, "setViewport", new Class[] {Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_shouldRenderClouds = new ReflectorMethod(ShadersMod_Shaders, "shouldRenderClouds", new Class[] {GameSettings.class});
++    public static ReflectorMethod ShadersMod_Shaders_beginClouds = new ReflectorMethod(ShadersMod_Shaders, "beginClouds");
++    public static ReflectorMethod ShadersMod_Shaders_endClouds = new ReflectorMethod(ShadersMod_Shaders, "endClouds");
++    public static ReflectorMethod ShadersMod_Shaders_endRender = new ReflectorMethod(ShadersMod_Shaders, "endRender");
++    public static ReflectorMethod ShadersMod_Shaders_renderHand1 = new ReflectorMethod(ShadersMod_Shaders, "renderHand1", new Class[] {EntityRenderer.class, Float.TYPE, Integer.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_renderCompositeFinal = new ReflectorMethod(ShadersMod_Shaders, "renderCompositeFinal");
++    public static ReflectorMethod ShadersMod_Shaders_renderFPOverlay = new ReflectorMethod(ShadersMod_Shaders, "renderFPOverlay", new Class[] {EntityRenderer.class, Float.TYPE, Integer.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_beginWater = new ReflectorMethod(ShadersMod_Shaders, "beginWater");
++    public static ReflectorMethod ShadersMod_Shaders_endWater = new ReflectorMethod(ShadersMod_Shaders, "endWater");
++    public static ReflectorMethod ShadersMod_Shaders_clearRenderBuffer = new ReflectorMethod(ShadersMod_Shaders, "clearRenderBuffer");
++    public static ReflectorMethod ShadersMod_Shaders_setCamera = new ReflectorMethod(ShadersMod_Shaders, "setCamera", new Class[] {Float.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_beginSky = new ReflectorMethod(ShadersMod_Shaders, "beginSky");
++    public static ReflectorMethod ShadersMod_Shaders_endSky = new ReflectorMethod(ShadersMod_Shaders, "endSky");
++    public static ReflectorMethod ShadersMod_Shaders_beginUpdateChunks = new ReflectorMethod(ShadersMod_Shaders, "beginUpdateChunks");
++    public static ReflectorMethod ShadersMod_Shaders_endUpdateChunks = new ReflectorMethod(ShadersMod_Shaders, "endUpdateChunks");
++    public static ReflectorMethod ShadersMod_Shaders_beginTerrain = new ReflectorMethod(ShadersMod_Shaders, "beginTerrain");
++    public static ReflectorMethod ShadersMod_Shaders_endTerrain = new ReflectorMethod(ShadersMod_Shaders, "endTerrain");
++    public static ReflectorMethod ShadersMod_Shaders_beginLitParticles = new ReflectorMethod(ShadersMod_Shaders, "beginLitParticles");
++    public static ReflectorMethod ShadersMod_Shaders_beginParticles = new ReflectorMethod(ShadersMod_Shaders, "beginParticles");
++    public static ReflectorMethod ShadersMod_Shaders_endParticles = new ReflectorMethod(ShadersMod_Shaders, "endParticles");
++    public static ReflectorMethod ShadersMod_Shaders_beginWeather = new ReflectorMethod(ShadersMod_Shaders, "beginWeather");
++    public static ReflectorMethod ShadersMod_Shaders_endWeather = new ReflectorMethod(ShadersMod_Shaders, "endWeather");
++    public static ReflectorMethod ShadersMod_Shaders_renderHand0 = new ReflectorMethod(ShadersMod_Shaders, "renderHand0", new Class[] {EntityRenderer.class, Float.TYPE, Integer.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_preWater = new ReflectorMethod(ShadersMod_Shaders, "preWater");
++    public static ReflectorMethod ShadersMod_Shaders_setClearColor = new ReflectorMethod(ShadersMod_Shaders, "setClearColor", new Class[] {Float.TYPE, Float.TYPE, Float.TYPE, Float.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_sglFogi = new ReflectorMethod(ShadersMod_Shaders, "sglFogi", new Class[] {Integer.TYPE, Integer.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_setFogColor = new ReflectorMethod(ShadersMod_Shaders, "setFogColor", new Class[] {Float.TYPE, Float.TYPE, Float.TYPE});
++    public static ReflectorMethod ShadersMod_Shaders_beginEntities = new ReflectorMethod(ShadersMod_Shaders, "beginEntities");
++    public static ReflectorMethod ShadersMod_Shaders_endEntities = new ReflectorMethod(ShadersMod_Shaders, "endEntities");
++    public static ReflectorMethod ShadersMod_Shaders_nextEntity = new ReflectorMethod(ShadersMod_Shaders, "nextEntity");
++    public static ReflectorMethod ShadersMod_Shaders_beginBlockEntities = new ReflectorMethod(ShadersMod_Shaders, "beginBlockEntities");
++    public static ReflectorMethod ShadersMod_Shaders_endBlockEntities = new ReflectorMethod(ShadersMod_Shaders, "endBlockEntities");
++    public static ReflectorMethod ShadersMod_Shaders_enableTexture2D = new ReflectorMethod(ShadersMod_Shaders, "enableTexture2D");
++    public static ReflectorMethod ShadersMod_Shaders_disableTexture2D = new ReflectorMethod(ShadersMod_Shaders, "disableTexture2D");
++    public static ReflectorMethod ShadersMod_Shaders_enableFog = new ReflectorMethod(ShadersMod_Shaders, "enableFog");
++    public static ReflectorMethod ShadersMod_Shaders_disableFog = new ReflectorMethod(ShadersMod_Shaders, "disableFog");
++    public static ReflectorMethod ShadersMod_Shaders_setSkyColor = new ReflectorMethod(ShadersMod_Shaders, "setSkyColor", new Class[] {Vec3.class});
++    public static ReflectorMethod ShadersMod_Shaders_preSkyList = new ReflectorMethod(ShadersMod_Shaders, "preSkyList");
++    public static ReflectorMethod ShadersMod_Shaders_preCelestialRotate = new ReflectorMethod(ShadersMod_Shaders, "preCelestialRotate");
++    public static ReflectorMethod ShadersMod_Shaders_postCelestialRotate = new ReflectorMethod(ShadersMod_Shaders, "postCelestialRotate");
++    public static ReflectorMethod ShadersMod_Shaders_beginBlockDestroyProgress = new ReflectorMethod(ShadersMod_Shaders, "beginBlockDestroyProgress");
++    public static ReflectorMethod ShadersMod_Shaders_endBlockDestroyProgress = new ReflectorMethod(ShadersMod_Shaders, "endBlockDestroyProgress");
++
++    public static ReflectorField ShadersMod_Shaders_isHandRendered = new ReflectorField(ShadersMod_Shaders, "isHandRendered");
++    public static ReflectorField ShadersMod_Shaders_isCompositeRendered = new ReflectorField(ShadersMod_Shaders, "isCompositeRendered");
++
++    public static ReflectorClass ShadersMod_ShadersRender = new ReflectorClass("shadersmodcore.client.ShadersRender");
++    public static ReflectorMethod ShadersMod_ShadersRender_renderItemFP = new ReflectorMethod(ShadersMod_ShadersRender, "renderItemFP", new Class[] {ItemRenderer.class, Float.TYPE});
++    public static ReflectorMethod ShadersMod_ShadersRender_setFrustrumPosition = new ReflectorMethod(ShadersMod_ShadersRender, "setFrustrumPosition", new Class[] {Frustrum.class, Double.TYPE, Double.TYPE, Double.TYPE});
++    public static ReflectorMethod ShadersMod_ShadersRender_clipRenderersByFrustrum = new ReflectorMethod(ShadersMod_ShadersRender, "clipRenderersByFrustrum", new Class[] {RenderGlobal.class, Frustrum.class, Float.TYPE});
++    public static ReflectorField ShadersMod_Shaders_isShadowPass = new ReflectorField(ShadersMod_Shaders, "isShadowPass");
++
++    public static ReflectorClass ShadersMod_GuiShaders = new ReflectorClass("shadersmodcore.client.GuiShaders");
++    public static ReflectorConstructor ShadersMod_GuiShaders_Constructor = new ReflectorConstructor(ShadersMod_GuiShaders, new Class[] {GuiScreen.class, GameSettings.class});
++    /** END MINECRIFT SHADERS MOD **/
++
++    // Initialise classes / methods that require Forge only class parameters...
++
++    public static Class Class_ForgePlayerInteractEvent_Action;
++    static {
++        try {
++            Class_ForgePlayerInteractEvent_Action = Class.forName("net.minecraftforge.event.entity.player.PlayerInteractEvent$Action");
++            ForgeEventFactory_onPlayerInteract = new ReflectorMethod(ForgeEventFactory, "onPlayerInteract", new Class[] {EntityPlayer.class, Class_ForgePlayerInteractEvent_Action, Integer.TYPE, Integer.TYPE, Integer.TYPE, Integer.TYPE, World.class});
++        } catch (ClassNotFoundException e) {
++            if (forgeExists()) {
++                e.printStackTrace();
++            }
++        }
++    }
 +
 +    public static boolean forgeExists()
 +    {
@@ -210,6 +293,11 @@
 +    public static boolean isInstanceOf(ReflectorClass clazz, Object obj)
 +    {
 +        return clazz.getTargetClass().isInstance(obj);
++    }
++
++    public static boolean shadersModExists()
++    {
++        return ShadersMod_Shaders.exists();
 +    }
 +    /** END MINECRIFT */
 +

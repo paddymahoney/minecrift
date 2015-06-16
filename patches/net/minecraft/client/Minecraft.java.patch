@@ -401,10 +401,16 @@
          this.mouseHelper = new MouseHelper();
          this.checkGLError("Pre startup");
          GL11.glEnable(GL11.GL_TEXTURE_2D);
-@@ -605,30 +795,109 @@
+@@ -605,30 +795,115 @@
          GL11.glLoadIdentity();
          GL11.glMatrixMode(GL11.GL_MODELVIEW);
          this.checkGLError("Startup");
++        /** MINECRIFT SHADERS MOD **/
++        if (Reflector.shadersModExists()) {
++            //Shaders.startup(this);
++            Reflector.callVoid(Reflector.ShadersMod_Shaders_startup, new Object[] {this});
++        }
++        /** END MINECRIFT SHADERS MOD **/
 +		/** MINECRIFT FORGE **/
 +        if (Forge) {
 +			//bar.step("Render Global instance");
@@ -512,7 +518,7 @@
          if (this.gameSettings.fullScreen && !this.fullscreen)
          {
              this.toggleFullscreen();
-@@ -636,7 +905,9 @@
+@@ -636,7 +911,9 @@
  
          try
          {
@@ -523,7 +529,7 @@
          }
          catch (OpenGLException var4)
          {
-@@ -782,8 +1053,8 @@
+@@ -782,8 +1059,8 @@
          GL11.glDisable(GL11.GL_FOG);
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -534,7 +540,7 @@
          {
              this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
              this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,8 +1062,8 @@
+@@ -791,8 +1068,8 @@
          catch (IOException var7)
          {
              logger.error("Unable to load logo: " + locationMojangPng, var7);
@@ -545,7 +551,7 @@
          Tessellator var4 = Tessellator.instance;
          var4.startDrawingQuads();
          var4.setColorOpaque_I(16777215);
-@@ -813,6 +1084,9 @@
+@@ -813,6 +1090,9 @@
          GL11.glEnable(GL11.GL_ALPHA_TEST);
          GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
          GL11.glFlush();
@@ -555,7 +561,7 @@
          this.resetSize();
      }
  
-@@ -845,7 +1119,8 @@
+@@ -845,7 +1125,8 @@
       */
      public void displayGuiScreen(GuiScreen guiScreenIn)
      {
@@ -565,7 +571,7 @@
          {
              this.currentScreen.onGuiClosed();
          }
-@@ -858,6 +1133,21 @@
+@@ -858,6 +1139,21 @@
          {
              guiScreenIn = new GuiGameOver();
          }
@@ -587,7 +593,7 @@
  
          if (guiScreenIn instanceof GuiMainMenu)
          {
-@@ -870,7 +1160,7 @@
+@@ -870,7 +1166,7 @@
          if (guiScreenIn != null)
          {
              this.setIngameNotInFocus();
@@ -596,7 +602,7 @@
              int var3 = var2.getScaledWidth();
              int var4 = var2.getScaledHeight();
              ((GuiScreen)guiScreenIn).setWorldAndResolution(this, var3, var4);
-@@ -886,7 +1176,9 @@
+@@ -886,7 +1182,9 @@
      /**
       * Checks for an OpenGL error. If there is one, prints the error ID and error string.
       */
@@ -607,7 +613,7 @@
      {
          int var2 = GL11.glGetError();
  
-@@ -1025,6 +1317,10 @@
+@@ -1025,6 +1323,10 @@
              this.shutdown();
          }
  
@@ -618,7 +624,7 @@
          if (this.isGamePaused && this.theWorld != null)
          {
              float var1 = this.timer.renderPartialTicks;
-@@ -1042,77 +1338,170 @@
+@@ -1042,77 +1344,170 @@
              this.refreshResources();
          }
  
@@ -844,7 +850,7 @@
          Thread.yield();
          this.mcProfiler.startSection("stream");
          this.mcProfiler.startSection("update");
-@@ -1121,9 +1510,10 @@
+@@ -1121,9 +1516,10 @@
          this.stream.func_152922_k();
          this.mcProfiler.endSection();
          this.mcProfiler.endSection();
@@ -856,7 +862,7 @@
  
          while (getSystemTime() >= this.debugUpdateTime + 1000L)
          {
-@@ -1141,11 +1531,12 @@
+@@ -1141,11 +1537,12 @@
          }
  
          this.mcProfiler.endSection();
@@ -874,7 +880,7 @@
      }
  
      /**
-@@ -1153,35 +1544,40 @@
+@@ -1153,35 +1550,40 @@
       */
      public void resetSize()
      {
@@ -940,7 +946,7 @@
      }
  
      public boolean isFramerateLimitBelowMax()
-@@ -1467,8 +1863,9 @@
+@@ -1467,8 +1869,9 @@
              }
          }
      }
@@ -952,7 +958,7 @@
      {
          if (this.leftClickCounter <= 0)
          {
-@@ -1476,7 +1873,9 @@
+@@ -1476,7 +1879,9 @@
  
              if (this.objectMouseOver == null)
              {
@@ -963,7 +969,7 @@
  
                  if (this.playerController.isNotCreative())
                  {
-@@ -1515,7 +1914,9 @@
+@@ -1515,7 +1920,9 @@
      /**
       * Called when user clicked he's mouse right button (place)
       */
@@ -974,7 +980,7 @@
      {
          this.rightClickDelayTimer = 4;
          boolean var1 = true;
-@@ -1523,7 +1924,9 @@
+@@ -1523,7 +1930,9 @@
  
          if (this.objectMouseOver == null)
          {
@@ -985,7 +991,7 @@
          }
          else
          {
-@@ -1546,7 +1949,14 @@
+@@ -1546,7 +1955,14 @@
                      {
                          int var6 = var2 != null ? var2.stackSize : 0;
  
@@ -1001,7 +1007,7 @@
                          {
                              var1 = false;
                              this.thePlayer.swingItem();
-@@ -1573,7 +1983,14 @@
+@@ -1573,7 +1989,14 @@
          {
              ItemStack var7 = this.thePlayer.inventory.getCurrentItem();
  
@@ -1017,7 +1023,7 @@
              {
                  this.entityRenderer.itemRenderer.resetEquippedProgress2();
              }
-@@ -1585,6 +2002,11 @@
+@@ -1585,6 +2008,11 @@
       */
      public void toggleFullscreen()
      {
@@ -1029,7 +1035,7 @@
          try
          {
              this.fullscreen = !this.fullscreen;
-@@ -1632,8 +2054,10 @@
+@@ -1632,8 +2060,10 @@
              }
  
              Display.setFullscreen(this.fullscreen);
@@ -1042,7 +1048,7 @@
          }
          catch (Exception var2)
          {
-@@ -1646,29 +2070,23 @@
+@@ -1646,29 +2076,23 @@
       */
      private void resize(int width, int height)
      {
@@ -1080,7 +1086,7 @@
      }
  
      /**
-@@ -1693,11 +2111,24 @@
+@@ -1693,11 +2117,24 @@
          {
              --this.rightClickDelayTimer;
          }
@@ -1105,7 +1111,7 @@
              this.ingameGUI.updateTick();
          }
  
-@@ -1719,6 +2150,10 @@
+@@ -1719,6 +2156,10 @@
  
          if (this.currentScreen == null && this.thePlayer != null)
          {
@@ -1116,7 +1122,7 @@
              if (this.thePlayer.getHealth() <= 0.0F)
              {
                  this.displayGuiScreen((GuiScreen)null);
-@@ -1792,6 +2227,12 @@
+@@ -1792,6 +2233,12 @@
  
              while (Mouse.next())
              {
@@ -1129,7 +1135,7 @@
                  var9 = Mouse.getEventButton();
                  KeyBinding.setKeyBindState(var9 - 100, Mouse.getEventButtonState());
  
-@@ -1838,6 +2279,11 @@
+@@ -1838,6 +2285,11 @@
                          this.currentScreen.handleMouseInput();
                      }
                  }
@@ -1141,7 +1147,7 @@
              }
  
              if (this.leftClickCounter > 0)
-@@ -1889,6 +2335,10 @@
+@@ -1889,6 +2341,10 @@
                      }
                      else
                      {
@@ -1152,7 +1158,7 @@
                          if (Keyboard.getEventKey() == 1)
                          {
                              this.displayInGameMenu();
-@@ -1975,6 +2425,11 @@
+@@ -1975,6 +2431,11 @@
                          }
                      }
                  }
@@ -1164,7 +1170,7 @@
              }
  
              for (var9 = 0; var9 < 9; ++var9)
-@@ -2070,6 +2525,12 @@
+@@ -2070,6 +2531,12 @@
  
              this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
          }
@@ -1177,7 +1183,7 @@
  
          if (this.theWorld != null)
          {
-@@ -2164,7 +2625,11 @@
+@@ -2164,7 +2631,11 @@
              this.mcProfiler.endStartSection("pendingConnection");
              this.myNetworkManager.processReceivedPackets();
          }
@@ -1190,7 +1196,7 @@
          this.mcProfiler.endSection();
          this.systemTime = getSystemTime();
      }
-@@ -2174,6 +2639,15 @@
+@@ -2174,6 +2645,15 @@
       */
      public void launchIntegratedServer(String folderName, String worldName, WorldSettings worldSettingsIn)
      {
@@ -1206,7 +1212,7 @@
          this.loadWorld((WorldClient)null);
          System.gc();
          ISaveHandler var4 = this.saveLoader.getSaveLoader(folderName, false);
-@@ -2207,37 +2681,81 @@
+@@ -2207,37 +2687,81 @@
  
          this.loadingScreen.displaySavingString(I18n.format("menu.loadingLevel", new Object[0]));
  
@@ -1311,7 +1317,7 @@
  
      /**
       * unloads the current world first
-@@ -2252,6 +2770,13 @@
+@@ -2252,6 +2776,13 @@
       */
      public void loadWorld(WorldClient worldClientIn, String loadingMessage)
      {
@@ -1325,7 +1331,7 @@
          if (worldClientIn == null)
          {
              NetHandlerPlayClient var3 = this.getNetHandler();
-@@ -2264,6 +2789,23 @@
+@@ -2264,6 +2795,23 @@
              if (this.theIntegratedServer != null)
              {
                  this.theIntegratedServer.initiateShutdown();
@@ -1349,7 +1355,7 @@
              }
  
              this.theIntegratedServer = null;
-@@ -2290,6 +2832,15 @@
+@@ -2290,6 +2838,15 @@
              this.mcResourcePackRepository.func_148529_f();
              this.setServerData((ServerData)null);
              this.integratedServerIsRunning = false;
@@ -1365,7 +1371,7 @@
          }
  
          this.mcSoundHandler.stopSounds();
-@@ -2437,107 +2988,117 @@
+@@ -2437,107 +2994,117 @@
              Item var2;
              int var5;
  
@@ -1582,7 +1588,7 @@
  
              if (var1)
              {
-@@ -2810,11 +3371,18 @@
+@@ -2810,11 +3377,18 @@
          playerSnooper.addStatToSnooper("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
@@ -1601,7 +1607,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2822,12 +3390,14 @@
+@@ -2822,12 +3396,14 @@
  
              if (var1 != 0)
              {
@@ -1616,7 +1622,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3704,961 @@
+@@ -3134,4 +3710,961 @@
              }
          }
      }
