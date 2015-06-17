@@ -22,7 +22,7 @@
      /**
       * Incremented when the game is in touchscreen mode and the screen is tapped, decremented if the screen isn't
       * tapped. Does not appear to be used.
-@@ -142,16 +149,26 @@
+@@ -142,16 +149,28 @@
                  var4.set(var5, EnumChatFormatting.GRAY + (String)var4.get(var5));
              }
          }
@@ -33,8 +33,10 @@
 +		{
 +            Item item = itemIn.getItem();
 +            FontRenderer font = (FontRenderer)Reflector.call(item, Reflector.MinecraftItem_Forge_getFontRenderer, new Object[] {itemIn});
-+            //drawHoveringText(var4, x, y, (font == null ? fontRendererObj : font));
-+            Reflector.callVoid(this, Reflector.ForgeGuiScreen_drawHoveringText, new Object[] {var4, x, y, (font == null ? fontRendererObj : font)});
++            FontRenderer original = fontRendererObj;
++            fontRendererObj = (font == null ? fontRendererObj : font);
++            drawHoveringText(var4, x, y);
++            fontRendererObj = original;
 +		}
 +		else
 +		{
@@ -53,7 +55,7 @@
          this.drawHoveringText(Arrays.asList(new String[] {tabName}), mouseX, mouseY);
      }
  
-@@ -246,10 +263,26 @@
+@@ -246,10 +265,26 @@
  
                  if (var5.mousePressed(this.mc, mouseX, mouseY))
                  {
@@ -84,7 +86,7 @@
              }
          }
      }
-@@ -285,8 +318,22 @@
+@@ -285,8 +320,22 @@
          this.fontRendererObj = mc.fontRendererObj;
          this.width = width;
          this.height = height;
@@ -109,7 +111,7 @@
      }
  
      /**
-@@ -321,9 +368,16 @@
+@@ -321,9 +370,16 @@
       */
      public void handleMouseInput()
      {
@@ -128,7 +130,7 @@
  
          if (Mouse.getEventButtonState())
          {
-@@ -388,8 +442,17 @@
+@@ -388,8 +444,17 @@
      {
          if (this.mc.theWorld != null)
          {
@@ -146,7 +148,7 @@
          else
          {
              this.drawBackground(tint);
-@@ -441,4 +504,79 @@
+@@ -441,4 +506,79 @@
      {
          return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
      }

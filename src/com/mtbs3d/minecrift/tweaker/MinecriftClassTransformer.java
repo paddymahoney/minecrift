@@ -220,6 +220,13 @@ public class MinecriftClassTransformer implements IClassTransformer
 
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value)
         {
+            if (name.equals("extendedProperties") &&
+                    desc.equals("Ljava/util/HashMap;") &&
+                    signature.equals("Ljava/util/HashMap<Ljava/lang/String;Ljava/lang/Object;>;"))
+            {
+                debug("Transforming " + classname + ".extendedProperties");
+                return replace_Entity_extendedProperties();
+            }
             return this.cv.visitField(access, name, desc, signature, value);
         }
 
@@ -228,15 +235,33 @@ public class MinecriftClassTransformer implements IClassTransformer
         {
             if(name.equals("getExtendedProperties") && desc.equals("(Ljava/lang/String;)Ljava/lang/Object;"))
             {
-                debug("Transforming " + classname + ".getExtendedProperties");
+                debug("Transforming " + classname + ".getExtendedProperties()");
                 return replace_Entity_getExtendedProperties();
             }
             else if (name.equals("registerExtendedProperties") && desc.equals("(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/String;"))
             {
-                debug("Transforming " + classname + ".registerExtendedProperties");
+                debug("Transforming " + classname + ".registerExtendedProperties()");
                 return replace_Entity_registerExtendedProperties();
             }
+            else if (name.equals("initExtendedProperties") && desc.equals("()V"))
+            {
+                debug("Transforming " + classname + ".initExtendedProperties()");
+                return replace_Entity_initExtendedProperties();
+            }
             return super.visitMethod(access, name, desc, signature, exceptions);
+        }
+
+        public FieldVisitor replace_Entity_extendedProperties()
+        {
+            /**
+             * This is an ASMified version of net.minecraft.entity.Entity.extendedProperties field
+             * with the HashMap types <String, Object> to <String, net.minecraft.common.IExtendedEntityProperties>
+             */
+            //FieldVisitor fv = cv.visitField(Opcodes.ACC_PROTECTED, "extendedProperties", "Ljava/util/HashMap;", "Ljava/util/HashMap<Ljava/lang/String;Ljava/lang/Object;>;", null);
+            FieldVisitor fv = cv.visitField(Opcodes.ACC_PROTECTED, "extendedProperties", "Ljava/util/HashMap;", "Ljava/util/HashMap<Ljava/lang/String;Lnet/minecraft/common/IExtendedEntityProperties;>;", null);
+            fv.visitEnd();
+
+            return fv;
         }
 
         public MethodVisitor replace_Entity_getExtendedProperties()
@@ -430,6 +455,93 @@ public class MinecriftClassTransformer implements IClassTransformer
             mv.visitLocalVariable("identifier", "Ljava/lang/String;", null, l0, l16, 1);
             mv.visitLocalVariable("properties", "Ljava/lang/Object;", null, l0, l16, 2);
             mv.visitMaxs(5, 5);
+            mv.visitEnd();
+
+            return mv;
+        }
+
+        public MethodVisitor replace_Entity_initExtendedProperties()
+        {
+            /**
+             * This is an ASMified version of net.minecraft.entity.Entity.initExtendedProperties
+             * with only the HashMap types changed from <String, Object> to <String, net.minecraft.common.IExtendedEntityProperties>
+             */
+
+            MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PRIVATE, "initExtendedProperties", "()V", null, null);
+            mv.visitCode();
+            Label l0 = new Label();
+            mv.visitLabel(l0);
+            mv.visitLineNumber(307, l0);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.NEW, "java/util/HashMap");
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/util/HashMap", "<init>", "()V", false);
+            mv.visitFieldInsn(Opcodes.PUTFIELD, "net/minecraft/entity/Entity", "extendedProperties", "Ljava/util/HashMap;");
+            Label l1 = new Label();
+            mv.visitLabel(l1);
+            mv.visitLineNumber(309, l1);
+            mv.visitFieldInsn(Opcodes.GETSTATIC, "net/minecraft/src/Reflector", "ForgeEntityEvent_EntityConstructing_Constructor", "Lnet/minecraft/src/ReflectorConstructor;");
+            mv.visitInsn(Opcodes.ICONST_1);
+            mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitInsn(Opcodes.ICONST_0);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.AASTORE);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "net/minecraft/src/Reflector", "postForgeBusEvent", "(Lnet/minecraft/src/ReflectorConstructor;[Ljava/lang/Object;)Z", false);
+            mv.visitInsn(Opcodes.POP);
+            Label l2 = new Label();
+            mv.visitLabel(l2);
+            mv.visitLineNumber(311, l2);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, "net/minecraft/entity/Entity", "extendedProperties", "Ljava/util/HashMap;");
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/HashMap", "values", "()Ljava/util/Collection;", false);
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Collection", "iterator", "()Ljava/util/Iterator;", true);
+            mv.visitVarInsn(Opcodes.ASTORE, 1);
+            Label l3 = new Label();
+            mv.visitLabel(l3);
+            mv.visitFrame(Opcodes.F_APPEND,1, new Object[] {"java/util/Iterator"}, 0, null);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Iterator", "hasNext", "()Z", true);
+            Label l4 = new Label();
+            mv.visitJumpInsn(Opcodes.IFEQ, l4);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, "java/util/Iterator", "next", "()Ljava/lang/Object;", true);
+            // New line below
+            mv.visitTypeInsn(Opcodes.CHECKCAST, "net/minecraftforge/common/IExtendedEntityProperties");
+
+            mv.visitVarInsn(Opcodes.ASTORE, 2);
+            Label l5 = new Label();
+            mv.visitLabel(l5);
+            mv.visitLineNumber(313, l5);
+            mv.visitVarInsn(Opcodes.ALOAD, 2);
+            mv.visitFieldInsn(Opcodes.GETSTATIC, "net/minecraft/src/Reflector", "ForgeIExtendedEntityProperties_init", "Lnet/minecraft/src/ReflectorMethod;");
+            mv.visitInsn(Opcodes.ICONST_2);
+            mv.visitTypeInsn(Opcodes.ANEWARRAY, "java/lang/Object");
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitInsn(Opcodes.ICONST_0);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitInsn(Opcodes.AASTORE);
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitInsn(Opcodes.ICONST_1);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, "net/minecraft/entity/Entity", "worldObj", "Lnet/minecraft/world/World;");
+            mv.visitInsn(Opcodes.AASTORE);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, "net/minecraft/src/Reflector", "callVoid", "(Ljava/lang/Object;Lnet/minecraft/src/ReflectorMethod;[Ljava/lang/Object;)V", false);
+            Label l6 = new Label();
+            mv.visitLabel(l6);
+            mv.visitLineNumber(314, l6);
+            mv.visitJumpInsn(Opcodes.GOTO, l3);
+            mv.visitLabel(l4);
+            mv.visitLineNumber(315, l4);
+            mv.visitFrame(Opcodes.F_CHOP,1, null, 0, null);
+            mv.visitInsn(Opcodes.RETURN);
+            Label l7 = new Label();
+            mv.visitLabel(l7);
+            //mv.visitLocalVariable("props", "Ljava/lang/Object;", null, l5, l6, 2);
+            mv.visitLocalVariable("props", "Lnet/minecraftforge/common/IExtendedEntityProperties;", null, l5, l6, 2);
+            mv.visitLocalVariable("i$", "Ljava/util/Iterator;", null, l3, l4, 1);
+            mv.visitLocalVariable("this", "Lnet/minecraft/entity/Entity;", null, l0, l7, 0);
+            mv.visitMaxs(6, 3);
             mv.visitEnd();
 
             return mv;

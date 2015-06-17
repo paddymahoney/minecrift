@@ -46,7 +46,7 @@
  import net.minecraft.world.Explosion;
  import net.minecraft.world.World;
  import net.minecraft.world.WorldServer;
-@@ -220,7 +215,26 @@
+@@ -220,7 +215,34 @@
      protected UUID entityUniqueID;
      public Entity.EnumEntitySize myEntitySize;
      private static final String __OBFID = "CL_00001533";
@@ -58,7 +58,15 @@
 +    public ArrayList<EntityItem> capturedDrops = new ArrayList<EntityItem>();
 +    private UUID persistentID;
 +
-+    //protected HashMap<String, IExtendedEntityProperties> extendedProperties;  
++    //protected HashMap<String, IExtendedEntityProperties> extendedProperties;
++    /*
++    * NOTE: we define the extendedProperties HashMap here to take <String, Object> types.
++    *  I don't know of a way to modify these types via reflection, but we need to take
++    *  <String, net.minecraftforge.common.IExtendedEntityProperties> objects as params here.
++    *  This is performed via ASM on class load in MinecriftClassTransformer$EntityTransform.
++        * ANY CHANGES TO THIS FIELD MUST ALSO BE MADE IN
++    * com.mtbs.minecrift.tweaker.MinecriftClassTransformer$EntityTransform via ASMifier!!
++    */
 +    protected HashMap<String, Object> extendedProperties;
 +	/** END MINECRIFT FORGE **/
 +    
@@ -74,35 +82,49 @@
      public int getEntityId()
      {
          return this.entityId;
-@@ -257,6 +271,27 @@
+@@ -257,7 +279,41 @@
          this.dataWatcher.addObject(0, Byte.valueOf((byte)0));
          this.dataWatcher.addObject(1, Short.valueOf((short)300));
          this.entityInit();
-+		/** MINECRIFT FORGE **/
++	/** MINECRIFT FORGE **/
 +		if (Reflector.forgeExists())
 +		{
-+//	        extendedProperties = new HashMap<String, IExtendedEntityProperties>();
-+//
-+//	        MinecraftForge.EVENT_BUS.post(new EntityEvent.EntityConstructing(this));
-+//
-+//	        for (IExtendedEntityProperties props : this.extendedProperties.values())
-+//	        {
-+//	            props.init(this, worldIn);
-+//	        }
-+            extendedProperties = new HashMap<String, Object>();
-+
-+            Reflector.postForgeBusEvent(Reflector.ForgeEntityEvent_EntityConstructing_Constructor, new Object[] {this});
-+
-+            for (Object props : this.extendedProperties.values())
-+            {
-+                Reflector.callVoid(props, Reflector.ForgeIExtendedEntityProperties_init, new Object[] {this, worldIn});
-+            }
++            initExtendedProperties();
 +		}
-+		/** END MINECRIFT FORGE **/
++    }
++
++    private void initExtendedProperties()
++    {
++//    extendedProperties = new HashMap<String, IExtendedEntityProperties>();
++//
++//    MinecraftForge.EVENT_BUS.post(new EntityEvent.EntityConstructing(this));
++//
++//    for (IExtendedEntityProperties props : this.extendedProperties.values())
++//    {
++//        props.init(this, worldIn);
++//    }
++   /*
++    * NOTE: we define the extendedProperties HashMap here to take <String, Object> types.
++    *  I don't know of a way to modify these types via reflection, but we need to take
++    *  <String, net.minecraftforge.common.IExtendedEntityProperties> objects as params here.
++    *  This is performed via ASM on class load in MinecriftClassTransformer$EntityTransform.
++    * ANY CHANGES TO THIS METHOD MUST ALSO BE MADE IN
++    * com.mtbs.minecrift.tweaker.MinecriftClassTransformer$EntityTransform via ASMifier!!
++    */
++        extendedProperties = new HashMap<String, Object>();
++
++        Reflector.postForgeBusEvent(Reflector.ForgeEntityEvent_EntityConstructing_Constructor, new Object[] {this});
++
++        for (Object props : this.extendedProperties.values())
++        {
++            Reflector.callVoid(props, Reflector.ForgeIExtendedEntityProperties_init, new Object[] {this, this.worldObj});
++        }
      }
++    /** END MINECRIFT FORGE **/
  
      protected abstract void entityInit();
-@@ -1171,9 +1206,38 @@
+ 
+@@ -1171,9 +1227,38 @@
  
          if (var7.getMaterial() == materialIn)
          {
@@ -144,7 +166,7 @@
          }
          else
          {
-@@ -1193,13 +1257,25 @@
+@@ -1193,13 +1278,25 @@
      {
          return this.worldObj.isMaterialInBB(this.boundingBox.expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava);
      }
@@ -172,7 +194,7 @@
  
          if (var4 >= 1.0E-4F)
          {
-@@ -1213,11 +1289,42 @@
+@@ -1213,11 +1310,42 @@
              var4 = friction / var4;
              strafe *= var4;
              forward *= var4;
@@ -219,7 +241,7 @@
      }
  
      public int getBrightnessForRender(float p_70070_1_)
-@@ -1526,6 +1633,32 @@
+@@ -1526,6 +1654,31 @@
              tagCompund.setInteger("PortalCooldown", this.timeUntilPortal);
              tagCompund.setLong("UUIDMost", this.getUniqueID().getMostSignificantBits());
              tagCompund.setLong("UUIDLeast", this.getUniqueID().getLeastSignificantBits());
@@ -237,8 +259,7 @@
 +	                {
 +//	                    IExtendedEntityProperties props = this.extendedProperties.get(identifier);
 +//	                    props.saveNBTData(tagCompund);
-+                        Object props = this.extendedProperties.get(identifier);
-+                        Reflector.callVoid(props, Reflector.ForgeIExtendedEntityProperties_saveNBTData, new Object[] {tagCompund});
++                        Reflector.callVoid(this.extendedProperties.get(identifier), Reflector.ForgeIExtendedEntityProperties_saveNBTData, new Object[] {tagCompund});
 +	                }
 +	                catch (Throwable t)
 +	                {
@@ -252,7 +273,7 @@
              this.writeEntityToNBT(tagCompund);
  
              if (this.ridingEntity != null)
-@@ -1596,6 +1729,38 @@
+@@ -1596,6 +1749,37 @@
  
              this.setPosition(this.posX, this.posY, this.posZ);
              this.setRotation(this.rotationYaw, this.rotationPitch);
@@ -270,8 +291,7 @@
 +	                {
 +//	                    IExtendedEntityProperties props = this.extendedProperties.get(identifier);
 +//	                    props.loadNBTData(tagCompund);
-+                        Object props = this.extendedProperties.get(identifier);
-+                        Reflector.callVoid(props, Reflector.ForgeIExtendedEntityProperties_loadNBTData, new Object[] {tagCompund});
++                        Reflector.callVoid(this.extendedProperties.get(identifier), Reflector.ForgeIExtendedEntityProperties_loadNBTData, new Object[] {tagCompund});
 +	                }
 +	                catch (Throwable t)
 +	                {
@@ -291,7 +311,7 @@
              this.readEntityFromNBT(tagCompund);
  
              if (this.shouldSetPosAfterLoading())
-@@ -1697,7 +1862,16 @@
+@@ -1697,7 +1881,16 @@
          {
              EntityItem var3 = new EntityItem(this.worldObj, this.posX, this.posY + (double)offsetY, this.posZ, itemStackIn);
              var3.delayBeforeCanPickup = 10;
@@ -309,7 +329,7 @@
              return var3;
          }
          else
-@@ -2008,7 +2182,16 @@
+@@ -2008,7 +2201,16 @@
       */
      public boolean isRiding()
      {
@@ -327,7 +347,7 @@
      }
  
      /**
-@@ -2375,7 +2558,17 @@
+@@ -2375,7 +2577,17 @@
       */
      public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
      {
@@ -346,7 +366,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2646,204 @@
+@@ -2453,6 +2665,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  
