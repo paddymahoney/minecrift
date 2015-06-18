@@ -1,5 +1,13 @@
-Minecrift 1.7.10 R1a
-====================
+[Minecrift 1.7.10 R1b]
+ 
+Bug fixes
+-------------
+ 
+- Forge - Fix further extendedProperties issues
+- Forge - Fix no tooltips on inventory items
+- Installer - Supports Java 6 again
+
+[Minecrift 1.7.10 R1a]
 
 Bug fixes
 -------------
@@ -9,8 +17,7 @@ Bug fixes
 - Forge - Fix player held event issue
 
 
-Minecrift 1.7.10 R1
-===================
+[Minecrift 1.7.10 R1]
 
 New
 ------
@@ -65,7 +72,7 @@ General
 - Investigate pos-track of arm/hand position with tracked controllers
 - Fix crosshair weirdness at extreme angles (due to current Euler implementation)
 
-1.8
+warning: [options] bootstrap class path not set in conjunction with -source 1.61.8
 - Port 1.7.10 features / fixes to Minecrift 1.8.1
 - Port to 1.8.7 when MCP release allows
 - Port to Forge 1.8.x

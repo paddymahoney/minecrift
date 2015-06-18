@@ -147,13 +147,13 @@
 +    public static ReflectorMethod ForgeAchievementPage_getTitle = new ReflectorMethod(ForgeAchievementPage, "getTitle");
 +    public static ReflectorClass MinecraftCreativeTabs = new ReflectorClass(CreativeTabs.class);
 +    public static ReflectorMethod MinecraftCreativeTabs_hasSearchBar = new ReflectorMethod(MinecraftCreativeTabs, "hasSearchBar");
-+    public static ReflectorMethod MinecraftCreativeTabs_getSearchBarWidth = new ReflectorMethod(MinecraftCreativeTabs, "getSearchBarWidth");
++    //public static ReflectorMethod MinecraftCreativeTabs_getSearchBarWidth = new ReflectorMethod(MinecraftCreativeTabs, "getSearchBarWidth");
 +    public static ReflectorMethod MinecraftCreativeTabs_getTabPage = new ReflectorMethod(MinecraftCreativeTabs, "getTabPage");
 +    public static ReflectorClass MinecraftGuiTextField = new ReflectorClass(GuiTextField.class);
-+    public static ReflectorField MinecraftGuiTextField_width = new ReflectorField(MinecraftGuiTextField, "width");
-+    public static ReflectorField MinecraftGuiTextField_xPosition = new ReflectorField(MinecraftGuiTextField, "xPosition");
++    public static ReflectorField MinecraftGuiTextField_width = new ReflectorField(MinecraftGuiTextField, /*"width"*/"field_146218_h");
++    public static ReflectorField MinecraftGuiTextField_xPosition = new ReflectorField(MinecraftGuiTextField, /*"xPosition"*/"field_146209_f");
 +    public static ReflectorClass Minecraft_Server = new ReflectorClass(MinecraftServer.class);
-+    public static ReflectorField MinecraftServer_timeOfLastDimensionTick = new ReflectorField(Minecraft_Server, "timeOfLastDimensionTick");
++    //public static ReflectorField MinecraftServer_timeOfLastDimensionTick = new ReflectorField(Minecraft_Server, /*"timeOfLastDimensionTick"*/"field_71312_k");
 +    public static ReflectorClass ForgePlayerDropsEvent = new ReflectorClass("net.minecraftforge.event.entity.player.PlayerDropsEvent");
 +    public static ReflectorConstructor ForgePlayerDropsEvent_Constructor = new ReflectorConstructor(ForgePlayerDropsEvent, new Class[] {EntityPlayer.class, DamageSource.class, ArrayList.class, Boolean.TYPE});
 +    public static ReflectorClass ForgeArmorProperties = new ReflectorClass("net.minecraftforge.common.ISpecialArmor$ArmorProperties");

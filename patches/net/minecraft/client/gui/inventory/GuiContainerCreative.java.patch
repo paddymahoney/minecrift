@@ -129,7 +129,7 @@
          int var2 = selectedTabIndex;
          selectedTabIndex = p_147050_1_.getTabIndex();
          GuiContainerCreative.ContainerCreative var3 = (GuiContainerCreative.ContainerCreative)this.inventorySlots;
-@@ -550,12 +609,29 @@
+@@ -550,12 +609,30 @@
  
          if (this.searchField != null)
          {
@@ -149,7 +149,8 @@
                  this.searchField.setText("");
 +				/** MINECRIFT FORGE **/
 +				if (Forge) {
-+                    int searchBarWidth = Reflector.callInt(p_147050_1_, Reflector.MinecraftCreativeTabs_getSearchBarWidth, new Object[]{});
++                    // TODO FORGE: Not sure how to get getSearchBarWidth working, hardcode instead.
++                    int searchBarWidth = 89; //Reflector.callInt(p_147050_1_, Reflector.MinecraftCreativeTabs_getSearchBarWidth, new Object[]{});
 +                    int xPos = this.guiLeft + (82 /*default left*/ + 89 /*default width*/) - searchBarWidth;
 +                    Reflector.setFieldValue(this.searchField, Reflector.MinecraftGuiTextField_width, new Object[] { searchBarWidth });
 +                    Reflector.setFieldValue(this.searchField, Reflector.MinecraftGuiTextField_xPosition, new Object[] { xPos });
@@ -160,7 +161,7 @@
                  this.updateCreativeSearch();
              }
              else
-@@ -613,7 +689,9 @@
+@@ -613,7 +690,9 @@
       */
      public void drawScreen(int mouseX, int mouseY, float partialTicks)
      {
@@ -171,7 +172,7 @@
          int var5 = this.guiLeft;
          int var6 = this.guiTop;
          int var7 = var5 + 175;
-@@ -653,21 +731,51 @@
+@@ -653,21 +732,51 @@
          super.drawScreen(mouseX, mouseY, partialTicks);
          CreativeTabs[] var11 = CreativeTabs.creativeTabArray;
          int var12 = var11.length;
@@ -228,7 +229,7 @@
  
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          GL11.glDisable(GL11.GL_LIGHTING);
-@@ -739,18 +847,42 @@
+@@ -739,18 +848,42 @@
          CreativeTabs[] var5 = CreativeTabs.creativeTabArray;
          int var6 = var5.length;
          int var7;
@@ -274,7 +275,7 @@
          this.mc.getTextureManager().bindTexture(new ResourceLocation("textures/gui/container/creative_inventory/tab_" + var4.getBackgroundImageName()));
          this.drawTexturedModalRect(this.guiLeft, this.guiTop, 0, 0, this.xSize, this.ySize);
          this.searchField.drawTextBox();
-@@ -764,7 +896,17 @@
+@@ -764,7 +897,17 @@
          {
              this.drawTexturedModalRect(var9, var6 + (int)((float)(var7 - var6 - 17) * this.currentScroll), 232 + (this.needsScrollBars() ? 0 : 12), 0, 12, 15);
          }
@@ -293,7 +294,7 @@
          this.func_147051_a(var4);
  
          if (var4 == CreativeTabs.tabInventory)
-@@ -775,6 +917,19 @@
+@@ -775,6 +918,19 @@
  
      protected boolean func_147049_a(CreativeTabs p_147049_1_, int p_147049_2_, int p_147049_3_)
      {
@@ -313,7 +314,7 @@
          int var4 = p_147049_1_.getTabColumn();
          int var5 = 28 * var4;
          byte var6 = 0;
-@@ -879,6 +1034,12 @@
+@@ -879,6 +1035,12 @@
          }
  
          GL11.glDisable(GL11.GL_LIGHTING);
@@ -326,7 +327,7 @@
          this.drawTexturedModalRect(var7, var8, var5, var6, 28, var9);
          this.zLevel = 100.0F;
          itemRender.zLevel = 100.0F;
-@@ -905,6 +1066,18 @@
+@@ -905,6 +1067,18 @@
          {
              this.mc.displayGuiScreen(new GuiStats(this, this.mc.thePlayer.getStatFileWriter()));
          }
