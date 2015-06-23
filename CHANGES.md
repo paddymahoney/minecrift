@@ -1,4 +1,13 @@
-[Minecrift 1.7.10 R1b]
+[Minecrift 1.7.10 R1c]
+ 
+Bug fixes
+-------------
+ 
+ - Forge - Fix right click block interactions
+ - Forge - Fix getBreakSpeed issue
+ - Vanilla - Fix right click block crash
+ 
+ [Minecrift 1.7.10 R1b]
  
 Bug fixes
 -------------
