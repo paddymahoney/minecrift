@@ -998,7 +998,7 @@
 -                        if (this.playerController.onPlayerRightClick(this.thePlayer, this.theWorld, var2, var3, var4, var5, this.objectMouseOver.sideHit, this.objectMouseOver.hitVec))
 +						boolean result = true;
 +						/** MINECRIFT FORGE **/
-+						if (Reflector.ForgeEventFactory_onPlayerInteract.exists()) {
++						if (Reflector.forgeExists()) {
 +						    Object event = Reflector.call(Reflector.ForgeEventFactory_onPlayerInteract, new Object[] {thePlayer, Reflector.ForgePlayerInteractEvent_Action_RIGHT_CLICK_BLOCK, var3, var4, var5, this.objectMouseOver.sideHit, this.theWorld});
 +							result = !Reflector.callBoolean(event, Reflector.ForgeEvent_isCanceled, new Object[0]);
 +						}
@@ -1014,7 +1014,7 @@
 -            if (var7 != null && this.playerController.sendUseItem(this.thePlayer, this.theWorld, var7))
 +			boolean result = true;
 +			/** MINECRIFT FORGE **/
-+            if (Reflector.ForgeEventFactory_onPlayerInteract.exists()) {
++            if (Reflector.forgeExists()) {
 +                Object event = Reflector.call(Reflector.ForgeEventFactory_onPlayerInteract, new Object[] {thePlayer, Reflector.ForgePlayerInteractEvent_Action_RIGHT_CLICK_AIR, 0, 0, 0, -1, this.theWorld});
 +                result = !Reflector.callBoolean(event, Reflector.ForgeEvent_isCanceled, new Object[0]);
 +            }
