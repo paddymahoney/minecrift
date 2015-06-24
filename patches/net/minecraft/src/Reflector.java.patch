@@ -304,3 +304,62 @@
      public static void callVoid(ReflectorMethod refMethod, Object ... params)
      {
          try
+@@ -467,8 +744,56 @@
+             {
+                 return;
+             }
+-
+-            e.set(obj, value);
++            /** MINECRIFT FORGE **/
++            if (value == null)
++            {
++                e.set(obj, null);
++            }
++            else if (e.getType().isPrimitive())
++            {
++                Class<?> clazz = e.getType();
++                if (clazz.equals(Boolean.class))
++                {
++                    e.setBoolean(obj, ((Boolean)value).booleanValue());
++                }
++                else if (clazz.equals(Integer.class))
++                {
++                    e.setInt(obj, ((Integer) value).intValue());
++                }
++                else if (clazz.equals(Character.class))
++                {
++                    e.setChar(obj, ((Character) value).charValue());
++                }
++                else if (clazz.equals(Byte.class))
++                {
++                    e.setByte(obj, ((Byte) value).byteValue());
++                }
++                else if (clazz.equals(Short.class))
++                {
++                    e.setShort(obj, ((Short) value).shortValue());
++                }
++                else if (clazz.equals(Double.class))
++                {
++                    e.setDouble(obj, ((Double) value).doubleValue());
++                }
++                else if (clazz.equals(Long.class))
++                {
++                    e.setLong(obj, ((Long) value).longValue());
++                }
++                else if (clazz.equals(Float.class))
++                {
++                    e.setFloat(obj, ((Float) value).floatValue());
++                }
++                else if (clazz.equals(Void.class))
++                {
++                    e.set(obj, null);
++                }
++            }
++            else
++            {
++                e.set(obj, value);
++            }
++            /** END MINECRIFT FORGE **/
+         }
+         catch (Throwable var4)
+         {
