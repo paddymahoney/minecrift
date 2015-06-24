@@ -22,21 +22,18 @@
      /**
       * Incremented when the game is in touchscreen mode and the screen is tapped, decremented if the screen isn't
       * tapped. Does not appear to be used.
-@@ -142,16 +149,28 @@
+@@ -142,21 +149,37 @@
                  var4.set(var5, EnumChatFormatting.GRAY + (String)var4.get(var5));
              }
          }
 -
 -        this.drawHoveringText(var4, x, y);
 +		/** MINECRIFT FORGE **/
-+        if (Reflector.MinecraftItem_Forge_getFontRenderer.exists())
++        if (Reflector.forgeExists())
 +		{
 +            Item item = itemIn.getItem();
 +            FontRenderer font = (FontRenderer)Reflector.call(item, Reflector.MinecraftItem_Forge_getFontRenderer, new Object[] {itemIn});
-+            FontRenderer original = fontRendererObj;
-+            fontRendererObj = (font == null ? fontRendererObj : font);
-+            drawHoveringText(var4, x, y);
-+            fontRendererObj = original;
++            drawHoveringText(var4, x, y, (font == null ? fontRendererObj : font));
 +		}
 +		else
 +		{
@@ -55,7 +52,41 @@
          this.drawHoveringText(Arrays.asList(new String[] {tabName}), mouseX, mouseY);
      }
  
-@@ -246,10 +265,26 @@
+     protected void drawHoveringText(List textLines, int x, int y)
+     {
++    /** MINECRIFT FORGE **/
++        drawHoveringText(textLines, x, y, fontRendererObj);
++    }
++
++    protected void drawHoveringText(List textLines, int x, int y, FontRenderer font)
++    {
++    /** END MINECRIFT FORGE **/
+         if (!textLines.isEmpty())
+         {
+             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+@@ -169,7 +192,9 @@
+             while (var5.hasNext())
+             {
+                 String var6 = (String)var5.next();
+-                int var7 = this.fontRendererObj.getStringWidth(var6);
++                /** MINECRIFT FORGE **/
++                int var7 = font.getStringWidth(var6);
++                /** END MINECRIFT FORGE **/
+ 
+                 if (var7 > var4)
+                 {
+@@ -214,7 +239,9 @@
+             for (int var12 = 0; var12 < textLines.size(); ++var12)
+             {
+                 String var13 = (String)textLines.get(var12);
+-                this.fontRendererObj.drawStringWithShadow(var13, var14, var15, -1);
++                /** MINECRIFT FORGE **/
++                font.drawStringWithShadow(var13, var14, var15, -1);
++                /** END MINECRIFT FORGE **/
+ 
+                 if (var12 == 0)
+                 {
+@@ -246,10 +273,26 @@
  
                  if (var5.mousePressed(this.mc, mouseX, mouseY))
                  {
@@ -86,7 +117,7 @@
              }
          }
      }
-@@ -285,8 +320,22 @@
+@@ -285,8 +328,22 @@
          this.fontRendererObj = mc.fontRendererObj;
          this.width = width;
          this.height = height;
@@ -111,7 +142,7 @@
      }
  
      /**
-@@ -321,9 +370,16 @@
+@@ -321,9 +378,16 @@
       */
      public void handleMouseInput()
      {
@@ -130,7 +161,7 @@
  
          if (Mouse.getEventButtonState())
          {
-@@ -388,8 +444,17 @@
+@@ -388,8 +452,17 @@
      {
          if (this.mc.theWorld != null)
          {
@@ -148,7 +179,7 @@
          else
          {
              this.drawBackground(tint);
-@@ -441,4 +506,79 @@
+@@ -441,4 +514,79 @@
      {
          return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
      }
