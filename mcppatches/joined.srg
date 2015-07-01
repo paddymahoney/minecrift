@@ -25369,9 +25369,7 @@ MD: net/minecraft/server/MinecraftServer/h (Ljava/lang/String;)V net/minecraft/s
 MD: net/minecraft/server/MinecraftServer/h (Z)V net/minecraft/server/MinecraftServer/func_71245_h (Z)V
 MD: net/minecraft/server/MinecraftServer/i ()Z net/minecraft/server/MinecraftServer/func_71197_b ()Z
 MD: net/minecraft/server/MinecraftServer/i (Ljava/lang/String;)V net/minecraft/server/MinecraftServer/func_71198_k (Ljava/lang/String;)V
-MD: net/minecraft/server/MinecraftServer/i (Z)V net/minecraft/server/MinecraftServer/func_104055_i (Z)V
 MD: net/minecraft/server/MinecraftServer/j ()Ljava/lang/String; net/minecraft/server/MinecraftServer/func_71195_b_ ()Ljava/lang/String;
-MD: net/minecraft/server/MinecraftServer/i (Ljava/lang/String;)V net/minecraft/server/MinecraftServer/func_71224_l (Ljava/lang/String;)V
 MD: net/minecraft/server/MinecraftServer/k ()V net/minecraft/server/MinecraftServer/func_71222_d ()V
 MD: net/minecraft/server/MinecraftServer/j (Ljava/lang/String;)V net/minecraft/server/MinecraftServer/func_71261_m (Ljava/lang/String;)V
 MD: net/minecraft/server/MinecraftServer/l ()Z net/minecraft/server/MinecraftServer/func_71225_e ()Z
@@ -26180,7 +26178,6 @@ MD: sy/a (Lcom/google/gson/JsonObject;)V net/minecraft/server/management/UserLis
 MD: sy/b (Lcom/google/gson/JsonObject;)Lcom/mojang/authlib/GameProfile; net/minecraft/server/management/UserListBansEntry/func_152648_b (Lcom/google/gson/JsonObject;)Lcom/mojang/authlib/GameProfile;
 MD: sz/a ()[Ljava/lang/String; net/minecraft/server/management/UserListWhitelist/func_152685_a ()[Ljava/lang/String;
 MD: sz/a (Lcom/google/gson/JsonObject;)Lst; net/minecraft/server/management/UserListWhitelist/func_152682_a (Lcom/google/gson/JsonObject;)Lnet/minecraft/server/management/UserListEntry;
-MD: sx/a (Lcom/mojang/authlib/GameProfile;)Z net/minecraft/server/management/UserListWhitelist/func_152705_a (Lcom/mojang/authlib/GameProfile;)Z
 MD: sz/a (Ljava/lang/Object;)Ljava/lang/String; net/minecraft/server/management/UserListWhitelist/func_152681_a (Ljava/lang/Object;)Ljava/lang/String;
 MD: sz/a (Ljava/lang/String;)Lcom/mojang/authlib/GameProfile; net/minecraft/server/management/UserListWhitelist/func_152706_a (Ljava/lang/String;)Lcom/mojang/authlib/GameProfile;
 MD: sz/b (Lcom/mojang/authlib/GameProfile;)Ljava/lang/String; net/minecraft/server/management/UserListWhitelist/func_152704_b (Lcom/mojang/authlib/GameProfile;)Ljava/lang/String;
