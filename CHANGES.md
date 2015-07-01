@@ -1,145 +1,59 @@
-1.1 Beta  18-07-13
-==================
-- Supports Minecraft 1.6.2
-- Uses Oculus SDK 0.2.3
-  - Linux Head Tracking Support
-  - Player Profiles (Player height, IPD, etc)
-- Camera collision detection to prevent clipping through walls
-- Rework Calibration procedure
-- Reorganize GUI for clarity, adding more tooltips
-- Many new GUI/HUD Tweaks/Options
-  - HUD Occlusion (HUD can be behind world objects)
-  - Decouple Crosshair/HUD/Block Hilight
-  - Crosshair Rotation
-- Hydra Handedness fixed up (left really is left)
-- Startup Calibration can be toggleable/skipable.
-- Added ability to switch between 3rd person/1st person model (for maps)
-- Changed Hydra keyhole aiming. Joystick now moves and strafes.
+[Minecrift 1.8.7 R1]
+ 
 
-1.0 Beta  27-06-13
-==================
-- Positional head tracking with Razer Hydra.
-- Mouse free-look with keyhole adjustment.
-- Razer Hydra free-aim controls.
-- Razer Hydra joystick/button controls.
-- Oculus Rift magnetic yaw calibration.
-- Calibration messages.
-- Orientation adjustment with 'SPACEBAR'.
-- New GUI organization.
-- GUI Tooltips for ease-of-use!
-- A few rendering bug fixes.
+New
+------
 
-0.27 Alpha 12-06-13
-===================
-- Fully 3D GUI with freelook always enabled.
-- GUI options menu for configuring VR settings.
-- Improved Forge Compatibility.
-- Fixed mouse cursor "jumpiness"
-- Added full-3D audio: head pitch, yaw, and roll help you pinpoint sounds!
-- Refactored internal render loop for performance.
-- Many rendering bug fixes.
+- Added support for the Oculus 0.5.0.1 SDK (tested on Win 8.1, OSX 10.10, Ubuntu 14.10). 
+- [With thanks to Zach Jaggi for work towards the linux port, and Jherico for his Oculus SDK repo]
+- Now use Oculus best practice for sensor polling to reduce judder in some scenarios
+- Ported to Optifine 1.8.7 HD U D5
+- Added settings profiles in-game. Different settings configurations may be created, duplicated or deleted. 
+  You can switch between profiles in-game via the VR options GUI (VR Options, profile button)
+- Added support for optionally adjusting player movement inertia. 
+- Added support for optionally allowing player pitch input to affect up/down direction while flying.
+- Streamlined the installer. 
+- Can (optionally) add / update Minecrift launcher profiles. 
+- Downloads Windows redists automatically if necessary.
+- Added support for FOV changes in mono mode
 
-0.26 Alpha 29-05-13
-===================
-- First open source release.
-- Added plugin system for alternative implementations choosable at runtime.
-- Added depth dependent crosshair.
-- Refined neck model.
-- Moved camera backwards to prevent 
-- Moved first-person model backwards even further than camera.
-- Fixed bed camera control.
-- Fixed UI transparency flickering.
-- Made neck model configurable.
 
-0.25 Alpha 22-05-13 [Currently no MAC dynlib built for this, sorry - incoming soon I hope]
-===================
-- Now take into account the mouse inversion setting when using mouse pitch input.
-- Ctrl , or . decreases or increases the FOV scale factor. 
-- Ctrl-Alt , or . decreases or increases the size of the black distortion
-border. This can be used to improve rendering speed with large border sizes (at
-a cost to FOV), or *potentially* give more peripheral vision at smaller border
-sizes.
-- Ctrl V cycles through head track sensitivity multipliers. Try this at your own risk!
+Bug fixes
+-------------
 
-0.24 Alpha 18-05-13
-===================
-- The HUD is now completely fixed to head orientation to make it slightly more readable.
-- Implemented Full Scene Anti-aliasing support (FSAA). Be WARNED! This is a
-resource hog! Use Ctrl-B to toggle on/off. Use Ctrl-Alt B to cycle through FSAA
-scale factors.
+- Fixed crosshair pitch issues with arrows [with thanks to Zach Jaggi for the fix]
+- FSAA now working correctly in mono mode
+- Positional tracking now *generally* works in mono mode, some issues remain
+- JMumbleLib rebuilt for Linux in an attempt to avoid librt issues on startup
 
-0.23 Alpha 15-05-13
-===================
-- Initial MacOS support, with thanks to @PyramidHead76!
-- Support chromatic aberration correction (beta)(with thanks to Ben @ MTBS3D). Toggle via Ctrl-Alt P.
-- HUD GUI menu background now transparent.
-- Potential fix for 'lost mouse' issue in HUD when not fullscreen or when using multiple monitors.
-- Allow user to specify HUD scale. Use Ctrl-Alt U to cycle values.
-- Allow user to specify HUD distance. Use Ctrl U to cycle values.
-- Allow user to use mouse pitch input as well as yaw. Use Ctrl-N to toggle.
 
-0.22 Alpha 12-05-13
-===================
-- Reinstated crosshair when HUD overlay is on.
-- Corrected aspect ratio of HUD.
-- Fixed rendering of health, experience bars etc.
+Known Issues
+--------------------
 
-0.21 Alpha 10-05-13
-===================
-- Potential fix for other players' heads not rendering.
-- Initial support for hiding the player's head wear / masks. Use Ctrl-M to toggle the mask rendering.
+- Hydra *still* not working, disabled in installer for now
+- Some rendering issues - some fancy water / lightmap effects seem to not take account of player head 
+  orientation / position
+- The Forge build will most likely not play nicely with other Forge coremods
+- Controller button map is not yet stored in the settings profile
+- No default button map for a controller on first install
 
-0.20 Alpha 10-05-13
-===================
-- Fix 'late night' build issues with 0.19:
-   - Fixed unsatisified link error for head track prediction.
-   - Removed test code(!); for users without a Rift plugged in the screen kept rolling from side to side!
 
-0.19 Alpha 09-05-13
-===================
-- Reverted to fixed position HUD.
-- Large GUI size recommended.
-- Fixed mouse pointer alignment issue on menus.
-- Possible fix for crash on exit.
-- Added head track prediction support. Ctrl-Alt L to toggle.
+Roadmap
+-------------
 
-0.18 Alpha 08-05-13
-===================
-- Attempt to fix crash while head track enabled in menus.
-- Reduced opacity of HUD.
+General
+- Fix known issues
+- Add support for Oculus SDK 0.6 on Windows (will continue to support 0.5 on OSX and Linux)
+- Add initial support for SteamVR / Vive (if a Vive dev kit is forthcoming!)
+- Add support for selected Forge coremods - kayronix shaders mod, FTB?
+- Add rudimentary IK to player avatar animation so that body follows head position (within reason!)
+- Add debug console as secondary UI screen element
+- Investigate OSVR support
+- Investigate room-space movement
+- Investigate pos-track of arm/hand position with tracked controllers
+- Fix crosshair weirdness at extreme angles (due to current Euler implementation)
 
-0.17 Alpha 08-05-13
-===================
-- Prototype 3D GUI.
-
-0.16 Alpha 07-05-13
-===================
-- Yet more head tracking changes.
-
-0.15 Alpha 07-05-13
-===================
-- Further adjustments to head tracking.
-- Additional head-track position data output to debug display.
-- Lock HUD position toggle via Ctrl-U added.
-
-0.14 Alpha 06-05-13
-===================
-- Further head tracking fix to convert Euler angles from the rift to degrees for Minecraft.
-
-0.13 Alpha 06-05-13
-===================
-- Potential fix to continuously accelerating yaw rotation using head tracking.
-
-0.12 Alpha 06-05-13
-===================
-- Ctrl-L to toggle headtracking on / off, allowing mouse look.
-
-0.11 Alpha - FIRST RELEASE 06-05-13
-===================================
-- For Minecraft 1.5.2
-- Initial Rift stereo rendering and distortion in place, with IPD adjustment available.
-- Headtracking working (maybe! I have no means of testing this currently!).
-- Proper first-person rendering.
-- Rudimentary neck model should be in place.
-- Removed crosshair.
-- Initial overlay HUD.
+Roadmap
+- Port 1.7.10 features / fixes to Minecrift 1.8.1
+- Port to 1.8.7 when MCP release allows
+- Port to Forge 1.8.x

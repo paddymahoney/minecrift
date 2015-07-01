@@ -9,7 +9,7 @@ import time
 from shutil import move
 from tempfile import mkstemp
 from os import remove, close
-from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5
+from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5, mcp_download_url
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
 from applychanges import applychanges, apply_patch
@@ -24,6 +24,7 @@ nocompilefixpatch = False
 clean = False
 force = False
 dependenciesOnly = False
+getforge = False
 
 try:
     WindowsError
@@ -108,22 +109,25 @@ def installAndPatchMcp( mcp_dir ):
     mcp_exists = True
     if not os.path.exists(mcp_dir+"/runtime/commands.py"):
         mcp_exists = False
-        try:
-            mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
-            if os.path.exists( mcp_zip_file ):
+        mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
+        print( "Checking for mcp zip file: %s" % mcp_zip_file )
+        if not os.path.exists( mcp_zip_file ) and mcp_download_url:
+            # Attempt download
+            download_file( mcp_download_url, mcp_zip_file )
+
+        if os.path.exists( mcp_zip_file ):
+            if not os.path.exists( mcp_dir ):
                 os.mkdir( mcp_dir )
-                mcp_zip = zipfile.ZipFile( mcp_zip_file )
-                mcp_zip.extractall( mcp_dir )
-                import stat
-                astyle = os.path.join(mcp_dir,"runtime","bin","astyle-osx")
-                st = os.stat( astyle )
-                os.chmod(astyle, st.st_mode | stat.S_IEXEC)
-                mcp_exists = True
-        except:
-            pass
+            mcp_zip = zipfile.ZipFile( mcp_zip_file )
+            mcp_zip.extractall( mcp_dir )
+            import stat
+            astyle = os.path.join(mcp_dir,"runtime","bin","astyle-osx")
+            st = os.stat( astyle )
+            os.chmod(astyle, st.st_mode | stat.S_IEXEC)
+            mcp_exists = True
 
     if mcp_exists == False:
-        print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_dir, mcp_dir, base_dir)
+        print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_version, mcp_version, base_dir)
         exit(1)
     
     # Patch mcp.cfg for additional mem
@@ -408,6 +412,8 @@ def main(mcp_dir):
     print 'Using base dir: %s' % base_dir
     print 'Using mcp dir: %s (use -m <mcp-dir> to change)' % mcp_dir
     print 'Preferred architecture: %sbit - preferring %sbit native extraction (use -a 32 or -a 64 to change)' % (preferredarch, preferredarch)
+    if getforge:
+        print 'Also get Forge libs'
     if dependenciesOnly:
         print 'Downloading dependencies ONLY'
     else:
@@ -438,12 +444,14 @@ def main(mcp_dir):
         reallyrmtree(os.path.join(base_dir,'lib'))
         print 'Cleaning patchsrc dir...'
         reallyrmtree(os.path.join(base_dir,'patchsrc'))
-        print 'Installing mcp...'
-        installAndPatchMcp(mcp_dir)
 
+    print 'Installing mcp...'
+    installAndPatchMcp(mcp_dir)
 
     print("\nDownloading dependencies...")
-    download_deps( mcp_dir, True, True ) # Forge libs
+    if getforge:
+        download_deps( mcp_dir, True, True ) # Forge libs
+        
     download_deps( mcp_dir, True, False ) # Vanilla libs
     if dependenciesOnly:
         sys.exit(1)
@@ -578,6 +586,7 @@ if __name__ == '__main__':
     parser.add_option('-x', '--no-fix-patch', dest='nocompilefixpatch', default=False, action='store_true', help='If specified, no compile fix patches will be applied at the end of installation')
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
     parser.add_option('-a', '--architecture', action='store', dest='arch', help='Architecture to use (\'32\' or \'64\'); prefer 32 or 64bit dlls', default=None)
+    parser.add_option('-g', '--getforge', dest='forge', default=False, action='store_true', help='Get Forge libs')
     options, _ = parser.parse_args()
 
     if not options.arch is None:
@@ -596,6 +605,7 @@ if __name__ == '__main__':
     clean = options.clean
     force = options.force
     dependenciesOnly = options.dep
+    getforge = options.forge
     
     if not options.mcp_dir is None:
         main(os.path.abspath(options.mcp_dir))
