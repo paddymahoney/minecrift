@@ -13,6 +13,7 @@ from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_v
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
 from applychanges import applychanges, apply_patch
+from idea import createIdeaProject, removeIdeaProject
 
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -407,6 +408,12 @@ def osArch():
     else:
         return '32'
 
+def is32bitPreferred():
+    if preferredarch == '32':
+        return True
+
+    return False
+
 def main(mcp_dir):
     print 'Using base dir: %s' % base_dir
     print 'Using mcp dir: %s (use -m <mcp-dir> to change)' % mcp_dir
@@ -441,6 +448,8 @@ def main(mcp_dir):
         reallyrmtree(os.path.join(base_dir,'lib'))
         print 'Cleaning patchsrc dir...'
         reallyrmtree(os.path.join(base_dir,'patchsrc'))
+        print 'Removing idea project files...'
+        removeIdeaProject(base_dir)
 
     print 'Installing mcp...'
     installAndPatchMcp(mcp_dir)
@@ -519,6 +528,12 @@ def main(mcp_dir):
         applychanges( mcp_dir )
     else:
         print("Apply patches skipped!")
+
+    # create idea project if it doesn't already exist
+    if not os.path.exists(os.path.join(project_root_dir, '.idea')):
+        print("Creating idea project...")
+        createIdeaProject(base_dir, mc_version, os.path.basename(mcp_dir), is32bitPreferred())
+
 
 def reallyrmtree(path):
     if not sys.platform.startswith('win'):
