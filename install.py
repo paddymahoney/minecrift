@@ -530,7 +530,7 @@ def main(mcp_dir):
         print("Apply patches skipped!")
 
     # create idea project if it doesn't already exist
-    if not os.path.exists(os.path.join(project_root_dir, '.idea')):
+    if not os.path.exists(os.path.join(base_dir, '.idea')):
         print("Creating idea project...")
         createIdeaProject(base_dir, mc_version, os.path.basename(mcp_dir), is32bitPreferred())
 
