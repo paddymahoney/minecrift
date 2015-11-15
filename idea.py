@@ -33,11 +33,13 @@ def createIdeaProject(project_root_dir, version, mcpDirName, are32bitNatives):
     writeFile(os.path.join(project_root_dir, '.idea', 'libraries', version + '.xml'), libXML.xmlString)
 
     if _platform == "linux" or _platform == "linux2":
-        platform = 'linux32' if are32bitNatives else 'linux64'
+        #platform = 'linux32' if are32bitNatives else 'linux64'
+        platform = 'linux'
     elif _platform == "darwin":
         platform = 'osx'
     elif _platform == "win32":
-        platform = 'win32' if are32bitNatives else 'win64'
+        #platform = 'win32' if are32bitNatives else 'win64'
+        platform = 'windows'
 
     mainClass = 'Start'
     nativesPaths = [os.path.join(project_root_dir, 'JRift', 'JRift', 'natives', platform), \
