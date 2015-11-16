@@ -212,7 +212,7 @@
 +    public int currentDisplayWidth = 0;
 +    public int currentDisplayHeight = 0;
 +
-+    public final String minecriftVerString = "Minecrift 1.7.10 R1b";
++    public final String minecriftVerString = "Minecrift 1.7.10 R1c";
 +    /** END MINECRIFT */
 +
      public Minecraft(Session sessionIn, int displayWidth, int displayHeight, boolean fullscreen, boolean isDemo, File dataDir, File assetsDir, File resourcePackDir, Proxy proxy, String version, Multimap twitchDetails, String assetsJsonVersion)
@@ -320,6 +320,15 @@
          }
          catch (LWJGLException var7)
          {
+@@ -539,7 +684,7 @@
+             logger.error("Couldn\'t initialize twitch stream");
+         }
+ 
+-        this.framebufferMc = new Framebuffer(this.displayWidth, this.displayHeight, true);
++        this.framebufferMc = new Framebuffer(this.displayWidth, this.displayHeight, true);      // TODO: Need to set this to the guiFramebuffer instead?
+         this.framebufferMc.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
+         this.guiAchievement = new GuiAchievement(this);
+         this.metadataSerializer_.registerMetadataSectionType(new TextureMetadataSectionSerializer(), TextureMetadataSection.class);
 @@ -552,11 +697,33 @@
          this.mcResourceManager = new SimpleReloadableResourceManager(this.metadataSerializer_);
          this.mcLanguageManager = new LanguageManager(this.metadataSerializer_, this.gameSettings.language);
@@ -1622,7 +1631,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3710,961 @@
+@@ -3134,4 +3710,978 @@
              }
          }
      }
@@ -1749,16 +1758,22 @@
 +            if (this.framebuffers[0] != null) {
 +                this.framebuffers[0].deleteFramebuffer();
 +                this.framebuffers[0] = null;
++
++                // TODO: Delete swap texture set
 +            }
 +
 +            if (this.framebuffers[1] != null) {
 +                this.framebuffers[1].deleteFramebuffer();
 +                this.framebuffers[1] = null;
++
++                // TODO: Delete swap texture set
 +            }
 +
 +            if (this.guiFramebuffer != null) {
 +                this.guiFramebuffer.deleteFramebuffer();
 +                this.guiFramebuffer = null;
++
++                // TODO: Delete mirror texture
 +            }
 +
 +            if (this.fsaaFirstPassResultFBO[0] != null) {
@@ -1782,24 +1797,35 @@
 +            _LanczosShader_texelHeightOffsetUniform = -1;
 +            _LanczosShader_inputImageTextureUniform = -1;
 +
-+            int multiSampleCount = 0;   // TODO: The SDK (0.3.2 preview) doesn't like anything other than 0 currently AFAICT
++            int multiSampleCount = 0;
 +            boolean multiSample = (multiSampleCount > 0 ? true : false);
 +            boolean genMipMaps = true;
 +            this.entityRenderer.generatedIconMipmaps[0] = false;
 +            this.entityRenderer.generatedIconMipmaps[1] = false;
 +
-+            this.framebuffers[0] = new Framebuffer(this.EyeTextureSize[0].w, this.EyeTextureSize[0].h, true, genMipMaps, multiSample, multiSampleCount);
-+            glConfig.TexId = this.framebuffers[0].framebufferTexture;
-+            this.checkGLError("Viewport 1 framebuffer setup");
-+            this.framebuffers[1] = new Framebuffer(this.EyeTextureSize[1].w, this.EyeTextureSize[1].h, true, genMipMaps, multiSample, multiSampleCount);
-+            glConfig.TexId2 = this.framebuffers[1].framebufferTexture;
-+            this.checkGLError("Viewport 2 framebuffer setup");
++            SwapTextureSet renderTextures = this.stereoProvider.createSwapTextureSet(this.EyeTextureSize[0].w, this.EyeTextureSize[0].h);  // TODO: Support differing buffer sizes for each eye?
++            if (renderTextures == null)
++            {
++                this.framebuffers[0] = new Framebuffer(this.EyeTextureSize[0].w, this.EyeTextureSize[0].h, true, genMipMaps, multiSample, multiSampleCount, Framebuffer.NO_TEXTURE_ID);
++                glConfig.TexId = this.framebuffers[0].framebufferTexture;
++                this.checkGLError("Viewport 1 framebuffer setup");
++                this.framebuffers[1] = new Framebuffer(this.EyeTextureSize[1].w, this.EyeTextureSize[1].h, true, genMipMaps, multiSample, multiSampleCount, Framebuffer.NO_TEXTURE_ID);
++                glConfig.TexId2 = this.framebuffers[1].framebufferTexture;
++                this.checkGLError("Viewport 2 framebuffer setup");
++                this.framebuffers[0].setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
++                this.framebuffers[1].setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
++            }
++            else
++            {
++                // TODO: Initialise framebuffer sets...
++            }
++
++            // TODO: How to initialise mirror texture?
++
 +            this.guiFramebuffer  = new Framebuffer(this.displayFBWidth, this.displayFBHeight, true, genMipMaps);
 +            this.checkGLError("GUI framebuffer setup");
-+
-+            this.framebuffers[0].setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
-+            this.framebuffers[1].setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
 +            this.guiFramebuffer.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
++
 +
 +            try
 +            {

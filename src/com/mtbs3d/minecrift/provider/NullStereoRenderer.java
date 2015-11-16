@@ -180,4 +180,10 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     {
         return System.nanoTime() / 1000000000d;
     }
+
+    @Override
+    public SwapTextureSet createSwapTextureSet(int width, int height)
+    {
+        return null;
+    }
 }

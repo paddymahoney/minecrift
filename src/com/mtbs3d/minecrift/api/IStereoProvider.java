@@ -36,6 +36,8 @@ public interface IStereoProvider extends IBasePlugin
                                                          FovPort RightFov,
                                                          float worldScale);
 
+    public SwapTextureSet createSwapTextureSet(int width, int height);
+
     public void resetRenderConfig();
 
     public EyeType eyeRenderOrder(int index);
