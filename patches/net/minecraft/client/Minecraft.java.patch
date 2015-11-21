@@ -1631,7 +1631,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3710,978 @@
+@@ -3134,4 +3710,977 @@
              }
          }
      }
@@ -1758,22 +1758,16 @@
 +            if (this.framebuffers[0] != null) {
 +                this.framebuffers[0].deleteFramebuffer();
 +                this.framebuffers[0] = null;
-+
-+                // TODO: Delete swap texture set
 +            }
 +
 +            if (this.framebuffers[1] != null) {
 +                this.framebuffers[1].deleteFramebuffer();
 +                this.framebuffers[1] = null;
-+
-+                // TODO: Delete swap texture set
 +            }
 +
 +            if (this.guiFramebuffer != null) {
 +                this.guiFramebuffer.deleteFramebuffer();
 +                this.guiFramebuffer = null;
-+
-+                // TODO: Delete mirror texture
 +            }
 +
 +            if (this.fsaaFirstPassResultFBO[0] != null) {
@@ -1803,7 +1797,14 @@
 +            this.entityRenderer.generatedIconMipmaps[0] = false;
 +            this.entityRenderer.generatedIconMipmaps[1] = false;
 +
-+            SwapTextureSet renderTextures = this.stereoProvider.createSwapTextureSet(this.EyeTextureSize[0].w, this.EyeTextureSize[0].h);  // TODO: Support differing buffer sizes for each eye?
++            int mirrorTextureId = this.stereoProvider.createMirrorTexture(this.displayFBWidth, this.displayFBHeight);
++
++            SwapTextureSet renderTextures = this.stereoProvider.createSwapTextureSet(
++                    this.EyeTextureSize[0].w,
++                    this.EyeTextureSize[0].h,
++                    this.EyeTextureSize[1].w,
++                    this.EyeTextureSize[1].h);
++
 +            if (renderTextures == null)
 +            {
 +                this.framebuffers[0] = new Framebuffer(this.EyeTextureSize[0].w, this.EyeTextureSize[0].h, true, genMipMaps, multiSample, multiSampleCount, Framebuffer.NO_TEXTURE_ID);
@@ -1819,8 +1820,6 @@
 +            {
 +                // TODO: Initialise framebuffer sets...
 +            }
-+
-+            // TODO: How to initialise mirror texture?
 +
 +            this.guiFramebuffer  = new Framebuffer(this.displayFBWidth, this.displayFBHeight, true, genMipMaps);
 +            this.checkGLError("GUI framebuffer setup");

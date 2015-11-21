@@ -182,8 +182,14 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public SwapTextureSet createSwapTextureSet(int width, int height)
+    public SwapTextureSet createSwapTextureSet(int lwidth, int lheight, int rwidth, int rheight)
     {
         return null;
+    }
+
+    @Override
+    public int createMirrorTexture(int width, int height)
+    {
+        return -1;
     }
 }

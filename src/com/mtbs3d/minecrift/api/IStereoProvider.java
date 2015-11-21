@@ -36,7 +36,9 @@ public interface IStereoProvider extends IBasePlugin
                                                          FovPort RightFov,
                                                          float worldScale);
 
-    public SwapTextureSet createSwapTextureSet(int width, int height);
+    public SwapTextureSet createSwapTextureSet(int lwidth, int lheight, int rwidth, int rheight);
+
+    public int createMirrorTexture(int width, int height);
 
     public void resetRenderConfig();
 
