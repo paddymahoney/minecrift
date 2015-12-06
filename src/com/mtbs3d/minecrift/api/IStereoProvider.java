@@ -61,4 +61,6 @@ public interface IStereoProvider extends IBasePlugin
                                           float farClip);
 
     public double getCurrentTimeSecs();
+
+	public boolean setCurrentSwapTextureIndex(int currentSwapIdx);
 }

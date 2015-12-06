@@ -59,11 +59,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     @Override
     public EyeType eyeRenderOrder(int index)
     {
-        HmdDesc desc = getHMDInfo();
-        if (index < 0 || index >= desc.EyeRenderOrder.length)
-            return EyeType.ovrEye_Left;
-
-        return desc.EyeRenderOrder[index];
+        return EyeType.fromInteger(index);
     }
 
     @Override
@@ -132,7 +128,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
 
         // End the frame
-        super.endFrame();
+        submitFrame();
 
         GL11.glFrontFace(GL11.GL_CCW);   // Needed for OVR SDK 0.4.0
         GL11.glEnable(GL11.GL_CULL_FACE); // Turn back on...

@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/shader/Framebuffer.java
 +++ b/net/minecraft/client/shader/Framebuffer.java
-@@ -1,10 +1,18 @@
+@@ -1,10 +1,21 @@
  package net.minecraft.client.shader;
  
  import java.nio.ByteBuffer;
@@ -9,6 +9,7 @@
  import net.minecraft.client.renderer.Tessellator;
  import net.minecraft.client.renderer.texture.TextureUtil;
 +import net.minecraft.src.Reflector;
++
 +import org.lwjgl.opengl.ARBFramebufferObject;
 +import org.lwjgl.opengl.ContextCapabilities;
 +import org.lwjgl.opengl.EXTFramebufferObject;
@@ -16,10 +17,12 @@
 +import org.lwjgl.opengl.GL30;
 +import org.lwjgl.opengl.GL32;
 +import org.lwjgl.opengl.GLContext;
++
++import com.mtbs3d.minecrift.utils.SwapTextureSelector;
  
  public class Framebuffer
  {
-@@ -20,22 +28,62 @@
+@@ -20,22 +31,64 @@
      public int framebufferFilter;
      private static final String __OBFID = "CL_00000959";
  
@@ -31,20 +34,21 @@
 +    public int textureType = GL11.GL_TEXTURE_2D;
 +    public static final int NO_TEXTURE_ID = -1;
 +    public boolean generatedFramebufferTexture = true;
++    public SwapTextureSelector textureSelector=null;
 +	/** END MINECRIFT */
 +
      public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_)
      {
 +	/** MINECRIFT */
-+        this(p_i45078_1_, p_i45078_2_, p_i45078_3_, false, false, 0, NO_TEXTURE_ID);
++        this(p_i45078_1_, p_i45078_2_, p_i45078_3_, false, false, 0, null);
 +    }
 +
 +    public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps)
 +    {
-+        this(p_i45078_1_, p_i45078_2_, p_i45078_3_, generateMipMaps, false, 0, NO_TEXTURE_ID);
++        this(p_i45078_1_, p_i45078_2_, p_i45078_3_, generateMipMaps, false, 0, null);
 +    }
 +
-+    public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps, boolean multisample, int multisamplecount, int textureId)
++    public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps, boolean multisample, int multisamplecount, SwapTextureSelector textureSelector)
 +    {
 +	/** END MINECRIFT */
 +        /** MINECRIFT */
@@ -52,6 +56,7 @@
          this.framebufferObject = -1;
 -        this.framebufferTexture = -1;
 +        this.framebufferTexture = NO_TEXTURE_ID;
++        this.textureSelector=textureSelector;
 +        this.generatedFramebufferTexture = true;
          this.depthBuffer = -1;
          this.framebufferColor = new float[4];
@@ -69,7 +74,7 @@
 +        }
 +
 +		/** END MINECRIFT */
-+        this.createBindFramebuffer(p_i45078_1_, p_i45078_2_, textureId);
++        this.createBindFramebuffer(p_i45078_1_, p_i45078_2_, this.framebufferTexture);
      }
  
      public void createBindFramebuffer(int p_147613_1_, int p_147613_2_)
@@ -84,7 +89,7 @@
          if (!OpenGlHelper.isFramebufferEnabled())
          {
              this.framebufferWidth = p_147613_1_;
-@@ -50,8 +98,10 @@
+@@ -50,8 +103,10 @@
                  this.deleteFramebuffer();
              }
  
@@ -97,7 +102,7 @@
              OpenGlHelper.func_153171_g(OpenGlHelper.field_153198_e, 0);
          }
      }
-@@ -68,8 +118,9 @@
+@@ -68,8 +123,9 @@
                  OpenGlHelper.func_153184_g(this.depthBuffer);
                  this.depthBuffer = -1;
              }
@@ -109,7 +114,7 @@
              {
                  TextureUtil.deleteTexture(this.framebufferTexture);
                  this.framebufferTexture = -1;
-@@ -86,6 +137,13 @@
+@@ -86,6 +142,13 @@
  
      public void createFramebuffer(int p_147605_1_, int p_147605_2_)
      {
@@ -123,7 +128,7 @@
          this.framebufferWidth = p_147605_1_;
          this.framebufferHeight = p_147605_2_;
          this.framebufferTextureWidth = p_147605_1_;
-@@ -97,43 +155,90 @@
+@@ -97,43 +160,90 @@
          }
          else
          {
@@ -197,15 +202,15 @@
 +			/** END MINECRIFT */
          }
 +		
-     }
- 
++    }
++
 +	/** MINECRIFT */
 +    public void genMipMaps()
 +    {
 +        GL30.glGenerateMipmap(this.textureType);    // TODO: Minecrift - Check GLContext capabilities
-+    }
+     }
 +	/** END MINECRIFT */
-+
+ 
      public void setFramebufferFilter(int p_147607_1_)
      {
          if (OpenGlHelper.isFramebufferEnabled())
@@ -230,7 +235,7 @@
          }
      }
  
-@@ -159,6 +264,12 @@
+@@ -159,6 +269,12 @@
              {
                  throw new RuntimeException("GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER");
              }
@@ -243,7 +248,7 @@
              else
              {
                  throw new RuntimeException("glCheckFramebufferStatus returned unknown status:" + var1);
-@@ -168,18 +279,22 @@
+@@ -168,18 +284,22 @@
  
      public void bindFramebufferTexture()
      {
@@ -268,7 +273,7 @@
      }
  
      public void bindFramebuffer(boolean p_147610_1_)
-@@ -213,6 +328,13 @@
+@@ -213,6 +333,13 @@
  
      public void framebufferRender(int p_147615_1_, int p_147615_2_)
      {
@@ -282,7 +287,7 @@
          if (OpenGlHelper.isFramebufferEnabled())
          {
              GL11.glColorMask(true, true, true, false);
-@@ -224,8 +346,10 @@
+@@ -224,8 +351,10 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glLoadIdentity();
              GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
@@ -295,7 +300,7 @@
              GL11.glDisable(GL11.GL_LIGHTING);
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glDisable(GL11.GL_BLEND);
-@@ -265,4 +389,44 @@
+@@ -265,4 +394,56 @@
          GL11.glClear(var1);
          this.unbindFramebuffer();
      }
@@ -339,4 +344,16 @@
 +            }
 +        }
 +    }
++
++	public void selectTexture() {
++
++    	if(textureSelector!=null){
++    		this.framebufferTexture = textureSelector.getCurrentTexId();
++    	}
++
++        OpenGlHelper.func_153171_g(OpenGlHelper.field_153198_e, this.framebufferObject);   // GL30.glBindFramebuffer
++        OpenGlHelper.func_153188_a(OpenGlHelper.field_153198_e, OpenGlHelper.field_153200_g, this.textureType, this.framebufferTexture, 0);    // GL30.glFramebufferTexture2D
++
++        
++	}
  }

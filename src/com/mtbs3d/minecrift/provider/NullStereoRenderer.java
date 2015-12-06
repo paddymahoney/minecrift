@@ -192,4 +192,9 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     {
         return -1;
     }
+
+	@Override
+	public boolean setCurrentSwapTextureIndex(int currentSwapIdx) {
+		return true;
+	}
 }
