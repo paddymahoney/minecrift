@@ -60,7 +60,7 @@ public class NeckModelEyePosition extends BasePlugin implements IEyePositionProv
 	}
 
 	@Override
-	public void poll(int index) {
+	public void poll(long frameIndex) {
 	}
 
 	@Override
@@ -130,6 +130,6 @@ public class NeckModelEyePosition extends BasePlugin implements IEyePositionProv
     }
 
     public void beginFrame() { beginFrame(0); }
-    public void beginFrame(int frameIndex) { }
+    public void beginFrame(long frameIndex) { }
     public void endFrame() { }
 }

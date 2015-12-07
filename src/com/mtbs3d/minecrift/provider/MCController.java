@@ -279,7 +279,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 	private Minecraft mc;
 	private GuiScreenNavigator screenNavigator;
 	private boolean loaded = false;
-    int lastIndex = -1;
+    long lastIndex = -1;
 
 	public MCController() {
 		super();
@@ -352,11 +352,11 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	@Override
-	public void poll(int index)
+	public void poll(long frameIndex)
     {
-        if (index <= this.lastIndex)
+        if (frameIndex <= this.lastIndex)
             return;
-        lastIndex = index;
+        this.lastIndex = frameIndex;
 
 		if(!loaded)
 			loadBindings();
@@ -533,7 +533,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
     public void beginFrame() { beginFrame(0); }
-    public void beginFrame(int frameIndex) { }
+    public void beginFrame(long frameIndex) { }
     public void endFrame() { }
 
     @Override

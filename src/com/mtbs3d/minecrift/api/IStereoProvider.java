@@ -50,11 +50,9 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean isGuiOrtho();
 
-    public FrameTiming getFrameTiming();
-
     public Posef getEyePose(EyeType eye);
 
-    public FullPoseState getEyePoses(int frameIndex);
+    public FullPoseState getEyePoses(long frameIndex);
 
     public Matrix4f getMatrix4fProjection(FovPort fov,
                                           float nearClip,

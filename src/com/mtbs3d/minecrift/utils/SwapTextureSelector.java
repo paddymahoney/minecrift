@@ -3,14 +3,14 @@ package com.mtbs3d.minecrift.utils;
 import java.util.ArrayList;
 
 public class SwapTextureSelector {
-	private int mFrameIndex=0;
+	private long mFrameIndex=0;
 	private ArrayList<Integer> mTextureIds;
-	private int mNumTextures=1;
+	private long mNumTextures=1;
 	public void setTextureIds(ArrayList<Integer> textureIds){
 		mTextureIds = textureIds;
 		mNumTextures=textureIds.size();//TODO_ handle if empty?
 	}
-	public void setIndex(int frameIndex) {
+	public void setIndex(long frameIndex) {
 		mFrameIndex = frameIndex;		
 	}
 	/**
@@ -23,6 +23,6 @@ public class SwapTextureSelector {
 	 * To be passed to oculus SDK
 	 */
 	public int getCurrentSwapIdx(){
-		return mFrameIndex%mNumTextures;//TODO_ handle if mNumTextures==0?
+		return (int)(mFrameIndex % mNumTextures);//TODO_ handle if mNumTextures==0?
 	}
 }

@@ -176,12 +176,12 @@ public class PluginManager implements IEventListener
         thePluginManager.allPlugins.add(that);
     }
 
-    public static void pollAll(int index)
+    public static void pollAll(long frameIndex)
     {
         for( IBasePlugin p : thePluginManager.allPlugins )
         {
             if( p.isInitialized() )
-                p.poll(index);
+                p.poll(frameIndex);
         }
     }
 
@@ -194,7 +194,7 @@ public class PluginManager implements IEventListener
         }
     }
 
-    public static void beginFrameAll(int frameIndex)
+    public static void beginFrameAll(long frameIndex)
     {
         for( IBasePlugin p : thePluginManager.allPlugins )
         {

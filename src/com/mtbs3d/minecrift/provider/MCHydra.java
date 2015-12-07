@@ -109,7 +109,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	private Field keyDownField; //Whee, reflection
 	private Field buttonDownField; //Whee, reflection
 	private boolean mouseUseJoystick = true;
-	int lastIndex = -1;
+	long lastIndex = -1;
     boolean isCalibrating = false;
 
 	public MCHydra()
@@ -178,14 +178,14 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	}
 	
 	@Override
-	public void poll(int index)
+	public void poll(long frameIndex)
     {
         if (!isInitialized())
             return;
-        if (index <= this.lastIndex)
+        if (frameIndex <= this.lastIndex)
             return;
 
-        lastIndex = index;
+        this.lastIndex = frameIndex;
 
         Minecraft mc = Minecraft.getMinecraft();
 
@@ -771,7 +771,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	}
 
     public void beginFrame() { beginFrame(0); }
-    public void beginFrame(int frameIndex) { }
+    public void beginFrame(long frameIndex) { }
     public void endFrame() { }
 
     @Override

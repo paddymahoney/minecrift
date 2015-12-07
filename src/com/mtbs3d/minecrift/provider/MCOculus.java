@@ -32,7 +32,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     private int calibrationStep = NOT_CALIBRATING;
     private int MagCalSampleCount = 0;
     private boolean forceMagCalibration = false; // Don't force mag cal initially
-    private FrameTiming frameTiming = new FrameTiming();
     private float yawOffsetRad = 0f;
     private float pitchOffsetRad = 0f;
     private float rollHeadRad = 0f;
@@ -41,7 +40,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     private TrackerState ts = new TrackerState();
     private Posef[] eyePose = new Posef[3];
     private EulerOrient[] eulerOrient = new EulerOrient[3];
-    int lastIndex = -1;
+    long lastIndex = -1;
     FullPoseState fullPoseState = new FullPoseState();
     boolean isCalibrating = false;
 
@@ -84,8 +83,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         return false;
     }
 
-    public FrameTiming getFrameTiming() { return frameTiming; };
-
     public static UserProfileData theProfileData = null;
 
     @Override
@@ -95,9 +92,9 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     @Override
-    public void beginFrame(int frameIndex)
+    public void beginFrame(long frameIndex)
     {
-        frameTiming = super.beginFrameGetTiming(frameIndex);
+
     }
 
     @Override
@@ -107,7 +104,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     @Override
-    public FullPoseState getEyePoses(int frameIndex)
+    public FullPoseState getEyePoses(long frameIndex)
     {
         return fullPoseState;
     }
@@ -381,22 +378,20 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     @Override
-    public void poll(int index)
+    public void poll(long frameIndex)
     {
         //System.out.println("lastIndex: " + lastIndex);
 
         EyeType eye;
         if (!isInitialized())
             return;
-        if (index <= this.lastIndex)
+        if (frameIndex <= this.lastIndex)
             return;
 
-        lastIndex = index;
-        Vector3f leftViewAdjust = erp.Eyes[EyeType.ovrEye_Left.value()].ViewAdjust;
-        Vector3f rightViewAdjust = erp.Eyes[EyeType.ovrEye_Right.value()].ViewAdjust;
+        this.lastIndex = frameIndex;
 
         // Get our eye pose and tracker state in one hit
-        fullPoseState = super.getEyePoses(index, leftViewAdjust, rightViewAdjust);
+        fullPoseState = super.getEyePoses(frameIndex);
 
         // Set left eye pose
         eye = EyeType.ovrEye_Left;

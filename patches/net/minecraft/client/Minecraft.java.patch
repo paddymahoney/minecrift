@@ -216,7 +216,7 @@
 +    public int lastGuiScale = -1;
 +    public Deque<Long> runTickTimeNanos = new ArrayDeque<Long>();
 +    public long medianRunTickTimeNanos = 0;
-+    public int frameIndex = 0;
++    public long frameIndex = 0;
 +    public SwapTextureSelector swapTexProviderL=new SwapTextureSelector();
 +    public SwapTextureSelector swapTexProviderR=new SwapTextureSelector();
 +    public int mirrorFBId = 0;
@@ -741,11 +741,11 @@
 +        swapTexProviderR.setIndex(frameIndex);
 +        PluginManager.beginFrameAll(frameIndex); //TODO_ inject index to be provided for framebuffer?
 +        this.stereoProvider.setCurrentSwapTextureIndex(swapTexProviderL.getCurrentSwapIdx());//TODO_ calculate somewhere else? //TODO_ react to return value?
-+        frameTiming = new FrameTiming();//TODO_ fix in dll
-+        this.stereoProvider.getFrameTiming();
 +
 +        // Poll sensors
 +        PluginManager.pollAll(frameIndex);
++
++        // TODO: Get Frametiming (add to getEyePoses()?) and use for correct ticks setting for each eye for correct animation
 +
 +        disableGuiSizeHack();
 +        // TODO: End display size hack        

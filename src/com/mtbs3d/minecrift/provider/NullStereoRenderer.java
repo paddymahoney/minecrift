@@ -17,8 +17,6 @@ import java.io.File;
  */
 public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 {
-    FrameTiming frameTiming = new FrameTiming();
-
     @Override
     public String getID() {
         return "mono";
@@ -85,18 +83,12 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public FrameTiming getFrameTiming()
-    {
-        return frameTiming;
-    }
-
-    @Override
     public Posef getEyePose(EyeType eye) {
         return null;
     }
 
     @Override
-    public FullPoseState getEyePoses(int frameIndex) {
+    public FullPoseState getEyePoses(long frameIndex) {
         return new FullPoseState();
     }
 
@@ -131,7 +123,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public void poll(int index) {
+    public void poll(long frameIndex) {
 
     }
 
@@ -163,10 +155,9 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public void beginFrame(int frameIndex)
+    public void beginFrame(long frameIndex)
     {
-        frameTiming = new FrameTiming();
-        frameTiming.ScanoutMidpointSeconds = getCurrentTimeSecs();  // Hack to current for now - doesn't really matter
+
     }
 
     @Override
