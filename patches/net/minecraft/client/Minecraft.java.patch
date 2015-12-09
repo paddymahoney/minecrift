@@ -212,7 +212,7 @@
 +    public int currentDisplayWidth = 0;
 +    public int currentDisplayHeight = 0;
 +
-+    public final String minecriftVerString = "Minecrift 1.7.10 R1b";
++    public final String minecriftVerString = "Minecrift 1.7.10 R1c";
 +    /** END MINECRIFT */
 +
      public Minecraft(Session sessionIn, int displayWidth, int displayHeight, boolean fullscreen, boolean isDemo, File dataDir, File assetsDir, File resourcePackDir, Proxy proxy, String version, Multimap twitchDetails, String assetsJsonVersion)

@@ -17,3 +17,7 @@ lib/
 patchsrc/
 
 src/JRift
+bin/intelij_prod
+crash-reports
+optionsvrprofiles.txt
+saves
