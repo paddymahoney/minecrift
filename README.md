@@ -1,236 +1,161 @@
 Minecrift Mod for Minecraft
 ===========================
 
-Current Version: Minecrift 1.8.0, MCP 910-Pre1 
+Current Versions
+================
 
----
+The latest maintained code can be found in the branches:
 
-Building
-========
+Minecrift 1.7 (with Forge support): 'port_to_1_7_10'
+Minecrift 1.8:                      'port_to_1_8_1'
 
-The installation process has been tested on Windows 7, 8, 8.1, OSX 10.8, and Ubuntu
-Linux, but was written with cross-platform support in mind, so should be usable
-"everywhere". It requires the MCP (Minecraft Coders Pack).
+Getting the source
+==================
+
+A typical set of commands to retrieve the source correctly (including all required
+submodules) is shown below (you'll require a newish version of git installed and setup for
+commandline operation) e.g. for branch 1.7.10:
+
+For OSX / Linux:
+
+> git clone -b port_to_1_7_10 https://github.com/mabrowning/minecrift.git ~/minecrift-public-1710
+> cd ~/minecrift-public-1710
+> git submodule update --init --recursive
+
+For Windows:
+
+>git clone -b port_to_1_7_10 https://github.com/mabrowning/minecrift.git c:\minecrift-public-1710
+>cd /D c:\minecrift-public-1710
+>git submodule update --init --recursive
+
+Setting up
+==========
 
 Install build prerequisites
 ---------------------------
 
-- Be sure to pull in the required submodules linked to the minecrift git project:
- JRift, Sixense, repo, JMumble
-
-- Java JDK 1.6 or 1.7 (Java JRE, or 1.8 JDK or 1.8 JRE will NOT work)
+- Java JDK 1.6, 1.7 or 1.8 (the Java JRE will NOT work, it MUST be the JDK)
 - JAVA_HOME should be set to the JDK directory
-- %JAVA_HOME%/bin must be added to your path
-- Python 2.7 latest version
-- Scala is NOT required (and should NOT be present on your path to avoid build issues)
-- MCP 910-Pre1 from https://mobile.twitter.com/SeargeDP/status/517027419103186944
-- Copy the contents of the unzipped mcp directory into the minecrift/mcpxxx directory.
+- ${JAVA_HOME}\bin or %JAVA_HOME%/bin must be added to your path
+- Python 2.7.x (NOT 3.x)
+- Scala is NOT required (and currently for Windows should NOT be present on your path to avoid
+  build issues)
 
-Building / updating the patches / pushing changes
--------------------------------------------------
+Installing
+----------
 
-- Run install.sh (or install.bat) to download minecraft, Optifine, and other
-libraries; deobfuscate the base system, and apply the patches and new files.
+The build process has been tested on Windows 8.1, OSX 10.10, and Ubuntu 14.10. It utilises the
+MCP (Minecraft Coders Pack). To install and build a clean checkout of this repo,
+you should run the following from the root of the repo directory:
 
-NOTE: The initial build will fail; applychanges is then called and a few patches will
-fail. This is normal for now. 
+For OSX / Linux:
 
-- Use the MCP environment in /mcpxxx to modify, test, and recompile.  If you use
-the built-in eclipse workspace, you'll need to add the JRift, SixenseJava and
-JMumble jars, located in the jars/libraries/ directory. JRift is in de/fruitfly/ovr
-and SixenseJava is in com/sixense. 
+> ./install.sh
+> ./build.sh
 
-To run Minecrift in your dev env you will need to:
+For Windows:
 
-  Delete META-INF dir within minecrift/mcpxxx/jars/versions/x.x.x/x.x.x.jar (where x.x.x 
-  is the minecraft version) otherwise you get a SecurityException on Minecrift startup.
-  Merge in the assets directory from .minecraft into the minecrift/assets dir.
+> install.bat
+> build.bat
 
-- Run build.sh (or build.bat) to create a release installer. Run the release installer to
-  test the reobfuscated changes in the Minecraft launcher.
+NOTE: Build errors will be seen in the console during the install process (the initial MCP rebuild will
+fail). This is normal - the code is later patched to compile correctly.
 
-- Run getchanges.sh (or getchanges.bat) to diff the modified /mcpxxx/src files into
-version controlled /patches and copy the new classes into the /src/
-directory. Create a pull request for your changes.
+These scripts will generate deobfuscated Minecrift source in mcpxxx/src/minecraft (with the 'unaltered'
+source in mcpxxx/src/minecraft_orig). Required libs and natives will be in lib/<mcversion>. A versioned
+installer will also be created.
 
+Setting up a build / debug environment
+--------------------------------------
+
+This is currently a manual process (if anyone has maven / gradle experience and is willing to help create an
+automated project setup process let us know). NOTE: Assumes the project working & current directory
+is the root of this repo.
+
+Add the following to your Eclipse / Idea / whatever project:
+
+Non-Forge
++++++++++
+
+Java Source (in order):
+
+- Add ./JRift/JRift/src
+- Add ./JMumbleLib/JMumble/src
+- Add ./Sixense-Java/SixenseJava/src
+- Add ./mcpxxx/src/minecraft
+
+Libraries:
+
+- Add all libraries in ./lib/<minecraft_version>
+
+Run Configuration:
+
+Main class: Start
+JVM args:
+Linux:
+-Djava.library.path=./JRift/JRiftLibrary/natives/linux;./Sixense-Java/SixenseJavaLibrary/natives/linux;./JMumbleLink/JMumbleLibrary/natives/linux;./lib/<minecraft_version>/natives/linux
+OSX:
+-Djava.library.path=./JRift/JRiftLibrary/natives/osx:./Sixense-Java/SixenseJavaLibrary/natives/osx:./JMumbleLink/JMumbleLibrary/natives/osx:./lib/<minecraft_version>/natives/osx
+Windows:
+-Djava.library.path=.\JRift\JRiftLibrary\natives\windows;.\Sixense-Java\SixenseJavaLibrary\natives\windows;.\JMumbleLink\JMumbleLibrary\natives\windows;.\lib\<minecraft_version>\natives\windows
+
+Program args (these are optional; but allow you to test on Minecraft multiplayer servers):
+--username <minecraft_account_mailaddress_or_username> --password <minecraft_account_password>
+
+TBC: How to setup the minecraft assets for the debugger.
+
+Forge
++++++
+
+This is somewhat more complicated! TBD.
+
+Testing changes, and generating patches
+---------------------------------------
+
+- Surround any code changes with /** MINECRIFT **/ and /** END MINECRIFT **/
+- Keep changes to the original source to a minimum, add new functions /classes ideally so that minimal changes
+occur to the existing source. Do not refactor existing source, this will make future ports to new Minecraft
+versions very tricky. Larger changes to mtbs package classes are less problematic however.
+- Test your changes in the debugger.
+- Run build.sh (or build.bat) to create a release installer. Run the release installer against
+a real Minecraft install to test the reobfuscated changes via the Minecraft launcher.
+- Run getchanges.sh (or getchanges.bat) to create patches between your modified ./mcpxxx/src/minecraft files
+and the original ./mcpxxx/src/minecraft_orig files. The patches are copied to ./patches and new files copied
+into the ./src directory. Check-in your changes and create a pull request for them.
 
 License
 -------
 
 See [The License File](LICENSE.md) for more information.
 
-StellaArtois, mabrowning 2013, 2014
-
-With thanks to:
-
-- Palmer Luckey and his team for creating the Oculus Rift. The future is
-  finally here (well for some people anyway; mine hasn't arrived yet).
-- Markus "Notch" Persson for creating Minecraft. What has it grown into?
-- The team behind the MCP coders' pack, and the Minecraft community - why
-  Mojang bother obfuscating the source when you guys have done such a fantastic
-  job of de-obfuscating it is beyond me!
-- Powback for his initial work on the Java JNI wrapper to the Oculus SDK. Seeing 
-  this inspired me to get off my arse and get modding. See
-  [this Reddit thread](http://www.reddit.com/r/oculus/comments/1c1vh0/java_wrapper_for_devs/)
-- shakesoda and Ben (and others?) at MTBS for creating the GLSL version of the
-  Oculus distortion shader.
-- The guys at Valve for giving some good advice on updating a game for VR.
-- @PyramidHead76 for building the MacOS libs, and toiling to produce the
-  installation guide!!
-- Brad Larson and his GPUImage library, for the Lanczos GLSL shader
-  implementation for the FSAA.
-- All the feedback and support of the folks in the MTBS3D forums!
-
-What is Minecrift?
-------------------
-
-The cheesy name apart, Minecrift attempts to update Minecraft to support the
-Oculus Rift. Initially this means allowing head-tracking input and using the
-correct stereo rendering parameters for the Rift. We also are in the progress
-of supporting different control schemes and positional head tracking. Minecraft
-for various control schemes. If and when Minecraft officially supports the
-Rift, Minecrift development might cease, but probably not.
+StellaArtois, mabrowning 2013, 2014, 2015
 
 
----
-Where to get it?
-----------------
+*********************************************
+Detailed Information
+*********************************************
 
-Check [our website](http://minecraft-vr.com) for latest official releases!
-We also make regular updates to the MTBS3D forum thread when a release is 
-ready for general use. 
+The Build Process
+=================
 
-However, if you can't wait that long, we do have a continuous integration
-service generously provided by 
-[CloudBees](http://www.cloudbees.com). 
+It consists of a number of stages (and associated build scripts):
 
-Click the button below to go to our Jenkins page where you can download the
-latest build hot-off-the-presses.
+- Install
+This is used to install the Minecrift source from a clean checkout of this repo, to a deobfuscated
+source environment.
+MCP is extracted, and patched where necessary. Optifine is merged into the Minecraft jar, and then
+the MCP decompile / build process is run. This initial build will fail due to Optifine induced
+build errors. We patch those errors (the first stage patch), then rebuild and generate the
+client MD5s that MCP will use to determine which files are modified. Clean Minecraft + Optifine source
+(with build erros corrected) will be present in mcpxxx/src/minecraft_orig.
+Finally we apply the actual Minecrift patches (the second stage patch). Minecrift deobfuscated source
+will now be present in mcpxxx/src/minecraft.
 
-[![Powered By CloudBees](http://www.cloudbees.com/sites/default/files/Button-Powered-by-CB.png)
-](https://minecraftvr.ci.cloudbees.com/job/minecrift-1.6.4/lastSuccessfulBuild/artifact/)
+- Build
+This builds the obfuscated Minecrift jar, and builds the versioned installer.
+The scripts update the Minecrift version numbers in the source, as read from minecriftversion.py. Then
+MCP recompiles the Minecrift source (checking for build errors), reobfuscates any changed files
+(as compared to the source in mcpxxx/src/minecraft_orig) and then these files are added to a minecrift.jar.
+The installer is build, versioned and minecrift.jar embedded within.
 
----
-
-Installation
-------------
-
-Download and run the latest minecrift-1.6.4-b###-installer.exe/jar.
-*WINDOWS USERS: IMPORTANT* (but only required once). Install the Microsoft
-VS2010 C++ redists (both x86 and x64) from
-[here](http://www.microsoft.com/en-us/download/details.aspx?id=5555)
-
-----
-Controllers/JoyPads
--------------------
-Version 1.2 supports many different controllers. Change VR->Move/Aim Mode: to 
-'Controller' and then remap the keys that best fit your controller in 'Remap 
-Controls'.
-
-Razer Hydra
------------
-Version 1.0 is the first to include full Razer Hydra support.
- - OrientationTracker: If you don't have an Oculus Rift, you can use the left
-   controler for head orientation (direction).
- - PositionTracker: This makes a huge immersion difference. The Hydra can feed
-   position data the game engine to allow you to look up, down, around corners,
-   squat, and generally move around. Use one or two controllers attached to
-   your head and adjust the offsets from your eye center on the VR Options.
- - Controller: Use the right controller to turn the view left/right, move
-   forward and backwards, place blocks, mine, select item, jump, sneak, access
-   your inventory and navigate menus. The controls are currently hardcoded:
- - In game:
-   - Joystick X: Move left/right
-   - Joystick Y: Move forward/back
-   - 1: Drop item
-   - 2: Jump
-   - 3: Select next left item (mousewheel up)
-   - 4: Select next right item (mousewheel down)
-   - JOYSTICK: Sneak
-   - Bumper: Place block/use item/interact (right mouse)
-   - Trigger: Mine block (left mouse)
-   - Start: Access Inventory
-   - Keyhole aiming: turning too far left or right will turn the character.
-
- -  In Menus/Inventories:
-   - Joystick: mouse up/down/left/right (don't use the actual mouse at
-			   the same time: known issue)
-   - Trigger: Left Click
-   - Bumper: Right Click
-   - JOYSTICK: "Shift"
-
- - You should be able to take advantage of the new 1.5 inventory management
-	 controls with this joystick mapping.
-
-Joystick sensitivity can be set in VR Options.
-
-Controls/Usage
---------
-
-Here are some other hotkeys that allow quick access to changing VR settings.
-
-- All Minecrift settings are present in the Options->VR Settings screen, but
-  keyboard shortcuts are also available for convenience
-- Make sure to read the tool-tips on each setting in VR Options to get an
-  understanding for what it is adjusting. VR is best when you tune the experience
-  to your setup.
-- Pressing space-bar while in a menu will reset the orientation of the head tracker 
-  to make the current direction "forward"
-
-- F1 to bring up the game HUD / overlay if it isn't already up. 
-- Ctrl and - / = for IPD adjustment. Hold ALT as well for fine adjustment. The
-  IPD setting should be saved between sessions.
-- Ctrl O to attempt to reinitialise the Rift (including head tracking).
-- Ctrl P while not in a menu to turn distortion on / off. Sometimes useful if
-  the offset mouse pointer is a pain in the menus. Ctrl-Alt P to toggle
-  chromatic aberration correction.
-- Ctrl L toggles head-tracking ON/OFF. Ctrl-Alt L toggles tracking prediction
-  ON/OFF. It is OFF by default.
-- Ctrl U changes the HUD distance. Ctrl-Alt U changes the HUD scale. Ctrl-Alt Y
-  toggles opacity on the HUD.
-- Ctrl-M toggles rendering of the player's mask ON/OFF.
-- FOV adjustment within Minecraft will have no effect - I use the FOV as
-  calculated from within the Oculus SDK.
-- Allow user to use mouse pitch input as well as yaw. Use Ctrl-N to toggle.
-- Large or Auto GUI size recommended.
-- Use Ctrl-B to turn Full Scene Anti-aliasing (FSAA) on/off. Use Ctrl-Alt B to
-  cycle the FSAA renderscale. Be warned; this feature is a resource hog!! If
-  you cannot get 60fps at your desired FSAA level, cycle it to a lower scale
-  factor. Anyone with a nVidia GTX Titan please let me know what average FPS
-  you get at scale factor 4.0!
-- Ctrl , or . decreases or increases the FOV scale factor. This can be used to
-  fine tune FOV if it doesn't look quite right to you.
-- Ctrl-Alt , or . decreases or increases various sizes of distortion border.
-  This can be used to improve rendering speed, at a potential loss of FOV.
-- Ctrl V cycles through head track sensitivity multipliers. Try this at your
-  own risk!
-
-Known Issues
-------------
-
-There are quite a small bugs that can be seen on the [GitHub issue
-tracker](https://github.com/mabrowning/minecrift/issues)
-
-Feedback, bug reporting
------------------------
-
-Please post feedback, bug reports etc. to the [GitHub issue
-tracker](https://github.com/mabrowning/minecrift/issues). Please search before
-posting to see if the issue has already been reported
-
-There is also discussion happening at this [forum thread at
-MTBS](http://www.mtbs3d.com/phpbb/viewtopic.php?f=140&t=17146)
-
-Roadmap
--------
-
-- Investigate gamepad support.
-- Make controls remappable.
-- Add more natural VR interfaces.
-- Fix bugs.
-
-Release Notes
-=============
-
-The change-list can be seen [here](CHANGES.md)
-
+More to come...

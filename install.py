@@ -9,10 +9,11 @@ import time
 from shutil import move
 from tempfile import mkstemp
 from os import remove, close
-from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5
+from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5, mcp_download_url
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
 from applychanges import applychanges, apply_patch
+from idea import createIdeaProject, removeIdeaProject
 
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -108,22 +109,25 @@ def installAndPatchMcp( mcp_dir ):
     mcp_exists = True
     if not os.path.exists(mcp_dir+"/runtime/commands.py"):
         mcp_exists = False
-        try:
-            mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
-            if os.path.exists( mcp_zip_file ):
+        mcp_zip_file = os.path.join( base_dir,mcp_version+".zip" )
+        print( "Checking for mcp zip file: %s" % mcp_zip_file )
+        if not os.path.exists( mcp_zip_file ) and mcp_download_url:
+            # Attempt download
+            download_file( mcp_download_url, mcp_zip_file )
+
+        if os.path.exists( mcp_zip_file ):
+            if not os.path.exists( mcp_dir ):
                 os.mkdir( mcp_dir )
-                mcp_zip = zipfile.ZipFile( mcp_zip_file )
-                mcp_zip.extractall( mcp_dir )
-                import stat
-                astyle = os.path.join(mcp_dir,"runtime","bin","astyle-osx")
-                st = os.stat( astyle )
-                os.chmod(astyle, st.st_mode | stat.S_IEXEC)
-                mcp_exists = True
-        except:
-            pass
+            mcp_zip = zipfile.ZipFile( mcp_zip_file )
+            mcp_zip.extractall( mcp_dir )
+            import stat
+            astyle = os.path.join(mcp_dir,"runtime","bin","astyle-osx")
+            st = os.stat( astyle )
+            os.chmod(astyle, st.st_mode | stat.S_IEXEC)
+            mcp_exists = True
 
     if mcp_exists == False:
-        print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_dir, mcp_dir, base_dir)
+        print "No %s directory or zip file found. Please copy the %s.zip file into %s and re-run the command." % (mcp_version, mcp_version, base_dir)
         exit(1)
     
     # Patch mcp.cfg for additional mem
@@ -404,6 +408,12 @@ def osArch():
     else:
         return '32'
 
+def is32bitPreferred():
+    if preferredarch == '32':
+        return True
+
+    return False
+
 def main(mcp_dir):
     print 'Using base dir: %s' % base_dir
     print 'Using mcp dir: %s (use -m <mcp-dir> to change)' % mcp_dir
@@ -438,9 +448,11 @@ def main(mcp_dir):
         reallyrmtree(os.path.join(base_dir,'lib'))
         print 'Cleaning patchsrc dir...'
         reallyrmtree(os.path.join(base_dir,'patchsrc'))
-        print 'Installing mcp...'
-        installAndPatchMcp(mcp_dir)
+        print 'Removing idea project files...'
+        removeIdeaProject(base_dir)
 
+    print 'Installing mcp...'
+    installAndPatchMcp(mcp_dir)
 
     print("\nDownloading dependencies...")
     download_deps( mcp_dir, True, True ) # Forge libs
@@ -516,6 +528,12 @@ def main(mcp_dir):
         applychanges( mcp_dir )
     else:
         print("Apply patches skipped!")
+
+    # create idea project if it doesn't already exist
+    if not os.path.exists(os.path.join(base_dir, '.idea')):
+        print("Creating idea project...")
+        createIdeaProject(base_dir, mc_version, os.path.basename(mcp_dir), is32bitPreferred())
+
 
 def reallyrmtree(path):
     if not sys.platform.startswith('win'):
