@@ -16,3 +16,7 @@ installer/out/
 lib/
 patchsrc/
 
+saves
+bin/intelij_prod
+optionsvr.bak
+optionsvr.txt
