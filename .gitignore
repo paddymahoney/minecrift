@@ -20,3 +20,4 @@ saves
 bin/intelij_prod
 optionsvr.bak
 optionsvr.txt
+crash-reports/
