@@ -301,5 +301,5 @@
   ],
   "mainClass": "net.minecraft.launchwrapper.Launch",
   "minimumLauncherVersion": 14,
-  "assets": "1.8"
+  "assets": "1.8.8"
 }

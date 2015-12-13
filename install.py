@@ -9,7 +9,9 @@ import time
 from shutil import move
 from tempfile import mkstemp
 from os import remove, close
-from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5, mcp_download_url
+from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, \
+    minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5, \
+    mcp_download_url, mcp_uses_generics
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
 from applychanges import applychanges, apply_patch
@@ -25,6 +27,7 @@ nocompilefixpatch = False
 clean = False
 force = False
 dependenciesOnly = False
+includeForge = False
 
 try:
     WindowsError
@@ -132,12 +135,15 @@ def installAndPatchMcp( mcp_dir ):
     
     # Patch mcp.cfg for additional mem
     print("Patching mcp.cfg. Ignore \"FAILED\" hunks")
-    apply_patch( mcp_dir, os.path.join("mcppatches", "mcp.cfg.patch"), os.path.join(mcp_dir,"conf"))
+    mcp_cfg_patch_file = os.path.join("mcppatches", "mcp.cfg.patch")
+    if os.path.exists(mcp_cfg_patch_file):
+        apply_patch( mcp_dir, mcp_cfg_patch_file, os.path.join(mcp_dir,"conf"))
     
     # Patch mcp.cfg with minecraft jar md5
     mcp_cfg_file = os.path.join(mcp_dir,"conf","mcp.cfg")
-    replacelineinfile( mcp_cfg_file, "MD5Client  =", "MD5Client  = %s\n" % mc_file_md5, True );   # Multiple 'MD5Client' entries - hack to get first one currently
-    #replacelineinfile( mcp_cfg_file, "MD5Server  =", "MD5Server  = %s\n" % mc_server_file_md5, True );
+    if os.path.exists(mcp_cfg_file):
+        replacelineinfile( mcp_cfg_file, "MD5Client  =", "MD5Client  = %s\n" % mc_file_md5, True );   # Multiple 'MD5Client' entries - hack to get first one currently
+        #replacelineinfile( mcp_cfg_file, "MD5Server  =", "MD5Server  = %s\n" % mc_server_file_md5, True );
 
     # patch joined.srg if necessary
     mcp_joined_srg = os.path.join(mcp_dir,"conf","joined.srg")
@@ -154,10 +160,11 @@ def installAndPatchMcp( mcp_dir ):
 
     # Patch Start.java with minecraft version
     start_java_file = os.path.join(base_dir,"mcppatches","Start.java")
-    target_start_java_file = os.path.join(mcp_dir,"conf","patches","Start.java")
-    print 'Updating Start.java: copying %s to %s' % (start_java_file, target_start_java_file)
-    shutil.copy(start_java_file,target_start_java_file)
-    replacelineinfile( target_start_java_file, "args = concat(new String[] {\"--version\", \"mcp\"", "        args = concat(new String[] {\"--version\", \"mcp\", \"--accessToken\", \"0\", \"--assetsDir\", \"assets\", \"--assetIndex\", \"%s\", \"--userProperties\", \"{}\"}, args);\n" % mc_version );
+    if os.path.exists(start_java_file):
+        target_start_java_file = os.path.join(mcp_dir,"conf","patches","Start.java")
+        print 'Updating Start.java: copying %s to %s' % (start_java_file, target_start_java_file)
+        shutil.copy(start_java_file,target_start_java_file)
+        replacelineinfile( target_start_java_file, "args = concat(new String[] {\"--version\", \"mcp\"", "        args = concat(new String[] {\"--version\", \"mcp\", \"--accessToken\", \"0\", \"--assetsDir\", \"assets\", \"--assetIndex\", \"%s\", \"--userProperties\", \"{}\"}, args);\n" % mc_version );
     
     # Setup the appropriate mcp file versions
     mcp_version_cfg = os.path.join(mcp_dir,"conf","version.cfg")
@@ -455,7 +462,9 @@ def main(mcp_dir):
     installAndPatchMcp(mcp_dir)
 
     print("\nDownloading dependencies...")
-    download_deps( mcp_dir, True, True ) # Forge libs
+    if includeForge:
+        download_deps( mcp_dir, True, True ) # Forge libs
+
     download_deps( mcp_dir, True, False ) # Vanilla libs
     if dependenciesOnly:
         sys.exit(1)
@@ -476,8 +485,28 @@ def main(mcp_dir):
     sys.path.append(mcp_dir)
     os.chdir(mcp_dir)
     from runtime.decompile import decompile
-    #         Conf  JAD    CSV    -r     -d     -a     -n     -p     -o     -l     -g     -c    -s     --rg   -w    json  --nocopy
-    decompile(None, False, False, False, False, False, False, False, False, False, False, True, False, False, None, None, True  )
+
+    # This *has* to sync with the default options used in <mcpdir>/runtime/decompile.py for
+    # the currently used version of MCP
+    
+    decompile(conffile=None,      # -c
+              force_jad=False,    # -j
+              force_csv=False,    # -s
+              no_recompile=False, # -r
+              no_comments=False,  # -d
+              no_reformat=False,  # -a
+              no_renamer=False,   # -n
+              no_patch=False,     # -p
+              only_patch=False,   # -o
+              keep_lvt=False,     # -l
+              keep_generics=mcp_uses_generics, # -g, True for MCP 1.8.8+, False otherwise
+              only_client=True,   # --client
+              only_server=False,  # --server
+              force_rg=False,     # --rg
+              workdir=None,       # -w
+              json=None,          # --json
+              nocopy=True         # --nocopy
+              )
 
     os.chdir( base_dir )
 
@@ -596,6 +625,7 @@ if __name__ == '__main__':
     parser.add_option('-x', '--no-fix-patch', dest='nocompilefixpatch', default=False, action='store_true', help='If specified, no compile fix patches will be applied at the end of installation')
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
     parser.add_option('-a', '--architecture', action='store', dest='arch', help='Architecture to use (\'32\' or \'64\'); prefer 32 or 64bit dlls', default=None)
+    parser.add_option('-i', '--includeForge', dest='includeForge', default=False, action='store_true', help='Also include download of Forge dependencies')
     options, _ = parser.parse_args()
 
     if not options.arch is None:
