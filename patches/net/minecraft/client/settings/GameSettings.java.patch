@@ -46,13 +46,13 @@
              String var2 = "";
              this.mapSoundLevels.clear();
  
-@@ -2221,13 +2227,17 @@
+@@ -2221,13 +2227,16 @@
  
              if (var6 != null && Reflector.callBoolean(var6, Reflector.FMLClientHandler_isLoading, new Object[0]))
              {
-+                // TODO: Compat with Forge for profile support?
-+
-                 return;
+-                return;
++                // MINECRIFT - Always save profile settings even if handled by Forge?
++                //return;
              }
          }
  
@@ -65,7 +65,7 @@
              var81.println("invertYMouse:" + this.invertMouse);
              var81.println("mouseSensitivity:" + this.mouseSensitivity);
              var81.println("fov:" + (this.fovSetting - 70.0F) / 40.0F);
-@@ -2358,8 +2368,9 @@
+@@ -2358,8 +2367,9 @@
              {
                  return;
              }
@@ -77,7 +77,7 @@
              String s = "";
  
              while ((s = bufferedreader.readLine()) != null)
-@@ -2753,7 +2764,9 @@
+@@ -2753,7 +2763,9 @@
      {
          try
          {
@@ -88,7 +88,7 @@
              exception.println("ofRenderDistanceChunks:" + this.renderDistanceChunks);
              exception.println("ofFogType:" + this.ofFogType);
              exception.println("ofFogStart:" + this.ofFogStart);
-@@ -2918,8 +2931,10 @@
+@@ -2918,8 +2930,10 @@
  
      public void updateVSync()
      {
