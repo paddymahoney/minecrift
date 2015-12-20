@@ -1951,7 +1951,7 @@ public class VRSettings
 
     public void saveOptions()
     {
-        saveOptions(null);
+        saveOptions(null); // Use null for current profile
     }
 
     private void storeDefaults()

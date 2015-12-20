@@ -41,6 +41,7 @@ public class ProfileManager
     public static final String PROFILE_SET_OF = "Of";
     public static final String PROFILE_SET_MC = "Mc";
     public static final String PROFILE_SET_VR = "Vr";
+    public static final String PROFILE_SET_CONTROLLER_BINDINGS = "Controller";
 
     static final String KEY_PROFILES = "Profiles";
     static final String KEY_SELECTED_PROFILE = "selectedProfile";
@@ -50,6 +51,7 @@ public class ProfileManager
     static File legacyMcProfileCfgFile = null;
     static File legacyOfProfileCfgFile = null;
     static File legacyVrProfileCfgFile = null;
+    static File legacyControllerProfileCfgFile = null;
 
     static JSONObject jsonConfigRoot = null;
     static JSONObject profiles = null;
@@ -60,13 +62,46 @@ public class ProfileManager
         legacyMcProfileCfgFile = new File(dataDir, "options.txt");
         legacyOfProfileCfgFile = new File(dataDir, "optionsof.txt");
         legacyVrProfileCfgFile = new File(dataDir, VRSettings.LEGACY_OPTIONS_VR_FILENAME);
+        legacyControllerProfileCfgFile = new File(dataDir, "options_controller.txt");
 
         load();
     }
 
     public static synchronized void load()
     {
-        jsonConfigRoot = new JSONObject();
+        try {
+            // Create vr profiles config file if it doesn't already exist
+            if (vrProfileCfgFile.exists() == false) {
+                vrProfileCfgFile.createNewFile();
+            }
+
+            // Read in json (may be empty)
+            FileReader fr = new FileReader(vrProfileCfgFile);
+            JSONTokener jt = new JSONTokener(fr);
+            jsonConfigRoot = new JSONObject(jt);
+            fr.close();
+
+            // Read current profile (create if necessary)
+            if (jsonConfigRoot.has(KEY_SELECTED_PROFILE))
+                currentProfileName = jsonConfigRoot.getString(KEY_SELECTED_PROFILE);
+            else {
+                jsonConfigRoot.put(KEY_SELECTED_PROFILE, ProfileManager.DEFAULT_PROFILE);
+            }
+
+            // Read profiles section (create if necessary)
+            if (jsonConfigRoot.has(KEY_PROFILES)) {
+                profiles = jsonConfigRoot.getJSONObject(KEY_PROFILES);
+            }
+            else {
+                profiles = new JSONObject();
+                jsonConfigRoot.put(KEY_PROFILES, profiles);
+            }
+
+        } catch (IOException e) {
+            System.out.println("FAILED to read VR profile settings!");
+            e.printStackTrace();
+        }
+
         if (vrProfileCfgFile.exists()) {
             // Read in new format
             try {
@@ -81,6 +116,7 @@ public class ProfileManager
                     currentProfileName = jsonConfigRoot.getString(KEY_SELECTED_PROFILE);
                 else {
                     jsonConfigRoot.put(KEY_SELECTED_PROFILE, ProfileManager.DEFAULT_PROFILE);
+                    currentProfileName = ProfileManager.DEFAULT_PROFILE;
                 }
 
                 // Read profiles section
@@ -91,6 +127,15 @@ public class ProfileManager
                     profiles = new JSONObject();
                     jsonConfigRoot.put(KEY_PROFILES, profiles);
                 }
+
+                // Add default profile if necessary
+                if (profiles.has(ProfileManager.DEFAULT_PROFILE) == false) {
+                    JSONObject defaultProfile = new JSONObject();
+                    profiles.put(ProfileManager.DEFAULT_PROFILE, defaultProfile);
+                }
+
+                // Validate all profiles
+                validateProfiles();
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -103,9 +148,10 @@ public class ProfileManager
                 profiles = new JSONObject();
                 jsonConfigRoot.put(KEY_PROFILES, profiles);
 
-                loadLegacySettings(legacyMcProfileCfgFile, ProfileManager.DEFAULT_PROFILE, ProfileManager.PROFILE_SET_MC);
+
                 loadLegacySettings(legacyOfProfileCfgFile, ProfileManager.DEFAULT_PROFILE, ProfileManager.PROFILE_SET_OF);
                 loadLegacySettings(legacyVrProfileCfgFile, ProfileManager.DEFAULT_PROFILE, ProfileManager.PROFILE_SET_VR);
+                loadLegacySettings(legacyControllerProfileCfgFile, ProfileManager.DEFAULT_PROFILE, ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS);
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -113,12 +159,64 @@ public class ProfileManager
         }
     }
 
-    private static synchronized void loadLegacySettings(File settingsFile, String profile, String set) throws Exception
+    private static void validateProfiles() throws Exception {
+        // Iterate each profile
+            // check each profile set mc, of, vr, controller
+                // if doesn't exist, set profile set defaults
+
+        // For each profile
+        for (Object profileKey : profiles.keySet()) {
+            String profileName = (String) profileKey;
+            Object profileObj = profiles.get(profileName);
+            if (profileObj instanceof JSONObject) {
+                JSONObject profile = (JSONObject)profileObj;
+
+                JSONObject Mc = null;
+                JSONObject Of = null;
+                JSONObject Vr = null;
+                JSONObject Controller = null;
+
+                // For each profile set
+                for (Object profileSetKey : profile.keySet()) {
+                    String profileSetName = (String) profileSetKey;
+                    Object profileSetObj = profile.get(profileSetName);
+                    if (profileSetObj instanceof JSONObject) {
+                        if (profileSetName.equals(ProfileManager.PROFILE_SET_MC)) {
+                            Mc = (JSONObject)profileSetObj;
+                        }
+                        if (profileSetName.equals(ProfileManager.PROFILE_SET_OF)) {
+                            Of = (JSONObject)profileSetObj;
+                        }
+                        if (profileSetName.equals(ProfileManager.PROFILE_SET_VR)) {
+                            Vr = (JSONObject)profileSetObj;
+                        }
+                        if (profileSetName.equals(ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS)) {
+                            Controller = (JSONObject)profileSetObj;
+                        }
+                    }
+                }
+
+                if (Mc == null) {
+                    // Attempt legacy file read
+                    if (loadLegacySettings(legacyMcProfileCfgFile, profileName, ProfileManager.PROFILE_SET_MC) == false) {
+                        // Add defaults if nothing could be read
+
+                    }
+                }
+            }
+        }
+    }
+
+    private static synchronized boolean loadLegacySettings(File settingsFile, String profile, String set) throws Exception
     {
+        if (settingsFile.exists() == false)
+            return false;
+
         FileReader fr = new FileReader(settingsFile);
         BufferedReader br = new BufferedReader(fr);
         String s;
         Map<String, String> settings = new HashMap<String, String>();
+        int count = 0;
         while ((s = br.readLine()) != null) {
             String[] array = s.split(":");
             String setting = array[0];
@@ -127,8 +225,13 @@ public class ProfileManager
                 value = array[1];
             }
             settings.put(setting, value);
+            count++;
         }
         setProfileSet(profile, set, settings);
+        if (count == 0)
+            return false;
+
+        return true;
     }
 
     public static synchronized Map<String, String> getProfileSet(String profile, String set)

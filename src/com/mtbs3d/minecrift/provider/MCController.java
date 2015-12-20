@@ -18,10 +18,14 @@ import java.util.Map;
 import com.mtbs3d.minecrift.api.PluginType;
 import com.mtbs3d.minecrift.control.*;
 
+import com.mtbs3d.minecrift.settings.profile.ProfileManager;
+import com.mtbs3d.minecrift.settings.profile.ProfileReader;
+import com.mtbs3d.minecrift.settings.profile.ProfileWriter;
 import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
@@ -404,17 +408,17 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	private void saveBindings() {
-		File bindingsSave = new File( mc.mcDataDir, "options_controller.txt");
-		PrintWriter bindingsWriter;
-		try {
-			bindingsWriter = new PrintWriter( new FileWriter(bindingsSave));
-			for (Map.Entry<String, String> entry : bindingSaves.entrySet()) {
-				bindingsWriter.println(entry.getKey()+":"+entry.getValue());
-			}
-			bindingsWriter.close();
-		} catch (IOException e) {
-            logger.error("Failed to save controller bindings: " + e.getMessage());
+		saveBindings(null); // Use null for the current profile
+	}
+
+	private void saveBindings(JSONObject theProfiles) {
+		//File bindingsSave = new File( mc.mcDataDir, "options_controller.txt");
+
+		ProfileWriter bindingsWriter = new ProfileWriter(ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS, theProfiles);
+		for (Map.Entry<String, String> entry : bindingSaves.entrySet()) {
+			bindingsWriter.println(entry.getKey()+":"+entry.getValue());
 		}
+		bindingsWriter.close();
 	}
 	
 	private void loadBinding( ControlBinding binding, BindingMap map, String[] bindingTokens) {
@@ -436,13 +440,18 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	private void loadBindings() {
+		loadBindings(null); // Use null for the current profile
+	}
+
+	private void loadBindings(JSONObject theProfiles) {
 		File bindingsSave = new File( mc.mcDataDir, "options_controller.txt");
 		if( !bindingsSave.exists() ) {
 			//TODO: load a default binding?
 			
 		} else {
             try {
-				BufferedReader bindingsReader = new BufferedReader(new FileReader(bindingsSave));
+				ProfileReader bindingsReader = new ProfileReader(ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS, theProfiles);
+				//BufferedReader bindingsReader = new BufferedReader(new FileReader(bindingsSave));
 				String line;
 				while ((line = bindingsReader.readLine()) != null)
 	            {
