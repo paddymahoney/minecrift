@@ -3,8 +3,11 @@
   "time": "2015-07-27T11:31:28+01:00",
   "releaseTime": "2015-07-27T11:31:28+01:00",
   "type": "release",
-  "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type}",
+  "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type}  --tweakClass optifine.OptiFineTweaker",
   "libraries": [
+    {
+      "name": "optifine:OptiFine:1.8.8_HD_U_G7"
+    },
     {
       "name": "oshi-project:oshi-core:1.1"
     },

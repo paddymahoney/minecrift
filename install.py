@@ -158,6 +158,13 @@ def installAndPatchMcp( mcp_dir ):
         print("Patching fffix.py. Ignore \"FAILED\" hunks")
         apply_patch( mcp_dir, os.path.join("mcppatches", "fffix.py.patch"), os.path.join(mcp_dir,"runtime","pylibs"))
 
+    # Use fixed fernflower.jar
+    ff_jar_source_path = os.path.join(base_dir, "mcppatches", "fernflower-opt-fix.jar")
+    ff_jar_dest_path = os.path.join(mcp_dir,"runtime","bin","fernflower.jar")
+    if os.path.exists(ff_jar_source_path):
+        print 'Updating fernflower.jar: copying %s to %s' % (ff_jar_source_path, ff_jar_dest_path)
+        shutil.copy(ff_jar_source_path,ff_jar_dest_path)
+
     # Patch Start.java with minecraft version
     start_java_file = os.path.join(base_dir,"mcppatches","Start.java")
     if os.path.exists(start_java_file):
