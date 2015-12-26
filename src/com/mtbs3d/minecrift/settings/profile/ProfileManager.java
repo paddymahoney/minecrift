@@ -1,5 +1,6 @@
 package com.mtbs3d.minecrift.settings.profile;
 
+import com.mtbs3d.minecrift.provider.MCController;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -30,6 +31,10 @@ import java.util.*;
  *          setting:value
  *          setting:value
  *          setting:value
+ *       Controller:
+ *          setting:value
+ *          setting:value
+ *          setting:value
  *    Profile n...
  *
  * etc.. in no particular order.
@@ -56,6 +61,8 @@ public class ProfileManager
     static JSONObject jsonConfigRoot = null;
     static JSONObject profiles = null;
 
+    static boolean loaded = false;
+
     public static synchronized void init( File dataDir )
     {
         vrProfileCfgFile = new File(dataDir, "optionsvrprofiles.txt");
@@ -77,8 +84,13 @@ public class ProfileManager
 
             // Read in json (may be empty)
             FileReader fr = new FileReader(vrProfileCfgFile);
-            JSONTokener jt = new JSONTokener(fr);
-            jsonConfigRoot = new JSONObject(jt);
+            try {
+                JSONTokener jt = new JSONTokener(fr);
+                jsonConfigRoot = new JSONObject(jt);
+            }
+            catch (Exception ex) {
+                jsonConfigRoot = new JSONObject();
+            }
             fr.close();
 
             // Read current profile (create if necessary)
@@ -97,65 +109,21 @@ public class ProfileManager
                 jsonConfigRoot.put(KEY_PROFILES, profiles);
             }
 
-        } catch (IOException e) {
+            // Add default profile if necessary
+            if (profiles.has(ProfileManager.DEFAULT_PROFILE) == false) {
+                JSONObject defaultProfile = new JSONObject();
+                profiles.put(ProfileManager.DEFAULT_PROFILE, defaultProfile);
+            }
+
+            // Validate all profiles
+            validateProfiles();
+
+            loaded = true;
+
+        } catch (Exception e) {
             System.out.println("FAILED to read VR profile settings!");
             e.printStackTrace();
-        }
-
-        if (vrProfileCfgFile.exists()) {
-            // Read in new format
-            try {
-                // Read in json
-                FileReader fr = new FileReader(vrProfileCfgFile);
-                JSONTokener jt = new JSONTokener(fr);
-                jsonConfigRoot = new JSONObject(jt);
-                fr.close();
-
-                // Read current profile
-                if (jsonConfigRoot.has(KEY_SELECTED_PROFILE))
-                    currentProfileName = jsonConfigRoot.getString(KEY_SELECTED_PROFILE);
-                else {
-                    jsonConfigRoot.put(KEY_SELECTED_PROFILE, ProfileManager.DEFAULT_PROFILE);
-                    currentProfileName = ProfileManager.DEFAULT_PROFILE;
-                }
-
-                // Read profiles section
-                if (jsonConfigRoot.has(KEY_PROFILES)) {
-                    profiles = jsonConfigRoot.getJSONObject(KEY_PROFILES);
-                }
-                else {
-                    profiles = new JSONObject();
-                    jsonConfigRoot.put(KEY_PROFILES, profiles);
-                }
-
-                // Add default profile if necessary
-                if (profiles.has(ProfileManager.DEFAULT_PROFILE) == false) {
-                    JSONObject defaultProfile = new JSONObject();
-                    profiles.put(ProfileManager.DEFAULT_PROFILE, defaultProfile);
-                }
-
-                // Validate all profiles
-                validateProfiles();
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            try {
-                // Read in legacy format files and set as the Default profile
-                jsonConfigRoot.put(KEY_SELECTED_PROFILE, ProfileManager.DEFAULT_PROFILE);
-                profiles = new JSONObject();
-                jsonConfigRoot.put(KEY_PROFILES, profiles);
-
-
-                loadLegacySettings(legacyOfProfileCfgFile, ProfileManager.DEFAULT_PROFILE, ProfileManager.PROFILE_SET_OF);
-                loadLegacySettings(legacyVrProfileCfgFile, ProfileManager.DEFAULT_PROFILE, ProfileManager.PROFILE_SET_VR);
-                loadLegacySettings(legacyControllerProfileCfgFile, ProfileManager.DEFAULT_PROFILE, ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
-            }
+            loaded = false;
         }
     }
 
@@ -198,16 +166,44 @@ public class ProfileManager
 
                 if (Mc == null) {
                     // Attempt legacy file read
-                    if (loadLegacySettings(legacyMcProfileCfgFile, profileName, ProfileManager.PROFILE_SET_MC) == false) {
-                        // Add defaults if nothing could be read
-
+                    if (!loadLegacySettings(legacyMcProfileCfgFile, profile, ProfileManager.PROFILE_SET_MC))
+                    {
+                        // Add empty profile set - defaults will be used automatically
+                        Map<String, String> settings = new HashMap<String, String>();
+                        setProfileSet(profile, ProfileManager.PROFILE_SET_MC, settings);
+                    }
+                }
+                if (Of == null) {
+                    // Attempt legacy file read
+                    if (!loadLegacySettings(legacyOfProfileCfgFile, profile, ProfileManager.PROFILE_SET_OF))
+                    {
+                        // Add empty profile set - defaults will be used automatically
+                        Map<String, String> settings = new HashMap<String, String>();
+                        setProfileSet(profile, ProfileManager.PROFILE_SET_OF, settings);
+                    }
+                }
+                if (Vr == null) {
+                    // Attempt legacy file read
+                    if (!loadLegacySettings(legacyVrProfileCfgFile, profile, ProfileManager.PROFILE_SET_VR))
+                    {
+                        // Add empty profile set - defaults will be used automatically
+                        Map<String, String> settings = new HashMap<String, String>();
+                        setProfileSet(profile, ProfileManager.PROFILE_SET_VR, settings);
+                    }
+                }
+                if (Controller == null) {
+                    // Attempt legacy file read
+                    if (!loadLegacySettings(legacyControllerProfileCfgFile, profile, ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS))
+                    {
+                        // Use defaults
+                        loadLegacySettings(ProfileManager.DEFAULT_BINDINGS, profile, ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS);
                     }
                 }
             }
         }
     }
 
-    private static synchronized boolean loadLegacySettings(File settingsFile, String profile, String set) throws Exception
+    private static synchronized boolean loadLegacySettings(File settingsFile, JSONObject theProfile, String set) throws Exception
     {
         if (settingsFile.exists() == false)
             return false;
@@ -227,7 +223,31 @@ public class ProfileManager
             settings.put(setting, value);
             count++;
         }
-        setProfileSet(profile, set, settings);
+        setProfileSet(theProfile, set, settings);
+        if (count == 0)
+            return false;
+
+        return true;
+    }
+
+    private static synchronized boolean loadLegacySettings(String settingStr, JSONObject theProfile, String set) throws Exception
+    {
+        StringReader stringReader = new StringReader(settingStr);
+        BufferedReader br = new BufferedReader(stringReader);
+        String s;
+        Map<String, String> settings = new HashMap<String, String>();
+        int count = 0;
+        while ((s = br.readLine()) != null) {
+            String[] array = s.split(":");
+            String setting = array[0];
+            String value = "";
+            if (array.length > 1) {
+                value = array[1];
+            }
+            settings.put(setting, value);
+            count++;
+        }
+        setProfileSet(theProfile, set, settings);
         if (count == 0)
             return false;
 
@@ -328,6 +348,18 @@ public class ProfileManager
         return new TreeSet<String>(theProfiles);
     }
 
+    private static JSONObject getCurrentProfile() {
+        if (!profiles.has(currentProfileName))
+            return null;
+
+        Object profileObj = profiles.get(currentProfileName);
+        if (profileObj == null || !(profileObj instanceof JSONObject)) {
+            return null;
+        }
+
+        return (JSONObject)profileObj;
+    }
+
     public static synchronized String getCurrentProfileName()
     {
         return currentProfileName;
@@ -413,4 +445,47 @@ public class ProfileManager
 
         return true;
     }
+
+    public static void loadControllerDefaults()
+    {
+        if (loaded) {
+            JSONObject currentProfile = getCurrentProfile();
+            if (currentProfile != null) {
+                try {
+                    loadLegacySettings(ProfileManager.DEFAULT_BINDINGS, currentProfile, ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // Minecraft XBox controller defaults - TODO: Find a better place for this
+    public static final String DEFAULT_BINDINGS =
+            "key.playerlist:b:3:Button 3\n" +
+                    "axis.updown:a:2:-:Y Rotation\n" +
+                    "walk.forward:a:0:-:Y \n" +
+                    "gui.axis.leftright:a:1:-:X \n" +
+                    "gui.axis.updown:a:0:-:Y \n" +
+                    "gui.Shift:b:3:Button 3\n" +
+                    "key.sneak:b:9:Button 9\n" +
+                    "gui.Left:px:-\n" +
+                    "key.itemright:b:5:Button 5\n" +
+                    "gui.Right:px:+\n" +
+                    "key.left:a:1:-:X \n" +
+                    "gui.Select:b:0:Button 0\n" +
+                    "key.chat:py:+\n" +
+                    "key.menu:b:7:Button 7\n" +
+                    "key.attack:a:4:-:Z \n" +
+                    "gui.Up:py:-\n" +
+                    "key.use:a:4:+:Z \n" +
+                    "axis.leftright:a:3:-:X Rotation\n" +
+                    "gui.Down:py:+\n" +
+                    "key.right:a:1:+:X \n" +
+                    "key.back:a:0:+:Y \n" +
+                    "key.inventory:b:6:Button 6\n" +
+                    "key.jump:b:8:Button 8\n" +
+                    "key.drop:py:-\n" +
+                    "gui.Back:b:1:Button 1\n" +
+                    "key.itemleft:b:4:Button 4";
 }

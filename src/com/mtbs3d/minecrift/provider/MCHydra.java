@@ -791,4 +791,14 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
     {
         return init();
     }
+
+	@Override
+	public void saveOptions() {
+
+	}
+
+	@Override
+	public void loadDefaults() {
+
+	}
 }

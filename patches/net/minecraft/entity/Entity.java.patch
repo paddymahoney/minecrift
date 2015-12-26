@@ -124,7 +124,311 @@
  
      protected abstract void entityInit();
  
-@@ -1171,9 +1227,38 @@
+@@ -638,17 +694,17 @@
+                 this.motionZ = 0.0D;
+             }
+ 
+-            double var13 = x;
+-            double var15 = y;
+-            double var17 = z;
+-            AxisAlignedBB var19 = this.boundingBox.copy();
+-            boolean var20 = this.onGround && this.isSneaking() && this instanceof EntityPlayer;
++            double absoluteOrigX = x;
++            double absoluteOrigY = y;
++            double absoluteOrigZ = z;
++            AxisAlignedBB absoluteOriginalBB = this.boundingBox.copy();
++            boolean playerOnGround = this.onGround && this.isSneaking() && this instanceof EntityPlayer;
+ 
+-            if (var20)
++            if (playerOnGround)
+             {
+                 double var21;
+ 
+-                for (var21 = 0.05D; x != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(x, -1.0D, 0.0D)).isEmpty(); var13 = x)
++                for (var21 = 0.05D; x != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(x, -1.0D, 0.0D)).isEmpty(); absoluteOrigX = x)
+                 {
+                     if (x < var21 && x >= -var21)
+                     {
+@@ -664,7 +720,7 @@
+                     }
+                 }
+ 
+-                for (; z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(0.0D, -1.0D, z)).isEmpty(); var17 = z)
++                for (; z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(0.0D, -1.0D, z)).isEmpty(); absoluteOrigZ = z)
+                 {
+                     if (z < var21 && z >= -var21)
+                     {
+@@ -708,118 +764,119 @@
+                         z += var21;
+                     }
+ 
+-                    var13 = x;
+-                    var17 = z;
++                    absoluteOrigX = x;
++                    absoluteOrigZ = z;
+                 }
+             }
+ 
+-            List var36 = this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.addCoord(x, y, z));
++            List collidingBoundingBoxes = this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.addCoord(x, y, z));
+ 
+-            for (int var22 = 0; var22 < var36.size(); ++var22)
++            for (int var22 = 0; var22 < collidingBoundingBoxes.size(); ++var22)
+             {
+-                y = ((AxisAlignedBB)var36.get(var22)).calculateYOffset(this.boundingBox, y);
++                y = ((AxisAlignedBB)collidingBoundingBoxes.get(var22)).calculateYOffset(this.boundingBox, y);
+             }
+ 
+             this.boundingBox.offset(0.0D, y, 0.0D);
+ 
+-            if (!this.field_70135_K && var15 != y)
++            if (!this.field_70135_K && absoluteOrigY != y)
+             {
+                 z = 0.0D;
+                 y = 0.0D;
+                 x = 0.0D;
+             }
+ 
+-            boolean var37 = this.onGround || var15 != y && var15 < 0.0D;
++            boolean var37 = this.onGround || absoluteOrigY != y && absoluteOrigY < 0.0D;
+             int var23;
+ 
+-            for (var23 = 0; var23 < var36.size(); ++var23)
++            for (var23 = 0; var23 < collidingBoundingBoxes.size(); ++var23)
+             {
+-                x = ((AxisAlignedBB)var36.get(var23)).calculateXOffset(this.boundingBox, x);
++                x = ((AxisAlignedBB)collidingBoundingBoxes.get(var23)).calculateXOffset(this.boundingBox, x);
+             }
+ 
+             this.boundingBox.offset(x, 0.0D, 0.0D);
+ 
+-            if (!this.field_70135_K && var13 != x)
++            if (!this.field_70135_K && absoluteOrigX != x)
+             {
+                 z = 0.0D;
+                 y = 0.0D;
+                 x = 0.0D;
+             }
+ 
+-            for (var23 = 0; var23 < var36.size(); ++var23)
++            for (var23 = 0; var23 < collidingBoundingBoxes.size(); ++var23)
+             {
+-                z = ((AxisAlignedBB)var36.get(var23)).calculateZOffset(this.boundingBox, z);
++                z = ((AxisAlignedBB)collidingBoundingBoxes.get(var23)).calculateZOffset(this.boundingBox, z);
+             }
+ 
+             this.boundingBox.offset(0.0D, 0.0D, z);
+ 
+-            if (!this.field_70135_K && var17 != z)
++            if (!this.field_70135_K && absoluteOrigZ != z)
+             {
+                 z = 0.0D;
+                 y = 0.0D;
+                 x = 0.0D;
+             }
+ 
+-            double var25;
+-            double var27;
+-            int var30;
+-            double var38;
+-
+-            if (this.stepHeight > 0.0F && var37 && (var20 || this.yOffset2 < 0.05F) && (var13 != x || var17 != z))
+-            {
+-                var38 = x;
+-                var25 = y;
+-                var27 = z;
+-                x = var13;
++            double origY;
++            double origZ;
++            int BBIndex;
++            double origX;
++
++            // TODO: Stepheight
++            if (this.stepHeight > 0.0F && var37 && (playerOnGround || this.yOffset2 < 0.05F) && (absoluteOrigX != x || absoluteOrigZ != z))
++            {
++                origX = x;
++                origY = y;
++                origZ = z;
++                x = absoluteOrigX;
+                 y = (double)this.stepHeight;
+-                z = var17;
+-                AxisAlignedBB var29 = this.boundingBox.copy();
+-                this.boundingBox.setBB(var19);
+-                var36 = this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.addCoord(var13, y, var17));
++                z = absoluteOrigZ;
++                AxisAlignedBB originalBB = this.boundingBox.copy();
++                this.boundingBox.setBB(absoluteOriginalBB);
++                collidingBoundingBoxes = this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.addCoord(absoluteOrigX, y, absoluteOrigZ));
+ 
+-                for (var30 = 0; var30 < var36.size(); ++var30)
++                for (BBIndex = 0; BBIndex < collidingBoundingBoxes.size(); ++BBIndex)
+                 {
+-                    y = ((AxisAlignedBB)var36.get(var30)).calculateYOffset(this.boundingBox, y);
++                    y = ((AxisAlignedBB)collidingBoundingBoxes.get(BBIndex)).calculateYOffset(this.boundingBox, y);
+                 }
+ 
+                 this.boundingBox.offset(0.0D, y, 0.0D);
+ 
+-                if (!this.field_70135_K && var15 != y)
++                if (!this.field_70135_K && absoluteOrigY != y)
+                 {
+                     z = 0.0D;
+                     y = 0.0D;
+                     x = 0.0D;
+                 }
+ 
+-                for (var30 = 0; var30 < var36.size(); ++var30)
++                for (BBIndex = 0; BBIndex < collidingBoundingBoxes.size(); ++BBIndex)
+                 {
+-                    x = ((AxisAlignedBB)var36.get(var30)).calculateXOffset(this.boundingBox, x);
++                    x = ((AxisAlignedBB)collidingBoundingBoxes.get(BBIndex)).calculateXOffset(this.boundingBox, x);
+                 }
+ 
+                 this.boundingBox.offset(x, 0.0D, 0.0D);
+ 
+-                if (!this.field_70135_K && var13 != x)
++                if (!this.field_70135_K && absoluteOrigX != x)
+                 {
+                     z = 0.0D;
+                     y = 0.0D;
+                     x = 0.0D;
+                 }
+ 
+-                for (var30 = 0; var30 < var36.size(); ++var30)
++                for (BBIndex = 0; BBIndex < collidingBoundingBoxes.size(); ++BBIndex)
+                 {
+-                    z = ((AxisAlignedBB)var36.get(var30)).calculateZOffset(this.boundingBox, z);
++                    z = ((AxisAlignedBB)collidingBoundingBoxes.get(BBIndex)).calculateZOffset(this.boundingBox, z);
+                 }
+ 
+                 this.boundingBox.offset(0.0D, 0.0D, z);
+ 
+-                if (!this.field_70135_K && var17 != z)
++                if (!this.field_70135_K && absoluteOrigZ != z)
+                 {
+                     z = 0.0D;
+                     y = 0.0D;
+                     x = 0.0D;
+                 }
+ 
+-                if (!this.field_70135_K && var15 != y)
++                if (!this.field_70135_K && absoluteOrigY != y)
+                 {
+                     z = 0.0D;
+                     y = 0.0D;
+@@ -829,20 +886,24 @@
+                 {
+                     y = (double)(-this.stepHeight);
+ 
+-                    for (var30 = 0; var30 < var36.size(); ++var30)
++                    for (BBIndex = 0; BBIndex < collidingBoundingBoxes.size(); ++BBIndex)
+                     {
+-                        y = ((AxisAlignedBB)var36.get(var30)).calculateYOffset(this.boundingBox, y);
++                        y = ((AxisAlignedBB)collidingBoundingBoxes.get(BBIndex)).calculateYOffset(this.boundingBox, y);
+                     }
+ 
+                     this.boundingBox.offset(0.0D, y, 0.0D);
+                 }
+ 
+-                if (var38 * var38 + var27 * var27 >= x * x + z * z)
++                if (origX * origX + origZ * origZ >= x * x + z * z)
+                 {
+-                    x = var38;
+-                    y = var25;
+-                    z = var27;
+-                    this.boundingBox.setBB(var29);
++                    x = origX;
++                    y = origY;
++                    z = origZ;
++                    this.boundingBox.setBB(originalBB);
++                }
++                else
++                {
++                    System.out.println("STEP");
+                 }
+             }
+ 
+@@ -851,51 +912,51 @@
+             this.posX = (this.boundingBox.minX + this.boundingBox.maxX) / 2.0D;
+             this.posY = this.boundingBox.minY + (double)this.yOffset - (double)this.yOffset2;
+             this.posZ = (this.boundingBox.minZ + this.boundingBox.maxZ) / 2.0D;
+-            this.isCollidedHorizontally = var13 != x || var17 != z;
+-            this.isCollidedVertically = var15 != y;
+-            this.onGround = var15 != y && var15 < 0.0D;
++            this.isCollidedHorizontally = absoluteOrigX != x || absoluteOrigZ != z;
++            this.isCollidedVertically = absoluteOrigY != y;
++            this.onGround = absoluteOrigY != y && absoluteOrigY < 0.0D;
+             this.isCollided = this.isCollidedHorizontally || this.isCollidedVertically;
+             this.updateFallState(y, this.onGround);
+ 
+-            if (var13 != x)
++            if (absoluteOrigX != x)
+             {
+                 this.motionX = 0.0D;
+             }
+ 
+-            if (var15 != y)
++            if (absoluteOrigY != y)
+             {
+                 this.motionY = 0.0D;
+             }
+ 
+-            if (var17 != z)
++            if (absoluteOrigZ != z)
+             {
+                 this.motionZ = 0.0D;
+             }
+ 
+-            var38 = this.posX - var7;
+-            var25 = this.posY - var9;
+-            var27 = this.posZ - var11;
++            origX = this.posX - var7;
++            origY = this.posY - var9;
++            origZ = this.posZ - var11;
+ 
+-            if (this.canTriggerWalking() && !var20 && this.ridingEntity == null)
++            if (this.canTriggerWalking() && !playerOnGround && this.ridingEntity == null)
+             {
+                 int var39 = MathHelper.floor_double(this.posX);
+-                var30 = MathHelper.floor_double(this.posY - 0.20000000298023224D - (double)this.yOffset);
++                BBIndex = MathHelper.floor_double(this.posY - 0.20000000298023224D - (double)this.yOffset);
+                 int var31 = MathHelper.floor_double(this.posZ);
+-                Block var32 = this.worldObj.getBlock(var39, var30, var31);
+-                int var33 = this.worldObj.getBlock(var39, var30 - 1, var31).getRenderType();
++                Block var32 = this.worldObj.getBlock(var39, BBIndex, var31);
++                int var33 = this.worldObj.getBlock(var39, BBIndex - 1, var31).getRenderType();
+ 
+                 if (var33 == 11 || var33 == 32 || var33 == 21)
+                 {
+-                    var32 = this.worldObj.getBlock(var39, var30 - 1, var31);
++                    var32 = this.worldObj.getBlock(var39, BBIndex - 1, var31);
+                 }
+ 
+                 if (var32 != Blocks.ladder)
+                 {
+-                    var25 = 0.0D;
++                    origY = 0.0D;
+                 }
+ 
+-                this.distanceWalkedModified = (float)((double)this.distanceWalkedModified + (double)MathHelper.sqrt_double(var38 * var38 + var27 * var27) * 0.6D);
+-                this.distanceWalkedOnStepModified = (float)((double)this.distanceWalkedOnStepModified + (double)MathHelper.sqrt_double(var38 * var38 + var25 * var25 + var27 * var27) * 0.6D);
++                this.distanceWalkedModified = (float)((double)this.distanceWalkedModified + (double)MathHelper.sqrt_double(origX * origX + origZ * origZ) * 0.6D);
++                this.distanceWalkedOnStepModified = (float)((double)this.distanceWalkedOnStepModified + (double)MathHelper.sqrt_double(origX * origX + origY * origY + origZ * origZ) * 0.6D);
+ 
+                 if (this.distanceWalkedOnStepModified > (float)this.nextStepDistance && var32.getMaterial() != Material.air)
+                 {
+@@ -913,8 +974,8 @@
+                         this.playSound(this.getSwimSound(), var34, 1.0F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
+                     }
+ 
+-                    this.playStepSound(var39, var30, var31, var32);
+-                    var32.onEntityWalking(this.worldObj, var39, var30, var31, this);
++                    this.playStepSound(var39, BBIndex, var31, var32);
++                    var32.onEntityWalking(this.worldObj, var39, BBIndex, var31, this);
+                 }
+             }
+ 
+@@ -1171,9 +1232,38 @@
  
          if (var7.getMaterial() == materialIn)
          {
@@ -166,7 +470,7 @@
          }
          else
          {
-@@ -1193,13 +1278,25 @@
+@@ -1193,13 +1283,25 @@
      {
          return this.worldObj.isMaterialInBB(this.boundingBox.expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava);
      }
@@ -194,7 +498,7 @@
  
          if (var4 >= 1.0E-4F)
          {
-@@ -1213,11 +1310,42 @@
+@@ -1213,11 +1315,42 @@
              var4 = friction / var4;
              strafe *= var4;
              forward *= var4;
@@ -241,7 +545,7 @@
      }
  
      public int getBrightnessForRender(float p_70070_1_)
-@@ -1526,6 +1654,31 @@
+@@ -1526,6 +1659,31 @@
              tagCompund.setInteger("PortalCooldown", this.timeUntilPortal);
              tagCompund.setLong("UUIDMost", this.getUniqueID().getMostSignificantBits());
              tagCompund.setLong("UUIDLeast", this.getUniqueID().getLeastSignificantBits());
@@ -273,7 +577,7 @@
              this.writeEntityToNBT(tagCompund);
  
              if (this.ridingEntity != null)
-@@ -1596,6 +1749,37 @@
+@@ -1596,6 +1754,37 @@
  
              this.setPosition(this.posX, this.posY, this.posZ);
              this.setRotation(this.rotationYaw, this.rotationPitch);
@@ -311,7 +615,7 @@
              this.readEntityFromNBT(tagCompund);
  
              if (this.shouldSetPosAfterLoading())
-@@ -1697,7 +1881,16 @@
+@@ -1697,7 +1886,16 @@
          {
              EntityItem var3 = new EntityItem(this.worldObj, this.posX, this.posY + (double)offsetY, this.posZ, itemStackIn);
              var3.delayBeforeCanPickup = 10;
@@ -329,7 +633,7 @@
              return var3;
          }
          else
-@@ -2008,7 +2201,16 @@
+@@ -2008,7 +2206,16 @@
       */
      public boolean isRiding()
      {
@@ -347,7 +651,7 @@
      }
  
      /**
-@@ -2375,7 +2577,17 @@
+@@ -2375,7 +2582,17 @@
       */
      public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
      {
@@ -366,7 +670,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2665,204 @@
+@@ -2453,6 +2670,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  

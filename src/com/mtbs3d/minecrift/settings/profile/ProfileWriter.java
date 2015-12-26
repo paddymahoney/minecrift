@@ -9,27 +9,27 @@ import java.util.*;
  */
 public class ProfileWriter
 {
-    private String profile;
+    private String activeProfileName;
     private String set;
     private Map<String, String> data = new HashMap<String, String>();
-    private JSONObject theProfiles = null;
+    private JSONObject theProfile = null;
 
     public ProfileWriter(String set)
     {
-        this.profile = ProfileManager.currentProfileName;
+        this.activeProfileName = ProfileManager.currentProfileName;
         this.set = set;
 
-        // Add a new empty profile set
+        // Add a new empty activeProfileName set
         data = new HashMap<String, String>();
     }
 
-    public ProfileWriter(String set, JSONObject theProfiles)
+    public ProfileWriter(String set, JSONObject theProfile)
     {
-        this.profile = ProfileManager.currentProfileName;
+        this.activeProfileName = ProfileManager.currentProfileName;
         this.set = set;
-        this.theProfiles = theProfiles;
+        this.theProfile = theProfile;
 
-        // Add a new empty profile set
+        // Add a new empty activeProfileName set
         data = new HashMap<String, String>();
     }
 
@@ -46,12 +46,12 @@ public class ProfileWriter
 
     public void close()
     {
-        if (this.theProfiles == null) {
-            ProfileManager.setProfileSet(this.profile, this.set, this.data);
+        if (this.theProfile == null) {
+            ProfileManager.setProfileSet(this.activeProfileName, this.set, this.data);
             ProfileManager.save();
         }
         else {
-            ProfileManager.setProfileSet(this.theProfiles, this.set, this.data);
+            ProfileManager.setProfileSet(this.theProfile, this.set, this.data);
         }
     }
 }
