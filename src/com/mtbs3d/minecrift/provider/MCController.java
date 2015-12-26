@@ -4,15 +4,9 @@
  */
 package com.mtbs3d.minecrift.provider;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,7 +16,6 @@ import com.mtbs3d.minecrift.control.*;
 import com.mtbs3d.minecrift.settings.profile.ProfileManager;
 import com.mtbs3d.minecrift.settings.profile.ProfileReader;
 import com.mtbs3d.minecrift.settings.profile.ProfileWriter;
-import net.java.games.input.ControllerEnvironment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.src.Reflector;
 import org.apache.commons.lang3.tuple.Pair;
@@ -36,7 +29,6 @@ import org.lwjgl.input.Controllers;
 import com.mtbs3d.minecrift.api.BasePlugin;
 import com.mtbs3d.minecrift.api.IBodyAimController;
 import com.mtbs3d.minecrift.control.GuiScreenNavigator;
-import com.mtbs3d.minecrift.settings.VRSettings;
 
 
 public class MCController extends BasePlugin implements IBodyAimController
@@ -45,7 +37,6 @@ public class MCController extends BasePlugin implements IBodyAimController
 	JoystickAim joyAim;
 	boolean hasControllers = false;
 	ControlBinding nextBind = null;
-	Field fieldCreated = null;
 	static boolean allowControllerEnvReInit = false;
 
 	HashMap<String,String> bindingSaves = new HashMap<String,String>();
@@ -329,7 +320,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 		return isInitialized();
 	}
 
-	// Initial credit to Florian Enner, StackOverflow user
+	// Initial credit to Florian Enner, StackOverflow user for the general methodology!
 	public void resetControllerEnvironment()
 	{
 		if (allowControllerEnvReInit) {
@@ -383,7 +374,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 					GUI.bind( nextBind );
 				
 				if(bound) {
-					//saveBindings();
+					saveBindings();
 					nextBind.doneBinding();
 					nextBind = null;
 				}
