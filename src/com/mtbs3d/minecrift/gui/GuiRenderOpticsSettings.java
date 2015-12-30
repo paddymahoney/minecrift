@@ -199,7 +199,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             {
                 Minecraft.getMinecraft().vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
                 Minecraft.getMinecraft().vrSettings.saveOptions();
-                Minecraft.getMinecraft().stereoProvider.resetRenderConfig();
                 try {
                     Minecraft.getMinecraft().stereoProvider = PluginManager.configureStereoProvider(Minecraft.getMinecraft().vrSettings.stereoProviderPluginID);
                 }

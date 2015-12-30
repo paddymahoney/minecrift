@@ -21,26 +21,9 @@ public interface IStereoProvider extends IBasePlugin
                                             FovPort RightFov,
                                             float renderScaleFactor);
 
-    public EyeRenderParams configureRendering(Sizei InTextureSize,
-                                              Sizei OutTextureSize,
-                                              GLConfig glConfig,
-                                              FovPort LeftFov,
-                                              FovPort RightFov,
-                                              float worldScale);
-
-    public EyeRenderParams configureRenderingDualTexture(Sizei InTexture1Size,
-                                                         Sizei InTexture2Size,
-                                                         Sizei OutDisplaySize,
-                                                         GLConfig glConfig,
-                                                         FovPort LeftFov,
-                                                         FovPort RightFov,
-                                                         float worldScale);
-
     public SwapTextureSet createSwapTextureSet(int lwidth, int lheight, int rwidth, int rheight);
 
     public int createMirrorTexture(int width, int height);
-
-    public void resetRenderConfig();
 
     public EyeType eyeRenderOrder(int index);
 
@@ -49,10 +32,6 @@ public interface IStereoProvider extends IBasePlugin
     public boolean isStereo();
 
     public boolean isGuiOrtho();
-
-    public Posef getEyePose(EyeType eye);
-
-    public FullPoseState getEyePoses(long frameIndex);
 
     public Matrix4f getMatrix4fProjection(FovPort fov,
                                           float nearClip,

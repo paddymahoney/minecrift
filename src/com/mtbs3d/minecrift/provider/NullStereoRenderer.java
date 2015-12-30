@@ -41,25 +41,6 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public EyeRenderParams configureRendering(Sizei InTextureSize, Sizei OutTextureSize, GLConfig glConfig, FovPort LeftFov,
-            FovPort RightFov, float worldScale)
-    {
-        return null;
-    }
-
-    @Override
-    public EyeRenderParams configureRenderingDualTexture(Sizei InTexture1Size, Sizei InTexture2Size, Sizei OutDisplaySize, GLConfig glConfig, FovPort LeftFov,
-            FovPort RightFov, float worldScale)
-    {
-        return null;
-    }
-
-    @Override
-    public void resetRenderConfig() {
-
-    }
-
-    @Override
     public EyeType eyeRenderOrder(int index)
     {
         //return EyeType.ovrEye_Center;
@@ -80,16 +61,6 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     public boolean isGuiOrtho()
     {
         return true;
-    }
-
-    @Override
-    public Posef getEyePose(EyeType eye) {
-        return null;
-    }
-
-    @Override
-    public FullPoseState getEyePoses(long frameIndex) {
-        return new FullPoseState();
     }
 
     @Override

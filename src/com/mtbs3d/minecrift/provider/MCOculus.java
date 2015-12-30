@@ -98,12 +98,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     @Override
-    public Posef getEyePose(EyeType eye)
-    {
-        return this.eyePose[eye.value()];
-    }
-
-    @Override
     public FullPoseState getEyePoses(long frameIndex)
     {
         return fullPoseState;
