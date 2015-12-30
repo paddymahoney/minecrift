@@ -30,9 +30,7 @@ public interface IBasePlugin {
 
 	public String getVersion();
 
-	public boolean init(File nativeDir);
-
-	public boolean init();
+	public boolean init() throws Exception;
 
 	public boolean isInitialized();
 

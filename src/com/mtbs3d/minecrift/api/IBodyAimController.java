@@ -40,7 +40,7 @@ public interface IBodyAimController extends IBasePlugin {
 	
 	public void mapBinding(ControlBinding binding);
 
-	public boolean initBodyAim();
+	public boolean initBodyAim() throws Exception;
 
     /**
      * Get the percentage through a transition of the ratcheting control

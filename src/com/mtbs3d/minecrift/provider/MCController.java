@@ -300,11 +300,6 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	@Override
-	public boolean init(File nativeDir) {
-		return init();
-	}
-
-	@Override
 	public boolean init() {
 		try {
 		    setCreated(false);

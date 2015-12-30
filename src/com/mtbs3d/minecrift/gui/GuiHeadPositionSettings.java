@@ -238,7 +238,12 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
             {
                 Minecraft.getMinecraft().vrSettings.headPositionPluginID = pluginModeChangeButton.getSelectedID();
                 Minecraft.getMinecraft().vrSettings.saveOptions();
-                Minecraft.getMinecraft().positionTracker = PluginManager.configurePosition(Minecraft.getMinecraft().vrSettings.headPositionPluginID);
+                try {
+                    Minecraft.getMinecraft().positionTracker = PluginManager.configurePosition(Minecraft.getMinecraft().vrSettings.headPositionPluginID);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             	this.reinit = true;
             }
             else if (par1GuiButton.id == ID_GENERIC_RESETORIGIN) // Reset origin

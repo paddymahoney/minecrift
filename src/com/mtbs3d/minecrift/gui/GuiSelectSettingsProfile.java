@@ -108,7 +108,12 @@ public class GuiSelectSettingsProfile extends BaseGuiSettings implements GuiYesN
             else if (button.id == ID_SELECT_PROFILE_BUTTON)
             {
                 VRSettings.setCurrentProfile(profile);
-                this.mc.initPlugins();
+                try {
+                    this.mc.initPlugins();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
                 this.mc.reinitFramebuffers = true;
                 this.mc.displayGuiScreen(this.parentGuiScreen);
             }

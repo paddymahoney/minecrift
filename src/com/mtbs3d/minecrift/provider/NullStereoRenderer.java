@@ -108,11 +108,6 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public boolean init(File nativeDir) {
-        return false;
-    }
-
-    @Override
     public boolean init() {
         return false;
     }

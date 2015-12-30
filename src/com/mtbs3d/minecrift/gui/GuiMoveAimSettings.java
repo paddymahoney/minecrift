@@ -195,8 +195,13 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             {
             	this.guivrSettings.controllerPluginID = pluginModeChangeButton.getSelectedID();
                 this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController = PluginManager.configureController(this.guivrSettings.controllerPluginID);
-            	this.reinit = true;
+                try {
+                    Minecraft.getMinecraft().lookaimController = PluginManager.configureController(this.guivrSettings.controllerPluginID);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                this.reinit = true;
             }
             else if (par1GuiButton.id == ID_GENERIC_DEFAULTS) // Defaults
             {
@@ -239,7 +244,12 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             else if (par1GuiButton.id == ID_GENERIC_REINIT) // reinitialise controller
             {
                 this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController.initBodyAim();
+                try {
+                    Minecraft.getMinecraft().lookaimController.initBodyAim();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             else if (par1GuiButton.id == VRSettings.VrOptions.LOCOMOTION_SETTINGS.returnEnumOrdinal()) // Remap
             {

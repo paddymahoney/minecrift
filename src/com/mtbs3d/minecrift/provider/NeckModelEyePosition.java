@@ -45,11 +45,6 @@ public class NeckModelEyePosition extends BasePlugin implements IEyePositionProv
 	}
 
 	@Override
-	public boolean init(File nativeDir) {
-		return true;
-	}
-
-	@Override
 	public boolean init() {
 		return true;
 	}

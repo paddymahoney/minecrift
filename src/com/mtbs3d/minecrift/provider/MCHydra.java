@@ -126,33 +126,26 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 
 	@Override
 	public String getVersion() {
-		return "0.28";
+		return "0.29";
 	}
 
 	@Override
-	public boolean init(File nativeDir) {
+	public boolean init() throws Exception {
 		hydraInitialized = libraryLoaded;
 
 		if( !libraryLoaded )
 		{
 			try {
+				File nativeDir = new File("Dummy");
 				libraryLoaded = Sixense.LoadLibrary(nativeDir);
 			}
 			catch( UnsatisfiedLinkError e )
 			{
 				initStatus = e.getMessage();
+				throw e;
 			}
 		}
 
-		if( libraryLoaded )
-		{
-			init();
-		}
-		return hydraInitialized;
-	}
-
-	@Override
-	public boolean init() {
 		Sixense.init();
 		cm = ControllerManager.getInstance();
 		cm.setGameType(com.sixense.utils.enums.EnumGameType.ONE_PLAYER_TWO_CONTROLLER);
@@ -787,7 +780,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
     }
 
     @Override
-    public boolean initBodyAim()
+    public boolean initBodyAim() throws Exception
     {
         return init();
     }

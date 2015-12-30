@@ -45,11 +45,6 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	}
 
 	@Override
-	public boolean init(File nativeDir) {
-		return init();
-	}
-
-	@Override
 	public boolean init() {
 		mc = Minecraft.getMinecraft();
 		return isInitialized();

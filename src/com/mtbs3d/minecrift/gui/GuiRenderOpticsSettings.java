@@ -33,7 +33,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
 
     static VRSettings.VrOptions[] oculusDK2DisplayOptions = new VRSettings.VrOptions[]{
             VRSettings.VrOptions.HMD_NAME_PLACEHOLDER,
-            VRSettings.VrOptions.ENABLE_DIRECT,
+            VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
             VRSettings.VrOptions.MIRROR_DISPLAY,
             VRSettings.VrOptions.FSAA,
@@ -50,7 +50,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
 
     static VRSettings.VrOptions[] oculusDK1DisplayOptions = new VRSettings.VrOptions[] {
             VRSettings.VrOptions.HMD_NAME_PLACEHOLDER,
-            VRSettings.VrOptions.ENABLE_DIRECT,
+            VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
             VRSettings.VrOptions.MIRROR_DISPLAY,
             VRSettings.VrOptions.FSAA,
@@ -200,7 +200,12 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 Minecraft.getMinecraft().vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 Minecraft.getMinecraft().stereoProvider.resetRenderConfig();
-                Minecraft.getMinecraft().stereoProvider = PluginManager.configureStereoProvider(Minecraft.getMinecraft().vrSettings.stereoProviderPluginID);
+                try {
+                    Minecraft.getMinecraft().stereoProvider = PluginManager.configureStereoProvider(Minecraft.getMinecraft().vrSettings.stereoProviderPluginID);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
                 minecraft.reinitFramebuffers = true;
                 this.reinit = true;
             }
@@ -219,7 +224,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 num == VRSettings.VrOptions.TIMEWARP_JIT_DELAY ||
                 num == VRSettings.VrOptions.VIGNETTE ||
                 num == VRSettings.VrOptions.MIRROR_DISPLAY ||
-                num == VRSettings.VrOptions.ENABLE_DIRECT ||
                 num == VRSettings.VrOptions.LOW_PERSISTENCE ||
                 num == VRSettings.VrOptions.DYNAMIC_PREDICTION ||
                 num == VRSettings.VrOptions.OVERDRIVE_DISPLAY ||
@@ -314,11 +318,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                         "increase quality but increase rendering load.",
                         "Defaults to 1.1X."
                 };
-            case ENABLE_DIRECT:
-                return new String[] {
-                        "Direct rendering to HMD. Not currently working so",
-                        "OFF currently."
-                };
             case MIRROR_DISPLAY:
                 return new String[] {
                         "Mirrors image on HMD to separate desktop window.",
@@ -397,8 +396,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     {
         String s = var8.getEnumString();
 
-        if (var8 == VRSettings.VrOptions.ENABLE_DIRECT ||
-            var8 == VRSettings.VrOptions.CHROM_AB_CORRECTION)
+        if (var8 == VRSettings.VrOptions.CHROM_AB_CORRECTION)
         {
             return false;
         }

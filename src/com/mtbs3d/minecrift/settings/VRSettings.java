@@ -1028,8 +1028,8 @@ public class VRSettings
                 return this.useDynamicPrediction ? var4 + "ON" : var4 + "OFF";
             case OVERDRIVE_DISPLAY:
                 return this.useDisplayOverdrive ? var4 + "ON" : var4 + "OFF";
-            case ENABLE_DIRECT:
-                return this.mc.isDirectMode ? var4 + "Direct" : var4 + "Extended";
+            //case ENABLE_DIRECT:
+            //    return this.mc.isDirectMode ? var4 + "Direct" : var4 + "Extended";
             case MIRROR_DISPLAY:
                 return this.useDisplayMirroring ? var4 + "ON" : var4 + "OFF";
             case POS_TRACK_HIDE_COLLISION:
@@ -2347,7 +2347,7 @@ public class VRSettings
         DELAYED_RENDER("Render Mode", false, true),
         // SDK 0.4.0 up
         RENDER_SCALEFACTOR("Render Scale", true, false),
-        ENABLE_DIRECT("Render Mode", false, true),
+        //ENABLE_DIRECT("Render Mode", false, true),
         MIRROR_DISPLAY("Mirror Display", false, true),
         LOW_PERSISTENCE("Low Persistence", false, true),
         DYNAMIC_PREDICTION("Dynamic Prediction", false, true),
