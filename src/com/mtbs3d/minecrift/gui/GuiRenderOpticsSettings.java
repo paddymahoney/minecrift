@@ -10,7 +10,7 @@ import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.settings.VRSettings;
 
-import de.fruitfly.ovr.structs.HmdDesc;
+import de.fruitfly.ovr.structs.HmdParameters;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -90,7 +90,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
         VRSettings.VrOptions[] var10 = null;
         if( Minecraft.getMinecraft().stereoProvider instanceof MCOculus )
         {
-            HmdDesc hmd = Minecraft.getMinecraft().hmdInfo.getHMDInfo();
+            HmdParameters hmd = Minecraft.getMinecraft().hmdInfo.getHMDInfo();
             productName = hmd.ProductName;
             if (!hmd.IsReal)
                 productName += " (Debug)";

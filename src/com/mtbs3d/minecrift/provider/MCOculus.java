@@ -37,7 +37,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     private float rollHeadRad = 0f;
     private float pitchHeadRad = 0f;
     private float yawHeadRad = 0f;
-    private TrackerState ts = new TrackerState();
     private Posef[] eyePose = new Posef[3];
     private EulerOrient[] eulerOrient = new EulerOrient[3];
     long lastIndex = -1;
@@ -98,16 +97,16 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     @Override
-    public FullPoseState getEyePoses(long frameIndex)
+    public FullPoseState getTrackedPoses(long frameIndex)
     {
         return fullPoseState;
     }
 
-    public Matrix4f getMatrix4fProjection(FovPort fov,
-                                          float nearClip,
-                                          float farClip)
+    public Matrix4f getProjectionMatrix(FovPort fov,
+                                        float nearClip,
+                                        float farClip)
     {
-         return super.getMatrix4fProjection(fov, nearClip, farClip);
+         return super.getProjectionMatrix(fov, nearClip, farClip);
     }
 
     public void endFrame()
@@ -131,11 +130,11 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     @Override
-    public HmdDesc getHMDInfo()
+    public HmdParameters getHMDInfo()
     {
-        HmdDesc hmdDesc = new HmdDesc();
+        HmdParameters hmdDesc = new HmdParameters();
         if (isInitialized())
-            hmdDesc = getHmdDesc();
+            hmdDesc = getHmdParameters();
 
         return hmdDesc;
     }
@@ -385,7 +384,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         this.lastIndex = frameIndex;
 
         // Get our eye pose and tracker state in one hit
-        fullPoseState = super.getEyePoses(frameIndex);
+        fullPoseState = super.getTrackedPoses(frameIndex);
 
         // Set left eye pose
         eye = EyeType.ovrEye_Left;
@@ -411,7 +410,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
         // Set center eye pose
         eye = EyeType.ovrEye_Center;
-        this.eyePose[eye.value()] = fullPoseState.trackerState.HeadPose.ThePose;
+        this.eyePose[eye.value()] = fullPoseState.centerEyePose.ThePose;
         this.eulerOrient[eye.value()] = OculusRift.getEulerAnglesDeg(this.eyePose[eye.value()].Orientation,
                 1.0f,
                 Axis.Axis_Y,
@@ -419,9 +418,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
                 Axis.Axis_Z,
                 HandedSystem.Handed_L,
                 RotateDirection.Rotate_CCW);
-
-        // Set tracker info
-        ts = fullPoseState.trackerState;
     }
 
 

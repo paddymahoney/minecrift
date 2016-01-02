@@ -5,7 +5,6 @@
 package com.mtbs3d.minecrift.api;
 
 
-import de.fruitfly.ovr.EyeRenderParams;
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
 
@@ -17,11 +16,11 @@ import de.fruitfly.ovr.structs.*;
  */
 public interface IStereoProvider extends IBasePlugin
 {
-    public FovTextureInfo getFovTextureSize(FovPort LeftFov,
-                                            FovPort RightFov,
-                                            float renderScaleFactor);
+    public RenderTextureInfo getRenderTextureSizes(FovPort LeftFov,
+                                                   FovPort RightFov,
+                                                   float renderScaleFactor);
 
-    public SwapTextureSet createSwapTextureSet(int lwidth, int lheight, int rwidth, int rheight);
+    public SwapTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight);
 
     public int createMirrorTexture(int width, int height);
 
@@ -33,11 +32,11 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean isGuiOrtho();
 
-    public Matrix4f getMatrix4fProjection(FovPort fov,
-                                          float nearClip,
-                                          float farClip);
+    public Matrix4f getProjectionMatrix(FovPort fov,
+                                        float nearClip,
+                                        float farClip);
 
     public double getCurrentTimeSecs();
 
-	public boolean setCurrentSwapTextureIndex(int currentSwapIdx);
+	public boolean setCurrentRenderTextureIndex(int currentSwapIdx);
 }

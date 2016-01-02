@@ -5,10 +5,7 @@
 package com.mtbs3d.minecrift.api;
 
 import de.fruitfly.ovr.*;
-import de.fruitfly.ovr.structs.FovTextureInfo;
-import de.fruitfly.ovr.structs.GLConfig;
-import de.fruitfly.ovr.structs.HmdDesc;
-import de.fruitfly.ovr.structs.Sizei;
+import de.fruitfly.ovr.structs.HmdParameters;
 
 /**
  * Implement this class to inform Minecrift of distortion, resolution, and
@@ -19,7 +16,7 @@ import de.fruitfly.ovr.structs.Sizei;
  */
 public interface IHMDInfo extends IBasePlugin
 {
-	public HmdDesc getHMDInfo();
+	public HmdParameters getHMDInfo();
 
     /* Gets the current user profile data */
     public UserProfileData getProfileData();

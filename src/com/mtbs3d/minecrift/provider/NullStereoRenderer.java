@@ -3,14 +3,10 @@ package com.mtbs3d.minecrift.provider;
 import com.mtbs3d.minecrift.api.BasePlugin;
 import com.mtbs3d.minecrift.api.IStereoProvider;
 import com.mtbs3d.minecrift.api.PluginType;
-import de.fruitfly.ovr.EyeRenderParams;
-import de.fruitfly.ovr.structs.FullPoseState;
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-
-import java.io.File;
 
 /**
  * Created by StellaArtois on 26/6/2014.
@@ -33,9 +29,9 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public FovTextureInfo getFovTextureSize(FovPort LeftFov,
-            FovPort RightFov,
-            float renderScaleFactor)
+    public RenderTextureInfo getRenderTextureSizes(FovPort LeftFov,
+                                                   FovPort RightFov,
+                                                   float renderScaleFactor)
     {
         return null;
     }
@@ -64,7 +60,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public Matrix4f getMatrix4fProjection(FovPort fov, float nearClip, float farClip) {
+    public Matrix4f getProjectionMatrix(FovPort fov, float nearClip, float farClip) {
         return null;
     }
 
@@ -139,7 +135,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public SwapTextureSet createSwapTextureSet(int lwidth, int lheight, int rwidth, int rheight)
+    public SwapTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight)
     {
         return null;
     }
@@ -151,7 +147,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
 	@Override
-	public boolean setCurrentSwapTextureIndex(int currentSwapIdx) {
+	public boolean setCurrentRenderTextureIndex(int currentSwapIdx) {
 		return true;
 	}
 }
