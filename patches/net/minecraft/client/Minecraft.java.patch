@@ -1642,7 +1642,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3714,1004 @@
+@@ -3134,4 +3714,1008 @@
              }
          }
      }
@@ -1731,6 +1731,10 @@
 +
 +            FovPort leftFov = null;
 +            FovPort rightFov = null;
++
++            if (!this.stereoProvider.isInitialized()) {
++                throw new Exception(this.stereoProvider.getInitializationStatus());
++            }
 +
 +            // Scale up the FBO to allow for the distortion
 +            if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
