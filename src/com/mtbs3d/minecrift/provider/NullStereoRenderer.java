@@ -150,4 +150,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 	public boolean setCurrentRenderTextureIndex(int currentSwapIdx) {
 		return true;
 	}
+
+    @Override
+    public String getLastError() { return "Success"; }
 }

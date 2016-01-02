@@ -39,4 +39,6 @@ public interface IStereoProvider extends IBasePlugin
     public double getCurrentTimeSecs();
 
 	public boolean setCurrentRenderTextureIndex(int currentSwapIdx);
+
+    public String getLastError();
 }

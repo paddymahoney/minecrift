@@ -227,7 +227,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         if (!isInitialized())
             return true;  // Return true if not initialised
 
-        if (!getHMDInfo().IsReal)
+        if (!getHMDInfo().isReal())
             return true;  // Return true if debug (fake) Rift...
 
         if (type != PluginType.PLUGIN_POSITION)   // Only position provider needs calibrating

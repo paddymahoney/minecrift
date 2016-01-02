@@ -92,13 +92,13 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
         {
             HmdParameters hmd = Minecraft.getMinecraft().hmdInfo.getHMDInfo();
             productName = hmd.ProductName;
-            if (!hmd.IsReal)
+            if (!hmd.isReal())
                 productName += " (Debug)";
 
-            if (hmd.ProductName.contains("DK2"))      // Hacky. Improve.
-                var10 = oculusDK2DisplayOptions;
-            else
+            if (hmd.ProductName.contains("DK1"))      // Hacky. Improve.
                 var10 = oculusDK1DisplayOptions;
+            else
+                var10 = oculusDK2DisplayOptions;
         }
         else
             var10 = defaultDisplayOptions;

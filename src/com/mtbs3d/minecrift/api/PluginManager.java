@@ -145,17 +145,18 @@ public class PluginManager implements IEventListener
 
     private static void initForMinecrift(IBasePlugin plugin) throws Exception
     {
-        System.out.println("[Minecrift] Attempting to initialise plugin: " + plugin.getName());
-
-        if( !plugin.isInitialized() && !plugin.init() )
+        if( !plugin.isInitialized() )
         {
-            String error = "Error! Couldn't load "+ plugin.getName()+": "+plugin.getInitializationStatus();
-            System.err.println( error );
-            try {
-                throw new Exception(error);
-            }
-            catch (Exception e) {
-                e.printStackTrace();
+            System.out.println("[Minecrift] Attempting to initialise plugin: " + plugin.getName() + " (" + PluginManager.getPluginTypes(plugin) + ")");
+
+            if ( !plugin.init() ) {
+                String error = "Error! Couldn't load " + plugin.getName() + ": " + plugin.getInitializationStatus();
+                System.err.println(error);
+                try {
+                    throw new Exception(error);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -175,6 +176,27 @@ public class PluginManager implements IEventListener
         if (that instanceof IEventNotifier)
             ((IEventNotifier)that).registerListener(thePluginManager);
         thePluginManager.allPlugins.add(that);
+    }
+
+    public static String getPluginTypes( IBasePlugin that )
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if( that instanceof IHMDInfo )
+            sb.append("IHMDInfo ");
+        if( that instanceof IOrientationProvider )
+            sb.append("IOrientationProvider ");
+        if( that instanceof IEyePositionProvider)
+            sb.append("IEyePositionProvider ");
+        if( that instanceof IBodyAimController )
+            sb.append("IBodyAimController ");
+        if( that instanceof IStereoProvider )
+            sb.append("IStereoProvider ");
+
+        if (sb.length() == 0)
+            sb.append("Unknown ");
+
+        return sb.toString();
     }
 
     public static void pollAll(long frameIndex)
