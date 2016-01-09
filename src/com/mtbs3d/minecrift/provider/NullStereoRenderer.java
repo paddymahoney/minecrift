@@ -123,9 +123,10 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public void endFrame() {
+    public boolean endFrame() {
         GL11.glFlush();
         Display.update();
+        return true;
     }
 
     @Override

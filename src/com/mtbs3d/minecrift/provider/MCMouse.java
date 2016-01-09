@@ -127,7 +127,7 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	}
     public void beginFrame() { beginFrame(0); }
     public void beginFrame(long frameIndex) { }
-    public void endFrame() { }
+    public boolean endFrame() { return true; }
 
     @Override
     public double ratchetingYawTransitionPercent()

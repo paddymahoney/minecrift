@@ -765,7 +765,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 
     public void beginFrame() { beginFrame(0); }
     public void beginFrame(long frameIndex) { }
-    public void endFrame() { }
+    public boolean endFrame() { return true; }
 
     @Override
     public double ratchetingYawTransitionPercent()

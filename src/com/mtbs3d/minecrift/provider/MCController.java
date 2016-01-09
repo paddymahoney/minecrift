@@ -347,8 +347,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	@Override
-	public void poll(long frameIndex)
-    {
+	public void poll(long frameIndex) throws Exception {
         if (frameIndex <= this.lastIndex)
             return;
         this.lastIndex = frameIndex;
@@ -529,7 +528,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 
     public void beginFrame() { beginFrame(0); }
     public void beginFrame(long frameIndex) { }
-    public void endFrame() { }
+    public boolean endFrame() { return true; }
 
     @Override
     public double ratchetingYawTransitionPercent()

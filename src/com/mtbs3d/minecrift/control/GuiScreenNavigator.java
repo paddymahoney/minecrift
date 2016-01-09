@@ -200,7 +200,7 @@ public class GuiScreenNavigator {
 
     }
 	
-	public GuiScreenNavigator(GuiScreen screen) {
+	public GuiScreenNavigator(GuiScreen screen) throws Exception {
 		mc = Minecraft.getMinecraft();
 		nav = this;
 		
@@ -209,8 +209,8 @@ public class GuiScreenNavigator {
 	        try {
 				keyDownField = Keyboard.class.getDeclaredField("keyDownBuffer");
 				keyDownField.setAccessible(true);
-	        	guiLeft = GuiContainer.class.getDeclaredField("field_147003_i");  // was guiLeft
-	        	guiTop  = GuiContainer.class.getDeclaredField("field_147009_r");  // was guiTop
+	        	guiLeft = GuiContainer.class.getDeclaredField("guiLeft");
+	        	guiTop  = GuiContainer.class.getDeclaredField("guiTop");
 	        	System.out.println("[Minecrift] GuiScreenNavigator: Reflected guiLeft/guiTop");
 	        }
 	        catch (NoSuchFieldException e) {
@@ -220,7 +220,7 @@ public class GuiScreenNavigator {
 		        	System.out.println("[Minecrift] GuiScreenNavigator: Reflected obfuscated guiLeft/guiTop (i/r)");
 		        }
 		        catch (NoSuchFieldException e1) { 
-		        	System.out.println("[Minecrift] GuiScreenNavigator: Couldn't get guiLeft/guiTop via reflection! Joystick navigation of inventories may be inaccurate.");
+		        	throw new Exception("[Minecrift] GuiScreenNavigator: Couldn't get guiLeft/guiTop via reflection! Joystick navigation of inventories may be inaccurate.");
 		        };
 	        }
 	       	if ( guiLeft != null)

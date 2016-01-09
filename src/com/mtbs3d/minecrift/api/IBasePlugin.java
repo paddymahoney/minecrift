@@ -34,7 +34,7 @@ public interface IBasePlugin {
 
 	public boolean isInitialized();
 
-	public void poll(long frameIndex);
+	public void poll(long frameIndex) throws Exception;
 
 	public void destroy();
 
@@ -50,5 +50,5 @@ public interface IBasePlugin {
 
     public void beginFrame(long frameIndex);
 
-    public void endFrame();
+    public boolean endFrame();
 }

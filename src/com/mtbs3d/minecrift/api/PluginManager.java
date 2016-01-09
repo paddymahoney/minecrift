@@ -199,8 +199,7 @@ public class PluginManager implements IEventListener
         return sb.toString();
     }
 
-    public static void pollAll(long frameIndex)
-    {
+    public static void pollAll(long frameIndex) throws Exception {
         for( IBasePlugin p : thePluginManager.allPlugins )
         {
             if( p.isInitialized() )

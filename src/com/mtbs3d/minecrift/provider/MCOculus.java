@@ -109,24 +109,17 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
          return super.getProjectionMatrix(fov, nearClip, farClip);
     }
 
-    public void endFrame()
+    public boolean endFrame()
     {
-        GL11.glDisable(GL11.GL_CULL_FACE);  // Oculus wants CW orientations, avoid the problem by turning off culling...
-        GL11.glDisable(GL11.GL_DEPTH_TEST); // Nothing is drawn with depth test on...
-        //GL30.glBindVertexArray(0);
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0); // Unbind GL_ARRAY_BUFFER for my own vertex arrays to work...
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
-
         // End the frame
-        submitFrame();
-
-        GL11.glFrontFace(GL11.GL_CCW);   // Needed for OVR SDK 0.4.0
-        GL11.glEnable(GL11.GL_CULL_FACE); // Turn back on...
-        GL11.glEnable(GL11.GL_DEPTH_TEST); // Turn back on...
-        GL11.glClearDepth(1); // Oculus set this to 0 (the near plane), return to normal...
-        ARBShaderObjects.glUseProgramObjectARB(0); // Oculus shader is still active, turn it off...
+        ErrorInfo result = submitFrame();
 
         Display.processMessages();
+
+        if (result == null)
+            return true;
+
+        return result.unqualifiedSuccess;
     }
 
     @Override
@@ -385,6 +378,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
         // Get our eye pose and tracker state in one hit
         fullPoseState = super.getTrackedPoses(frameIndex);
+        System.out.println(fullPoseState.toString());
 
         // Set left eye pose
         eye = EyeType.ovrEye_Left;
