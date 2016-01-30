@@ -772,7 +772,7 @@
 +            this.displayWidth = this.EyeTextureSize[this.currentEye.value()].w;
 +            this.displayHeight = this.EyeTextureSize[this.currentEye.value()].h;
 +
-+            currentEyePose = fullPoseState.getEyePose(this.currentEye);
++            currentEyePose = getEyePose(this.currentEye);
 +            //System.out.println("Posef (" + this.currentEye.toString() + "): " + currentEyePose.toString());
 +            this.framebufferMc.selectTexture();//TODO_ maybe pass idx here?
 +	        GL11.glPushMatrix();
