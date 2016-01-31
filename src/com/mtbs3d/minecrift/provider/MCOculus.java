@@ -378,7 +378,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
         // Get our eye pose and tracker state in one hit
         fullPoseState = super.getTrackedPoses(frameIndex);
-        System.out.println(fullPoseState.toString());
+        //System.out.println(fullPoseState.toString());
 
         // Set left eye pose
         eye = EyeType.ovrEye_Left;
