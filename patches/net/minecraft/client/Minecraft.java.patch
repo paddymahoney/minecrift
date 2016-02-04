@@ -652,7 +652,7 @@
          if (this.isGamePaused && this.theWorld != null)
          {
              float var1 = this.timer.renderPartialTicks;
-@@ -1042,77 +1351,180 @@
+@@ -1042,77 +1351,181 @@
              this.refreshResources();
          }
  
@@ -745,7 +745,8 @@
 +        PluginManager.beginFrameAll(frameIndex);
 +
 +        // Poll sensors
-+        PluginManager.pollAll(frameIndex);
++        if (!this.vrSettings.testTimewarp)
++            PluginManager.pollAll(frameIndex);
 +
 +        // TODO: Get Frametiming (add to getTrackedPoses()?) and use for correct ticks setting for each eye for correct animation
 +
@@ -888,7 +889,7 @@
          Thread.yield();
          this.mcProfiler.startSection("stream");
          this.mcProfiler.startSection("update");
-@@ -1121,9 +1533,10 @@
+@@ -1121,9 +1534,10 @@
          this.stream.func_152922_k();
          this.mcProfiler.endSection();
          this.mcProfiler.endSection();
@@ -900,7 +901,7 @@
  
          while (getSystemTime() >= this.debugUpdateTime + 1000L)
          {
-@@ -1141,47 +1554,52 @@
+@@ -1141,47 +1555,52 @@
          }
  
          this.mcProfiler.endSection();
@@ -985,7 +986,7 @@
      }
  
      public boolean isFramerateLimitBelowMax()
-@@ -1467,8 +1885,9 @@
+@@ -1467,8 +1886,9 @@
              }
          }
      }
@@ -997,7 +998,7 @@
      {
          if (this.leftClickCounter <= 0)
          {
-@@ -1476,7 +1895,9 @@
+@@ -1476,7 +1896,9 @@
  
              if (this.objectMouseOver == null)
              {
@@ -1008,7 +1009,7 @@
  
                  if (this.playerController.isNotCreative())
                  {
-@@ -1515,7 +1936,9 @@
+@@ -1515,7 +1937,9 @@
      /**
       * Called when user clicked he's mouse right button (place)
       */
@@ -1019,7 +1020,7 @@
      {
          this.rightClickDelayTimer = 4;
          boolean var1 = true;
-@@ -1523,7 +1946,9 @@
+@@ -1523,7 +1947,9 @@
  
          if (this.objectMouseOver == null)
          {
@@ -1030,7 +1031,7 @@
          }
          else
          {
-@@ -1546,7 +1971,14 @@
+@@ -1546,7 +1972,14 @@
                      {
                          int var6 = var2 != null ? var2.stackSize : 0;
  
@@ -1046,7 +1047,7 @@
                          {
                              var1 = false;
                              this.thePlayer.swingItem();
-@@ -1573,7 +2005,14 @@
+@@ -1573,7 +2006,14 @@
          {
              ItemStack var7 = this.thePlayer.inventory.getCurrentItem();
  
@@ -1062,7 +1063,7 @@
              {
                  this.entityRenderer.itemRenderer.resetEquippedProgress2();
              }
-@@ -1632,8 +2071,10 @@
+@@ -1632,8 +2072,10 @@
              }
  
              Display.setFullscreen(this.fullscreen);
@@ -1075,7 +1076,7 @@
          }
          catch (Exception var2)
          {
-@@ -1646,29 +2087,23 @@
+@@ -1646,29 +2088,23 @@
       */
      private void resize(int width, int height)
      {
@@ -1113,7 +1114,7 @@
      }
  
      /**
-@@ -1693,11 +2128,24 @@
+@@ -1693,11 +2129,24 @@
          {
              --this.rightClickDelayTimer;
          }
@@ -1138,7 +1139,7 @@
              this.ingameGUI.updateTick();
          }
  
-@@ -1719,6 +2167,10 @@
+@@ -1719,6 +2168,10 @@
  
          if (this.currentScreen == null && this.thePlayer != null)
          {
@@ -1149,7 +1150,7 @@
              if (this.thePlayer.getHealth() <= 0.0F)
              {
                  this.displayGuiScreen((GuiScreen)null);
-@@ -1792,6 +2244,12 @@
+@@ -1792,6 +2245,12 @@
  
              while (Mouse.next())
              {
@@ -1162,7 +1163,7 @@
                  var9 = Mouse.getEventButton();
                  KeyBinding.setKeyBindState(var9 - 100, Mouse.getEventButtonState());
  
-@@ -1838,6 +2296,11 @@
+@@ -1838,6 +2297,11 @@
                          this.currentScreen.handleMouseInput();
                      }
                  }
@@ -1174,7 +1175,7 @@
              }
  
              if (this.leftClickCounter > 0)
-@@ -1889,6 +2352,10 @@
+@@ -1889,6 +2353,10 @@
                      }
                      else
                      {
@@ -1185,7 +1186,7 @@
                          if (Keyboard.getEventKey() == 1)
                          {
                              this.displayInGameMenu();
-@@ -1975,6 +2442,11 @@
+@@ -1975,6 +2443,11 @@
                          }
                      }
                  }
@@ -1197,7 +1198,7 @@
              }
  
              for (var9 = 0; var9 < 9; ++var9)
-@@ -2070,6 +2542,12 @@
+@@ -2070,6 +2543,12 @@
  
              this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
          }
@@ -1210,7 +1211,7 @@
  
          if (this.theWorld != null)
          {
-@@ -2164,7 +2642,11 @@
+@@ -2164,7 +2643,11 @@
              this.mcProfiler.endStartSection("pendingConnection");
              this.myNetworkManager.processReceivedPackets();
          }
@@ -1223,7 +1224,7 @@
          this.mcProfiler.endSection();
          this.systemTime = getSystemTime();
      }
-@@ -2174,6 +2656,15 @@
+@@ -2174,6 +2657,15 @@
       */
      public void launchIntegratedServer(String folderName, String worldName, WorldSettings worldSettingsIn)
      {
@@ -1239,7 +1240,7 @@
          this.loadWorld((WorldClient)null);
          System.gc();
          ISaveHandler var4 = this.saveLoader.getSaveLoader(folderName, false);
-@@ -2207,37 +2698,81 @@
+@@ -2207,37 +2699,81 @@
  
          this.loadingScreen.displaySavingString(I18n.format("menu.loadingLevel", new Object[0]));
  
@@ -1344,7 +1345,7 @@
  
      /**
       * unloads the current world first
-@@ -2252,6 +2787,13 @@
+@@ -2252,6 +2788,13 @@
       */
      public void loadWorld(WorldClient worldClientIn, String loadingMessage)
      {
@@ -1358,7 +1359,7 @@
          if (worldClientIn == null)
          {
              NetHandlerPlayClient var3 = this.getNetHandler();
-@@ -2264,6 +2806,23 @@
+@@ -2264,6 +2807,23 @@
              if (this.theIntegratedServer != null)
              {
                  this.theIntegratedServer.initiateShutdown();
@@ -1382,7 +1383,7 @@
              }
  
              this.theIntegratedServer = null;
-@@ -2290,6 +2849,15 @@
+@@ -2290,6 +2850,15 @@
              this.mcResourcePackRepository.func_148529_f();
              this.setServerData((ServerData)null);
              this.integratedServerIsRunning = false;
@@ -1398,7 +1399,7 @@
          }
  
          this.mcSoundHandler.stopSounds();
-@@ -2437,107 +3005,117 @@
+@@ -2437,107 +3006,117 @@
              Item var2;
              int var5;
  
@@ -1615,7 +1616,7 @@
  
              if (var1)
              {
-@@ -2810,11 +3388,18 @@
+@@ -2810,11 +3389,18 @@
          playerSnooper.addStatToSnooper("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
@@ -1634,7 +1635,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2822,12 +3407,14 @@
+@@ -2822,12 +3408,14 @@
  
              if (var1 != 0)
              {
@@ -1649,7 +1650,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3721,1012 @@
+@@ -3134,4 +3722,1012 @@
              }
          }
      }

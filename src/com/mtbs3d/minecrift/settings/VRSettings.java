@@ -115,6 +115,7 @@ public class VRSettings
     public int renderFullFirstPersonModelMode = RENDER_FIRST_PERSON_FULL;
     public int shaderIndex = NO_SHADER;
     public float renderPlayerOffset = 0.0f;
+    public boolean testTimewarp = false;
     //public boolean useChromaticAbCorrection = true; // Removed in 0.5+
     // SDK 0.4.0
     public boolean useTimewarp = true;
