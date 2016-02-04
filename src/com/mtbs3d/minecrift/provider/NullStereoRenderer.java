@@ -148,7 +148,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
 	@Override
-	public boolean setCurrentRenderTextureIndex(int currentSwapIdx) {
+	public boolean setCurrentRenderTextureInfo(int index, int textureIdx, int depthId, int depthWidth, int depthHeight) {
 		return true;
 	}
 
