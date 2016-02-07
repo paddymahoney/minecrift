@@ -166,4 +166,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 
     @Override
     public String getLastError() { return "Success"; }
+
+    @Override
+    public void configureRenderer(GLConfig cfg) {}
 }

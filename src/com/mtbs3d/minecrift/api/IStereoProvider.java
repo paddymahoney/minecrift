@@ -49,4 +49,6 @@ public interface IStereoProvider extends IBasePlugin
 	public boolean setCurrentRenderTextureInfo(int index, int textureIdx, int depthId, int depthWidth, int depthHeight);
 
     public String getLastError();
+
+    public void configureRenderer(GLConfig cfg);
 }

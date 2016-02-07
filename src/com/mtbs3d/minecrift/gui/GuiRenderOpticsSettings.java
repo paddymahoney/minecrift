@@ -38,14 +38,15 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.MIRROR_DISPLAY,
             VRSettings.VrOptions.FSAA,
             VRSettings.VrOptions.FSAA_SCALEFACTOR,
-            VRSettings.VrOptions.TIMEWARP,
+            VRSettings.VrOptions.WORLD_SCALE,
+/*            VRSettings.VrOptions.TIMEWARP,
             VRSettings.VrOptions.TIMEWARP_JIT_DELAY,
             VRSettings.VrOptions.VIGNETTE,
             VRSettings.VrOptions.LOW_PERSISTENCE,
             VRSettings.VrOptions.DYNAMIC_PREDICTION,
             VRSettings.VrOptions.OVERDRIVE_DISPLAY,
             VRSettings.VrOptions.HIGH_QUALITY_DISTORTION,
-            VRSettings.VrOptions.OTHER_RENDER_SETTINGS,
+            VRSettings.VrOptions.OTHER_RENDER_SETTINGS,*/
     };
 
     static VRSettings.VrOptions[] oculusDK1DisplayOptions = new VRSettings.VrOptions[] {
@@ -55,11 +56,12 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.MIRROR_DISPLAY,
             VRSettings.VrOptions.FSAA,
             VRSettings.VrOptions.FSAA_SCALEFACTOR,
+            VRSettings.VrOptions.WORLD_SCALE,/*
             VRSettings.VrOptions.TIMEWARP,
             VRSettings.VrOptions.TIMEWARP_JIT_DELAY,
             VRSettings.VrOptions.VIGNETTE,
             VRSettings.VrOptions.HIGH_QUALITY_DISTORTION,
-            VRSettings.VrOptions.OTHER_RENDER_SETTINGS,
+            VRSettings.VrOptions.OTHER_RENDER_SETTINGS,*/
     };
 
     GameSettings settings;
@@ -80,8 +82,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
 
         // this.screenTitle = var1.translateKey("options.videoTitle");
         this.buttonList.clear();
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 180, "Done"));
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, this.width / 2 - 100, this.height / 6 + 160, "Reset To Defaults"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 170, "Done"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, this.width / 2 - 100, this.height / 6 + 150, "Reset To Defaults"));
 
         pluginModeChangeButton = new PluginModeChangeButton(ID_GENERIC_MODE_CHANGE, this.width / 2 - 78, this.height / 6 - 14, (List<IBasePlugin>)(List<?>) PluginManager.thePluginManager.stereoProviderPlugins, this.guivrSettings.stereoProviderPluginID);
         this.buttonList.add(pluginModeChangeButton);
@@ -120,7 +122,13 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 float maxValue = 1.0f;
                 float increment = 0.001f;
 
-                if (var8 == VRSettings.VrOptions.RENDER_SCALEFACTOR)
+                if (var8 == VRSettings.VrOptions.WORLD_SCALE)
+                {
+                    minValue = -5.0f;
+                    maxValue = -0.1f;
+                    increment = 0.01f;
+                }
+                else if (var8 == VRSettings.VrOptions.RENDER_SCALEFACTOR)
                 {
                     minValue = 0.5f;
                     maxValue = 2.5f;
@@ -191,6 +199,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useHighQualityDistortion = true;
                 minecraft.vrSettings.useFsaa = false;
                 minecraft.vrSettings.fsaaScaleFactor = 1.4f;
+                this.guivrSettings.worldScale = 1f;
 
                 minecraft.reinitFramebuffers = true;
 			    this.guivrSettings.saveOptions();
@@ -226,7 +235,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 num == VRSettings.VrOptions.LOW_PERSISTENCE ||
                 num == VRSettings.VrOptions.DYNAMIC_PREDICTION ||
                 num == VRSettings.VrOptions.OVERDRIVE_DISPLAY ||
-                num == VRSettings.VrOptions.FSAA)
+                num == VRSettings.VrOptions.FSAA ||
+                num == VRSettings.VrOptions.WORLD_SCALE)
 	        {
                 minecraft.reinitFramebuffers = true;
 	        }
@@ -375,6 +385,17 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             case OTHER_RENDER_SETTINGS:
                 return new String[] {
                         "Configure IPD and FOV border settings."
+                };
+            case WORLD_SCALE:
+                return new String[] {
+                        "Scales the size of the world.",
+                        " Adjust this if the blocks do not seem to be one metre",
+                        " in size (i.e change the perception of scale).",
+                        " Miniature world: This can be less nausea inducing.",
+                        " Giant world: A hard core VR experience!",
+                        "NOTE: When playing in a seated position, perceived",
+                        "scale can be improved with a world scale of 133%. Also,",
+                        "sit cross-legged on your chair. Really ;-)",
                 };
     	default:
     		return null;

@@ -1,19 +1,15 @@
 --- a/net/minecraft/client/Minecraft.java
 +++ b/net/minecraft/client/Minecraft.java
-@@ -9,19 +9,44 @@
+@@ -9,19 +9,40 @@
  import com.google.common.util.concurrent.ListenableFutureTask;
  import com.mojang.authlib.minecraft.MinecraftSessionService;
  import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
++import com.mtbs3d.minecrift.api.*;
 +import com.mtbs3d.minecrift.provider.*;
 +import com.mtbs3d.minecrift.render.FBOParams;
++import com.mtbs3d.minecrift.render.RenderConfigException;
 +import com.mtbs3d.minecrift.render.ShaderHelper;
 +import com.mtbs3d.minecrift.settings.VRHotkeys;
-+import com.mtbs3d.minecrift.api.IBodyAimController;
-+import com.mtbs3d.minecrift.api.IEyePositionProvider;
-+import com.mtbs3d.minecrift.api.IHMDInfo;
-+import com.mtbs3d.minecrift.api.IOrientationProvider;
-+import com.mtbs3d.minecrift.api.IStereoProvider;
-+import com.mtbs3d.minecrift.api.PluginManager;
 +import com.mtbs3d.minecrift.control.ControlBinding;
 +import com.mtbs3d.minecrift.settings.VRSettings;
 +import com.mtbs3d.minecrift.utils.TextureSelector;
@@ -45,7 +41,7 @@
  import java.util.HashSet;
  import java.util.Iterator;
  import java.util.List;
-@@ -30,11 +55,16 @@
+@@ -30,11 +51,16 @@
  import java.util.concurrent.Callable;
  import java.util.concurrent.Executors;
  import java.util.concurrent.FutureTask;
@@ -62,7 +58,7 @@
  import net.minecraft.client.entity.EntityClientPlayerMP;
  import net.minecraft.client.gui.FontRenderer;
  import net.minecraft.client.gui.GuiChat;
-@@ -97,6 +127,7 @@
+@@ -97,6 +123,7 @@
  import net.minecraft.client.settings.GameSettings;
  import net.minecraft.client.settings.KeyBinding;
  import net.minecraft.client.shader.Framebuffer;
@@ -70,7 +66,7 @@
  import net.minecraft.client.stream.IStream;
  import net.minecraft.client.stream.NullStream;
  import net.minecraft.client.stream.TwitchStream;
-@@ -127,6 +158,8 @@
+@@ -127,6 +154,8 @@
  import net.minecraft.profiler.Profiler;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.integrated.IntegratedServer;
@@ -79,7 +75,7 @@
  import net.minecraft.stats.AchievementList;
  import net.minecraft.stats.IStatStringFormat;
  import net.minecraft.stats.StatFileWriter;
-@@ -142,6 +175,7 @@
+@@ -142,6 +171,7 @@
  import net.minecraft.util.Session;
  import net.minecraft.util.Timer;
  import net.minecraft.util.Util;
@@ -87,7 +83,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,22 +184,22 @@
+@@ -150,22 +180,22 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -118,7 +114,7 @@
  
  public class Minecraft implements IPlayerUsage
  {
-@@ -181,8 +215,9 @@
+@@ -181,8 +211,9 @@
      private ServerData currentServerData;
  
      /** The RenderEngine instance used by Minecraft */
@@ -130,7 +126,7 @@
      /**
       * Set to 'this' in Minecraft constructor; used by some settings get methods
       */
-@@ -304,7 +339,9 @@
+@@ -304,7 +335,9 @@
      private IStream stream;
      private Framebuffer framebufferMc;
      private TextureMap textureMapBlocks;
@@ -141,7 +137,7 @@
      private MusicTicker mcMusicTicker;
      private ResourceLocation mojangLogo;
      private final MinecraftSessionService sessionService;
-@@ -331,6 +368,88 @@
+@@ -331,6 +364,91 @@
      private String debugProfilerName = "root";
      private static final String __OBFID = "CL_00000631";
  
@@ -175,6 +171,7 @@
 +    public boolean integratedServerLaunchInProgress = false;
 +    public boolean resetMouse = false;
 +    public boolean lastEnableVsync = true;
++    public boolean lastEnableMirror = true;
 +    public EyeRenderParams eyeRenderParams = null;
 +    public EyeType currentEye = EyeType.ovrEye_Left;
 +    public Posef currentEyePose = null;
@@ -223,6 +220,8 @@
 +    public int currentDisplayWidth = 0;
 +    public int currentDisplayHeight = 0;
 +    public boolean visible = true;
++    public ErrorHelper errorInfo;
++    public static final String RENDER_SETUP_FAILURE_MESSAGE = "Failed to initialise stereo rendering plugin: ";
 +
 +    public final String minecriftVerString = "Minecrift 1.7.10 R1c";
 +    /** END MINECRIFT */
@@ -230,7 +229,7 @@
      public Minecraft(Session sessionIn, int displayWidth, int displayHeight, boolean fullscreen, boolean isDemo, File dataDir, File assetsDir, File resourcePackDir, Proxy proxy, String version, Multimap twitchDetails, String assetsJsonVersion)
      {
          theMinecraft = this;
-@@ -356,6 +475,12 @@
+@@ -356,6 +474,12 @@
          this.jvm64bit = isJvm64bit();
          ImageIO.setUseCache(false);
          Bootstrap.register();
@@ -243,7 +242,7 @@
      }
  
      private static boolean isJvm64bit()
-@@ -421,24 +546,37 @@
+@@ -421,24 +545,37 @@
          File var2 = new File(getMinecraft().mcDataDir, "crash-reports");
          File var3 = new File(var2, "crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + "-client.txt");
          System.out.println(crashReportIn.getCompleteReport());
@@ -286,7 +285,7 @@
      public void setServer(String serverHostname, int serverPort)
      {
          this.serverName = serverHostname;
-@@ -448,9 +586,11 @@
+@@ -448,9 +585,11 @@
      /**
       * Starts the game: initializes the canvas, the title, the settings, etcetera.
       */
@@ -300,7 +299,7 @@
  
          if (this.gameSettings.overrideHeight > 0 && this.gameSettings.overrideWidth > 0)
          {
-@@ -480,7 +620,9 @@
+@@ -480,7 +619,9 @@
          }
  
          Display.setResizable(true);
@@ -311,7 +310,7 @@
          logger.info("LWJGL Version: " + Sys.getVersion());
          Util.EnumOS var1 = Util.getOSType();
  
-@@ -504,7 +646,14 @@
+@@ -504,7 +645,14 @@
  
          try
          {
@@ -327,7 +326,7 @@
          }
          catch (LWJGLException var7)
          {
-@@ -552,11 +701,33 @@
+@@ -552,11 +700,33 @@
          this.mcResourceManager = new SimpleReloadableResourceManager(this.metadataSerializer_);
          this.mcLanguageManager = new LanguageManager(this.metadataSerializer_, this.gameSettings.language);
          this.mcResourceManager.registerReloadListener(this.mcLanguageManager);
@@ -363,7 +362,7 @@
          this.mcSoundHandler = new SoundHandler(this.mcResourceManager, this.gameSettings);
          this.mcResourceManager.registerReloadListener(this.mcSoundHandler);
          this.mcMusicTicker = new MusicTicker(this);
-@@ -567,13 +738,30 @@
+@@ -567,13 +737,30 @@
              this.fontRendererObj.setUnicodeFlag(this.isUnicode());
              this.fontRendererObj.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
          }
@@ -395,7 +394,7 @@
          this.entityRenderer = new EntityRenderer(this, this.mcResourceManager);
          this.mcResourceManager.registerReloadListener(this.entityRenderer);
          AchievementList.openInventory.setStatStringFormatter(new IStatStringFormat()
-@@ -591,6 +779,12 @@
+@@ -591,6 +778,12 @@
                  }
              }
          });
@@ -408,7 +407,7 @@
          this.mouseHelper = new MouseHelper();
          this.checkGLError("Pre startup");
          GL11.glEnable(GL11.GL_TEXTURE_2D);
-@@ -605,30 +799,115 @@
+@@ -605,30 +798,115 @@
          GL11.glLoadIdentity();
          GL11.glMatrixMode(GL11.GL_MODELVIEW);
          this.checkGLError("Startup");
@@ -525,7 +524,7 @@
          if (this.gameSettings.fullScreen && !this.fullscreen)
          {
              this.toggleFullscreen();
-@@ -636,7 +915,11 @@
+@@ -636,7 +914,11 @@
  
          try
          {
@@ -538,7 +537,7 @@
          }
          catch (OpenGLException var4)
          {
-@@ -782,8 +1065,8 @@
+@@ -782,8 +1064,8 @@
          GL11.glDisable(GL11.GL_FOG);
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -549,7 +548,7 @@
          {
              this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
              this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,8 +1074,8 @@
+@@ -791,8 +1073,8 @@
          catch (IOException var7)
          {
              logger.error("Unable to load logo: " + locationMojangPng, var7);
@@ -560,7 +559,7 @@
          Tessellator var4 = Tessellator.instance;
          var4.startDrawingQuads();
          var4.setColorOpaque_I(16777215);
-@@ -813,6 +1096,9 @@
+@@ -813,6 +1095,9 @@
          GL11.glEnable(GL11.GL_ALPHA_TEST);
          GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
          GL11.glFlush();
@@ -570,7 +569,7 @@
          this.resetSize();
      }
  
-@@ -845,7 +1131,8 @@
+@@ -845,7 +1130,8 @@
       */
      public void displayGuiScreen(GuiScreen guiScreenIn)
      {
@@ -580,7 +579,7 @@
          {
              this.currentScreen.onGuiClosed();
          }
-@@ -858,6 +1145,21 @@
+@@ -858,6 +1144,21 @@
          {
              guiScreenIn = new GuiGameOver();
          }
@@ -602,7 +601,7 @@
  
          if (guiScreenIn instanceof GuiMainMenu)
          {
-@@ -870,7 +1172,7 @@
+@@ -870,7 +1171,7 @@
          if (guiScreenIn != null)
          {
              this.setIngameNotInFocus();
@@ -611,7 +610,7 @@
              int var3 = var2.getScaledWidth();
              int var4 = var2.getScaledHeight();
              ((GuiScreen)guiScreenIn).setWorldAndResolution(this, var3, var4);
-@@ -886,7 +1188,9 @@
+@@ -886,7 +1187,9 @@
      /**
       * Checks for an OpenGL error. If there is one, prints the error ID and error string.
       */
@@ -622,7 +621,7 @@
      {
          int var2 = GL11.glGetError();
  
-@@ -1016,7 +1320,9 @@
+@@ -1016,8 +1319,11 @@
      /**
       * Called repeatedly from run()
       */
@@ -631,8 +630,10 @@
 +    private void runGameLoop() throws Exception
 +    /** END MINECRIFT */
      {
++        try {
          this.mcProfiler.startSection("root");
  
+         if (Display.isCreated() && Display.isCloseRequested())
 @@ -1025,6 +1331,10 @@
              this.shutdown();
          }
@@ -743,7 +744,7 @@
 +        // TODO: Get Frametiming (add to getTrackedPoses()?) and use for correct ticks setting for each eye for correct animation
 +
 +        disableGuiSizeHack();
-+        // TODO: End display size hack        
++        // TODO: End display size hack
 +
 +        if (minecriftDebug) print("FrameIndex: " + frameIndex);
 +        renderTexProvider[0].setFrameIndex(frameIndex);
@@ -891,11 +892,11 @@
 +        //this.checkGLError("Post render");
          ++this.fpsCounter;
          this.isGamePaused = this.isSingleplayer() && this.currentScreen != null && this.currentScreen.doesGuiPauseGame() && !this.theIntegratedServer.getPublic();
-+/** END MINECRIFT */		
++/** END MINECRIFT */
  
          while (getSystemTime() >= this.debugUpdateTime + 1000L)
          {
-@@ -1141,11 +1558,12 @@
+@@ -1141,11 +1558,28 @@
          }
  
          this.mcProfiler.endSection();
@@ -903,17 +904,32 @@
 -        if (this.isFramerateLimitBelowMax())
 -        {
 -            Display.sync(this.getLimitFramerate());
--        }
 +/** MINECRIFT */
 +//        if (this.isFramerateLimitBelowMax())
 +//        {
 +//            Display.sync(this.getLimitFramerate());  // <-- Minecrift - Only support Vsync for head track min latency
 +//        }
++        }
++        catch (RenderConfigException e) {
++            // set mono provider
++            vrSettings.stereoProviderPluginID = "mono";
++            vrSettings.saveOptions();
++            try {
++                stereoProvider = PluginManager.configureStereoProvider(vrSettings.stereoProviderPluginID);
++            }
++            catch (Exception ex) {
++                ex.printStackTrace();
++            }
++
++            // set error
++            this.errorInfo = new ErrorHelper(e.title, e.error, "Reverted to mono renderer!", 15);
++            e.printStackTrace();
+         }
 +/** END MINECRIFT */
      }
  
      /**
-@@ -1153,35 +1571,40 @@
+@@ -1153,35 +1587,40 @@
       */
      public void resetSize()
      {
@@ -979,7 +995,7 @@
      }
  
      public boolean isFramerateLimitBelowMax()
-@@ -1467,8 +1890,9 @@
+@@ -1467,8 +1906,9 @@
              }
          }
      }
@@ -991,7 +1007,7 @@
      {
          if (this.leftClickCounter <= 0)
          {
-@@ -1476,7 +1900,9 @@
+@@ -1476,7 +1916,9 @@
  
              if (this.objectMouseOver == null)
              {
@@ -1002,7 +1018,7 @@
  
                  if (this.playerController.isNotCreative())
                  {
-@@ -1515,7 +1941,9 @@
+@@ -1515,7 +1957,9 @@
      /**
       * Called when user clicked he's mouse right button (place)
       */
@@ -1013,7 +1029,7 @@
      {
          this.rightClickDelayTimer = 4;
          boolean var1 = true;
-@@ -1523,7 +1951,9 @@
+@@ -1523,7 +1967,9 @@
  
          if (this.objectMouseOver == null)
          {
@@ -1024,7 +1040,7 @@
          }
          else
          {
-@@ -1546,7 +1976,14 @@
+@@ -1546,7 +1992,14 @@
                      {
                          int var6 = var2 != null ? var2.stackSize : 0;
  
@@ -1040,7 +1056,7 @@
                          {
                              var1 = false;
                              this.thePlayer.swingItem();
-@@ -1573,7 +2010,14 @@
+@@ -1573,7 +2026,14 @@
          {
              ItemStack var7 = this.thePlayer.inventory.getCurrentItem();
  
@@ -1056,7 +1072,7 @@
              {
                  this.entityRenderer.itemRenderer.resetEquippedProgress2();
              }
-@@ -1632,8 +2076,10 @@
+@@ -1632,8 +2092,10 @@
              }
  
              Display.setFullscreen(this.fullscreen);
@@ -1069,7 +1085,7 @@
          }
          catch (Exception var2)
          {
-@@ -1646,29 +2092,23 @@
+@@ -1646,29 +2108,23 @@
       */
      private void resize(int width, int height)
      {
@@ -1107,7 +1123,7 @@
      }
  
      /**
-@@ -1693,11 +2133,24 @@
+@@ -1693,11 +2149,24 @@
          {
              --this.rightClickDelayTimer;
          }
@@ -1132,7 +1148,7 @@
              this.ingameGUI.updateTick();
          }
  
-@@ -1719,6 +2172,10 @@
+@@ -1719,6 +2188,10 @@
  
          if (this.currentScreen == null && this.thePlayer != null)
          {
@@ -1143,7 +1159,7 @@
              if (this.thePlayer.getHealth() <= 0.0F)
              {
                  this.displayGuiScreen((GuiScreen)null);
-@@ -1792,6 +2249,12 @@
+@@ -1792,6 +2265,12 @@
  
              while (Mouse.next())
              {
@@ -1156,7 +1172,7 @@
                  var9 = Mouse.getEventButton();
                  KeyBinding.setKeyBindState(var9 - 100, Mouse.getEventButtonState());
  
-@@ -1838,6 +2301,11 @@
+@@ -1838,6 +2317,11 @@
                          this.currentScreen.handleMouseInput();
                      }
                  }
@@ -1168,7 +1184,7 @@
              }
  
              if (this.leftClickCounter > 0)
-@@ -1889,6 +2357,10 @@
+@@ -1889,6 +2373,10 @@
                      }
                      else
                      {
@@ -1179,7 +1195,7 @@
                          if (Keyboard.getEventKey() == 1)
                          {
                              this.displayInGameMenu();
-@@ -1975,6 +2447,11 @@
+@@ -1975,6 +2463,11 @@
                          }
                      }
                  }
@@ -1191,7 +1207,7 @@
              }
  
              for (var9 = 0; var9 < 9; ++var9)
-@@ -2070,6 +2547,12 @@
+@@ -2070,6 +2563,12 @@
  
              this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
          }
@@ -1204,7 +1220,7 @@
  
          if (this.theWorld != null)
          {
-@@ -2164,7 +2647,11 @@
+@@ -2164,7 +2663,11 @@
              this.mcProfiler.endStartSection("pendingConnection");
              this.myNetworkManager.processReceivedPackets();
          }
@@ -1217,7 +1233,7 @@
          this.mcProfiler.endSection();
          this.systemTime = getSystemTime();
      }
-@@ -2174,6 +2661,15 @@
+@@ -2174,6 +2677,15 @@
       */
      public void launchIntegratedServer(String folderName, String worldName, WorldSettings worldSettingsIn)
      {
@@ -1233,7 +1249,7 @@
          this.loadWorld((WorldClient)null);
          System.gc();
          ISaveHandler var4 = this.saveLoader.getSaveLoader(folderName, false);
-@@ -2207,37 +2703,81 @@
+@@ -2207,37 +2719,81 @@
  
          this.loadingScreen.displaySavingString(I18n.format("menu.loadingLevel", new Object[0]));
  
@@ -1313,14 +1329,7 @@
 +        {
 +            this.lastIntegratedServerLaunchCheck = 0;
 +            this.integratedServerLaunchInProgress = false;
- 
--        this.displayGuiScreen((GuiScreen)null);
--        SocketAddress var11 = this.theIntegratedServer.getNetworkSystem().addLocalEndpoint();
--        NetworkManager var12 = NetworkManager.provideLocalClient(var11);
--        var12.setNetHandler(new NetHandlerLoginClient(var12, this, (GuiScreen)null));
--        var12.scheduleOutboundPacket(new C00Handshake(5, var11.toString(), 0, EnumConnectionState.LOGIN), new GenericFutureListener[0]);
--        var12.scheduleOutboundPacket(new C00PacketLoginStart(this.getSession().getProfile()), new GenericFutureListener[0]);
--        this.myNetworkManager = var12;
++
 +            // Ideally the network stuff below would also be part of the integrated server
 +            // launch, i.e. on it's own thread
 +            this.displayGuiScreen((GuiScreen) null);
@@ -1330,7 +1339,14 @@
 +	        var12.scheduleOutboundPacket(new C00Handshake(5, var11.toString(), 0, EnumConnectionState.LOGIN), new GenericFutureListener[0]);
 +	        var12.scheduleOutboundPacket(new C00PacketLoginStart(this.getSession().getProfile()), new GenericFutureListener[0]);
 +	        this.myNetworkManager = var12;
-+
+ 
+-        this.displayGuiScreen((GuiScreen)null);
+-        SocketAddress var11 = this.theIntegratedServer.getNetworkSystem().addLocalEndpoint();
+-        NetworkManager var12 = NetworkManager.provideLocalClient(var11);
+-        var12.setNetHandler(new NetHandlerLoginClient(var12, this, (GuiScreen)null));
+-        var12.scheduleOutboundPacket(new C00Handshake(5, var11.toString(), 0, EnumConnectionState.LOGIN), new GenericFutureListener[0]);
+-        var12.scheduleOutboundPacket(new C00PacketLoginStart(this.getSession().getProfile()), new GenericFutureListener[0]);
+-        this.myNetworkManager = var12;
 +            return false;
 +        }
      }
@@ -1338,7 +1354,7 @@
  
      /**
       * unloads the current world first
-@@ -2252,6 +2792,13 @@
+@@ -2252,6 +2808,13 @@
       */
      public void loadWorld(WorldClient worldClientIn, String loadingMessage)
      {
@@ -1352,7 +1368,7 @@
          if (worldClientIn == null)
          {
              NetHandlerPlayClient var3 = this.getNetHandler();
-@@ -2264,6 +2811,23 @@
+@@ -2264,6 +2827,23 @@
              if (this.theIntegratedServer != null)
              {
                  this.theIntegratedServer.initiateShutdown();
@@ -1376,7 +1392,7 @@
              }
  
              this.theIntegratedServer = null;
-@@ -2290,6 +2854,15 @@
+@@ -2290,6 +2870,15 @@
              this.mcResourcePackRepository.func_148529_f();
              this.setServerData((ServerData)null);
              this.integratedServerIsRunning = false;
@@ -1392,7 +1408,7 @@
          }
  
          this.mcSoundHandler.stopSounds();
-@@ -2437,107 +3010,117 @@
+@@ -2437,107 +3026,117 @@
              Item var2;
              int var5;
  
@@ -1609,7 +1625,7 @@
  
              if (var1)
              {
-@@ -2810,11 +3393,18 @@
+@@ -2810,11 +3409,18 @@
          playerSnooper.addStatToSnooper("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
@@ -1628,7 +1644,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2822,12 +3412,14 @@
+@@ -2822,12 +3428,14 @@
  
              if (var1 != 0)
              {
@@ -1643,7 +1659,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3726,1028 @@
+@@ -3134,4 +3742,1026 @@
              }
          }
      }
@@ -1653,7 +1669,7 @@
 +
 +    private void copyToMirror()
 +    {
-+        if (this.stereoProvider.providesMirrorTexture())
++        if (this.stereoProvider.providesMirrorTexture() && this.vrSettings.useDisplayMirroring)
 +        {
 +            OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, mirrorFB.getFramebufferId());   // GL30.glBindFramebuffer
 +            OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
@@ -1714,6 +1730,10 @@
 +            this.reinitFramebuffers = true;
 +        }
 +
++        if (lastEnableMirror != this.vrSettings.useDisplayMirroring) {
++            this.reinitFramebuffers = true;
++        }
++
 +        if (this.lastEnableVsync != this.gameSettings.enableVsync) {
 +            this.reinitFramebuffers = true;
 +        }
@@ -1725,6 +1745,7 @@
 +            
 +            glConfig.mirrorDisplay = this.vrSettings.useDisplayMirroring;
 +            glConfig.usePositionalTimewarp = this.vrSettings.usePositionalTimewarp;
++            glConfig.worldScale = this.vrSettings.worldScale;
 +
 +            viewPortCount = 1;
 +            float superSampleScaleFactor = 1f;
@@ -1743,7 +1764,7 @@
 +            FovPort rightFov = null;
 +
 +            if (!this.stereoProvider.isInitialized()) {
-+                throw new Exception(this.stereoProvider.getInitializationStatus());
++                throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), this.stereoProvider.getInitializationStatus());
 +            }
 +
 +            // Scale up the FBO to allow for the distortion
@@ -1832,11 +1853,11 @@
 +            this.entityRenderer.generatedIconMipmaps[0] = false;
 +            this.entityRenderer.generatedIconMipmaps[1] = false;
 +
-+            if (this.stereoProvider.providesMirrorTexture())
++            if (this.stereoProvider.providesMirrorTexture() && this.vrSettings.useDisplayMirroring)
 +            {
 +                int mirrorTextureId = this.stereoProvider.createMirrorTexture(this.displayFBWidth, this.displayFBHeight);
 +                if (mirrorTextureId == -1) {
-+                    throw new Exception(this.stereoProvider.getLastError());
++                    throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), this.stereoProvider.getLastError());
 +                }
 +                print("Provider supplied mirror texture ID: " + mirrorTextureId);
 +
@@ -1855,7 +1876,7 @@
 +                        distortionRenderTargetSize[1].w,
 +                        distortionRenderTargetSize[1].h);
 +                if (renderTextures == null) {
-+                    throw new Exception(this.stereoProvider.getLastError());
++                    throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), this.stereoProvider.getLastError());
 +                }
 +                print("L Render texture resolution: " + distortionRenderTargetSize[0].w + " x " + distortionRenderTargetSize[0].h);
 +                print("R Render texture resolution: " + distortionRenderTargetSize[1].w + " x " + distortionRenderTargetSize[1].h);
@@ -1935,17 +1956,10 @@
 +            }
 +
 +            setupClipPlanes();
++            this.stereoProvider.configureRenderer(glConfig);
 +
 +            if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
 +            {
-+//                this.eyeRenderParams = this.stereoProvider.configureRenderingDualTexture(this.EyeTextureSize[0],
-+//                                                                                         this.EyeTextureSize[1],
-+//                                                                                         new Sizei(this.displayFBWidth, this.displayFBHeight),
-+//                                                                                         glConfig,
-+//                                                                                         leftFov,
-+//                                                                                         rightFov,
-+//                                                                                         this.vrSettings.worldScale);
-+            	
 +                this.entityRenderer.eyeproj[EyeType.ovrEye_Left.value()] = this.stereoProvider.getProjectionMatrix(leftFov, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
 +                this.entityRenderer.eyeproj[EyeType.ovrEye_Right.value()] = this.stereoProvider.getProjectionMatrix(rightFov, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
 +            }
