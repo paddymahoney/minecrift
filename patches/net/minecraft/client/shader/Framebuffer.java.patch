@@ -1,10 +1,11 @@
 --- a/net/minecraft/client/shader/Framebuffer.java
 +++ b/net/minecraft/client/shader/Framebuffer.java
-@@ -1,10 +1,21 @@
+@@ -1,10 +1,22 @@
  package net.minecraft.client.shader;
  
  import java.nio.ByteBuffer;
 +
++import com.mtbs3d.minecrift.render.FBOParams;
  import net.minecraft.client.renderer.OpenGlHelper;
  import net.minecraft.client.renderer.Tessellator;
  import net.minecraft.client.renderer.texture.TextureUtil;
@@ -18,45 +19,46 @@
 +import org.lwjgl.opengl.GL32;
 +import org.lwjgl.opengl.GLContext;
 +
-+import com.mtbs3d.minecrift.utils.SwapTextureSelector;
++import com.mtbs3d.minecrift.utils.TextureSelector;
  
  public class Framebuffer
  {
-@@ -20,22 +31,64 @@
+@@ -20,22 +32,63 @@
      public int framebufferFilter;
      private static final String __OBFID = "CL_00000959";
  
 +    /** MINECRIFT */
-+    public String name;
++    public String _name;
 +    public boolean genMipMaps = false;
 +    public boolean multiSample = false;
 +    public int multiSampleCount = 0;
 +    public int textureType = GL11.GL_TEXTURE_2D;
 +    public static final int NO_TEXTURE_ID = -1;
 +    public boolean generatedFramebufferTexture = true;
-+    public SwapTextureSelector textureSelector=null;
++    public TextureSelector textureSelector=null;
 +	/** END MINECRIFT */
 +
      public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_)
      {
 +	/** MINECRIFT */
-+        this(p_i45078_1_, p_i45078_2_, p_i45078_3_, false, false, 0, null);
++        this("Unknown", p_i45078_1_, p_i45078_2_, p_i45078_3_, false, false, 0, null);
 +    }
 +
-+    public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps)
++    public Framebuffer(String name, int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps)
 +    {
-+        this(p_i45078_1_, p_i45078_2_, p_i45078_3_, generateMipMaps, false, 0, null);
++        this(name, p_i45078_1_, p_i45078_2_, p_i45078_3_, generateMipMaps, false, 0, null);
 +    }
 +
-+    public Framebuffer(int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps, boolean multisample, int multisamplecount, SwapTextureSelector textureSelector)
++    public Framebuffer(String name, int p_i45078_1_, int p_i45078_2_, boolean p_i45078_3_, boolean generateMipMaps, boolean multisample, int multisamplecount, TextureSelector textureSelector)
 +    {
-+	/** END MINECRIFT */
-+        /** MINECRIFT */
++        this._name = name;
          this.useDepth = p_i45078_3_;
          this.framebufferObject = -1;
 -        this.framebufferTexture = -1;
 +        this.framebufferTexture = NO_TEXTURE_ID;
 +        this.textureSelector=textureSelector;
++        if (this.textureSelector != null)
++            this.framebufferTexture = this.textureSelector.getFirstTexId();
 +        this.generatedFramebufferTexture = true;
          this.depthBuffer = -1;
          this.framebufferColor = new float[4];
@@ -73,13 +75,11 @@
 +            this.textureType = GL32.GL_TEXTURE_2D_MULTISAMPLE;
 +        }
 +
-+		/** END MINECRIFT */
 +        this.createBindFramebuffer(p_i45078_1_, p_i45078_2_, this.framebufferTexture);
      }
  
      public void createBindFramebuffer(int p_147613_1_, int p_147613_2_)
      {
-+/** MINECRIFT */
 +        createBindFramebuffer(p_147613_1_, p_147613_2_, NO_TEXTURE_ID);
 +    }
 +
@@ -128,7 +128,7 @@
          this.framebufferWidth = p_147605_1_;
          this.framebufferHeight = p_147605_2_;
          this.framebufferTextureWidth = p_147605_1_;
-@@ -97,43 +160,90 @@
+@@ -97,43 +160,93 @@
          }
          else
          {
@@ -136,7 +136,7 @@
 -            this.framebufferTexture = TextureUtil.glGenTextures();
 +			/** MINECRIFT */
 +            this.framebufferObject = OpenGlHelper.func_153165_e();      // GL30.glGenFramebuffers()
-+            if (textureId != NO_TEXTURE_ID) {
++            if (textureId == NO_TEXTURE_ID) {
 +                // generate texture
 +                this.framebufferTexture = TextureUtil.glGenTextures();
 +                this.generatedFramebufferTexture = true;
@@ -160,12 +160,15 @@
 -            OpenGlHelper.func_153188_a(OpenGlHelper.field_153198_e, OpenGlHelper.field_153200_g, 3553, this.framebufferTexture, 0);
 +            this.setFramebufferFilter(9728);        // GL11.GL_NEAREST
 +            GL11.glBindTexture(this.textureType, this.framebufferTexture);
-+            if (!this.multiSample) {
-+                GL11.glTexImage2D(this.textureType, 0, GL11.GL_RGBA8, this.framebufferTextureWidth, this.framebufferTextureHeight, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
-+            }
-+            else {
-+                // TODO: Check GLContext capabilities
-+                GL32.glTexImage2DMultisample(this.textureType, this.multiSampleCount, GL11.GL_RGBA8, this.framebufferTextureWidth, this.framebufferTextureHeight, false);
++            if (textureId == NO_TEXTURE_ID)
++            {
++                if (!this.multiSample) {
++                    GL11.glTexImage2D(this.textureType, 0, GL11.GL_RGBA8, this.framebufferTextureWidth, this.framebufferTextureHeight, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer) null);
++                }
++                else {
++                    // TODO: Check GLContext capabilities
++                    GL32.glTexImage2DMultisample(this.textureType, this.multiSampleCount, GL11.GL_RGBA8, this.framebufferTextureWidth, this.framebufferTextureHeight, false);
++                }
 +            }
 +
 +            if (this.genMipMaps) {
@@ -196,7 +199,7 @@
 +				/** END MINECRIFT FORGE **/
              }
  
-+            this.checkFramebufferComplete();
++            FBOParams.checkFramebufferStatus(OpenGlHelper.field_153198_e, this.framebufferObject);
              this.framebufferClear();
              this.unbindFramebufferTexture();
 +			/** END MINECRIFT */
@@ -235,7 +238,7 @@
          }
      }
  
-@@ -159,6 +269,12 @@
+@@ -159,6 +272,12 @@
              {
                  throw new RuntimeException("GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER");
              }
@@ -248,7 +251,7 @@
              else
              {
                  throw new RuntimeException("glCheckFramebufferStatus returned unknown status:" + var1);
-@@ -168,18 +284,22 @@
+@@ -168,18 +287,22 @@
  
      public void bindFramebufferTexture()
      {
@@ -273,7 +276,7 @@
      }
  
      public void bindFramebuffer(boolean p_147610_1_)
-@@ -213,6 +333,13 @@
+@@ -213,6 +336,13 @@
  
      public void framebufferRender(int p_147615_1_, int p_147615_2_)
      {
@@ -287,7 +290,7 @@
          if (OpenGlHelper.isFramebufferEnabled())
          {
              GL11.glColorMask(true, true, true, false);
-@@ -224,8 +351,10 @@
+@@ -224,8 +354,10 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glLoadIdentity();
              GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
@@ -300,7 +303,7 @@
              GL11.glDisable(GL11.GL_LIGHTING);
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glDisable(GL11.GL_BLEND);
-@@ -265,4 +394,56 @@
+@@ -265,4 +397,80 @@
          GL11.glClear(var1);
          this.unbindFramebuffer();
      }
@@ -345,15 +348,39 @@
 +        }
 +    }
 +
-+	public void selectTexture() {
-+
-+    	if(textureSelector!=null){
++	public void selectTexture()
++    {
++    	if(textureSelector!=null)
++        {
 +    		this.framebufferTexture = textureSelector.getCurrentTexId();
++            OpenGlHelper.func_153188_a(OpenGlHelper.field_153198_e, OpenGlHelper.field_153200_g, this.textureType, this.framebufferTexture, 0);    // GL30.glFramebufferTexture2D
 +    	}
-+
-+        OpenGlHelper.func_153171_g(OpenGlHelper.field_153198_e, this.framebufferObject);   // GL30.glBindFramebuffer
-+        OpenGlHelper.func_153188_a(OpenGlHelper.field_153198_e, OpenGlHelper.field_153200_g, this.textureType, this.framebufferTexture, 0);    // GL30.glFramebufferTexture2D
-+
-+        
 +	}
++
++    public int getFramebufferType()
++    {
++        return OpenGlHelper.field_153198_e; // GL_FRAMEBUFFER (draw framebuffer)
++    }
++
++    public int getFramebufferId()
++    {
++        return this.framebufferObject;
++    }
++
++    public String toString()
++    {
++        StringBuilder sb = new StringBuilder();
++        sb.append("MC FBO: " + _name).append("\n");
++        sb.append("Size:   " + framebufferWidth + " x " + framebufferHeight).append("\n");
++        sb.append("Type:   " + (OpenGlHelper.field_153198_e == ARBFramebufferObject.GL_READ_FRAMEBUFFER ? "GL_READ_FRAMEBUFFER" : "GL_DRAW_FRAMEBUFFER")).append("\n");
++        sb.append("FB ID:  " + framebufferObject).append("\n");
++        sb.append("Tex ID: " + framebufferTexture).append("\n");
++        if (textureSelector != null)
++            sb.append("TextureSelector:\n" + textureSelector.toString());
++        else
++            sb.append("TextureSelector: null");
++
++
++        return sb.toString();
++    }
  }

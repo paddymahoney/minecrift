@@ -462,4 +462,10 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     {
         return getCurrentTimeSeconds();
     }
+
+    @Override
+    public boolean providesRenderTextures() { return true; }
+
+    @Override
+    public boolean providesMirrorTexture() { return true; }
 }

@@ -125,6 +125,7 @@ public class VRSettings
     public boolean useDynamicPrediction = true;
     public float   renderScaleFactor = 1.1f; // Avoid weird star shaped shimmer at renderscale = 1
     public boolean useDisplayMirroring = true;
+    public boolean usePositionalTimewarp = true;
     public boolean useDisplayOverdrive = true;
     public boolean useHighQualityDistortion = true;
     public boolean posTrackBlankOnCollision = true;

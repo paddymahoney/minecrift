@@ -95,7 +95,7 @@
 -        Display.setVSyncEnabled(this.enableVsync);
 -    }
 +		/** MINECRIFT */ // Always needs to be on
-+        Display.setVSyncEnabled(true);
++        Display.setVSyncEnabled(false);
 +		/** END MINECRIFT */
 +	}
  

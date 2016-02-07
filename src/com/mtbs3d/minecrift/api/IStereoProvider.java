@@ -20,9 +20,17 @@ public interface IStereoProvider extends IBasePlugin
                                                    FovPort RightFov,
                                                    float renderScaleFactor);
 
-    public SwapTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight);
+    public boolean providesMirrorTexture();
 
     public int createMirrorTexture(int width, int height);
+
+    public void deleteMirrorTexture();
+
+    public boolean providesRenderTextures();
+
+    public RenderTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight);
+
+    public void deleteRenderTextures();
 
     public EyeType eyeRenderOrder(int index);
 

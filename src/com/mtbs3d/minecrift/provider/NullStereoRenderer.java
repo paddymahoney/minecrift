@@ -136,10 +136,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public SwapTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight)
-    {
-        return null;
-    }
+    public boolean providesMirrorTexture() { return false; }
 
     @Override
     public int createMirrorTexture(int width, int height)
@@ -147,10 +144,25 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
         return -1;
     }
 
+    @Override
+    public void deleteMirrorTexture() {}
+
+    @Override
+    public boolean providesRenderTextures() { return false; }
+
+    @Override
+    public RenderTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight)
+    {
+        return null;
+    }
+
 	@Override
 	public boolean setCurrentRenderTextureInfo(int index, int textureIdx, int depthId, int depthWidth, int depthHeight) {
 		return true;
 	}
+
+    @Override
+    public void deleteRenderTextures() {}
 
     @Override
     public String getLastError() { return "Success"; }
