@@ -1063,8 +1063,8 @@
 +                }
              }
 +
-+            // Minecrift - display notification text
-+            displayNotificationText();
++            // Minecrift - handle notification text
++            handleNotificationText();
 +
 +            this.mc.disableGuiSizeHack();
 +            /** END MINECRIFT */    
@@ -1704,7 +1704,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2605,4 +3252,1023 @@
+@@ -2605,4 +3252,1034 @@
              ;
          }
      }
@@ -2132,11 +2132,13 @@
 +        calibrationHelper = new CalibrationHelper(mc);
 +    }
 +
-+    public void displayNotificationText()
++    public void handleNotificationText()
 +    {
 +        String prefix = "";
-+        String message = null;
++        String message = "";
 +        String suffix = "";
++
++        boolean renderTxt = false;
 +
 +        // error info takes precedence
 +        if (mc.errorInfo != null) {
@@ -2145,6 +2147,7 @@
 +                prefix = mc.errorInfo.title;
 +                message = mc.errorInfo.message;
 +                suffix = mc.errorInfo.resolution;
++                renderTxt = true;
 +            }
 +            else
 +            {
@@ -2152,18 +2155,28 @@
 +            }
 +        }
 +        // otherwise display any calibration info
-+        if (mc.errorInfo == null && calibrationHelper != null) {
-+            prefix = calibrationHelper.calibrationStep;
-+            message = "Calibrating " + calibrationHelper.currentPlugin.getName() + "...";
++        if (mc.errorInfo == null && calibrationHelper != null)
++        {
++            message = calibrationHelper.calibrationStep;
++            prefix = "Calibrating " + calibrationHelper.currentPlugin.getName() + "...";
++            renderTxt = true;
 +        }
 +
-+        if (message != null)
++        if (renderTxt)
++            displayNotificationText(prefix, message, suffix,
++                    this.mc.displayWidth, this.mc.displayHeight, this.mc.stereoProvider.isStereo(), this.mc.stereoProvider.isGuiOrtho());
++    }
++
++    public void displayNotificationText(String prefix, String message, String suffix,
++                                        int displayWidth, int displayHeight, boolean isStereo, boolean isGuiOrtho)
++    {
++        if (message != null && message.isEmpty())
 +        {
-+            final float INITIAL_TEXT_SCALE = this.mc.stereoProvider.isGuiOrtho() ? 0.0055f : 0.00375f;
++            final float INITIAL_TEXT_SCALE = isGuiOrtho ? 0.0055f : 0.00375f;
 +            final int TEXT_WORDWRAP_LEN = 55;
 +            final int COLUMN_GAP = 12;
 +
-+            float fade = this.mc.stereoProvider.isGuiOrtho() ? 0.85f : 0.80f;
++            float fade = isGuiOrtho ? 0.85f : 0.80f;
 +            Color3f rgb = new Color3f(0f, 0f, 0f);
 +            renderFadeBlend(rgb, fade);
 +
@@ -2171,18 +2184,17 @@
 +            GL11.glMatrixMode(GL11.GL_PROJECTION);
 +            GL11.glPushMatrix();
 +            GL11.glLoadIdentity();
-+            if (this.mc.stereoProvider.isStereo())
++            if (isStereo)
 +            {
 +                GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
 +            }
 +            else
 +            {
-+                Project.gluPerspective(90f, (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
++                Project.gluPerspective(90f, (float) displayWidth / (float) displayHeight, minClipDistance, clipDistance);
 +            }
 +            GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +            GL11.glPushMatrix();
 +            GL11.glLoadIdentity();
-+
 +
 +            int column = 8;
 +            ArrayList<String> wrapped = new ArrayList<String>();
@@ -2190,7 +2202,7 @@
 +            float rows = wrapped.size();
 +            float shift = rows / 2f;
 +
-+            float x = this.mc.stereoProvider.isGuiOrtho() ? 0f : -this.mc.vrSettings.getHalfIPD(this.mc.currentEye);
++            float x = isGuiOrtho ? 0f : -this.mc.vrSettings.getHalfIPD(this.mc.currentEye);
 +            float y = shift * COLUMN_GAP * 0.003f; // Move up
 +            float z = -0.6f;
 +
@@ -2207,7 +2219,6 @@
 +            }
 +            column += COLUMN_GAP;
 +            mc.fontRendererObj.drawStringWithShadow(suffix, -mc.fontRendererObj.getStringWidth(suffix) / 2, column, /*white*/16777215);
-+
 +
 +            GL11.glEnable(GL11.GL_DEPTH_TEST);
 +            GL11.glMatrixMode(GL11.GL_PROJECTION);

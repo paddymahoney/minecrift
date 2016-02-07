@@ -1659,7 +1659,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3742,1026 @@
+@@ -3134,4 +3742,1051 @@
              }
          }
      }
@@ -1669,18 +1669,35 @@
 +
 +    private void copyToMirror()
 +    {
-+        if (this.stereoProvider.providesMirrorTexture() && this.vrSettings.useDisplayMirroring)
++        if (this.stereoProvider.providesMirrorTexture())
 +        {
-+            OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, mirrorFB.getFramebufferId());   // GL30.glBindFramebuffer
-+            OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
-+            int w = displayFBWidth;
-+            int h = displayFBHeight;
-+            GL30.glBlitFramebuffer(0, h, w, 0,
-+                                   0, 0, w, h,
-+                                   GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
-+            OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
-+            
-+            Display.update();
++            if (this.frameIndex % 3 == 0)  // Update every third frame
++            {
++                if (this.vrSettings.useDisplayMirroring)
++                {
++                    OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, mirrorFB.getFramebufferId());   // GL30.glBindFramebuffer
++                    OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
++                    int w = displayFBWidth;
++                    int h = displayFBHeight;
++                    GL30.glBlitFramebuffer(0, h, w, 0,
++                                           0, 0, w, h,
++                                           GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
++                    OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
++
++                    Display.update();
++                }
++                else
++                {
++                    // Notify mirror is off!
++                    OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
++                    GL11.glViewport(0, 0, this.displayFBWidth, this.displayFBHeight);
++
++                    if (entityRenderer != null)
++                        entityRenderer.displayNotificationText("Mirror is OFF", "", "", this.displayFBWidth, this.displayFBHeight, false, true);
++
++                    Display.update();
++                }
++            }
 +        }
 +	}
 +
@@ -1732,6 +1749,7 @@
 +
 +        if (lastEnableMirror != this.vrSettings.useDisplayMirroring) {
 +            this.reinitFramebuffers = true;
++            lastEnableMirror = this.vrSettings.useDisplayMirroring;
 +        }
 +
 +        if (this.lastEnableVsync != this.gameSettings.enableVsync) {
@@ -1817,6 +1835,10 @@
 +            if (this.guiFramebuffer != null) {
 +                this.guiFramebuffer.deleteFramebuffer();
 +                this.guiFramebuffer = null;
++            }
++
++            if (this.loadingScreen != null) {
++                this.loadingScreen.deleteFramebuffer();
 +            }
 +
 +            if (this.mirrorFB != null) {
@@ -1975,10 +1997,13 @@
 +                this.currentScreen.setWorldAndResolution(this, k, l);
 +            }
 +            this.loadingScreen = new LoadingScreenRenderer(this, this.stereoProvider.isGuiOrtho() ? this.displayWidth : this.displayFBWidth, this.stereoProvider.isGuiOrtho() ? this.displayHeight : this.displayFBHeight);
-+            if (this.stereoProvider.isGuiOrtho())
++            this.loadingScreen.deleteFramebuffer();
++            if (this.stereoProvider.isGuiOrtho()) {
 +                this.loadingScreen.renderTarget = this.getFramebuffer();
-+            else
++            }
++            else {
 +                this.loadingScreen.renderTarget = this.guiFramebuffer;
++            }
 +
 +            System.out.println("[Minecrift] New render config:" +
 +                    "\nRender target width:  " + (this.stereoProvider.isStereo() ? this.EyeTextureSize[0].w + this.EyeTextureSize[1].w: this.displayWidth) +
