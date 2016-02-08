@@ -16,7 +16,10 @@ Bug fixes
 
 - Fixed Optifine / vanilla Minecraft settings being reset to defaults on start-up.
 - Added better error reporting on failure to initialise Oculus SDK. Will switch to Mono mode if an error occurs.
+  NOTE: To switch back to Oculus rendering if the issue has been rectified, go to 'Options->Vr Settings->Stereo 
+        Rendering' and click Mode until you get to 'Oculus Rift'.
 - Better defaults on fresh install.
+- Fixed a framebuffer memory leak that occurred whenever the rendering configuration was changed.
 
 
 [Minecrift 1.7.10 R1c]
