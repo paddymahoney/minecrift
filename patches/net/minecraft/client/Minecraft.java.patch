@@ -225,7 +225,7 @@
 +     * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +     * Modify minecriftversion.py in root minecrift dir.
 +     */
-+    public final String minecriftVerString = "Minecrift 1.7.10 R1c";
++    public final String minecriftVerString = "Minecrift 1.7.10 R2";
 +    /* end version */
 +    /** END MINECRIFT */
 +
@@ -1662,7 +1662,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3745,1048 @@
+@@ -3134,4 +3745,1049 @@
              }
          }
      }
@@ -1721,7 +1721,7 @@
 +
 +        if (clipPlanesChanged())
 +        {
-+            changeNonDestructiveRenderConfig = true;
++            this.reinitFramebuffers = true;
 +        }
 +
 +        if (!Display.isActive() && this.fullscreen)
@@ -1929,6 +1929,14 @@
 +            this.framebuffers[1].setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
 +            this.guiFramebuffer.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
 +
++            setupClipPlanes();
++
++            if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
++            {
++                this.entityRenderer.eyeproj[EyeType.ovrEye_Left.value()] = this.stereoProvider.getProjectionMatrix(hmdInfo.getHMDInfo().DefaultEyeFov[0], this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
++                this.entityRenderer.eyeproj[EyeType.ovrEye_Right.value()] = this.stereoProvider.getProjectionMatrix(hmdInfo.getHMDInfo().DefaultEyeFov[1], this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
++            }
++
 +            try
 +            {
 +                if (this.vrSettings.useFsaa)
@@ -2029,14 +2037,7 @@
 +
 +        if (changeNonDestructiveRenderConfig || this.reinitFramebuffers)
 +        {
-+            setupClipPlanes();
 +            this.stereoProvider.configureRenderer(glConfig);
-+
-+            if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
-+            {
-+                this.entityRenderer.eyeproj[EyeType.ovrEye_Left.value()] = this.stereoProvider.getProjectionMatrix(hmdInfo.getHMDInfo().DefaultEyeFov[0], this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
-+                this.entityRenderer.eyeproj[EyeType.ovrEye_Right.value()] = this.stereoProvider.getProjectionMatrix(hmdInfo.getHMDInfo().DefaultEyeFov[1], this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
-+            }
 +        }
 +    }
 +
