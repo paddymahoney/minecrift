@@ -75,14 +75,26 @@ public class GuiMoveAimSettings extends BaseGuiSettings
     public void initGui()
     {
         this.buttonList.clear();
-        GuiButtonEx reinit = new GuiButtonEx(ID_GENERIC_REINIT, (this.width / 2) - 100, (this.height / 6) + 148, 100, 20, "Reinit");
-        reinit.enabled = false; // Disabled until LWJGL supports (or has been hacked)
+        GuiButtonEx reinit = new GuiButtonEx(ID_GENERIC_REINIT, (this.width / 2) - 100, (this.height / 6) + 168, 100, 20, "Reinitialise");
+        reinit.enabled = true; // LWJGL has now been hacked ;-)
         this.buttonList.add(reinit);
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, (this.width / 2) - 0, (this.height / 6) + 148, 100, 20, "Defaults"));
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 168, "Done"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, (this.width / 2), (this.height / 6) + 168, 100, 20, "Defaults"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 188, "Done"));
         if(! ( Minecraft.getMinecraft().lookaimController instanceof MCMouse )  )
         {
-        	this.buttonList.add(new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 148, "Remap Controls"));
+            String butName = null;
+            GuiButtonEx butRemap = null;
+            if (Minecraft.getMinecraft().lookaimController.isInitialized()) {
+                butName = "Remap Controls";
+                butRemap = new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 148, butName);
+                butRemap.enabled = true;
+            }
+            else {
+                butName = "Controller Not Initialised";
+                butRemap = new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 148, butName);
+                butRemap.enabled = false;
+            }
+        	this.buttonList.add(butRemap);
         }
 
         pluginModeChangeButton = new PluginModeChangeButton(ID_GENERIC_MODE_CHANGE, this.width / 2 - 78, this.height / 6 - 14, (List<IBasePlugin>)(List<?>) PluginManager.thePluginManager.controllerPlugins, this.guivrSettings.controllerPluginID );
@@ -189,12 +201,14 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             if (par1GuiButton.id == ID_GENERIC_DONE)
             {
                 this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(this.parentGuiScreen);
             }
             else if (par1GuiButton.id == ID_GENERIC_MODE_CHANGE) // Mode Change
             {
             	this.guivrSettings.controllerPluginID = pluginModeChangeButton.getSelectedID();
                 this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.saveOptions();
                 try {
                     Minecraft.getMinecraft().lookaimController = PluginManager.configureController(this.guivrSettings.controllerPluginID);
                 }
@@ -234,26 +248,32 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                 }
                 this.guivrSettings.aimPitchOffset = 0;
                 this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.loadDefaults();
+                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.reinit = true;
             }
             else if (par1GuiButton.id == ID_GENERIC_REMAP) // Remap
             {
                 this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen( new GuiVRControls(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == ID_GENERIC_REINIT) // reinitialise controller
             {
                 this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.saveOptions();
                 try {
                     Minecraft.getMinecraft().lookaimController.initBodyAim();
                 }
                 catch (Exception e) {
                     e.printStackTrace();
                 }
+                this.reinit = true;
             }
             else if (par1GuiButton.id == VRSettings.VrOptions.LOCOMOTION_SETTINGS.returnEnumOrdinal()) // Remap
             {
                 this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(new GuiLocomotionSettings(this, this.guivrSettings));
             }
             else if (par1GuiButton instanceof GuiSmallButtonEx)
@@ -394,8 +414,7 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                     };
                 case ID_GENERIC_REINIT:
                     return new String[] {
-                            "Allow reinitialisation or re-detection of the input device.",
-                            "  Not currently working due to a bug in LWJGL."
+                            "Allow reinitialisation or re-detection of the input device."
                     };
                 default:
                     return null;

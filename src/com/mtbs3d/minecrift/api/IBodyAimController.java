@@ -42,6 +42,10 @@ public interface IBodyAimController extends IBasePlugin {
 
 	public boolean initBodyAim() throws Exception;
 
+	public void saveOptions();
+
+	public void loadDefaults();
+
     /**
      * Get the percentage through a transition of the ratcheting control
      * @return Percentage through the ratcheting transition; or -1 if not

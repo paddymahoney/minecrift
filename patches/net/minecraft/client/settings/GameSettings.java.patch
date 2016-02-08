@@ -23,7 +23,15 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.audio.SoundCategory;
  import net.minecraft.client.gui.GuiNewChat;
-@@ -80,7 +83,9 @@
+@@ -38,6 +41,7 @@
+ import org.apache.commons.lang3.ArrayUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
++import org.json.JSONObject;
+ import org.lwjgl.input.Keyboard;
+ import org.lwjgl.input.Mouse;
+ import org.lwjgl.opengl.Display;
+@@ -80,7 +84,9 @@
      /** Advanced OpenGL */
      public boolean advancedOpengl;
      public boolean fboEnable = true;
@@ -34,18 +42,96 @@
      public boolean fancyGraphics = true;
  
      /** Smooth Lighting */
-@@ -281,7 +286,9 @@
-         this.chatLinksPrompt = true;
-         this.chatOpacity = 1.0F;
-         this.snooperEnabled = true;
+@@ -275,73 +281,10 @@
+ 
+     public GameSettings(Minecraft par1Minecraft, File par2File)
+     {
+-        this.chatVisibility = EntityPlayer.EnumChatVisibility.FULL;
+-        this.chatColours = true;
+-        this.chatLinks = true;
+-        this.chatLinksPrompt = true;
+-        this.chatOpacity = 1.0F;
+-        this.snooperEnabled = true;
 -        this.enableVsync = true;
+-        this.pauseOnLostFocus = true;
+-        this.showCape = true;
+-        this.heldItemTooltips = true;
+-        this.chatScale = 1.0F;
+-        this.chatWidth = 1.0F;
+-        this.chatHeightUnfocused = 0.44366196F;
+-        this.chatHeightFocused = 1.0F;
+-        this.showInventoryAchievementHint = true;
+-        this.mipmapLevels = 4;
+-        this.anisotropicFiltering = 1;
+-        this.mapSoundLevels = Maps.newEnumMap(SoundCategory.class);
+-        this.streamBytesPerPixel = 0.5F;
+-        this.streamMicVolume = 1.0F;
+-        this.streamGameVolume = 1.0F;
+-        this.streamKbps = 0.5412844F;
+-        this.streamFps = 0.31690142F;
+-        this.streamCompression = 1;
+-        this.streamSendMetadata = true;
+-        this.streamPreferredServer = "";
+-        this.streamChatEnabled = 0;
+-        this.streamChatUserFilter = 0;
+-        this.streamMicToggleBehavior = 0;
+-        this.keyBindForward = new KeyBinding("key.forward", 17, "key.categories.movement");
+-        this.keyBindLeft = new KeyBinding("key.left", 30, "key.categories.movement");
+-        this.keyBindBack = new KeyBinding("key.back", 31, "key.categories.movement");
+-        this.keyBindRight = new KeyBinding("key.right", 32, "key.categories.movement");
+-        this.keyBindJump = new KeyBinding("key.jump", 57, "key.categories.movement");
+-        this.keyBindSneak = new KeyBinding("key.sneak", 42, "key.categories.movement");
+-        this.keyBindInventory = new KeyBinding("key.inventory", 18, "key.categories.inventory");
+-        this.keyBindUseItem = new KeyBinding("key.use", -99, "key.categories.gameplay");
+-        this.keyBindDrop = new KeyBinding("key.drop", 16, "key.categories.gameplay");
+-        this.keyBindAttack = new KeyBinding("key.attack", -100, "key.categories.gameplay");
+-        this.keyBindPickBlock = new KeyBinding("key.pickItem", -98, "key.categories.gameplay");
+-        this.keyBindSprint = new KeyBinding("key.sprint", 29, "key.categories.gameplay");
+-        this.keyBindChat = new KeyBinding("key.chat", 20, "key.categories.multiplayer");
+-        this.keyBindPlayerList = new KeyBinding("key.playerlist", 15, "key.categories.multiplayer");
+-        this.keyBindCommand = new KeyBinding("key.command", 53, "key.categories.multiplayer");
+-        this.keyBindScreenshot = new KeyBinding("key.screenshot", 60, "key.categories.misc");
+-        this.keyBindTogglePerspective = new KeyBinding("key.togglePerspective", 63, "key.categories.misc");
+-        this.keyBindSmoothCamera = new KeyBinding("key.smoothCamera", 0, "key.categories.misc");
+-        this.keyBindFullscreen = new KeyBinding("key.fullscreen", 87, "key.categories.misc");
+-        this.keyBindStreamStartStop = new KeyBinding("key.streamStartStop", 64, "key.categories.stream");
+-        this.keyBindStreamPauseUnpause = new KeyBinding("key.streamPauseUnpause", 65, "key.categories.stream");
+-        this.keyBindStreamCommercials = new KeyBinding("key.streamCommercial", 0, "key.categories.stream");
+-        this.keyBindStreamToggleMic = new KeyBinding("key.streamToggleMic", 0, "key.categories.stream");
+-        this.keyBindsHotbar = new KeyBinding[] {new KeyBinding("key.hotbar.1", 2, "key.categories.inventory"), new KeyBinding("key.hotbar.2", 3, "key.categories.inventory"), new KeyBinding("key.hotbar.3", 4, "key.categories.inventory"), new KeyBinding("key.hotbar.4", 5, "key.categories.inventory"), new KeyBinding("key.hotbar.5", 6, "key.categories.inventory"), new KeyBinding("key.hotbar.6", 7, "key.categories.inventory"), new KeyBinding("key.hotbar.7", 8, "key.categories.inventory"), new KeyBinding("key.hotbar.8", 9, "key.categories.inventory"), new KeyBinding("key.hotbar.9", 10, "key.categories.inventory")};
+-        this.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.addAll(new KeyBinding[] {this.keyBindAttack, this.keyBindUseItem, this.keyBindForward, this.keyBindLeft, this.keyBindBack, this.keyBindRight, this.keyBindJump, this.keyBindSneak, this.keyBindDrop, this.keyBindInventory, this.keyBindChat, this.keyBindPlayerList, this.keyBindPickBlock, this.keyBindCommand, this.keyBindScreenshot, this.keyBindTogglePerspective, this.keyBindSmoothCamera, this.keyBindSprint, this.keyBindStreamStartStop, this.keyBindStreamPauseUnpause, this.keyBindStreamCommercials, this.keyBindStreamToggleMic, this.keyBindFullscreen}, this.keyBindsHotbar));
+-        this.difficulty = EnumDifficulty.NORMAL;
+-        this.lastServer = "";
+-        this.noclipRate = 1.0F;
+-        this.debugCamRate = 1.0F;
+-        this.fovSetting = 70.0F;
+-        this.language = "en_US";
+-        this.forceUnicodeFont = false;
 +        /** MINECRIFT **/
-+        this.enableVsync = false;
+         this.mc = par1Minecraft;
+-        this.optionsFile = new File(par2File, "options.txt");
+-        this.optionsFileOF = new File(par2File, "optionsof.txt");
+-        this.limitFramerate = (int)GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
+-        this.ofKeyBindZoom = new KeyBinding("Zoom", 29, "key.categories.misc");
+-        this.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(this.keyBindings, this.ofKeyBindZoom));
++        init();
++        resetSettings(null, false);
+         GameSettings.Options.RENDER_DISTANCE.setValueMax(32.0F);
+         this.renderDistanceChunks = par1Minecraft.isJava64bit() ? 12 : 8;
+         this.loadOptions();
+@@ -350,13 +293,21 @@
+ 
+     public GameSettings()
+     {
++        init();
++    }
++
++    private void init()
++    {
 +        /** END MINECRIFT **/
-         this.pauseOnLostFocus = true;
-         this.showCape = true;
-         this.heldItemTooltips = true;
-@@ -356,7 +363,9 @@
+         this.chatVisibility = EntityPlayer.EnumChatVisibility.FULL;
+         this.chatColours = true;
+         this.chatLinks = true;
          this.chatLinksPrompt = true;
          this.chatOpacity = 1.0F;
          this.snooperEnabled = true;
@@ -56,7 +142,7 @@
          this.pauseOnLostFocus = true;
          this.showCape = true;
          this.heldItemTooltips = true;
-@@ -474,14 +483,16 @@
+@@ -474,14 +425,16 @@
  
          if (par1EnumOptions == GameSettings.Options.FRAMERATE_LIMIT)
          {
@@ -75,7 +161,7 @@
  
              this.updateVSync();
          }
-@@ -1233,8 +1244,11 @@
+@@ -1233,8 +1186,11 @@
  
          if (par1EnumOptions == GameSettings.Options.ENABLE_VSYNC)
          {
@@ -89,19 +175,35 @@
          }
  
          this.saveOptions();
-@@ -1840,8 +1854,9 @@
+@@ -1832,16 +1788,24 @@
+     /**
+      * Loads the options from the options file. It appears that this has replaced the previous 'loadOptions'
+      */
++    /** MINECRIFT **/
+     public void loadOptions()
+     {
++        loadOptions(null); // Use current profile
++    }
++
++    public void loadOptions(JSONObject theProfile)
++    {
++    /** END MINECRIFT **/
+         try
+         {
++            /** MINECRIFT **/
+             if (!this.optionsFile.exists())
              {
-                 return;
+-                return;
++                //return;
              }
 -
 -            BufferedReader var9 = new BufferedReader(new FileReader(this.optionsFile));
-+            /** MINECRIFT **/
-+            ProfileReader var9 = new ProfileReader(ProfileManager.PROFILE_SET_MC);
++            ProfileReader var9 = new ProfileReader(ProfileManager.PROFILE_SET_MC, theProfile);
 +            /** END MINECRIFT **/
              String var2 = "";
              this.mapSoundLevels.clear();
  
-@@ -1913,14 +1928,16 @@
+@@ -1913,14 +1877,16 @@
  
                      if (var8[0].equals("maxFps"))
                      {
@@ -120,7 +222,7 @@
  
                          this.updateVSync();
                      }
-@@ -2018,8 +2035,10 @@
+@@ -2018,8 +1984,10 @@
  
                      if (var8[0].equals("enableVsync"))
                      {
@@ -132,49 +234,139 @@
                      }
  
                      if (var8[0].equals("hideServerAddress"))
-@@ -2221,13 +2240,17 @@
+@@ -2213,21 +2181,29 @@
+     /**
+      * Saves the options to the options file.
+      */
++    /** MINECRIFT **/
+     public void saveOptions()
+     {
++        saveOptions(null); // Use current profile
++    }
++
++    public void saveOptions(JSONObject theProfile)
++    {
+         if (Reflector.FMLClientHandler.exists())
+         {
+             Object var6 = Reflector.call(Reflector.FMLClientHandler_instance, new Object[0]);
  
              if (var6 != null && Reflector.callBoolean(var6, Reflector.FMLClientHandler_isLoading, new Object[0]))
              {
-+                // TODO: Compat with Forge for profile support?
-+
-                 return;
+-                return;
++                // MINECRIFT - Always save profile settings even if handled by Forge?
++                //return;
              }
          }
  
          try
          {
 -            PrintWriter var81 = new PrintWriter(new FileWriter(this.optionsFile));
-+            /** MINECRIFT **/
-+            ProfileWriter var81 = new ProfileWriter(ProfileManager.PROFILE_SET_MC);
-+            /** END MINECRIFT **/
++            ProfileWriter var81 = new ProfileWriter(ProfileManager.PROFILE_SET_MC, theProfile);
++    /** END MINECRIFT **/
              var81.println("invertYMouse:" + this.invertMouse);
              var81.println("mouseSensitivity:" + this.mouseSensitivity);
              var81.println("fov:" + (this.fovSetting - 70.0F) / 40.0F);
-@@ -2358,8 +2381,9 @@
+@@ -2343,8 +2319,15 @@
+         return this.renderDistanceChunks >= 4 && this.clouds;
+     }
+ 
++    /** MINECRIFT **/
+     public void loadOfOptions()
+     {
++        loadOfOptions(null); // Use current profile
++    }
++
++    public void loadOfOptions(JSONObject theProfile)
++    {
++    /** END MINECRIFT **/
+         try
+         {
+             File exception = this.optionsFileOF;
+@@ -2353,13 +2336,13 @@
              {
-                 return;
+                 exception = this.optionsFile;
+             }
+-
++            /** MINECRIFT **/
+             if (!exception.exists())
+             {
+-                return;
++                //return;
              }
 -
 -            BufferedReader bufferedreader = new BufferedReader(new FileReader(exception));
-+            /** MINECRIFT **/
 +            ProfileReader bufferedreader = new ProfileReader(ProfileManager.PROFILE_SET_OF);
 +            /** END MINECRIFT **/
              String s = "";
  
              while ((s = bufferedreader.readLine()) != null)
-@@ -2753,7 +2777,9 @@
+@@ -2749,11 +2732,20 @@
+         }
+     }
+ 
++    /** MINECRIFT **/
+     public void saveOfOptions()
      {
++        saveOfOptions(null); // Use current profile
++    }
++
++    public void saveOfOptions(JSONObject theProfile)
++    {
++    /** END MINECRIFT **/
          try
          {
 -            PrintWriter exception = new PrintWriter(new FileWriter(this.optionsFileOF));
 +            /** MINECRIFT **/
-+            ProfileWriter exception = new ProfileWriter(ProfileManager.PROFILE_SET_OF);
++            ProfileWriter exception = new ProfileWriter(ProfileManager.PROFILE_SET_OF, theProfile);
 +            /** END MINECRIFT **/
              exception.println("ofRenderDistanceChunks:" + this.renderDistanceChunks);
              exception.println("ofFogType:" + this.ofFogType);
              exception.println("ofFogStart:" + this.ofFogStart);
-@@ -2918,8 +2944,10 @@
+@@ -2827,8 +2819,15 @@
+         }
+     }
+ 
++    /** MINECRIFT **/
+     public void resetSettings()
+     {
++        resetSettings(null, true); // Use current profile
++    }
++
++    public void resetSettings(JSONObject theProfile, boolean save)
++    {
++    /** END MINECRIFT **/
+         this.renderDistanceChunks = 8;
+         this.viewBobbing = true;
+         this.anaglyph = false;
+@@ -2909,17 +2908,33 @@
+         this.ofAnimatedTerrain = true;
+         this.ofAnimatedItems = true;
+         this.ofAnimatedTextures = true;
+-        this.mc.renderGlobal.updateCapes();
+-        this.updateWaterOpacity();
+-        this.mc.renderGlobal.setAllRenderersVisible();
+-        this.mc.refreshResources();
+-        this.saveOptions();
++
++        /** MINECRIFT **/
++
++        // Set reasonable Optifine / game defaults
++
++        this.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax(); // No frame limit
++        this.enableVsync = false;       // VSYNC OFF
++        this.ofChunkLoading = 1;        // Smooth chunk loading
++        this.renderDistanceChunks = 8;  // Reasonable render distance for 75+ fps
++        this.ofFogType = 2;             // Fancy fog to prevent draw distance changes in edge of FOV
++
++        if (this.mc.renderGlobal != null) {
++            this.mc.renderGlobal.updateCapes();
++            this.updateWaterOpacity();
++            this.mc.renderGlobal.setAllRenderersVisible();
++            this.mc.refreshResources();
++        }
++        this.saveOptions(theProfile);
++        /** END MINECRIFT **/
+     }
  
      public void updateVSync()
      {

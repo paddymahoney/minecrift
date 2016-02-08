@@ -247,9 +247,6 @@ public class VRSettings
 
         // Load settings from the file
         this.loadOptions();
-
-        // Make sure defaults are initialised back to the file
-        this.saveOptions();
     }
 
     public void loadOptions()
@@ -257,7 +254,7 @@ public class VRSettings
         loadOptions(null);
     }
 
-    private void loadDefaults()
+    public void loadDefaults()
     {
         loadOptions(this.defaults);
     }
@@ -927,14 +924,6 @@ public class VRSettings
 
     public void resetSettings()
     {
-        // Set reasonable Optifine / game defaults
-        this.mc.gameSettings.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
-        this.mc.gameSettings.enableVsync = false;
-        this.mc.gameSettings.ofChunkLoading = 1;
-        this.mc.gameSettings.renderDistanceChunks = 8;
-        this.mc.gameSettings.ofFogType = 2; // Fancy fog to prevent draw distance changes in edge of FOV
-        this.mc.gameSettings.saveOptions(); // Write back to gameSettings!
-
         // Get the Minecrift defaults
         loadDefaults();
     }
@@ -1953,7 +1942,7 @@ public class VRSettings
 
     public void saveOptions()
     {
-        saveOptions(null);
+        saveOptions(null); // Use null for current profile
     }
 
     private void storeDefaults()
@@ -2530,6 +2519,7 @@ public class VRSettings
         mc.gameSettings = new GameSettings( mc, dataDir );
         mc.gameSettings.saveOptions();
         mc.vrSettings = new VRSettings( mc, dataDir );
+        mc.vrSettings.saveOptions();
     }
 
     public static synchronized void loadAll( Minecraft mc )

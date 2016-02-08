@@ -146,4 +146,14 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
     {
         return init();
     }
+
+	@Override
+	public void saveOptions() {
+
+	}
+
+	@Override
+	public void loadDefaults() {
+
+	}
 }
