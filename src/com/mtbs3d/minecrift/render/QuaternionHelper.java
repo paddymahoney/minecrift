@@ -348,20 +348,10 @@ public class QuaternionHelper
 
     public static FloatBuffer quatToMatrix4fFloatBuf(Quaternion q)
     {
-        FloatBuffer fb = createFloatBuffer(4*4);
+        FloatBuffer fb = GLUtils.createFloatBuffer(4*4);
         Matrix4f mat4f = quatToMatrix4f(q);
         mat4f.store(fb);
         fb.flip();
         return fb;
-    }
-
-    public static synchronized ByteBuffer createByteBuffer(int size)
-    {
-        return ByteBuffer.allocateDirect(size).order(ByteOrder.nativeOrder());
-    }
-
-    public static FloatBuffer createFloatBuffer(int size)
-    {
-        return createByteBuffer(size << 2).asFloatBuffer();
     }
 }

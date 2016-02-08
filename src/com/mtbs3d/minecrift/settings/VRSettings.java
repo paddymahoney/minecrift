@@ -224,6 +224,7 @@ public class VRSettings
     public boolean smoothTick = false;
     public static final String LEGACY_OPTIONS_VR_FILENAME = "optionsvr.txt";
     public static final String LEGACY_OPTIONS_VR_BACKUP_FILENAME = "optionsvr.bak";
+    public boolean allowAvatarIK = false;
 
     private Minecraft mc;
 
@@ -899,6 +900,11 @@ public class VRSettings
                     if (optionTokens[0].equals("smoothTick"))
                     {
                         this.smoothTick = optionTokens[1].equals("true");
+                    }
+
+                    if (optionTokens[0].equals("allowAvatarIK"))
+                    {
+                        this.allowAvatarIK = optionTokens[1].equals("true");
                     }
 
                     if (optionTokens[0].equals("movementQuantisation"))
@@ -2081,6 +2087,7 @@ public class VRSettings
             var5.println("vrComfortTransitionBlankingMode:" + this.vrComfortTransitionBlankingMode);
             var5.println("smoothRunTickCount:" + this.smoothRunTickCount);
             var5.println("smoothTick:" + this.smoothTick);
+            var5.println("allowAvatarIK:" + this.allowAvatarIK);
             var5.println("movementQuantisation:" + this.movementQuantisation);
 
             var5.close();
