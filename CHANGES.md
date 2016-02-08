@@ -1,3 +1,24 @@
+[Minecrift 1.7.10 R2]
+
+- Oculus SDK - now support SDK 0.8 on Windows ***KUDOS to darkTemp for all his work on this!!***
+
+  NOTE: Currently the number of rendering configuration options for the Rift has been vastly
+        reduced - for now. Positional track timewarp has been implemented but does not seem to
+	    be working with the current SDK. Press RCtrl-t in game to test timewarp.
+  NOTE: R2 does not support Linux or OSX because of these changes. Use 1.7.10 R1c for now on
+        these platforms. 
+	
+- Controller map defaults have been added. These should match the Xbox controller defaults (layout 
+  one). Controller mappings will now be saved to the profile. 
+
+Bug fixes
+-------------
+
+- Fixed Optifine / vanilla Minecraft settings being reset to defaults on start-up.
+- Added better error reporting on failure to initialise Oculus SDK. Will switch to Mono mode if an error occurs.
+- Better defaults on fresh install.
+
+
 [Minecrift 1.7.10 R1c]
  
 Bug fixes
