@@ -23,18 +23,73 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.audio.SoundCategory;
  import net.minecraft.client.gui.GuiNewChat;
-@@ -1234,7 +1237,9 @@
+@@ -80,7 +83,9 @@
+     /** Advanced OpenGL */
+     public boolean advancedOpengl;
+     public boolean fboEnable = true;
+-    public int limitFramerate = 120;
++    /** MINECRIFT **/
++    public int limitFramerate = (int)GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
++    /** END MINECRIFT **/
+     public boolean fancyGraphics = true;
+ 
+     /** Smooth Lighting */
+@@ -281,7 +286,9 @@
+         this.chatLinksPrompt = true;
+         this.chatOpacity = 1.0F;
+         this.snooperEnabled = true;
+-        this.enableVsync = true;
++        /** MINECRIFT **/
++        this.enableVsync = false;
++        /** END MINECRIFT **/
+         this.pauseOnLostFocus = true;
+         this.showCape = true;
+         this.heldItemTooltips = true;
+@@ -356,7 +363,9 @@
+         this.chatLinksPrompt = true;
+         this.chatOpacity = 1.0F;
+         this.snooperEnabled = true;
+-        this.enableVsync = true;
++        /** MINECRIFT */
++        this.enableVsync = false;
++        /** END MINECRIFT **/
+         this.pauseOnLostFocus = true;
+         this.showCape = true;
+         this.heldItemTooltips = true;
+@@ -474,14 +483,16 @@
+ 
+         if (par1EnumOptions == GameSettings.Options.FRAMERATE_LIMIT)
+         {
+-            this.limitFramerate = (int)par2;
++            /** MINECRIFT **/
++            this.limitFramerate = (int)GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
+             this.enableVsync = false;
+ 
+             if (this.limitFramerate <= 0)
+             {
+                 this.limitFramerate = (int)GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
+-                this.enableVsync = true;
++                this.enableVsync = false;
+             }
++            /** END MINECRIFT **/
+ 
+             this.updateVSync();
+         }
+@@ -1233,8 +1244,11 @@
+ 
          if (par1EnumOptions == GameSettings.Options.ENABLE_VSYNC)
          {
-             this.enableVsync = !this.enableVsync;
+-            this.enableVsync = !this.enableVsync;
 -            Display.setVSyncEnabled(this.enableVsync);
-+			/** MINECRIFT *  // Don't update Vsync - need to be on
++            /** MINECRIFT **/
++            this.enableVsync = false;
++			// Don't update Vsync - need to be off
 +            Display.setVSyncEnabled(this.enableVsync); 
-+			** END MINECRIFT */
++			/** END MINECRIFT */
          }
  
          this.saveOptions();
-@@ -1840,8 +1845,9 @@
+@@ -1840,8 +1854,9 @@
              {
                  return;
              }
@@ -46,7 +101,38 @@
              String var2 = "";
              this.mapSoundLevels.clear();
  
-@@ -2221,13 +2227,17 @@
+@@ -1913,14 +1928,16 @@
+ 
+                     if (var8[0].equals("maxFps"))
+                     {
+-                        this.limitFramerate = Integer.parseInt(var8[1]);
++                        /** MINECRIFT **/
++                        this.limitFramerate = (int)GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
+                         this.enableVsync = false;
+ 
+                         if (this.limitFramerate <= 0)
+                         {
+                             this.limitFramerate = (int)GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
+-                            this.enableVsync = true;
++                            this.enableVsync = false;
+                         }
++                        /** END MINECRIFT **/
+ 
+                         this.updateVSync();
+                     }
+@@ -2018,8 +2035,10 @@
+ 
+                     if (var8[0].equals("enableVsync"))
+                     {
+-                        this.enableVsync = var8[1].equals("true");
++                        /** MINECRIFT **/
++                        this.enableVsync = false;//var8[1].equals("true");
+                         this.updateVSync();
++                        /** END MINECRIFT **/
+                     }
+ 
+                     if (var8[0].equals("hideServerAddress"))
+@@ -2221,13 +2240,17 @@
  
              if (var6 != null && Reflector.callBoolean(var6, Reflector.FMLClientHandler_isLoading, new Object[0]))
              {
@@ -65,7 +151,7 @@
              var81.println("invertYMouse:" + this.invertMouse);
              var81.println("mouseSensitivity:" + this.mouseSensitivity);
              var81.println("fov:" + (this.fovSetting - 70.0F) / 40.0F);
-@@ -2358,8 +2368,9 @@
+@@ -2358,8 +2381,9 @@
              {
                  return;
              }
@@ -77,7 +163,7 @@
              String s = "";
  
              while ((s = bufferedreader.readLine()) != null)
-@@ -2753,7 +2764,9 @@
+@@ -2753,7 +2777,9 @@
      {
          try
          {
@@ -88,13 +174,13 @@
              exception.println("ofRenderDistanceChunks:" + this.renderDistanceChunks);
              exception.println("ofFogType:" + this.ofFogType);
              exception.println("ofFogStart:" + this.ofFogStart);
-@@ -2918,8 +2931,10 @@
+@@ -2918,8 +2944,10 @@
  
      public void updateVSync()
      {
 -        Display.setVSyncEnabled(this.enableVsync);
 -    }
-+		/** MINECRIFT */ // Always needs to be on
++		/** MINECRIFT */ // Always needs to be off
 +        Display.setVSyncEnabled(false);
 +		/** END MINECRIFT */
 +	}

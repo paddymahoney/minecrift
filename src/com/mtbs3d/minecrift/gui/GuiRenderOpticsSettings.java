@@ -235,8 +235,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 num == VRSettings.VrOptions.LOW_PERSISTENCE ||
                 num == VRSettings.VrOptions.DYNAMIC_PREDICTION ||
                 num == VRSettings.VrOptions.OVERDRIVE_DISPLAY ||
-                num == VRSettings.VrOptions.FSAA ||
-                num == VRSettings.VrOptions.WORLD_SCALE)
+                num == VRSettings.VrOptions.FSAA)
 	        {
                 minecraft.reinitFramebuffers = true;
 	        }

@@ -929,7 +929,7 @@ public class VRSettings
     {
         // Set reasonable Optifine / game defaults
         this.mc.gameSettings.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
-        this.mc.gameSettings.enableVsync = true;
+        this.mc.gameSettings.enableVsync = false;
         this.mc.gameSettings.ofChunkLoading = 1;
         this.mc.gameSettings.renderDistanceChunks = 8;
         this.mc.gameSettings.ofFogType = 2; // Fancy fog to prevent draw distance changes in edge of FOV

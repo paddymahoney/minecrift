@@ -12,15 +12,24 @@ import org.lwjgl.input.Keyboard;
 
 public class VRHotkeys {
 
+    static long nextRead = 0;
+    static final long COOLOFF_PERIOD_MILLIS = 500;
+
 	public static void handleKeyboardInputs(Minecraft mc)
-	{                                
+	{
+        // Support cool-off period for key presses - otherwise keys can get spammed...
+        if (nextRead != 0 && System.currentTimeMillis() < nextRead)
+            return;
+
 		// Capture Minecrift key events
+        boolean gotKey = false;
 
 	    //  Reinitialise head tracking
 	    if (Keyboard.getEventKey() == Keyboard.KEY_BACK && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 	    {
             PluginManager.destroyAll();
             mc.printChatMessage("Re-initialising all plugins (RCTRL+BACK): done");
+            gotKey = true;
 	    }
 
         // Reset positional track origin
@@ -28,6 +37,7 @@ public class VRHotkeys {
         {
             mc.vrSettings.posTrackResetPosition = true;
             mc.printChatMessage("Reset origin (RCTRL+RET or F12): done");
+            gotKey = true;
         }
 
         // Debug aim
@@ -35,6 +45,7 @@ public class VRHotkeys {
         {
             mc.vrSettings.storeDebugAim = true;
             mc.printChatMessage("Show aim (RCTRL+RSHIFT): done");
+            gotKey = true;
         }
 
         // Debug pos
@@ -42,13 +53,15 @@ public class VRHotkeys {
         {
             mc.vrSettings.debugPos = !mc.vrSettings.debugPos;
             mc.printChatMessage("Debug position (RCTRL+P): " + mc.vrSettings.debugPos);
+            gotKey = true;
         }
 
         // Pause pose updates for Timewarp test
-        if (Keyboard.getEventKey() == Keyboard.KEY_T && Keyboard.isKeyDown(Keyboard.KEY_LCONTROL))
+        if (Keyboard.getEventKey() == Keyboard.KEY_T && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
         {
             mc.vrSettings.testTimewarp = !mc.vrSettings.testTimewarp;
-            mc.printChatMessage("Test Timewarp (LCTRL+T): " + mc.vrSettings.testTimewarp);
+            mc.printChatMessage("Test Timewarp (RCTRL+T): " + mc.vrSettings.testTimewarp);
+            gotKey = true;
         }
 
         // Walk up blocks
@@ -57,6 +70,7 @@ public class VRHotkeys {
             mc.vrSettings.walkUpBlocks = !mc.vrSettings.walkUpBlocks;
             mc.vrSettings.saveOptions();
             mc.printChatMessage("Walk up blocks (RCTRL+B): " + (mc.vrSettings.walkUpBlocks ? "YES" : "NO"));
+            gotKey = true;
         }
 
         // Player inertia
@@ -81,6 +95,7 @@ public class VRHotkeys {
                     mc.printChatMessage("Player player movement inertia (LCTRL-I): Massive");
                     break;
             }
+            gotKey = true;
         }
 
         // Render full player model or just an disembodied hand...
@@ -103,17 +118,24 @@ public class VRHotkeys {
                 mc.printChatMessage("First person model (RCTRL-H): None");
                 break;
             }
+            gotKey = true;
         }
 
         // If an orientation plugin is performing calibration, space also sets the origin
         if (Keyboard.isKeyDown(Keyboard.KEY_SPACE))
         {
             PluginManager.notifyAll(IBasePlugin.EVENT_CALIBRATION_SET_ORIGIN);
+            gotKey = true;
         }
         // ...and ESC aborts
         if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
         {
             PluginManager.notifyAll(IBasePlugin.EVENT_CALIBRATION_ABORT);
+            gotKey = true;
+        }
+
+        if (gotKey) {
+            nextRead = System.currentTimeMillis() + COOLOFF_PERIOD_MILLIS;
         }
 	}
 }
