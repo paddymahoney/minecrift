@@ -75,23 +75,23 @@ public class GuiMoveAimSettings extends BaseGuiSettings
     public void initGui()
     {
         this.buttonList.clear();
-        GuiButtonEx reinit = new GuiButtonEx(ID_GENERIC_REINIT, (this.width / 2) - 100, (this.height / 6) + 168, 100, 20, "Reinitialise");
+        GuiButtonEx reinit = new GuiButtonEx(ID_GENERIC_REINIT, (this.width / 2) - 100, (this.height / 6) + 158, 100, 20, "Reinitialise");
         reinit.enabled = true; // LWJGL has now been hacked ;-)
         this.buttonList.add(reinit);
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, (this.width / 2), (this.height / 6) + 168, 100, 20, "Defaults"));
-        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 188, "Done"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, (this.width / 2), (this.height / 6) + 158, 100, 20, "Defaults"));
+        this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 178, "Done"));
         if(! ( Minecraft.getMinecraft().lookaimController instanceof MCMouse )  )
         {
             String butName = null;
             GuiButtonEx butRemap = null;
             if (Minecraft.getMinecraft().lookaimController.isInitialized()) {
                 butName = "Remap Controls";
-                butRemap = new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 148, butName);
+                butRemap = new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 138, butName);
                 butRemap.enabled = true;
             }
             else {
                 butName = "Controller Not Initialised";
-                butRemap = new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 148, butName);
+                butRemap = new GuiButtonEx(ID_GENERIC_REMAP, this.width / 2 - 100, this.height / 6 + 138, butName);
                 butRemap.enabled = false;
             }
         	this.buttonList.add(butRemap);

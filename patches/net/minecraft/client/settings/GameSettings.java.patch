@@ -190,8 +190,9 @@
 +    /** END MINECRIFT **/
          try
          {
+-            if (!this.optionsFile.exists())
 +            /** MINECRIFT **/
-             if (!this.optionsFile.exists())
++            if (this.optionsFile == null || !this.optionsFile.exists())
              {
 -                return;
 +                //return;
@@ -234,7 +235,7 @@
                      }
  
                      if (var8[0].equals("hideServerAddress"))
-@@ -2213,21 +2181,29 @@
+@@ -2213,8 +2181,14 @@
      /**
       * Saves the options to the options file.
       */
@@ -249,14 +250,7 @@
          if (Reflector.FMLClientHandler.exists())
          {
              Object var6 = Reflector.call(Reflector.FMLClientHandler_instance, new Object[0]);
- 
-             if (var6 != null && Reflector.callBoolean(var6, Reflector.FMLClientHandler_isLoading, new Object[0]))
-             {
--                return;
-+                // MINECRIFT - Always save profile settings even if handled by Forge?
-+                //return;
-             }
-         }
+@@ -2227,7 +2201,8 @@
  
          try
          {
@@ -266,7 +260,7 @@
              var81.println("invertYMouse:" + this.invertMouse);
              var81.println("mouseSensitivity:" + this.mouseSensitivity);
              var81.println("fov:" + (this.fovSetting - 70.0F) / 40.0F);
-@@ -2343,8 +2319,15 @@
+@@ -2343,23 +2318,29 @@
          return this.renderDistanceChunks >= 4 && this.clouds;
      }
  
@@ -282,13 +276,16 @@
          try
          {
              File exception = this.optionsFileOF;
-@@ -2353,13 +2336,13 @@
+-
+-            if (!exception.exists())
++            /** MINECRIFT **/
++            if (exception == null || !exception.exists())
              {
                  exception = this.optionsFile;
              }
 -
-+            /** MINECRIFT **/
-             if (!exception.exists())
+-            if (!exception.exists())
++            if (exception == null || !exception.exists())
              {
 -                return;
 +                //return;
@@ -300,7 +297,7 @@
              String s = "";
  
              while ((s = bufferedreader.readLine()) != null)
-@@ -2749,11 +2732,20 @@
+@@ -2749,11 +2730,20 @@
          }
      }
  
@@ -322,7 +319,7 @@
              exception.println("ofRenderDistanceChunks:" + this.renderDistanceChunks);
              exception.println("ofFogType:" + this.ofFogType);
              exception.println("ofFogStart:" + this.ofFogStart);
-@@ -2827,8 +2819,15 @@
+@@ -2827,8 +2817,15 @@
          }
      }
  
@@ -338,7 +335,7 @@
          this.renderDistanceChunks = 8;
          this.viewBobbing = true;
          this.anaglyph = false;
-@@ -2909,17 +2908,33 @@
+@@ -2909,17 +2906,33 @@
          this.ofAnimatedTerrain = true;
          this.ofAnimatedItems = true;
          this.ofAnimatedTextures = true;

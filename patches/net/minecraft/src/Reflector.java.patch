@@ -42,7 +42,7 @@
  
  public class Reflector
  {
-@@ -136,6 +155,289 @@
+@@ -136,6 +155,273 @@
      public static ReflectorClass ForgeItemRecord = new ReflectorClass(ItemRecord.class);
      public static ReflectorMethod ForgeItemRecord_getRecordResource = new ReflectorMethod(ForgeItemRecord, "getRecordResource", new Class[] {String.class});
  
@@ -311,28 +311,12 @@
 +    {
 +        return ShadersMod_Shaders.exists();
 +    }
-+
-+    public static Object getFieldValue(Object obj, ReflectorField refObfFieldName, ReflectorField refNonObfFieldName)
-+    {
-+        Object field = getFieldValue(obj, refObfFieldName);
-+        if (field == null)
-+        {
-+            field = getFieldValue(obj, refNonObfFieldName);
-+        }
-+        return field;
-+    }
-+
-+    public static void setFieldValue(Object obj, ReflectorField refObfFieldName, ReflectorField refNonObfFieldName, Object value)
-+    {
-+        setFieldValue(obj, refObfFieldName, value);
-+        setFieldValue(obj, refNonObfFieldName, value);
-+    }
 +    /** END MINECRIFT */
 +
      public static void callVoid(ReflectorMethod refMethod, Object ... params)
      {
          try
-@@ -467,8 +769,56 @@
+@@ -467,8 +753,56 @@
              {
                  return;
              }
@@ -343,46 +327,46 @@
 +            {
 +                e.set(obj, null);
 +            }
-+            else if (e.getType().isPrimitive())
-+            {
-+                Class<?> clazz = e.getType();
-+                if (clazz.equals(Boolean.class))
-+                {
-+                    e.setBoolean(obj, ((Boolean)value).booleanValue());
-+                }
-+                else if (clazz.equals(Integer.class))
-+                {
-+                    e.setInt(obj, ((Integer) value).intValue());
-+                }
-+                else if (clazz.equals(Character.class))
-+                {
-+                    e.setChar(obj, ((Character) value).charValue());
-+                }
-+                else if (clazz.equals(Byte.class))
-+                {
-+                    e.setByte(obj, ((Byte) value).byteValue());
-+                }
-+                else if (clazz.equals(Short.class))
-+                {
-+                    e.setShort(obj, ((Short) value).shortValue());
-+                }
-+                else if (clazz.equals(Double.class))
-+                {
-+                    e.setDouble(obj, ((Double) value).doubleValue());
-+                }
-+                else if (clazz.equals(Long.class))
-+                {
-+                    e.setLong(obj, ((Long) value).longValue());
-+                }
-+                else if (clazz.equals(Float.class))
-+                {
-+                    e.setFloat(obj, ((Float) value).floatValue());
-+                }
-+                else if (clazz.equals(Void.class))
-+                {
-+                    e.set(obj, null);
-+                }
-+            }
++//            else if (e.getType().isPrimitive())
++//            {
++//                Class<?> clazz = e.getType();
++//                if (clazz.equals(Boolean.class))
++//                {
++//                    e.setBoolean(obj, ((Boolean)value).booleanValue());
++//                }
++//                else if (clazz.equals(Integer.class))
++//                {
++//                    e.setInt(obj, ((Integer) value).intValue());
++//                }
++//                else if (clazz.equals(Character.class))
++//                {
++//                    e.setChar(obj, ((Character) value).charValue());
++//                }
++//                else if (clazz.equals(Byte.class))
++//                {
++//                    e.setByte(obj, ((Byte) value).byteValue());
++//                }
++//                else if (clazz.equals(Short.class))
++//                {
++//                    e.setShort(obj, ((Short) value).shortValue());
++//                }
++//                else if (clazz.equals(Double.class))
++//                {
++//                    e.setDouble(obj, ((Double) value).doubleValue());
++//                }
++//                else if (clazz.equals(Long.class))
++//                {
++//                    e.setLong(obj, ((Long) value).longValue());
++//                }
++//                else if (clazz.equals(Float.class))
++//                {
++//                    e.setFloat(obj, ((Float) value).floatValue());
++//                }
++//                else if (clazz.equals(Void.class))
++//                {
++//                    e.set(obj, null);
++//                }
++//            }
 +            else
 +            {
 +                e.set(obj, value);

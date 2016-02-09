@@ -5,7 +5,6 @@
 package com.mtbs3d.minecrift.settings;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.SortedSet;
 
 import com.mtbs3d.minecrift.provider.MCHydra;
@@ -225,6 +224,7 @@ public class VRSettings
     public static final String LEGACY_OPTIONS_VR_FILENAME = "optionsvr.txt";
     public static final String LEGACY_OPTIONS_VR_BACKUP_FILENAME = "optionsvr.bak";
     public boolean allowAvatarIK = false;
+    public boolean hideGui = true;
 
     private Minecraft mc;
 
@@ -395,11 +395,6 @@ public class VRSettings
                     if (optionTokens[0].equals("menuBackground"))
                     {
                         this.menuBackground = optionTokens[1].equals("true");
-                    }
-
-                    if (optionTokens[0].equals("vrHideGUI"))
-                    {
-                        this.mc.gameSettings.hideGUI = optionTokens[1].equals("true");
                     }
 
                     if (optionTokens[0].equals("renderFullFirstPersonModelMode"))
@@ -907,6 +902,11 @@ public class VRSettings
                         this.allowAvatarIK = optionTokens[1].equals("true");
                     }
 
+                    if (optionTokens[0].equals("hideGui"))
+                    {
+                        this.hideGui = optionTokens[1].equals("true");
+                    }
+
                     if (optionTokens[0].equals("movementQuantisation"))
                     {
                         this.movementQuantisation = Integer.parseInt(optionTokens[1]);
@@ -1002,7 +1002,7 @@ public class VRSettings
             case RENDER_MENU_BACKGROUND:
                 return this.menuBackground ? var4 + "ON" : var4 + "OFF";
 	        case HUD_HIDE:
-	            return this.mc.gameSettings.hideGUI ? var4 + "YES" : var4 + "NO";
+	            return this.hideGui ? var4 + "YES" : var4 + "NO";
 	        case RENDER_FULL_FIRST_PERSON_MODEL_MODE:
                 if (this.renderFullFirstPersonModelMode == RENDER_FIRST_PERSON_FULL)
                     return var4 + "Full";
@@ -1471,7 +1471,7 @@ public class VRSettings
                 this.menuBackground = !this.menuBackground;
                 break;
 	        case HUD_HIDE:
-	            this.mc.gameSettings.hideGUI = !this.mc.gameSettings.hideGUI;
+	            this.hideGui = !this.hideGui;
 	            break;
 	        case RENDER_FULL_FIRST_PERSON_MODEL_MODE:
                 this.renderFullFirstPersonModelMode++;
@@ -1987,7 +1987,6 @@ public class VRSettings
             var5.println("useHeadTrackPrediction:" + this.useHeadTrackPrediction);
             var5.println("renderHeadWear:" + this.renderHeadWear);
             var5.println("menuBackground:" + this.menuBackground);
-            var5.println("hideGUI:" + this.mc.gameSettings.hideGUI);
             var5.println("renderFullFirstPersonModelMode:" + this.renderFullFirstPersonModelMode);
             var5.println("shaderIndex:" + this.shaderIndex);
             // 0.4.0
@@ -2088,6 +2087,7 @@ public class VRSettings
             var5.println("smoothRunTickCount:" + this.smoothRunTickCount);
             var5.println("smoothTick:" + this.smoothTick);
             var5.println("allowAvatarIK:" + this.allowAvatarIK);
+            var5.println("hideGui:" + this.hideGui);
             var5.println("movementQuantisation:" + this.movementQuantisation);
 
             var5.close();
