@@ -32,6 +32,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     private int calibrationStep = NOT_CALIBRATING;
     private int MagCalSampleCount = 0;
     private boolean forceMagCalibration = false; // Don't force mag cal initially
+    private double PredictedDisplayTime = 0d;
     private float yawOffsetRad = 0f;
     private float pitchOffsetRad = 0f;
     private float rollHeadRad = 0f;
@@ -81,6 +82,8 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     {
         return false;
     }
+
+    public double getFrameTiming() { return PredictedDisplayTime; };
 
     public static UserProfileData theProfileData = null;
 
@@ -378,6 +381,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
         // Get our eye pose and tracker state in one hit
         fullPoseState = super.getTrackedPoses(frameIndex);
+        PredictedDisplayTime = fullPoseState.PredictedDisplayTime;
         //System.out.println(fullPoseState.toString());
 
         // Set left eye pose

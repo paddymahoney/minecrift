@@ -40,6 +40,8 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean isGuiOrtho();
 
+    public double getFrameTiming();
+
     public Matrix4f getProjectionMatrix(FovPort fov,
                                         float nearClip,
                                         float farClip);

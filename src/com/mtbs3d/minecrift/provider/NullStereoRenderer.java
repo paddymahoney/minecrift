@@ -60,6 +60,9 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
+    public double getFrameTiming() { return (double)System.currentTimeMillis() / 1000d; }
+    
+    @Override
     public Matrix4f getProjectionMatrix(FovPort fov, float nearClip, float farClip) {
         return null;
     }

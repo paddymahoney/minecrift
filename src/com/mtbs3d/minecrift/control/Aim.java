@@ -86,7 +86,7 @@ public class Aim
                         if (this.mc.vrSettings.allowMousePitchInput)
                         {
                             discretePitch.update(aimType == VRSettings.AIM_TYPE_TIGHT ? aimPitch - keyholeTop : aimType == VRSettings.AIM_TYPE_RECENTER ? 0.75f*aimPitchAdd : aimPitchAdd, currentTimeSecs);
-                            bodyPitch = (float) discretePitch.getCurrent(this.mc.frameTiming.ScanoutMidpointSeconds);
+                            bodyPitch = (float) discretePitch.getCurrent(this.mc.PredictedDisplayTimeSeconds);
                             bodyPitch -= (!this.mc.vrSettings.crosshairHeadRelative ? 0 : headPitchDelta);
                         }
                         else
@@ -105,7 +105,7 @@ public class Aim
                     {
                         if (this.mc.vrSettings.allowMousePitchInput) {
                             discretePitch.update(aimType == VRSettings.AIM_TYPE_TIGHT ? aimPitch - keyholeBot : aimType == VRSettings.AIM_TYPE_RECENTER ? 0.75f*aimPitchAdd : aimPitchAdd, currentTimeSecs);
-                            bodyPitch = (float) discretePitch.getCurrent(this.mc.frameTiming.ScanoutMidpointSeconds);
+                            bodyPitch = (float) discretePitch.getCurrent(this.mc.PredictedDisplayTimeSeconds);
                             bodyPitch -= (!this.mc.vrSettings.crosshairHeadRelative ? 0 : headPitchDelta);
                         }
                         else
@@ -127,7 +127,7 @@ public class Aim
         {
             aimPitch = 0;
             discretePitch.update(aimPitchAdd, currentTimeSecs);
-            bodyPitch = (float)discretePitch.getCurrent(this.mc.frameTiming.ScanoutMidpointSeconds);
+            bodyPitch = (float)discretePitch.getCurrent(this.mc.PredictedDisplayTimeSeconds);
             updatedPitch = true;
         }
         else   // No keyhole, no pitch change
@@ -145,7 +145,7 @@ public class Aim
             if (this.mc.vrSettings.allowMousePitchInput)
             {
                 discretePitch.update(0, currentTimeSecs);
-                bodyPitch = (float) discretePitch.getCurrent(this.mc.frameTiming.ScanoutMidpointSeconds);
+                bodyPitch = (float) discretePitch.getCurrent(this.mc.PredictedDisplayTimeSeconds);
                 bodyPitch -= (!this.mc.vrSettings.crosshairHeadRelative ? 0 : headPitchDelta);
             }
             else
@@ -208,7 +208,7 @@ public class Aim
                     if (aimYawAdd > 0 || aimType != VRSettings.AIM_TYPE_LOOSE)
                     {
                         discreteYaw.update(aimType == VRSettings.AIM_TYPE_TIGHT ? aimYaw - keyholeYawRight : aimType == VRSettings.AIM_TYPE_RECENTER ? 0.75f*aimYawAdd : aimYawAdd, currentTimeSecs);
-                        bodyYaw = (float) discreteYaw.getCurrent(this.mc.frameTiming.ScanoutMidpointSeconds);
+                        bodyYaw = (float) discreteYaw.getCurrent(this.mc.PredictedDisplayTimeSeconds);
                         bodyYaw -= (!this.mc.vrSettings.crosshairHeadRelative ? 0 : headYawDelta);
                         aimYaw = keyholeYawRight;
                         updatedYaw = true;
@@ -219,7 +219,7 @@ public class Aim
                     if (aimYawAdd < 0 || aimType != VRSettings.AIM_TYPE_LOOSE)
                     {
                         discreteYaw.update(aimType == VRSettings.AIM_TYPE_TIGHT ? aimYaw - keyholeYawLeft : aimType == VRSettings.AIM_TYPE_RECENTER ? 0.75f*aimYawAdd : aimYawAdd, currentTimeSecs);
-                        bodyYaw = (float) discreteYaw.getCurrent(this.mc.frameTiming.ScanoutMidpointSeconds);
+                        bodyYaw = (float) discreteYaw.getCurrent(this.mc.PredictedDisplayTimeSeconds);
                         bodyYaw -= (!this.mc.vrSettings.crosshairHeadRelative ? 0 : headYawDelta);
                         aimYaw = keyholeYawLeft;
                         updatedYaw = true;
@@ -234,7 +234,7 @@ public class Aim
         {
             aimYaw = 0;
             discreteYaw.update(aimYawAdd, currentTimeSecs);
-            bodyYaw = (float)discreteYaw.getCurrent(this.mc.frameTiming.ScanoutMidpointSeconds);
+            bodyYaw = (float)discreteYaw.getCurrent(this.mc.PredictedDisplayTimeSeconds);
             updatedYaw = true;
         }
 
@@ -243,7 +243,7 @@ public class Aim
         if(!updatedYaw)
         {
             discreteYaw.update(0, currentTimeSecs);
-            bodyYaw = (float)discreteYaw.getCurrent(this.mc.frameTiming.ScanoutMidpointSeconds);
+            bodyYaw = (float)discreteYaw.getCurrent(this.mc.PredictedDisplayTimeSeconds);
             bodyYaw -= (!this.mc.vrSettings.crosshairHeadRelative ? 0 : headYawDelta);
             updatedYaw = true;
         }
