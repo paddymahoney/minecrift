@@ -20,6 +20,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.USE_VR_COMFORT,
+            VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS,

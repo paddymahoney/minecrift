@@ -28,7 +28,6 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             VRSettings.VrOptions.JOYSTICK_SENSITIVITY,
             VRSettings.VrOptions.MOVEAIM_HYDRA_USE_CONTROLLER_ONE,
             VRSettings.VrOptions.MOVEMENT_QUANTISATION,
-            VRSettings.VrOptions.LOCOMOTION_SETTINGS,
     };
     /** An array of all of EnumOption's movement options relevant to the mouse. */
     static VRSettings.VrOptions[] mouseMoveAimOptions = new VRSettings.VrOptions[] {
@@ -42,7 +41,6 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.LOCOMOTION_SETTINGS,
     };
     /** An array of all of EnumOption's movement options relevant to the controller. */
     static VRSettings.VrOptions[] controllerMoveAimOptions = new VRSettings.VrOptions[] {
@@ -56,7 +54,6 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.JOYSTICK_SENSITIVITY,
             VRSettings.VrOptions.JOYSTICK_DEADZONE,
-            VRSettings.VrOptions.LOCOMOTION_SETTINGS,
             VRSettings.VrOptions.MOVEMENT_QUANTISATION,
     };
 	private PluginModeChangeButton pluginModeChangeButton;
@@ -269,12 +266,6 @@ public class GuiMoveAimSettings extends BaseGuiSettings
                     e.printStackTrace();
                 }
                 this.reinit = true;
-            }
-            else if (par1GuiButton.id == VRSettings.VrOptions.LOCOMOTION_SETTINGS.returnEnumOrdinal()) // Remap
-            {
-                this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController.saveOptions();
-                this.mc.displayGuiScreen(new GuiLocomotionSettings(this, this.guivrSettings));
             }
             else if (par1GuiButton instanceof GuiSmallButtonEx)
             {

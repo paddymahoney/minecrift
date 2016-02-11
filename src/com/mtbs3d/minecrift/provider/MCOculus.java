@@ -243,15 +243,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
             case CALIBRATE_AWAITING_FIRST_ORIGIN:
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append("HEALTH AND SAFETY WARNING").append(newline).append(newline)
-                        .append("Read and follow all warnings and instructions").append(newline)
-                        .append("included with the Headset before use. Headset").append(newline)
-                        .append("should be calibrated for each user. Not for use by").append(newline)
-                        .append("children under 13. Stop use if you experience any").append(newline)
-                        .append("discomfort or health reactions.").append(newline).append(newline)
-                        .append("More: www.oculus.com/warnings").append(newline).append(newline)
-                        .append("Look ahead and press SPACEBAR to acknowledge").append(newline)
-                        .append("and reset origin.");
+                sb.append("Look ahead and press SPACEBAR to reset origin.");
                 step = sb.toString();
                 break;
             }
