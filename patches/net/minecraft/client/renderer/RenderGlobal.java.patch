@@ -104,7 +104,7 @@
              RenderHelper.enableStandardItemLighting();
  
              for (var25 = 0; var25 < this.tileEntities.size(); ++var25)
-@@ -727,6 +768,41 @@
+@@ -727,6 +768,45 @@
                      }
                  }
              }
@@ -115,9 +115,13 @@
 +            }
 +
 +            /** MINECRIFT */ // Render crosshair...
-+            this.mc.entityRenderer.disableLightmap((double)p_147589_3_);
++            if (!Reflector.forgeExists())
++                this.mc.entityRenderer.disableLightmap((double)p_147589_3_);
++
 +            this.mc.entityRenderer.renderCrosshairAtDepth();
-+            this.mc.entityRenderer.enableLightmap((double)p_147589_3_);
++
++            if (!Reflector.forgeExists())
++                this.mc.entityRenderer.enableLightmap((double)p_147589_3_);
 +
 +            // ...and now render the player...
 +            if (thePlayer != null)
@@ -146,7 +150,7 @@
  
              this.mc.entityRenderer.disableLightmap((double)p_147589_3_);
              this.theWorld.theProfiler.endSection();
-@@ -1071,11 +1147,21 @@
+@@ -1071,11 +1151,21 @@
                  {
                      endIndex = this.countSortedWorldRenderers;
                  }
@@ -169,7 +173,7 @@
                  GL11.glColorMask(false, false, false, false);
                  GL11.glDepthMask(false);
                  profiler.startSection("check");
-@@ -1173,12 +1259,21 @@
+@@ -1173,12 +1263,21 @@
                  {
                      GL11.glColorMask(true, true, true, true);
                  }
@@ -192,7 +196,7 @@
              }
          }
          else
-@@ -1464,6 +1559,9 @@
+@@ -1464,6 +1563,9 @@
       */
      public void renderSky(float par1)
      {
@@ -202,7 +206,7 @@
          if (Reflector.ForgeWorldProvider_getSkyRenderer.exists())
          {
              WorldProvider var2 = this.mc.theWorld.provider;
-@@ -1484,6 +1582,11 @@
+@@ -1484,6 +1586,11 @@
              }
  
              GL11.glDisable(GL11.GL_FOG);
@@ -214,7 +218,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_BLEND);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1533,13 +1636,27 @@
+@@ -1533,13 +1640,27 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -242,7 +246,7 @@
              float var231 = (float)var21.xCoord;
              float var4 = (float)var21.yCoord;
              float var5 = (float)var21.zCoord;
-@@ -1559,14 +1676,26 @@
+@@ -1559,14 +1680,26 @@
              Tessellator var241 = Tessellator.instance;
              GL11.glDepthMask(false);
              GL11.glEnable(GL11.GL_FOG);
@@ -269,7 +273,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_BLEND);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1584,6 +1713,10 @@
+@@ -1584,6 +1717,10 @@
              if (var251 != null && Config.isSunMoonEnabled())
              {
                  GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -280,7 +284,7 @@
                  GL11.glShadeModel(GL11.GL_SMOOTH);
                  GL11.glPushMatrix();
                  GL11.glRotatef(90.0F, 1.0F, 0.0F, 0.0F);
-@@ -1623,6 +1756,10 @@
+@@ -1623,6 +1760,10 @@
              }
  
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -291,7 +295,7 @@
              OpenGlHelper.glBlendFunc(770, 1, 1, 0);
              GL11.glPushMatrix();
              var8 = 1.0F - this.theWorld.getRainStrength(par1);
-@@ -1632,8 +1769,16 @@
+@@ -1632,8 +1773,16 @@
              GL11.glColor4f(1.0F, 1.0F, 1.0F, var8);
              GL11.glTranslatef(var9, var10, var11);
              GL11.glRotatef(-90.0F, 0.0F, 1.0F, 0.0F);
@@ -308,7 +312,7 @@
  
              if (Config.isSunMoonEnabled())
              {
-@@ -1663,6 +1808,10 @@
+@@ -1663,6 +1812,10 @@
              }
  
              GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -319,7 +323,7 @@
              var20 = this.theWorld.getStarBrightness(par1) * var8;
  
              if (var20 > 0.0F && Config.isStarsEnabled() && !CustomSky.hasSkyLayers(this.theWorld))
-@@ -1675,8 +1824,16 @@
+@@ -1675,8 +1828,16 @@
              GL11.glDisable(GL11.GL_BLEND);
              GL11.glEnable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_FOG);
@@ -336,7 +340,7 @@
              GL11.glColor3f(0.0F, 0.0F, 0.0F);
              double var28 = this.mc.thePlayer.getPosition(par1).yCoord - this.theWorld.getHorizon();
  
-@@ -1738,7 +1895,12 @@
+@@ -1738,7 +1899,12 @@
  
              GL11.glPopMatrix();
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -349,7 +353,7 @@
          }
      }
  
-@@ -1769,7 +1931,7 @@
+@@ -1769,7 +1935,7 @@
                      float partialTicks1 = par1;
                      par1 = 0.0F;
                      GL11.glDisable(GL11.GL_CULL_FACE);
@@ -358,7 +362,7 @@
                      byte var3 = 32;
                      int var4 = 256 / var3;
                      Tessellator var5 = Tessellator.instance;
-@@ -1806,10 +1968,10 @@
+@@ -1806,10 +1972,10 @@
                          int var18 = MathHelper.floor_double(cdx / 2048.0D);
                          dc -= (double)(cdz * 2048);
                          cdx -= (double)(var18 * 2048);
@@ -371,7 +375,7 @@
                          var5.startDrawingQuads();
                          var5.setColorRGBA_F(exactPlayerX, var8, exactPlayerY, 0.8F);
  
-@@ -1817,10 +1979,10 @@
+@@ -1817,10 +1983,10 @@
                          {
                              for (int var23 = -var3 * var4; var23 < var3 * var4; var23 += var3)
                              {
@@ -386,7 +390,7 @@
                              }
                          }
  
-@@ -2191,6 +2353,8 @@
+@@ -2191,6 +2357,8 @@
  
      public void drawBlockDamageTexture(Tessellator par1Tessellator, EntityLivingBase par2EntityPlayer, float par3)
      {
@@ -395,7 +399,7 @@
          double var4 = par2EntityPlayer.lastTickPosX + (par2EntityPlayer.posX - par2EntityPlayer.lastTickPosX) * (double)par3;
          double var6 = par2EntityPlayer.lastTickPosY + (par2EntityPlayer.posY - par2EntityPlayer.lastTickPosY) * (double)par3;
          double var8 = par2EntityPlayer.lastTickPosZ + (par2EntityPlayer.posZ - par2EntityPlayer.lastTickPosZ) * (double)par3;
-@@ -2205,6 +2369,10 @@
+@@ -2205,6 +2373,10 @@
              GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
              GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
              GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -406,7 +410,7 @@
              par1Tessellator.startDrawingQuads();
              par1Tessellator.setTranslation(-var4, -var6, -var8);
              par1Tessellator.disableColor();
-@@ -2234,6 +2402,10 @@
+@@ -2234,6 +2406,10 @@
  
              par1Tessellator.draw();
              par1Tessellator.setTranslation(0.0D, 0.0D, 0.0D);
@@ -417,7 +421,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glPolygonOffset(0.0F, 0.0F);
              GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
-@@ -2241,6 +2413,7 @@
+@@ -2241,6 +2417,7 @@
              GL11.glDepthMask(true);
              GL11.glPopMatrix();
          }
@@ -425,7 +429,7 @@
      }
  
      /**
-@@ -2248,6 +2421,8 @@
+@@ -2248,6 +2425,8 @@
       */
      public void drawSelectionBox(EntityPlayer par1EntityPlayer, MovingObjectPosition par2MovingObjectPosition, int par3, float par4)
      {
@@ -434,7 +438,7 @@
          if (par3 == 0 && par2MovingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
          {
              GL11.glEnable(GL11.GL_BLEND);
-@@ -2255,6 +2430,10 @@
+@@ -2255,6 +2434,10 @@
              GL11.glColor4f(0.0F, 0.0F, 0.0F, 0.4F);
              GL11.glLineWidth(2.0F);
              GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -445,7 +449,7 @@
              GL11.glDepthMask(false);
              float var5 = 0.002F;
              Block var6 = this.theWorld.getBlock(par2MovingObjectPosition.blockX, par2MovingObjectPosition.blockY, par2MovingObjectPosition.blockZ);
-@@ -2270,8 +2449,13 @@
+@@ -2270,8 +2453,13 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -459,7 +463,7 @@
      }
  
      /**
-@@ -2523,25 +2707,25 @@
+@@ -2523,25 +2711,25 @@
              double var15 = this.mc.renderViewEntity.posX - par2;
              double var17 = this.mc.renderViewEntity.posY - par4;
              double var19 = this.mc.renderViewEntity.posZ - par6;
