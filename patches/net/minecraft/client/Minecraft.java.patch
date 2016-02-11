@@ -225,7 +225,7 @@
 +     * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +     * Modify minecriftversion.py in root minecrift dir.
 +     */
-+    public final String minecriftVerString = "Minecrift 1.7.10 R2-d19";
++    public final String minecriftVerString = "Minecrift 1.7.10 R2-d21";
 +    /* end version */
 +    /** END MINECRIFT */
 +
@@ -2285,11 +2285,10 @@
 +
 +        oculusInit();
 +        new MCController();
++        new MCMouse();
 +        ControlBinding.CreateBindingList(this.gameSettings); // Create control binding list
-+        new MCMouse();                                       // Create and register mouse ILookAimMoveController plugin
-+        new NeckModelEyePosition();                               // Create and register "None" head position plugin
++        new NeckModelEyePosition();                          // Create and register "None" head position plugin
 +        new NullStereoRenderer();                            // Create and register "None" stereo renderer plugin
-+        //PluginManager.register(new MCOculus());              // Create and register new plugin
 +
 +        initPlugins();
 +
@@ -2306,6 +2305,7 @@
 +        hmdInfo           = PluginManager.configureHMD(this.vrSettings.hmdPluginID);
 +        headTracker       = PluginManager.configureOrientation(this.vrSettings.headTrackerPluginID);
 +        positionTracker   = PluginManager.configurePosition(this.vrSettings.headPositionPluginID);
++        lookaimController = PluginManager.configureController("mouse"); // Always configure mouse
 +        lookaimController = PluginManager.configureController(this.vrSettings.controllerPluginID);
 +        stereoProvider    = PluginManager.configureStereoProvider(this.vrSettings.stereoProviderPluginID);
 +    }
