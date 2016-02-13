@@ -2281,6 +2281,14 @@ public class VRSettings
         return addFac;
     }
 
+    public boolean isComfortYawTransitionKeyAllowed() {
+        if ((this.useVrComfort == VR_COMFORT_PITCHANDYAW || this.useVrComfort == VR_COMFORT_YAW) &&
+            this.useKeyBindingForComfortYaw) {
+            return true;
+        }
+        return false;
+    }
+
     public static enum VrOptions
     {
         // Minecrift below here

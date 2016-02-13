@@ -23,6 +23,8 @@ public abstract class ControlBinding {
 	
 	public static void CreateBindingList( GameSettings settings )
 	{
+		bindings.clear();
+
         // In game
 		bindings.add( new WalkForwardBinding());
 		bindings.add( new WalkBackwardBinding());

@@ -169,7 +169,14 @@ public class GuiMoveAimSettings extends BaseGuiSettings
 
     private boolean getEnabledState(VRSettings.VrOptions var8)
     {
-        String s = var8.getEnumString();
+        int s = var8.returnEnumOrdinal();
+
+        if (Minecraft.getMinecraft().lookaimController instanceof MCController &&
+                !Minecraft.getMinecraft().lookaimController.isInitialized() &&
+                s == ID_GENERIC_REINIT) {
+            return false;
+        }
+
         return true;
     }
 

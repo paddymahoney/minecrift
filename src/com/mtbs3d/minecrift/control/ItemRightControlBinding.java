@@ -22,9 +22,16 @@ public class ItemRightControlBinding extends ControlBinding {
 	@Override
 	public void setState(boolean state) {
 		if( state ) {
-			EntityClientPlayerMP thePlayer = Minecraft.getMinecraft().thePlayer;
-			if( thePlayer != null )
-	        	thePlayer.inventory.changeCurrentItem(-1);
+			Minecraft mc = Minecraft.getMinecraft();
+			EntityClientPlayerMP thePlayer = mc.thePlayer;
+			if( thePlayer != null ) {
+				if (Minecraft.getMinecraft().vrSettings.isComfortYawTransitionKeyAllowed()) {
+					mc.triggerYawTransition(true);
+				}
+				else {
+	        		thePlayer.inventory.changeCurrentItem(-1);
+				}
+			}
 		}
 			
 	}

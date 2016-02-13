@@ -305,7 +305,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 			System.out.println("[Minecrift] Init MCController");
 			resetControllerEnvironment();
 			Controllers.create();
-			hasControllers = Controllers.getControllerCount()> 0;
+			hasControllers = Controllers.getControllerCount() > 0;
 			loadBindings();
 
 			System.out.println("[Minecrift] Initialized controllers: "+getInitializationStatus());
@@ -427,6 +427,11 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	private void loadBindings(JSONObject theProfiles) {
+		// Cleanup any current bindings
+		ingame = new BindingMap();
+		GUI    = new BindingMap();
+		bindingSaves = new HashMap<String,String>();
+
 		try {
 			ProfileReader bindingsReader = new ProfileReader(ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS, theProfiles);
 			String line;
