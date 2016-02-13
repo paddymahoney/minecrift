@@ -237,7 +237,7 @@
                      }
  
                      if (var8[0].equals("hideServerAddress"))
-@@ -2213,8 +2181,14 @@
+@@ -2213,21 +2181,28 @@
      /**
       * Saves the options to the options file.
       */
@@ -252,7 +252,13 @@
          if (Reflector.FMLClientHandler.exists())
          {
              Object var6 = Reflector.call(Reflector.FMLClientHandler_instance, new Object[0]);
-@@ -2227,7 +2201,8 @@
+ 
+             if (var6 != null && Reflector.callBoolean(var6, Reflector.FMLClientHandler_isLoading, new Object[0]))
+             {
+-                return;
++                //return;  // Always continue to save settings
+             }
+         }
  
          try
          {
