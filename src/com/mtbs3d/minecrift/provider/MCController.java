@@ -558,4 +558,9 @@ public class MCController extends BasePlugin implements IBodyAimController
 		ProfileManager.loadControllerDefaults();
 		loadBindings();
 	}
+
+	@Override
+	public void triggerYawTransition(boolean isPositive) {
+		this.joyAim.triggerYawChange(isPositive);
+	}
 }

@@ -794,4 +794,9 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	public void loadDefaults() {
 
 	}
+
+	@Override
+	public void triggerYawTransition(boolean isPositive) {
+		this.discreteYaw.triggerChange(isPositive);
+	}
 }

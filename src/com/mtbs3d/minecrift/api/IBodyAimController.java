@@ -53,4 +53,6 @@ public interface IBodyAimController extends IBasePlugin {
      */
 	public double ratchetingYawTransitionPercent();
     public double ratchetingPitchTransitionPercent();
+
+	public void triggerYawTransition(boolean isPositive);
 }

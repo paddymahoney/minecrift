@@ -37,11 +37,13 @@ public class Aim
 
         configureComfortMode();
 
+
+        // *** Pitch ***
+
         float headPitch = this.mc.headTracker.getHeadPitchDegrees(EyeType.ovrEye_Center);
         float headPitchDelta = headPitch - this.prevHeadPitch;
         this.prevHeadPitch = headPitch;
 
-        //Pitch
         if (holdCenter) {
             aimPitch = headPitch;
         }
@@ -162,11 +164,13 @@ public class Aim
 
         boolean pitchGood = aimPitch != 90 && aimPitch != -90;
 
+
+        // *** Yaw ***
+
         float headYaw = this.mc.headTracker.getHeadYawDegrees(EyeType.ovrEye_Center);
         float headYawDelta = headYaw - this.prevHeadYaw;
         this.prevHeadYaw = headYaw;
 
-        // Yaw
         if (holdCenter) {
             aimYaw = headYaw;
         }
@@ -200,9 +204,19 @@ public class Aim
             }
 
             // Only accrue controller yaw *delta* while touching the edge of the keyhole...
-            if( pitchGood && aimYawAdd != 0 )
+            if( pitchGood && aimYawAdd != 0)
             {
                 aimYaw += aimYawAdd;
+
+                // If we are using cycle left / cycle right key mapping for yaw control,
+                // don't accrue any additional yaw here...
+                if(this.mc.vrSettings.useKeyBindingForComfortYaw && aimYaw > keyholeYawRight) {
+                    aimYaw = keyholeYawRight;
+                }
+                else if(this.mc.vrSettings.useKeyBindingForComfortYaw && aimYaw < keyholeYawLeft) {
+                    aimYaw = keyholeYawLeft;
+                }
+
                 if( aimYaw > keyholeYawRight )
                 {
                     if (aimYawAdd > 0 || aimType != VRSettings.AIM_TYPE_LOOSE)
@@ -245,7 +259,6 @@ public class Aim
             discreteYaw.update(0, currentTimeSecs);
             bodyYaw = (float)discreteYaw.getCurrent(this.mc.PredictedDisplayTimeSeconds);
             bodyYaw -= (!this.mc.vrSettings.crosshairHeadRelative ? 0 : headYawDelta);
-            updatedYaw = true;
         }
 
         bodyYaw %= 360;
@@ -292,6 +305,10 @@ public class Aim
 
     static public double getYawTransitionPercent() {
         return discreteYaw._percent;
+    }
+
+    static public void triggerYawChange(boolean isPositive) {
+        discreteYaw.triggerChange(isPositive);
     }
 
     static public double getPitchTransitionPercent() {

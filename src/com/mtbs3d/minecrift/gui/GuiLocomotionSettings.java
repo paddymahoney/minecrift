@@ -20,7 +20,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.USE_VR_COMFORT,
-            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS,
@@ -99,7 +99,15 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                (s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS.getEnumString() ||
                 s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS.getEnumString() ||
                 s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_BLANKING_MODE.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR.getEnumString()))
+                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR.getEnumString() ||
+                s == VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW.getEnumString()))
+        {
+            return false;
+        }
+
+        if ((this.guivrSettings.useVrComfort != this.guivrSettings.VR_COMFORT_YAW &&
+             this.guivrSettings.useVrComfort != this.guivrSettings.VR_COMFORT_PITCHANDYAW) &&
+             s == VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW.getEnumString())
         {
             return false;
         }
@@ -147,6 +155,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 vr.movementQuantisation = 0;
                 vr.inertiaFactor = VRSettings.INERTIA_NORMAL;
                 vr.allowPitchAffectsHeightWhileFlying = false;
+                vr.useKeyBindingForComfortYaw = false;
                 Minecraft.getMinecraft().gameSettings.viewBobbing = true;
 
                 Minecraft.getMinecraft().gameSettings.saveOptions();
@@ -289,6 +298,17 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "       input. Normal Minecraft operation.",
                             "  ON:  (Recommended) Pitch input affects elevation",
                             "       while flying. An enjoyable travel experience!"
+                    };
+                case VR_COMFORT_USE_KEY_BINDING_FOR_YAW:
+                    return new String[]{
+                            "Determines how a comfort mode yaw transition (player",
+                            "turn to the left or right) is triggered.",
+                            "  Crosshair: (Default) Moving the crosshair to the edge",
+                            "             of the keyhole will trigger a yaw",
+                            "             transition.",
+                            "  Key:       The 'Cycle Item Left / Right' key or",
+                            "             controller binding wil instead be used to",
+                            "             trigger a yaw transition."
                     };
                 default:
                     return null;

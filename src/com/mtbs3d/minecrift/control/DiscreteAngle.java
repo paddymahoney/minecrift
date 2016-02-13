@@ -92,6 +92,15 @@ public class DiscreteAngle
         }
     }
 
+    public void triggerChange(boolean isPositive) {
+        if (isPositive) {
+            _delta += _trigger;
+        }
+        else {
+            _delta -= _trigger;
+        }
+    }
+
     public double getCurrent(double currentTimeSecs)
     {
         double angle = _currentReported;

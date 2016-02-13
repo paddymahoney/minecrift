@@ -1,6 +1,5 @@
 package com.mtbs3d.minecrift.settings.profile;
 
-import com.mtbs3d.minecrift.provider.MCController;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import org.json.JSONObject;
 import org.json.JSONTokener;

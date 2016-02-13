@@ -225,6 +225,7 @@ public class VRSettings
     public static final String LEGACY_OPTIONS_VR_BACKUP_FILENAME = "optionsvr.bak";
     public boolean allowAvatarIK = false;
     public boolean hideGui = true;
+    public boolean useKeyBindingForComfortYaw = false;
 
     private Minecraft mc;
 
@@ -862,6 +863,11 @@ public class VRSettings
                         this.allowForwardPlusStrafe = optionTokens[1].equals("true");
                     }
 
+                    if (optionTokens[0].equals("useKeyBindingForComfortYaw"))
+                    {
+                        this.useKeyBindingForComfortYaw = optionTokens[1].equals("true");
+                    }
+
                     if (optionTokens[0].equals("vrComfortTransitionLinear"))
                     {
                         this.vrComfortTransitionLinear = optionTokens[1].equals("true");
@@ -1274,6 +1280,8 @@ public class VRSettings
                 };
             case ALLOW_FORWARD_PLUS_STRAFE:
                 return this.allowForwardPlusStrafe ? var4 + "Allow" : var4 + "Disallow";
+            case VR_COMFORT_USE_KEY_BINDING_FOR_YAW:
+                return this.useKeyBindingForComfortYaw ? var4 + "Key" : var4 + "Crosshair";
             case VR_COMFORT_TRANSITION_LINEAR:
                 return this.vrComfortTransitionLinear ? var4 + "Linear" : var4 + "Sinusoidal";
             case MOVEMENT_ACCELERATION_SCALE_FACTOR:
@@ -1633,6 +1641,9 @@ public class VRSettings
                 break;
             case ALLOW_FORWARD_PLUS_STRAFE:
                 this.allowForwardPlusStrafe = !this.allowForwardPlusStrafe;
+                break;
+            case VR_COMFORT_USE_KEY_BINDING_FOR_YAW:
+                this.useKeyBindingForComfortYaw = !this.useKeyBindingForComfortYaw;
                 break;
             case VR_COMFORT_TRANSITION_LINEAR:
                 this.vrComfortTransitionLinear = !this.vrComfortTransitionLinear;
@@ -2079,6 +2090,7 @@ public class VRSettings
             var5.println("inertiaFactor:" + this.inertiaFactor);
             var5.println("useVrComfort:" + this.useVrComfort);
             var5.println("allowForwardPlusStrafe:" + this.allowForwardPlusStrafe);
+            var5.println("useKeyBindingForComfortYaw:" + this.useKeyBindingForComfortYaw);
             var5.println("vrComfortTransitionLinear:" + this.vrComfortTransitionLinear);
             var5.println("movementAccelerationScaleFactor:" + this.movementAccelerationScaleFactor);
             var5.println("vrComfortTransitionTimeSecs:" + this.vrComfortTransitionTimeSecs);
@@ -2392,6 +2404,7 @@ public class VRSettings
         INERTIA_FACTOR("Player Inertia",false,true),
         USE_VR_COMFORT("VR Comfort", false, true),
         ALLOW_FORWARD_PLUS_STRAFE("Forward + Strafe", false, true),
+        VR_COMFORT_USE_KEY_BINDING_FOR_YAW("Trigger Yaw With", false, true),
         VR_COMFORT_TRANSITION_LINEAR("Transition Mode", false, true),
         MOVEMENT_ACCELERATION_SCALE_FACTOR("Player Accel.", true, false),
         VR_COMFORT_TRANSITION_TIME_SECS("Transition Time", true, false),

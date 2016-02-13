@@ -225,7 +225,7 @@
 +     * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +     * Modify minecriftversion.py in root minecrift dir.
 +     */
-+    public final String minecriftVerString = "Minecrift 1.7.10 R2-d21";
++    public final String minecriftVerString = "Minecrift 1.7.10 R2";
 +    /* end version */
 +    /** END MINECRIFT */
 +
@@ -1182,7 +1182,29 @@
                  var9 = Mouse.getEventButton();
                  KeyBinding.setKeyBindState(var9 - 100, Mouse.getEventButtonState());
  
-@@ -1838,6 +2324,11 @@
+@@ -1808,6 +2294,12 @@
+ 
+                     if (var4 != 0)
+                     {
++                        /** MINECRIFT **/
++                        if ((this.vrSettings.useVrComfort == VRSettings.VR_COMFORT_PITCHANDYAW || this.vrSettings.useVrComfort == VRSettings.VR_COMFORT_YAW) &&
++                                this.vrSettings.useKeyBindingForComfortYaw) {
++                            this.lookaimController.triggerYawTransition(var4 > 0 ? true : false);
++                        }
++                        else {
+                         this.thePlayer.inventory.changeCurrentItem(var4);
+ 
+                         if (this.gameSettings.noclip)
+@@ -1824,6 +2316,8 @@
+ 
+                             this.gameSettings.noclipRate += (float)var4 * 0.25F;
+                         }
++                        }
++                        /** END MINECRIFT **/
+                     }
+ 
+                     if (this.currentScreen == null)
+@@ -1838,6 +2332,11 @@
                          this.currentScreen.handleMouseInput();
                      }
                  }
@@ -1194,7 +1216,7 @@
              }
  
              if (this.leftClickCounter > 0)
-@@ -1889,6 +2380,10 @@
+@@ -1889,6 +2388,10 @@
                      }
                      else
                      {
@@ -1205,7 +1227,7 @@
                          if (Keyboard.getEventKey() == 1)
                          {
                              this.displayInGameMenu();
-@@ -1932,10 +2427,12 @@
+@@ -1932,10 +2435,12 @@
                              this.gameSettings.saveOptions();
                          }
  
@@ -1219,7 +1241,7 @@
  
                          if (Keyboard.getEventKey() == 61)
                          {
-@@ -1975,6 +2472,11 @@
+@@ -1975,6 +2480,11 @@
                          }
                      }
                  }
@@ -1231,7 +1253,7 @@
              }
  
              for (var9 = 0; var9 < 9; ++var9)
-@@ -2070,6 +2572,12 @@
+@@ -2070,6 +2580,12 @@
  
              this.sendClickBlockToController(this.currentScreen == null && this.gameSettings.keyBindAttack.getIsKeyPressed() && this.inGameHasFocus);
          }
@@ -1244,7 +1266,7 @@
  
          if (this.theWorld != null)
          {
-@@ -2164,7 +2672,11 @@
+@@ -2164,7 +2680,11 @@
              this.mcProfiler.endStartSection("pendingConnection");
              this.myNetworkManager.processReceivedPackets();
          }
@@ -1257,7 +1279,7 @@
          this.mcProfiler.endSection();
          this.systemTime = getSystemTime();
      }
-@@ -2174,6 +2686,15 @@
+@@ -2174,6 +2694,15 @@
       */
      public void launchIntegratedServer(String folderName, String worldName, WorldSettings worldSettingsIn)
      {
@@ -1273,7 +1295,7 @@
          this.loadWorld((WorldClient)null);
          System.gc();
          ISaveHandler var4 = this.saveLoader.getSaveLoader(folderName, false);
-@@ -2207,37 +2728,81 @@
+@@ -2207,37 +2736,81 @@
  
          this.loadingScreen.displaySavingString(I18n.format("menu.loadingLevel", new Object[0]));
  
@@ -1378,7 +1400,7 @@
  
      /**
       * unloads the current world first
-@@ -2252,6 +2817,13 @@
+@@ -2252,6 +2825,13 @@
       */
      public void loadWorld(WorldClient worldClientIn, String loadingMessage)
      {
@@ -1392,7 +1414,7 @@
          if (worldClientIn == null)
          {
              NetHandlerPlayClient var3 = this.getNetHandler();
-@@ -2264,6 +2836,23 @@
+@@ -2264,6 +2844,23 @@
              if (this.theIntegratedServer != null)
              {
                  this.theIntegratedServer.initiateShutdown();
@@ -1416,7 +1438,7 @@
              }
  
              this.theIntegratedServer = null;
-@@ -2290,6 +2879,15 @@
+@@ -2290,6 +2887,15 @@
              this.mcResourcePackRepository.func_148529_f();
              this.setServerData((ServerData)null);
              this.integratedServerIsRunning = false;
@@ -1432,7 +1454,7 @@
          }
  
          this.mcSoundHandler.stopSounds();
-@@ -2406,10 +3004,12 @@
+@@ -2406,10 +3012,12 @@
          return this.thePlayer != null ? this.thePlayer.sendQueue : null;
      }
  
@@ -1446,7 +1468,7 @@
  
      public static boolean isFancyGraphicsEnabled()
      {
-@@ -2437,107 +3037,117 @@
+@@ -2437,107 +3045,117 @@
              Item var2;
              int var5;
  
@@ -1663,7 +1685,7 @@
  
              if (var1)
              {
-@@ -2810,11 +3420,18 @@
+@@ -2810,11 +3428,18 @@
          playerSnooper.addStatToSnooper("gl_max_texture_size", Integer.valueOf(getGLMaximumTextureSize()));
      }
  
@@ -1682,7 +1704,7 @@
          for (int var0 = 16384; var0 > 0; var0 >>= 1)
          {
              GL11.glTexImage2D(GL11.GL_PROXY_TEXTURE_2D, 0, GL11.GL_RGBA, var0, var0, 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-@@ -2822,12 +3439,14 @@
+@@ -2822,12 +3447,14 @@
  
              if (var1 != 0)
              {
@@ -1697,7 +1719,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3753,1051 @@
+@@ -3134,4 +3761,1051 @@
              }
          }
      }

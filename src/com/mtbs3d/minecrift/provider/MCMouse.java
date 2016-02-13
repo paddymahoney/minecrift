@@ -156,4 +156,9 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	public void loadDefaults() {
 
 	}
+
+	@Override
+	public void triggerYawTransition(boolean isPositive) {
+		this.aim.triggerYawChange(isPositive);
+	}
 }
