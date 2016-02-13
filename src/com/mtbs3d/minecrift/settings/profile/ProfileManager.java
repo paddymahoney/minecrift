@@ -214,7 +214,7 @@ public class ProfileManager
         Map<String, String> settings = new HashMap<String, String>();
         int count = 0;
         while ((s = br.readLine()) != null) {
-            String[] array = s.split(":");
+            String[] array = splitKeyValue(s);
             String setting = array[0];
             String value = "";
             if (array.length > 1) {
@@ -238,7 +238,7 @@ public class ProfileManager
         Map<String, String> settings = new HashMap<String, String>();
         int count = 0;
         while ((s = br.readLine()) != null) {
-            String[] array = s.split(":");
+            String[] array = splitKeyValue(s);
             String setting = array[0];
             String value = "";
             if (array.length > 1) {
@@ -458,6 +458,11 @@ public class ProfileManager
                 }
             }
         }
+    }
+
+    public static String[] splitKeyValue(String s) {
+        String[] array = s.split(":", 2);
+        return array;
     }
 
     // Minecraft XBox controller defaults - TODO: Find a better place for this

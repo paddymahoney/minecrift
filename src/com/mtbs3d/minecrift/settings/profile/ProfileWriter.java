@@ -35,7 +35,7 @@ public class ProfileWriter
 
     public void println(String s)
     {
-        String[] array = s.split(":");
+        String[] array = ProfileManager.splitKeyValue(s);
         String setting = array[0];
         String value = "";
         if (array.length > 1) {
