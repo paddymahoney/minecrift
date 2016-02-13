@@ -174,9 +174,9 @@ public class Aim
         if (holdCenter) {
             aimYaw = headYaw;
         }
-        else if( this.mc.vrSettings.aimKeyholeWidthDegrees > 0 )    // Keyhole
+        else if( this.mc.vrSettings.keyholeWidth > 0 )    // Keyhole
         {
-            float keyholeYawWidth = this.mc.vrSettings.aimKeyholeWidthDegrees/2;
+            float keyholeYawWidth = this.mc.vrSettings.keyholeWidth /2;
             float keyholeYawLeft = headYaw - keyholeYawWidth;
             float keyholeYawRight = headYaw + keyholeYawWidth;
 

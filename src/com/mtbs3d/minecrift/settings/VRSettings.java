@@ -90,10 +90,10 @@ public class VRSettings
     public boolean debugPose = false;
     public boolean debugPos = false;
 	protected float playerEyeHeight = 1.74f;  // Use getPlayerEyeHeight()
-	public float eyeProtrusion = 0.185f;
+	public float eyeProtrusion = 0.01f;
     public float eyeReliefAdjust = 0f;
-	public float neckBaseToEyeHeight = 0.225f;
-    public float movementSpeedMultiplier = 1.0f;
+	public float neckBaseToEyeHeight = 0.01f;
+    public float movementSpeedMultiplier = 0.75f;
     public boolean useDistortion = true;
     public boolean loadMumbleLib = true;
     public boolean useHeadTracking = true;
@@ -104,25 +104,22 @@ public class VRSettings
     protected float rightHalfIpd = 0.032f;
     protected float oculusProfileLeftHalfIpd = leftHalfIpd;
     protected float oculusProfileRightHalfIpd = rightHalfIpd;
-    //public float ipdScale = 1f;
     public String oculusProfileName;
     public String oculusProfileGender;
     protected float oculusProfilePlayerEyeHeight = playerEyeHeight;
-    public float hudOpacity = 1.0f;
+    public float hudOpacity = 0.95f;
     public boolean menuBackground = false;
     public boolean renderHeadWear = false;
     public int renderFullFirstPersonModelMode = RENDER_FIRST_PERSON_FULL;
     public int shaderIndex = NO_SHADER;
-    public float renderPlayerOffset = 0.0f;
+    public float renderPlayerOffset = 0.2f;
     public boolean testTimewarp = false;
-    //public boolean useChromaticAbCorrection = true; // Removed in 0.5+
-    // SDK 0.4.0
     public boolean useTimewarp = true;
     public boolean useTimewarpJitDelay = false;
     public boolean useVignette = true;
     public boolean useLowPersistence = true;
     public boolean useDynamicPrediction = true;
-    public float   renderScaleFactor = 1.1f; // Avoid weird star shaped shimmer at renderscale = 1
+    public float   renderScaleFactor = 1.5f;
     public boolean useDisplayMirroring = true;
     public boolean usePositionalTimewarp = true;
     public boolean useDisplayOverdrive = true;
@@ -138,10 +135,10 @@ public class VRSettings
     // TODO: Clean-up all the redundant crap!
     public boolean useDistortionTextureLookupOptimisation = false;
     public boolean useFXAA = false;
-    public float hudScale = 1.25f;
+    public float hudScale = 1.5f;
     public boolean allowMousePitchInput = false;
     public float hudDistance = 1.25f;
-    public float hudPitchOffset = 0.0f;
+    public float hudPitchOffset = -2f;
     public float hudYawOffset = 0.0f;
     public boolean hudLockToHead = false;
     public float fovChange = 0f;
@@ -151,13 +148,12 @@ public class VRSettings
     protected float headTrackSensitivity = 1.0f;
     public boolean useFsaa = false;   // default to off
     public float fsaaScaleFactor = 1.4f;
-    public int lookMoveDecoupled = DECOUPLE_OFF;
+    public int lookMoveDecoupled = DECOUPLE_WITH_CROSSHAIR;
     public boolean useOculusProfileIpd = true;
     public boolean useHalfIpds = false;
     public boolean useOculusProfilePlayerHeight = true;
     public int posTrackHydraLoc = POS_TRACK_HYDRA_LOC_HMD_LEFT;
     public boolean posTrackHydraUseController1 = true;
-    public boolean posTrackHydraDebugCentreEyePos = false;
     public float posTrackDistanceScale = 1.00f;
     public float worldScale = 1f;
     public boolean posTrackResetPosition = true;
@@ -183,24 +179,23 @@ public class VRSettings
     public float posTrackHydraYAxisDistanceSkewAngleDeg = 0.0f;
 	public float joystickSensitivity = 3f;
 	public int joystickAimType = 1;
-	public float joystickDeadzone = 0.1f;
-	public float aimKeyholeWidthDegrees = 0f;
-	public float keyholeHeight = 0f;
+	public float joystickDeadzone = 0.2f;
+	public float keyholeWidth = 80f;
+	public float keyholeHeight = 80f;
 	public boolean keyholeHeadRelative = true;
     public boolean crosshairHeadRelative = false;
     public boolean hydraUseFilter = true;
-    public float magRefDistance = 0.15f;
 	public String headPositionPluginID = "oculus";
 	public String headTrackerPluginID = "oculus";
 	public String hmdPluginID = "oculus";
     public String stereoProviderPluginID = "oculus";
-	public String controllerPluginID = "mouse";
+	public String controllerPluginID = "controller";
     public int calibrationStrategy = CALIBRATION_STRATEGY_AT_STARTUP;
     public float crosshairScale = 1.0f;
-    public int renderInGameCrosshairMode = RENDER_CROSSHAIR_MODE_HUD;
-    public int renderBlockOutlineMode = RENDER_BLOCK_OUTLINE_MODE_HUD;
+    public int renderInGameCrosshairMode = RENDER_CROSSHAIR_MODE_ALWAYS;
+    public int renderBlockOutlineMode = RENDER_BLOCK_OUTLINE_MODE_ALWAYS;
     public boolean showEntityOutline = false;
-    public boolean crosshairRollsWithHead = true;
+    public boolean crosshairRollsWithHead = false;
     public boolean crosshairScalesWithDistance = false;
     public boolean hudOcclusion = false;
     public boolean soundOrientWithHead = true;
@@ -210,19 +205,18 @@ public class VRSettings
     public int inertiaFactor = INERTIA_NORMAL;
     public boolean allowPitchAffectsHeightWhileFlying = true;
     public boolean storeDebugAim = false;
-    public int useVrComfort = VR_COMFORT_OFF;
+    public int useVrComfort = VR_COMFORT_YAW;
     public boolean allowForwardPlusStrafe = true;
     public boolean vrComfortTransitionLinear = false;
     public float movementAccelerationScaleFactor = 1f;
     public float vrComfortTransitionTimeSecs = 0.150f;
     public float vrComfortTransitionAngleDegs = 30f;
     public int vrComfortTransitionBlankingMode = VR_COMFORT_TRANS_BLANKING_MODE_OFF;
-    public int movementQuantisation = 0;
+    public int movementQuantisation = 4;
     public boolean mouseKeyholeTight = false;
     public int smoothRunTickCount = 20;
     public boolean smoothTick = false;
     public static final String LEGACY_OPTIONS_VR_FILENAME = "optionsvr.txt";
-    public static final String LEGACY_OPTIONS_VR_BACKUP_FILENAME = "optionsvr.bak";
     public boolean allowAvatarIK = false;
     public boolean hideGui = true;
     public boolean useKeyBindingForComfortYaw = false;
@@ -816,7 +810,7 @@ public class VRSettings
 
                     if (optionTokens[0].equals("keyholeWidth"))
                     {
-                        this.aimKeyholeWidthDegrees = this.parseFloat(optionTokens[1]);
+                        this.keyholeWidth = this.parseFloat(optionTokens[1]);
                     }
                     if (optionTokens[0].equals("keyholeHeight"))
                     {
@@ -1109,8 +1103,8 @@ public class VRSettings
 	        case JOYSTICK_AIM_TYPE:
 	            return var4 + JOYSTICK_AIM_TYPE[joystickAimType];
 	        case KEYHOLE_WIDTH:
-	        	if(this.aimKeyholeWidthDegrees>0)
-		            return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.aimKeyholeWidthDegrees) });
+	        	if(this.keyholeWidth >0)
+		            return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.keyholeWidth) });
 	        	else
 	        		return var4 + "Fully Coupled";
 	        case KEYHOLE_HEIGHT:
@@ -1344,7 +1338,7 @@ public class VRSettings
 			case JOYSTICK_DEADZONE :
 				return this.joystickDeadzone;
 			case KEYHOLE_WIDTH :
-				return this.aimKeyholeWidthDegrees;
+				return this.keyholeWidth;
 			case KEYHOLE_HEIGHT :
 				return this.keyholeHeight;
 			case HUD_SCALE :
@@ -1717,7 +1711,7 @@ public class VRSettings
 	            this.joystickDeadzone = par2;
 	        	break;
 	        case KEYHOLE_WIDTH:
-	            this.aimKeyholeWidthDegrees = par2;
+	            this.keyholeWidth = par2;
 	        	break;
 	        case KEYHOLE_HEIGHT:
 	            this.keyholeHeight = par2;
@@ -2071,7 +2065,7 @@ public class VRSettings
             var5.println("joystickSensitivity:" + this.joystickSensitivity);
             var5.println("joystickDeadzone:" + this.joystickDeadzone);
             var5.println("joystickAimType:" + this.joystickAimType);
-            var5.println("keyholeWidth:" + this.aimKeyholeWidthDegrees);
+            var5.println("keyholeWidth:" + this.keyholeWidth);
             var5.println("keyholeHeight:" + this.keyholeHeight);
             var5.println("keyholeHeadRelative:" + this.keyholeHeadRelative);
             var5.println("crosshairHeadRelative:" + this.crosshairHeadRelative);

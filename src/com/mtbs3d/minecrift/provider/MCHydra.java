@@ -306,7 +306,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        	headYaw = mc.headTracker.getHeadYawDegrees(EyeType.ovrEye_Center);
 	        	
 	        	//Adjust keyhole width on controller pitch; otherwise its a very narrow window at the top and bottom
-	        	float keyholeYaw = mc.vrSettings.aimKeyholeWidthDegrees/2/ MathHelper.cos(cont2Pitch * PIOVER180);
+	        	float keyholeYaw = mc.vrSettings.keyholeWidth /2/ MathHelper.cos(cont2Pitch * PIOVER180);
 	        	
 	        	float bodyYawT = cont2Yaw - baseStationYawOffset; //
 

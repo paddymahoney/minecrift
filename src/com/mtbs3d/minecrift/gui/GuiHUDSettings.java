@@ -122,11 +122,11 @@ public class GuiHUDSettings extends BaseGuiSettings
             else if (par1GuiButton.id == 201)
             {
                 this.guivrSettings.hudDistance = 1.25f;
-                this.guivrSettings.hudScale = 1.25f;
-                this.guivrSettings.hudPitchOffset = 0f;
+                this.guivrSettings.hudScale = 1.5f;
+                this.guivrSettings.hudPitchOffset = -2f;
                 this.guivrSettings.hudYawOffset = 0f;
                 this.guivrSettings.hideGui = false;
-                this.guivrSettings.hudOpacity = 1.0f;
+                this.guivrSettings.hudOpacity = 0.95f;
                 this.guivrSettings.menuBackground = false;
                 this.guivrSettings.hudLockToHead = false;
                 this.guivrSettings.hudOcclusion = false;

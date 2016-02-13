@@ -253,6 +253,29 @@ public class ProfileManager
         return true;
     }
 
+    private static synchronized boolean loadLegacySettings(String[] settingStr, JSONObject theProfile, String set) throws Exception
+    {
+        Map<String, String> settings = new HashMap<String, String>();
+        int count = 0;
+        for (String s : settingStr) {
+            if (s != null) {
+                String[] array = splitKeyValue(s);
+                String setting = array[0];
+                String value = "";
+                if (array.length > 1) {
+                    value = array[1];
+                }
+                settings.put(setting, value);
+                count++;
+            }
+        }
+        setProfileSet(theProfile, set, settings);
+        if (count == 0)
+            return false;
+
+        return true;
+    }
+
     public static synchronized Map<String, String> getProfileSet(String profile, String set)
     {
         Map<String, String> settings = new HashMap<String, String>();
@@ -465,31 +488,34 @@ public class ProfileManager
     }
 
     // Minecraft XBox controller defaults - TODO: Find a better place for this
-    public static final String DEFAULT_BINDINGS =
-            "key.playerlist:b:3:Button 3\n" +
-                    "axis.updown:a:2:-:Y Rotation\n" +
-                    "walk.forward:a:0:-:Y \n" +
-                    "gui.axis.leftright:a:1:-:X \n" +
-                    "gui.axis.updown:a:0:-:Y \n" +
-                    "gui.Shift:b:3:Button 3\n" +
-                    "key.sneak:b:9:Button 9\n" +
-                    "gui.Left:px:-\n" +
-                    "key.itemright:b:5:Button 5\n" +
-                    "gui.Right:px:+\n" +
-                    "key.left:a:1:-:X \n" +
-                    "gui.Select:b:0:Button 0\n" +
-                    "key.chat:py:+\n" +
-                    "key.menu:b:7:Button 7\n" +
-                    "key.attack:a:4:-:Z \n" +
-                    "gui.Up:py:-\n" +
-                    "key.use:a:4:+:Z \n" +
-                    "axis.leftright:a:3:-:X Rotation\n" +
-                    "gui.Down:py:+\n" +
-                    "key.right:a:1:+:X \n" +
-                    "key.back:a:0:+:Y \n" +
-                    "key.inventory:b:6:Button 6\n" +
-                    "key.jump:b:8:Button 8\n" +
-                    "key.drop:py:-\n" +
-                    "gui.Back:b:1:Button 1\n" +
-                    "key.itemleft:b:4:Button 4";
+    public static final String[] DEFAULT_BINDINGS = {
+            "key.playerlist:b:6:Button 6",
+            "axis.updown:a:2:-:Y Rotation",
+            "walk.forward:a:0:-:Y ",
+            "gui.axis.leftright:a:3:-:X Rotation",
+            "gui.axis.updown:a:2:-:Y Rotation",
+            "key.sneak:b:9:Button 9",
+            "gui.Left:px:-",
+            "key.itemright:b:5:Button 5",
+            "gui.Right:px:+",
+            "key.left:a:1:-:X ",
+            "gui.Select:b:0:Button 0",
+            "key.aimcenter:b:8:Button 8",
+            "key.pickItem:b:2:Button 2",
+            "key.menu:b:7:Button 7",
+            "key.attack:a:4:-:Z ",
+            "gui.Up:py:-",
+            "key.use:a:4:+:Z ",
+            "axis.leftright:a:3:-:X Rotation",
+            "gui.Down:py:+",
+            "key.right:a:1:+:X ",
+            "key.back:a:0:+:Y ",
+            "key.inventory:b:3:Button 3",
+            "key.jump:b:0:Button 0",
+            "key.drop:b:1:Button 1",
+            "gui.Back:b:1:Button 1",
+            "key.itemleft:b:4:Button 4"
+    };
+
+
 }

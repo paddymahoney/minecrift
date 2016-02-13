@@ -225,26 +225,26 @@ public class GuiMoveAimSettings extends BaseGuiSettings
             {
                 if (Minecraft.getMinecraft().lookaimController instanceof MCHydra )
                 {
-                    this.guivrSettings.aimKeyholeWidthDegrees = 90f;
+                    this.guivrSettings.keyholeWidth = 80f;
                     this.guivrSettings.keyholeHeadRelative = true;  // TODO: This is the same as crosshairHeadRelative? Unify on Hydra fixes.
-                    this.guivrSettings.lookMoveDecoupled = VRSettings.DECOUPLE_OFF;
+                    this.guivrSettings.lookMoveDecoupled = VRSettings.DECOUPLE_WITH_CROSSHAIR;
                     this.guivrSettings.joystickSensitivity = 3f;
                 }
                 else if (Minecraft.getMinecraft().lookaimController instanceof MCController )
                 {
-                    this.guivrSettings.aimKeyholeWidthDegrees = 60f;
-                    this.guivrSettings.keyholeHeight = 50f;
+                    this.guivrSettings.keyholeWidth = 80f;
+                    this.guivrSettings.keyholeHeight = 80f;
                     this.guivrSettings.lookMoveDecoupled = VRSettings.DECOUPLE_WITH_CROSSHAIR;
                     this.guivrSettings.allowMousePitchInput = false;
                     this.guivrSettings.crosshairHeadRelative = false;
                     this.guivrSettings.joystickAimType = 1;
-                    this.guivrSettings.joystickDeadzone = 0.1f;
+                    this.guivrSettings.joystickDeadzone = 0.2f;
                     this.guivrSettings.joystickSensitivity = 3f;
                 }
                 else if (Minecraft.getMinecraft().lookaimController instanceof MCMouse )
                 {
-                    this.guivrSettings.aimKeyholeWidthDegrees = 60f;
-                    this.guivrSettings.keyholeHeight = 50f;
+                    this.guivrSettings.keyholeWidth = 80f;
+                    this.guivrSettings.keyholeHeight = 80f;
                     this.guivrSettings.lookMoveDecoupled = VRSettings.DECOUPLE_WITH_CROSSHAIR;
                     this.guivrSettings.allowMousePitchInput = false;
                     this.guivrSettings.crosshairHeadRelative = false;

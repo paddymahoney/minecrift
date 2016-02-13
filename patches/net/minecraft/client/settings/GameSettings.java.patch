@@ -42,7 +42,7 @@
      public boolean fancyGraphics = true;
  
      /** Smooth Lighting */
-@@ -275,73 +281,10 @@
+@@ -275,88 +281,33 @@
  
      public GameSettings(Minecraft par1Minecraft, File par2File)
      {
@@ -117,9 +117,11 @@
 +        init();
 +        resetSettings(null, false);
          GameSettings.Options.RENDER_DISTANCE.setValueMax(32.0F);
-         this.renderDistanceChunks = par1Minecraft.isJava64bit() ? 12 : 8;
+-        this.renderDistanceChunks = par1Minecraft.isJava64bit() ? 12 : 8;
++        this.renderDistanceChunks = par1Minecraft.isJava64bit() ? 8 : 8;
          this.loadOptions();
-@@ -350,13 +293,21 @@
+         Config.initGameSettings(this);
+     }
  
      public GameSettings()
      {
@@ -335,7 +337,7 @@
          this.renderDistanceChunks = 8;
          this.viewBobbing = true;
          this.anaglyph = false;
-@@ -2909,17 +2906,33 @@
+@@ -2909,17 +2906,38 @@
          this.ofAnimatedTerrain = true;
          this.ofAnimatedItems = true;
          this.ofAnimatedTextures = true;
@@ -354,6 +356,9 @@
 +        this.ofChunkLoading = 1;        // Smooth chunk loading
 +        this.renderDistanceChunks = 8;  // Reasonable render distance for 75+ fps
 +        this.ofFogType = 2;             // Fancy fog to prevent draw distance changes in edge of FOV
++        this.anisotropicFiltering = 16;
++        this.ofMipmapType = 3;
++        this.ofFastMath = true;
 +
 +        if (this.mc.renderGlobal != null) {
 +            this.mc.renderGlobal.updateCapes();
@@ -361,7 +366,9 @@
 +            this.mc.renderGlobal.setAllRenderersVisible();
 +            this.mc.refreshResources();
 +        }
-+        this.saveOptions(theProfile);
++        if (save) {
++            this.saveOptions(theProfile);
++        }
 +        /** END MINECRIFT **/
      }
  

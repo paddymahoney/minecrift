@@ -349,8 +349,8 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
         }
         else
         {
-            this.guivrSettings.eyeProtrusion = 0.185f;
-            this.guivrSettings.neckBaseToEyeHeight = 0.225f;
+            this.guivrSettings.eyeProtrusion = 0.01f;
+            this.guivrSettings.neckBaseToEyeHeight = 0.01f;
             this.guivrSettings.posTrackBlankOnCollision = true;
         }
     }

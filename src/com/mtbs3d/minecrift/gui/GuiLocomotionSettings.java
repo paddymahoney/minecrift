@@ -145,17 +145,18 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             }
             else if (par1GuiButton.id == ID_GENERIC_DEFAULTS)
             {
-                vr.useVrComfort = VRSettings.VR_COMFORT_OFF;
+                vr.useVrComfort = VRSettings.VR_COMFORT_YAW;
                 vr.allowForwardPlusStrafe = true;
                 vr.vrComfortTransitionLinear = false;
                 vr.movementAccelerationScaleFactor = 1f;
                 vr.vrComfortTransitionTimeSecs = 0.150f;
                 vr.vrComfortTransitionAngleDegs = 30f;
                 vr.vrComfortTransitionBlankingMode = VRSettings.VR_COMFORT_TRANS_BLANKING_MODE_OFF;
-                vr.movementQuantisation = 0;
+                vr.movementQuantisation = 4;
                 vr.inertiaFactor = VRSettings.INERTIA_NORMAL;
                 vr.allowPitchAffectsHeightWhileFlying = false;
                 vr.useKeyBindingForComfortYaw = false;
+                vr.movementSpeedMultiplier = 0.75f;
                 Minecraft.getMinecraft().gameSettings.viewBobbing = true;
 
                 Minecraft.getMinecraft().gameSettings.saveOptions();

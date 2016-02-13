@@ -193,7 +193,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useVignette = true;
                 minecraft.vrSettings.useLowPersistence = true;
                 minecraft.vrSettings.useDynamicPrediction = true;
-                minecraft.vrSettings.renderScaleFactor = 1.1f;
+                minecraft.vrSettings.renderScaleFactor = 1.5f;
                 minecraft.vrSettings.useDisplayMirroring = true;
                 minecraft.vrSettings.useDisplayOverdrive = true;
                 minecraft.vrSettings.useHighQualityDistortion = true;

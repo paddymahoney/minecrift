@@ -1847,7 +1847,7 @@
 +            //entity.rotationPitch = (float)cameraPitch;
 +        }
 +
-+        if( this.mc.vrSettings.aimKeyholeWidthDegrees > 0 )
++        if( this.mc.vrSettings.keyholeWidth > 0 )
 +            aimYaw    = mc.lookaimController.getAimYaw();
 +        else
 +            aimYaw = (float)cameraYaw;
