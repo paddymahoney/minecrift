@@ -94,6 +94,7 @@ public class VRSettings
     public float eyeReliefAdjust = 0f;
 	public float neckBaseToEyeHeight = 0.01f;
     public float movementSpeedMultiplier = 0.75f;
+    public float strafeSpeedMultiplier = 0.33f;
     public boolean useDistortion = true;
     public boolean loadMumbleLib = true;
     public boolean useHeadTracking = true;
@@ -548,10 +549,10 @@ public class VRSettings
                         this.movementSpeedMultiplier = this.parseFloat(optionTokens[1]);
                     }
 
-//                    if (optionTokens[0].equals("ipdScale"))
-//                    {
-//                        this.ipdScale = this.parseFloat(optionTokens[1]);
-//                    }
+                    if (optionTokens[0].equals("strafeSpeedMultiplier"))
+                    {
+                        this.strafeSpeedMultiplier = this.parseFloat(optionTokens[1]);
+                    }
 
                     if (optionTokens[0].equals("lookMoveDecoupled"))
                     {
@@ -964,8 +965,8 @@ public class VRSettings
 	            return var4 + String.format("%.3fm", new Object[] { Float.valueOf(this.neckBaseToEyeHeight) });
 	        case MOVEMENT_MULTIPLIER:
 	            return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.movementSpeedMultiplier) });
-//            case IPD_SCALE:
-//                return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.ipdScale) });
+            case STRAFE_MULTIPLIER:
+                return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.strafeSpeedMultiplier) });
 	        case USE_DISTORTION:
 	            return this.useDistortion ? var4 + "ON" : var4 + "OFF";
             case LOAD_MUMBLE_LIB:
@@ -1323,8 +1324,8 @@ public class VRSettings
 				return this.neckBaseToEyeHeight ;
 			case MOVEMENT_MULTIPLIER :
 				return this.movementSpeedMultiplier ;
-//            case IPD_SCALE:
-//                return this.ipdScale;
+            case STRAFE_MULTIPLIER :
+                return this.strafeSpeedMultiplier ;
 			case TOTAL_IPD:
 				return getIPD();
             case LEFT_HALF_IPD:
@@ -1689,9 +1690,9 @@ public class VRSettings
 	        case MOVEMENT_MULTIPLIER:
 	            this.movementSpeedMultiplier = par2;
 	            break;
-//            case IPD_SCALE:
-//                this.ipdScale = par2;
-//                break;
+            case STRAFE_MULTIPLIER:
+                this.strafeSpeedMultiplier = par2;
+                break;
             case TOTAL_IPD:
                 setIPD(par2);
                 break;
@@ -2023,6 +2024,7 @@ public class VRSettings
             var5.println("calibrationStrategy1:" + this.calibrationStrategy);    // Deliberately using a new value to get people using the 'At startup' setting again by default.
             var5.println("headTrackSensitivity:" + this.headTrackSensitivity);
             var5.println("movementSpeedMultiplier:" + this.movementSpeedMultiplier);
+            var5.println("strafeSpeedMultiplier:" + this.strafeSpeedMultiplier);
             var5.println("lookMoveDecoupled:" + this.lookMoveDecoupled);
             var5.println("aspectRatioCorrection:" + this.aspectRatioCorrection);
             var5.println("posTrackHydraLoc:" + this.posTrackHydraLoc);
@@ -2069,7 +2071,6 @@ public class VRSettings
             var5.println("keyholeHeight:" + this.keyholeHeight);
             var5.println("keyholeHeadRelative:" + this.keyholeHeadRelative);
             var5.println("crosshairHeadRelative:" + this.crosshairHeadRelative);
-//            var5.println("ipdScale:" + this.ipdScale);
             var5.println("useOculusProfileIpd:" + this.useOculusProfileIpd);
             var5.println("useOculusProfilePlayerHeight:" + this.useOculusProfilePlayerHeight);
             var5.println("useHalfIpds:" + this.useHalfIpds);
@@ -2308,6 +2309,7 @@ public class VRSettings
         HEAD_TRACKING("Head Tracking", false, true),
         POSITION_TRACKING("Position Tracking", false, true),
         DUMMY("Dummy", false, true),
+        DUMMY_SMALL("Dummy", false, true),
         VR_RENDERER("Stereo Renderer", false, true),
         VR_HEAD_ORIENTATION("Head Orientation", false, true),
         VR_HEAD_POSITION("Head Position", false, true),
@@ -2392,6 +2394,7 @@ public class VRSettings
         //Movement/aiming controls
         DECOUPLE_LOOK_MOVE("Decouple Look/Move", false, true),
         MOVEMENT_MULTIPLIER("Move. Speed Multiplier", true, false),
+        STRAFE_MULTIPLIER("Strafe Speed Multiplier", true, false),
         PITCH_AFFECTS_CAMERA("Pitch Affects Camera", false, true),
         JOYSTICK_SENSITIVITY("Joystick Sensitivity",true,false),
         JOYSTICK_DEADZONE("Joystick Deadzone",true,false),

@@ -14,11 +14,11 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.ALLOW_FORWARD_PLUS_STRAFE,
             VRSettings.VrOptions.WALK_UP_BLOCKS,
             VRSettings.VrOptions.MOVEMENT_MULTIPLIER,
+            VRSettings.VrOptions.STRAFE_MULTIPLIER,
             VRSettings.VrOptions.INERTIA_FACTOR,
             VRSettings.VrOptions.VIEW_BOBBING,
             VRSettings.VrOptions.PITCH_AFFECTS_FLYING,
-            VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.DUMMY_SMALL,
             VRSettings.VrOptions.USE_VR_COMFORT,
             VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR,
@@ -42,14 +42,20 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
         this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 168, "Done"));
         VRSettings.VrOptions[] buttons = locomotionSettings;
 
+        int extra = 0;
         for (int var12 = 2; var12 < buttons.length + 2; ++var12)
         {
             VRSettings.VrOptions var8 = buttons[var12 - 2];
             int width = this.width / 2 - 155 + var12 % 2 * 160;
-            int height = this.height / 6 + 21 * (var12 / 2) - 10;
+            int height = this.height / 6 + 21 * (var12 / 2) - 10 + extra;
 
             if (var8 == VRSettings.VrOptions.DUMMY)
                 continue;
+
+            if (var8 == VRSettings.VrOptions.DUMMY_SMALL) {
+                extra += 5;
+                continue;
+            }
 
             if (var8.getEnumFloat())
             {
@@ -60,6 +66,12 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 if (var8 == VRSettings.VrOptions.MOVEMENT_MULTIPLIER)
                 {
                     minValue = 0.15f;
+                    maxValue = 1.0f;
+                    increment = 0.01f;
+                }
+                if (var8 == VRSettings.VrOptions.STRAFE_MULTIPLIER)
+                {
+                    minValue = 0f;
                     maxValue = 1.0f;
                     increment = 0.01f;
                 }
@@ -157,6 +169,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 vr.allowPitchAffectsHeightWhileFlying = false;
                 vr.useKeyBindingForComfortYaw = false;
                 vr.movementSpeedMultiplier = 0.75f;
+                vr.strafeSpeedMultiplier = 0.33f;
                 Minecraft.getMinecraft().gameSettings.viewBobbing = true;
 
                 Minecraft.getMinecraft().gameSettings.saveOptions();
@@ -202,8 +215,19 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "simulator sickness.",
                             "WARNING: May trigger anti-cheat warnings if on a",
                             "Multiplayer server!!",
-                            "Defaults to 1.0 (no movement adjustment, standard",
-                            "Minecraft movement speed)."
+                            "Defaults to 0.75 (1.0 is standard Minecraft movement",
+                            "speed)."
+                    } ;
+                case STRAFE_MULTIPLIER:
+                    return new String[] {
+                            "Sets an additional strafe (side-to-side) movement",
+                            "multiplier. This is applied on top of the movement",
+                            "multiplier. A value of zero will disable strafe.",
+                            "This may help reduce locomotion induced simulator",
+                            "sickness. WARNING: May trigger anti-cheat warnings",
+                            "if on a Multiplayer server!!",
+                            "Defaults to 0.33 (1.0 is standard Minecraft movement",
+                            "speed)."
                     } ;
                 case WALK_UP_BLOCKS:
                     return new String[] {
