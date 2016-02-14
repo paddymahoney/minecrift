@@ -1,13 +1,16 @@
 --- a/net/minecraft/client/entity/EntityPlayerSP.java
 +++ b/net/minecraft/client/entity/EntityPlayerSP.java
-@@ -1,5 +1,6 @@
+@@ -1,5 +1,9 @@
  package net.minecraft.client.entity;
  
++import net.minecraft.block.Block;
++import net.minecraft.block.BlockLiquid;
++import net.minecraft.block.material.Material;
 +import com.mtbs3d.minecrift.settings.VRSettings;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.audio.PositionedSoundRecord;
  import net.minecraft.client.gui.GuiCommandBlock;
-@@ -31,6 +32,7 @@
+@@ -31,6 +35,7 @@
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
  import net.minecraft.potion.Potion;
@@ -15,7 +18,7 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.tileentity.TileEntityBeacon;
  import net.minecraft.tileentity.TileEntityBrewingStand;
-@@ -182,7 +184,9 @@
+@@ -182,7 +187,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -26,7 +29,7 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -240,18 +244,24 @@
+@@ -240,18 +247,24 @@
                  }
              }
  
@@ -53,7 +56,7 @@
  
              if (this.isRidingHorse())
              {
-@@ -341,7 +351,15 @@
+@@ -341,7 +354,15 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -70,7 +73,7 @@
      }
  
      /**
-@@ -524,70 +542,164 @@
+@@ -524,70 +545,164 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -280,7 +283,7 @@
  
          return false;
      }
-@@ -640,6 +752,20 @@
+@@ -640,6 +755,20 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -301,3 +304,34 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
+@@ -662,4 +791,30 @@
+     }
+ 
+     protected void sendHorseJump() {}
++
++    /**** MINECRIFT ADDITIONS BELOW ****/
++
++    /**
++     * Checks if the current block the entity is within of the specified material type
++     */
++    @Override
++    public boolean isInsideOfMaterial(Material materialIn)
++    {
++        double var2 = this.posY + (double) this.getEyeHeight();  // TODO: Use actual centre-eye position
++        int var4 = MathHelper.floor_double(this.posX);
++        int var5 = MathHelper.floor_float((float) MathHelper.floor_double(var2));
++        int var6 = MathHelper.floor_double(this.posZ);
++        Block var7 = this.worldObj.getBlock(var4, var5, var6);
++
++        if (var7.getMaterial() == materialIn)
++        {
++            float var8 = BlockLiquid.getLiquidHeightPercent(this.worldObj.getBlockMetadata(var4, var5, var6)) - 0.11111111F;
++            float var9 = (float) (var5 + 1) - var8;
++            return var2 < (double) var9;
++        }
++        else
++        {
++            return false;
++        }
++    }
+ }

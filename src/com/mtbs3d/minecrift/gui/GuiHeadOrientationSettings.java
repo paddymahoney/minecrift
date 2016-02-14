@@ -132,7 +132,12 @@ public class GuiHeadOrientationSettings  extends BaseGuiSettings implements GuiE
             {
                 Minecraft.getMinecraft().vrSettings.headTrackerPluginID = pluginModeChangeutton.getSelectedID();
                 Minecraft.getMinecraft().vrSettings.saveOptions();
-                Minecraft.getMinecraft().headTracker = PluginManager.configureOrientation(Minecraft.getMinecraft().vrSettings.headTrackerPluginID);
+                try {
+                    Minecraft.getMinecraft().headTracker = PluginManager.configureOrientation(Minecraft.getMinecraft().vrSettings.headTrackerPluginID);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
                 this.reinit = true;
             }
         }

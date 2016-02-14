@@ -5,7 +5,6 @@
 package com.mtbs3d.minecrift.api;
 
 
-import de.fruitfly.ovr.EyeRenderParams;
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
 
@@ -17,26 +16,21 @@ import de.fruitfly.ovr.structs.*;
  */
 public interface IStereoProvider extends IBasePlugin
 {
-    public FovTextureInfo getFovTextureSize(FovPort LeftFov,
-                                            FovPort RightFov,
-                                            float renderScaleFactor);
+    public RenderTextureInfo getRenderTextureSizes(FovPort LeftFov,
+                                                   FovPort RightFov,
+                                                   float renderScaleFactor);
 
-    public EyeRenderParams configureRendering(Sizei InTextureSize,
-                                              Sizei OutTextureSize,
-                                              GLConfig glConfig,
-                                              FovPort LeftFov,
-                                              FovPort RightFov,
-                                              float worldScale);
+    public boolean providesMirrorTexture();
 
-    public EyeRenderParams configureRenderingDualTexture(Sizei InTexture1Size,
-                                                         Sizei InTexture2Size,
-                                                         Sizei OutDisplaySize,
-                                                         GLConfig glConfig,
-                                                         FovPort LeftFov,
-                                                         FovPort RightFov,
-                                                         float worldScale);
+    public int createMirrorTexture(int width, int height);
 
-    public void resetRenderConfig();
+    public void deleteMirrorTexture();
+
+    public boolean providesRenderTextures();
+
+    public RenderTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight);
+
+    public void deleteRenderTextures();
 
     public EyeType eyeRenderOrder(int index);
 
@@ -46,15 +40,17 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean isGuiOrtho();
 
-    public FrameTiming getFrameTiming();
+    public double getFrameTiming();
 
-    public Posef getEyePose(EyeType eye);
-
-    public FullPoseState getEyePoses(int frameIndex);
-
-    public Matrix4f getMatrix4fProjection(FovPort fov,
-                                          float nearClip,
-                                          float farClip);
+    public Matrix4f getProjectionMatrix(FovPort fov,
+                                        float nearClip,
+                                        float farClip);
 
     public double getCurrentTimeSecs();
+
+	public boolean setCurrentRenderTextureInfo(int index, int textureIdx, int depthId, int depthWidth, int depthHeight);
+
+    public String getLastError();
+
+    public void configureRenderer(GLConfig cfg);
 }

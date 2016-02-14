@@ -158,9 +158,9 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
                 this.guivrSettings.setMinecraftPlayerEyeHeight(1.74f);
                 this.guivrSettings.renderHeadWear = false;
                 this.guivrSettings.renderFullFirstPersonModelMode = VRSettings.RENDER_FIRST_PERSON_FULL;
-                this.guivrSettings.renderPlayerOffset = 0f;
-                this.guivrSettings.eyeProtrusion = 0.185f;
-                this.guivrSettings.neckBaseToEyeHeight = 0.225f;
+                this.guivrSettings.renderPlayerOffset = 0.2f;
+                this.guivrSettings.eyeProtrusion = 0.01f;
+                this.guivrSettings.neckBaseToEyeHeight = 0.01f;
                 this.guivrSettings.calibrationStrategy = VRSettings.CALIBRATION_STRATEGY_AT_STARTUP;
                 this.guivrSettings.soundOrientWithHead = true;
 

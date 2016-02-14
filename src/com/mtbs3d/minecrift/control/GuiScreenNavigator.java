@@ -199,35 +199,47 @@ public class GuiScreenNavigator {
         }
 
     }
-	
-	public GuiScreenNavigator(GuiScreen screen) {
-		mc = Minecraft.getMinecraft();
-		nav = this;
-		
+
+	public static void initGuiLeftTop() throws Exception
+	{
 		if( guiLeft == null )
 		{
-	        try {
+			try {
 				keyDownField = Keyboard.class.getDeclaredField("keyDownBuffer");
 				keyDownField.setAccessible(true);
-	        	guiLeft = GuiContainer.class.getDeclaredField("field_147003_i");  // was guiLeft
-	        	guiTop  = GuiContainer.class.getDeclaredField("field_147009_r");  // was guiTop
-	        	System.out.println("[Minecrift] GuiScreenNavigator: Reflected guiLeft/guiTop");
-	        }
-	        catch (NoSuchFieldException e) {
-		        try {
-		        	guiLeft = GuiContainer.class.getDeclaredField("i"); //obfuscated name  was p
-		        	guiTop  = GuiContainer.class.getDeclaredField("r"); //obfuscated name  was q
-		        	System.out.println("[Minecrift] GuiScreenNavigator: Reflected obfuscated guiLeft/guiTop (i/r)");
-		        }
-		        catch (NoSuchFieldException e1) { 
-		        	System.out.println("[Minecrift] GuiScreenNavigator: Couldn't get guiLeft/guiTop via reflection! Joystick navigation of inventories may be inaccurate.");
-		        };
-	        }
-	       	if ( guiLeft != null)
-	       		guiLeft.setAccessible(true);
-	       	if ( guiTop != null)
-	       		guiTop.setAccessible(true);
+				guiLeft = GuiContainer.class.getDeclaredField("guiLeft");
+				guiTop  = GuiContainer.class.getDeclaredField("guiTop");
+				System.out.println("[Minecrift] GuiScreenNavigator: Reflected guiLeft/guiTop");
+			}
+			catch (NoSuchFieldException e) {
+				try {
+					guiLeft = GuiContainer.class.getDeclaredField("i"); //obfuscated name  was p
+					guiTop  = GuiContainer.class.getDeclaredField("r"); //obfuscated name  was q
+					System.out.println("[Minecrift] GuiScreenNavigator: Reflected obfuscated guiLeft/guiTop (i/r)");
+				}
+				catch (NoSuchFieldException e1) {
+					try {
+						guiLeft = GuiContainer.class.getDeclaredField("field_147003_i"); //forge srg name - see fields.csv, mcppatches/mappings
+						guiTop  = GuiContainer.class.getDeclaredField("field_147009_r"); //forge srg name
+						System.out.println("[Minecrift] GuiScreenNavigator: Reflected srg guiLeft/guiTop (field_147003_i/field_147009_r)");
+					}
+					catch (NoSuchFieldException e2) {
+						throw new Exception("[Minecrift] GuiScreenNavigator: Couldn't get guiLeft/guiTop via reflection! Joystick navigation of inventories would be inaccurate.");
+					}
+				}
+			}
+			if ( guiLeft != null)
+				guiLeft.setAccessible(true);
+			if ( guiTop != null)
+				guiTop.setAccessible(true);
 		}
+	}
+
+	public GuiScreenNavigator(GuiScreen screen) throws Exception {
+		mc = Minecraft.getMinecraft();
+		nav = this;
+
+		initGuiLeftTop();
 		
 		this.screen = screen;
         for( Field field : screen.getClass().getDeclaredFields() ) {

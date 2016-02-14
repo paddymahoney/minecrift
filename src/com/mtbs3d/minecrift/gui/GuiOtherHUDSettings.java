@@ -94,9 +94,9 @@ public class GuiOtherHUDSettings extends BaseGuiSettings
             else if (par1GuiButton.id == ID_GENERIC_DEFAULTS)
             {
                 this.guivrSettings.crosshairScale = 1.0f;
-                this.guivrSettings.renderBlockOutlineMode = VRSettings.RENDER_BLOCK_OUTLINE_MODE_HUD;
-                this.guivrSettings.renderInGameCrosshairMode = VRSettings.RENDER_CROSSHAIR_MODE_HUD;
-                this.guivrSettings.crosshairRollsWithHead = true;
+                this.guivrSettings.renderBlockOutlineMode = VRSettings.RENDER_BLOCK_OUTLINE_MODE_ALWAYS;
+                this.guivrSettings.renderInGameCrosshairMode = VRSettings.RENDER_CROSSHAIR_MODE_ALWAYS;
+                this.guivrSettings.crosshairRollsWithHead = false;
                 this.guivrSettings.menuCrosshairScale = 1f;
                 this.guivrSettings.useCrosshairOcclusion = false;
                 this.guivrSettings.maxCrosshairDistanceAtBlockReach = false;

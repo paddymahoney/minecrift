@@ -26,8 +26,7 @@ public class PluginManager implements IEventListener
         thePluginManager = new PluginManager();
     }
 
-    public static IHMDInfo configureHMD( String pluginID )
-    {
+    public static IHMDInfo configureHMD( String pluginID ) throws Exception {
         IHMDInfo hmdInfo = null;
         for( IHMDInfo hmd : thePluginManager.hmdInfoPlugins )
         {
@@ -50,8 +49,7 @@ public class PluginManager implements IEventListener
         return hmdInfo;
     }
 
-    public static IOrientationProvider configureOrientation( String pluginID )
-    {
+    public static IOrientationProvider configureOrientation( String pluginID ) throws Exception {
         IOrientationProvider headTracker = null;
         for( IOrientationProvider tracker: thePluginManager.orientPlugins )
         {
@@ -74,8 +72,7 @@ public class PluginManager implements IEventListener
         return headTracker;
     }
 
-    public static IEyePositionProvider configurePosition( String pluginID )
-    {
+    public static IEyePositionProvider configurePosition( String pluginID ) throws Exception {
         IEyePositionProvider positionTracker = null;
         for( IEyePositionProvider posTracker: thePluginManager.positionPlugins )
         {
@@ -98,8 +95,7 @@ public class PluginManager implements IEventListener
         return positionTracker;
     }
 
-    public static IBodyAimController configureController( String pluginID )
-    {
+    public static IBodyAimController configureController( String pluginID ) throws Exception {
 
         IBodyAimController lookaimController = null;
         for( IBodyAimController controller: thePluginManager.controllerPlugins )
@@ -123,8 +119,7 @@ public class PluginManager implements IEventListener
         return lookaimController;
     }
 
-    public static IStereoProvider configureStereoProvider( String pluginID )
-    {
+    public static IStereoProvider configureStereoProvider( String pluginID ) throws Exception {
 
         IStereoProvider stereoProvider = null;
         for( IStereoProvider sp : thePluginManager.stereoProviderPlugins )
@@ -148,15 +143,22 @@ public class PluginManager implements IEventListener
         return stereoProvider;
     }
 
-    private static void initForMinecrift(IBasePlugin plugin)
+    private static void initForMinecrift(IBasePlugin plugin) throws Exception
     {
-    	for( String path :System.getProperty("java.library.path").split(":") )
-    	{
-	        if( !plugin.isInitialized() && !plugin.init(new File( path )) )
-	        {
-	            System.err.println("Error! Couldn't load "+ plugin.getName()+": "+plugin.getInitializationStatus() );
-	        }
-    	}
+        if( !plugin.isInitialized() )
+        {
+            System.out.println("[Minecrift] Attempting to initialise plugin: " + plugin.getName() + " (" + PluginManager.getPluginTypes(plugin) + ")");
+
+            if ( !plugin.init() ) {
+                String error = "Error! Couldn't load " + plugin.getName() + ": " + plugin.getInitializationStatus();
+                System.err.println(error);
+                try {
+                    throw new Exception(error);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public static void register( IBasePlugin that )
@@ -176,12 +178,32 @@ public class PluginManager implements IEventListener
         thePluginManager.allPlugins.add(that);
     }
 
-    public static void pollAll(int index)
+    public static String getPluginTypes( IBasePlugin that )
     {
+        StringBuilder sb = new StringBuilder();
+
+        if( that instanceof IHMDInfo )
+            sb.append("IHMDInfo ");
+        if( that instanceof IOrientationProvider )
+            sb.append("IOrientationProvider ");
+        if( that instanceof IEyePositionProvider)
+            sb.append("IEyePositionProvider ");
+        if( that instanceof IBodyAimController )
+            sb.append("IBodyAimController ");
+        if( that instanceof IStereoProvider )
+            sb.append("IStereoProvider ");
+
+        if (sb.length() == 0)
+            sb.append("Unknown ");
+
+        return sb.toString();
+    }
+
+    public static void pollAll(long frameIndex) throws Exception {
         for( IBasePlugin p : thePluginManager.allPlugins )
         {
             if( p.isInitialized() )
-                p.poll(index);
+                p.poll(frameIndex);
         }
     }
 
@@ -194,7 +216,7 @@ public class PluginManager implements IEventListener
         }
     }
 
-    public static void beginFrameAll(int frameIndex)
+    public static void beginFrameAll(long frameIndex)
     {
         for( IBasePlugin p : thePluginManager.allPlugins )
         {

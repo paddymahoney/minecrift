@@ -5,7 +5,6 @@
 package com.mtbs3d.minecrift.settings;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.SortedSet;
 
 import com.mtbs3d.minecrift.provider.MCHydra;
@@ -91,10 +90,11 @@ public class VRSettings
     public boolean debugPose = false;
     public boolean debugPos = false;
 	protected float playerEyeHeight = 1.74f;  // Use getPlayerEyeHeight()
-	public float eyeProtrusion = 0.185f;
+	public float eyeProtrusion = 0.01f;
     public float eyeReliefAdjust = 0f;
-	public float neckBaseToEyeHeight = 0.225f;
-    public float movementSpeedMultiplier = 1.0f;
+	public float neckBaseToEyeHeight = 0.01f;
+    public float movementSpeedMultiplier = 0.75f;
+    public float strafeSpeedMultiplier = 0.33f;
     public boolean useDistortion = true;
     public boolean loadMumbleLib = true;
     public boolean useHeadTracking = true;
@@ -105,25 +105,24 @@ public class VRSettings
     protected float rightHalfIpd = 0.032f;
     protected float oculusProfileLeftHalfIpd = leftHalfIpd;
     protected float oculusProfileRightHalfIpd = rightHalfIpd;
-    //public float ipdScale = 1f;
     public String oculusProfileName;
     public String oculusProfileGender;
     protected float oculusProfilePlayerEyeHeight = playerEyeHeight;
-    public float hudOpacity = 1.0f;
+    public float hudOpacity = 0.95f;
     public boolean menuBackground = false;
     public boolean renderHeadWear = false;
     public int renderFullFirstPersonModelMode = RENDER_FIRST_PERSON_FULL;
     public int shaderIndex = NO_SHADER;
-    public float renderPlayerOffset = 0.0f;
-    //public boolean useChromaticAbCorrection = true; // Removed in 0.5+
-    // SDK 0.4.0
+    public float renderPlayerOffset = 0.2f;
+    public boolean testTimewarp = false;
     public boolean useTimewarp = true;
     public boolean useTimewarpJitDelay = false;
     public boolean useVignette = true;
     public boolean useLowPersistence = true;
     public boolean useDynamicPrediction = true;
-    public float   renderScaleFactor = 1.1f; // Avoid weird star shaped shimmer at renderscale = 1
+    public float   renderScaleFactor = 1.5f;
     public boolean useDisplayMirroring = true;
+    public boolean usePositionalTimewarp = true;
     public boolean useDisplayOverdrive = true;
     public boolean useHighQualityDistortion = true;
     public boolean posTrackBlankOnCollision = true;
@@ -137,10 +136,10 @@ public class VRSettings
     // TODO: Clean-up all the redundant crap!
     public boolean useDistortionTextureLookupOptimisation = false;
     public boolean useFXAA = false;
-    public float hudScale = 1.25f;
+    public float hudScale = 1.5f;
     public boolean allowMousePitchInput = false;
     public float hudDistance = 1.25f;
-    public float hudPitchOffset = 0.0f;
+    public float hudPitchOffset = -2f;
     public float hudYawOffset = 0.0f;
     public boolean hudLockToHead = false;
     public float fovChange = 0f;
@@ -150,13 +149,12 @@ public class VRSettings
     protected float headTrackSensitivity = 1.0f;
     public boolean useFsaa = false;   // default to off
     public float fsaaScaleFactor = 1.4f;
-    public int lookMoveDecoupled = DECOUPLE_OFF;
+    public int lookMoveDecoupled = DECOUPLE_WITH_CROSSHAIR;
     public boolean useOculusProfileIpd = true;
     public boolean useHalfIpds = false;
     public boolean useOculusProfilePlayerHeight = true;
     public int posTrackHydraLoc = POS_TRACK_HYDRA_LOC_HMD_LEFT;
     public boolean posTrackHydraUseController1 = true;
-    public boolean posTrackHydraDebugCentreEyePos = false;
     public float posTrackDistanceScale = 1.00f;
     public float worldScale = 1f;
     public boolean posTrackResetPosition = true;
@@ -182,24 +180,23 @@ public class VRSettings
     public float posTrackHydraYAxisDistanceSkewAngleDeg = 0.0f;
 	public float joystickSensitivity = 3f;
 	public int joystickAimType = 1;
-	public float joystickDeadzone = 0.1f;
-	public float aimKeyholeWidthDegrees = 0f;
-	public float keyholeHeight = 0f;
+	public float joystickDeadzone = 0.2f;
+	public float keyholeWidth = 80f;
+	public float keyholeHeight = 80f;
 	public boolean keyholeHeadRelative = true;
     public boolean crosshairHeadRelative = false;
     public boolean hydraUseFilter = true;
-    public float magRefDistance = 0.15f;
 	public String headPositionPluginID = "oculus";
 	public String headTrackerPluginID = "oculus";
 	public String hmdPluginID = "oculus";
     public String stereoProviderPluginID = "oculus";
-	public String controllerPluginID = "mouse";
+	public String controllerPluginID = "controller";
     public int calibrationStrategy = CALIBRATION_STRATEGY_AT_STARTUP;
     public float crosshairScale = 1.0f;
-    public int renderInGameCrosshairMode = RENDER_CROSSHAIR_MODE_HUD;
-    public int renderBlockOutlineMode = RENDER_BLOCK_OUTLINE_MODE_HUD;
+    public int renderInGameCrosshairMode = RENDER_CROSSHAIR_MODE_ALWAYS;
+    public int renderBlockOutlineMode = RENDER_BLOCK_OUTLINE_MODE_ALWAYS;
     public boolean showEntityOutline = false;
-    public boolean crosshairRollsWithHead = true;
+    public boolean crosshairRollsWithHead = false;
     public boolean crosshairScalesWithDistance = false;
     public boolean hudOcclusion = false;
     public boolean soundOrientWithHead = true;
@@ -209,19 +206,21 @@ public class VRSettings
     public int inertiaFactor = INERTIA_NORMAL;
     public boolean allowPitchAffectsHeightWhileFlying = true;
     public boolean storeDebugAim = false;
-    public int useVrComfort = VR_COMFORT_OFF;
+    public int useVrComfort = VR_COMFORT_YAW;
     public boolean allowForwardPlusStrafe = true;
     public boolean vrComfortTransitionLinear = false;
     public float movementAccelerationScaleFactor = 1f;
     public float vrComfortTransitionTimeSecs = 0.150f;
     public float vrComfortTransitionAngleDegs = 30f;
     public int vrComfortTransitionBlankingMode = VR_COMFORT_TRANS_BLANKING_MODE_OFF;
-    public int movementQuantisation = 0;
+    public int movementQuantisation = 4;
     public boolean mouseKeyholeTight = false;
     public int smoothRunTickCount = 20;
     public boolean smoothTick = false;
     public static final String LEGACY_OPTIONS_VR_FILENAME = "optionsvr.txt";
-    public static final String LEGACY_OPTIONS_VR_BACKUP_FILENAME = "optionsvr.bak";
+    public boolean allowAvatarIK = false;
+    public boolean hideGui = true;
+    public boolean useKeyBindingForComfortYaw = false;
 
     private Minecraft mc;
 
@@ -245,9 +244,6 @@ public class VRSettings
 
         // Load settings from the file
         this.loadOptions();
-
-        // Make sure defaults are initialised back to the file
-        this.saveOptions();
     }
 
     public void loadOptions()
@@ -255,7 +251,7 @@ public class VRSettings
         loadOptions(null);
     }
 
-    private void loadDefaults()
+    public void loadDefaults()
     {
         loadOptions(this.defaults);
     }
@@ -395,11 +391,6 @@ public class VRSettings
                     if (optionTokens[0].equals("menuBackground"))
                     {
                         this.menuBackground = optionTokens[1].equals("true");
-                    }
-
-                    if (optionTokens[0].equals("vrHideGUI"))
-                    {
-                        this.mc.gameSettings.hideGUI = optionTokens[1].equals("true");
                     }
 
                     if (optionTokens[0].equals("renderFullFirstPersonModelMode"))
@@ -558,10 +549,10 @@ public class VRSettings
                         this.movementSpeedMultiplier = this.parseFloat(optionTokens[1]);
                     }
 
-//                    if (optionTokens[0].equals("ipdScale"))
-//                    {
-//                        this.ipdScale = this.parseFloat(optionTokens[1]);
-//                    }
+                    if (optionTokens[0].equals("strafeSpeedMultiplier"))
+                    {
+                        this.strafeSpeedMultiplier = this.parseFloat(optionTokens[1]);
+                    }
 
                     if (optionTokens[0].equals("lookMoveDecoupled"))
                     {
@@ -820,7 +811,7 @@ public class VRSettings
 
                     if (optionTokens[0].equals("keyholeWidth"))
                     {
-                        this.aimKeyholeWidthDegrees = this.parseFloat(optionTokens[1]);
+                        this.keyholeWidth = this.parseFloat(optionTokens[1]);
                     }
                     if (optionTokens[0].equals("keyholeHeight"))
                     {
@@ -867,6 +858,11 @@ public class VRSettings
                         this.allowForwardPlusStrafe = optionTokens[1].equals("true");
                     }
 
+                    if (optionTokens[0].equals("useKeyBindingForComfortYaw"))
+                    {
+                        this.useKeyBindingForComfortYaw = optionTokens[1].equals("true");
+                    }
+
                     if (optionTokens[0].equals("vrComfortTransitionLinear"))
                     {
                         this.vrComfortTransitionLinear = optionTokens[1].equals("true");
@@ -902,6 +898,16 @@ public class VRSettings
                         this.smoothTick = optionTokens[1].equals("true");
                     }
 
+                    if (optionTokens[0].equals("allowAvatarIK"))
+                    {
+                        this.allowAvatarIK = optionTokens[1].equals("true");
+                    }
+
+                    if (optionTokens[0].equals("hideGui"))
+                    {
+                        this.hideGui = optionTokens[1].equals("true");
+                    }
+
                     if (optionTokens[0].equals("movementQuantisation"))
                     {
                         this.movementQuantisation = Integer.parseInt(optionTokens[1]);
@@ -925,14 +931,6 @@ public class VRSettings
 
     public void resetSettings()
     {
-        // Set reasonable Optifine / game defaults
-        this.mc.gameSettings.limitFramerate = (int) GameSettings.Options.FRAMERATE_LIMIT.getValueMax();
-        this.mc.gameSettings.enableVsync = true;
-        this.mc.gameSettings.ofChunkLoading = 1;
-        this.mc.gameSettings.renderDistanceChunks = 8;
-        this.mc.gameSettings.ofFogType = 2; // Fancy fog to prevent draw distance changes in edge of FOV
-        this.mc.gameSettings.saveOptions(); // Write back to gameSettings!
-
         // Get the Minecrift defaults
         loadDefaults();
     }
@@ -967,8 +965,8 @@ public class VRSettings
 	            return var4 + String.format("%.3fm", new Object[] { Float.valueOf(this.neckBaseToEyeHeight) });
 	        case MOVEMENT_MULTIPLIER:
 	            return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.movementSpeedMultiplier) });
-//            case IPD_SCALE:
-//                return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.ipdScale) });
+            case STRAFE_MULTIPLIER:
+                return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.strafeSpeedMultiplier) });
 	        case USE_DISTORTION:
 	            return this.useDistortion ? var4 + "ON" : var4 + "OFF";
             case LOAD_MUMBLE_LIB:
@@ -1005,7 +1003,7 @@ public class VRSettings
             case RENDER_MENU_BACKGROUND:
                 return this.menuBackground ? var4 + "ON" : var4 + "OFF";
 	        case HUD_HIDE:
-	            return this.mc.gameSettings.hideGUI ? var4 + "YES" : var4 + "NO";
+	            return this.hideGui ? var4 + "YES" : var4 + "NO";
 	        case RENDER_FULL_FIRST_PERSON_MODEL_MODE:
                 if (this.renderFullFirstPersonModelMode == RENDER_FIRST_PERSON_FULL)
                     return var4 + "Full";
@@ -1028,8 +1026,8 @@ public class VRSettings
                 return this.useDynamicPrediction ? var4 + "ON" : var4 + "OFF";
             case OVERDRIVE_DISPLAY:
                 return this.useDisplayOverdrive ? var4 + "ON" : var4 + "OFF";
-            case ENABLE_DIRECT:
-                return this.mc.isDirectMode ? var4 + "Direct" : var4 + "Extended";
+            //case ENABLE_DIRECT:
+            //    return this.mc.isDirectMode ? var4 + "Direct" : var4 + "Extended";
             case MIRROR_DISPLAY:
                 return this.useDisplayMirroring ? var4 + "ON" : var4 + "OFF";
             case POS_TRACK_HIDE_COLLISION:
@@ -1106,8 +1104,8 @@ public class VRSettings
 	        case JOYSTICK_AIM_TYPE:
 	            return var4 + JOYSTICK_AIM_TYPE[joystickAimType];
 	        case KEYHOLE_WIDTH:
-	        	if(this.aimKeyholeWidthDegrees>0)
-		            return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.aimKeyholeWidthDegrees) });
+	        	if(this.keyholeWidth >0)
+		            return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.keyholeWidth) });
 	        	else
 	        		return var4 + "Fully Coupled";
 	        case KEYHOLE_HEIGHT:
@@ -1277,6 +1275,8 @@ public class VRSettings
                 };
             case ALLOW_FORWARD_PLUS_STRAFE:
                 return this.allowForwardPlusStrafe ? var4 + "Allow" : var4 + "Disallow";
+            case VR_COMFORT_USE_KEY_BINDING_FOR_YAW:
+                return this.useKeyBindingForComfortYaw ? var4 + "Key" : var4 + "Crosshair";
             case VR_COMFORT_TRANSITION_LINEAR:
                 return this.vrComfortTransitionLinear ? var4 + "Linear" : var4 + "Sinusoidal";
             case MOVEMENT_ACCELERATION_SCALE_FACTOR:
@@ -1324,8 +1324,8 @@ public class VRSettings
 				return this.neckBaseToEyeHeight ;
 			case MOVEMENT_MULTIPLIER :
 				return this.movementSpeedMultiplier ;
-//            case IPD_SCALE:
-//                return this.ipdScale;
+            case STRAFE_MULTIPLIER :
+                return this.strafeSpeedMultiplier ;
 			case TOTAL_IPD:
 				return getIPD();
             case LEFT_HALF_IPD:
@@ -1339,7 +1339,7 @@ public class VRSettings
 			case JOYSTICK_DEADZONE :
 				return this.joystickDeadzone;
 			case KEYHOLE_WIDTH :
-				return this.aimKeyholeWidthDegrees;
+				return this.keyholeWidth;
 			case KEYHOLE_HEIGHT :
 				return this.keyholeHeight;
 			case HUD_SCALE :
@@ -1474,7 +1474,7 @@ public class VRSettings
                 this.menuBackground = !this.menuBackground;
                 break;
 	        case HUD_HIDE:
-	            this.mc.gameSettings.hideGUI = !this.mc.gameSettings.hideGUI;
+	            this.hideGui = !this.hideGui;
 	            break;
 	        case RENDER_FULL_FIRST_PERSON_MODEL_MODE:
                 this.renderFullFirstPersonModelMode++;
@@ -1637,6 +1637,9 @@ public class VRSettings
             case ALLOW_FORWARD_PLUS_STRAFE:
                 this.allowForwardPlusStrafe = !this.allowForwardPlusStrafe;
                 break;
+            case VR_COMFORT_USE_KEY_BINDING_FOR_YAW:
+                this.useKeyBindingForComfortYaw = !this.useKeyBindingForComfortYaw;
+                break;
             case VR_COMFORT_TRANSITION_LINEAR:
                 this.vrComfortTransitionLinear = !this.vrComfortTransitionLinear;
                 break;
@@ -1687,9 +1690,9 @@ public class VRSettings
 	        case MOVEMENT_MULTIPLIER:
 	            this.movementSpeedMultiplier = par2;
 	            break;
-//            case IPD_SCALE:
-//                this.ipdScale = par2;
-//                break;
+            case STRAFE_MULTIPLIER:
+                this.strafeSpeedMultiplier = par2;
+                break;
             case TOTAL_IPD:
                 setIPD(par2);
                 break;
@@ -1709,7 +1712,7 @@ public class VRSettings
 	            this.joystickDeadzone = par2;
 	        	break;
 	        case KEYHOLE_WIDTH:
-	            this.aimKeyholeWidthDegrees = par2;
+	            this.keyholeWidth = par2;
 	        	break;
 	        case KEYHOLE_HEIGHT:
 	            this.keyholeHeight = par2;
@@ -1951,7 +1954,7 @@ public class VRSettings
 
     public void saveOptions()
     {
-        saveOptions(null);
+        saveOptions(null); // Use null for current profile
     }
 
     private void storeDefaults()
@@ -1990,7 +1993,6 @@ public class VRSettings
             var5.println("useHeadTrackPrediction:" + this.useHeadTrackPrediction);
             var5.println("renderHeadWear:" + this.renderHeadWear);
             var5.println("menuBackground:" + this.menuBackground);
-            var5.println("hideGUI:" + this.mc.gameSettings.hideGUI);
             var5.println("renderFullFirstPersonModelMode:" + this.renderFullFirstPersonModelMode);
             var5.println("shaderIndex:" + this.shaderIndex);
             // 0.4.0
@@ -2022,6 +2024,7 @@ public class VRSettings
             var5.println("calibrationStrategy1:" + this.calibrationStrategy);    // Deliberately using a new value to get people using the 'At startup' setting again by default.
             var5.println("headTrackSensitivity:" + this.headTrackSensitivity);
             var5.println("movementSpeedMultiplier:" + this.movementSpeedMultiplier);
+            var5.println("strafeSpeedMultiplier:" + this.strafeSpeedMultiplier);
             var5.println("lookMoveDecoupled:" + this.lookMoveDecoupled);
             var5.println("aspectRatioCorrection:" + this.aspectRatioCorrection);
             var5.println("posTrackHydraLoc:" + this.posTrackHydraLoc);
@@ -2064,11 +2067,10 @@ public class VRSettings
             var5.println("joystickSensitivity:" + this.joystickSensitivity);
             var5.println("joystickDeadzone:" + this.joystickDeadzone);
             var5.println("joystickAimType:" + this.joystickAimType);
-            var5.println("keyholeWidth:" + this.aimKeyholeWidthDegrees);
+            var5.println("keyholeWidth:" + this.keyholeWidth);
             var5.println("keyholeHeight:" + this.keyholeHeight);
             var5.println("keyholeHeadRelative:" + this.keyholeHeadRelative);
             var5.println("crosshairHeadRelative:" + this.crosshairHeadRelative);
-//            var5.println("ipdScale:" + this.ipdScale);
             var5.println("useOculusProfileIpd:" + this.useOculusProfileIpd);
             var5.println("useOculusProfilePlayerHeight:" + this.useOculusProfilePlayerHeight);
             var5.println("useHalfIpds:" + this.useHalfIpds);
@@ -2083,6 +2085,7 @@ public class VRSettings
             var5.println("inertiaFactor:" + this.inertiaFactor);
             var5.println("useVrComfort:" + this.useVrComfort);
             var5.println("allowForwardPlusStrafe:" + this.allowForwardPlusStrafe);
+            var5.println("useKeyBindingForComfortYaw:" + this.useKeyBindingForComfortYaw);
             var5.println("vrComfortTransitionLinear:" + this.vrComfortTransitionLinear);
             var5.println("movementAccelerationScaleFactor:" + this.movementAccelerationScaleFactor);
             var5.println("vrComfortTransitionTimeSecs:" + this.vrComfortTransitionTimeSecs);
@@ -2090,6 +2093,8 @@ public class VRSettings
             var5.println("vrComfortTransitionBlankingMode:" + this.vrComfortTransitionBlankingMode);
             var5.println("smoothRunTickCount:" + this.smoothRunTickCount);
             var5.println("smoothTick:" + this.smoothTick);
+            var5.println("allowAvatarIK:" + this.allowAvatarIK);
+            var5.println("hideGui:" + this.hideGui);
             var5.println("movementQuantisation:" + this.movementQuantisation);
 
             var5.close();
@@ -2271,6 +2276,14 @@ public class VRSettings
         return addFac;
     }
 
+    public boolean isComfortYawTransitionKeyAllowed() {
+        if ((this.useVrComfort == VR_COMFORT_PITCHANDYAW || this.useVrComfort == VR_COMFORT_YAW) &&
+            this.useKeyBindingForComfortYaw) {
+            return true;
+        }
+        return false;
+    }
+
     public static enum VrOptions
     {
         // Minecrift below here
@@ -2296,6 +2309,7 @@ public class VRSettings
         HEAD_TRACKING("Head Tracking", false, true),
         POSITION_TRACKING("Position Tracking", false, true),
         DUMMY("Dummy", false, true),
+        DUMMY_SMALL("Dummy", false, true),
         VR_RENDERER("Stereo Renderer", false, true),
         VR_HEAD_ORIENTATION("Head Orientation", false, true),
         VR_HEAD_POSITION("Head Position", false, true),
@@ -2347,7 +2361,7 @@ public class VRSettings
         DELAYED_RENDER("Render Mode", false, true),
         // SDK 0.4.0 up
         RENDER_SCALEFACTOR("Render Scale", true, false),
-        ENABLE_DIRECT("Render Mode", false, true),
+        //ENABLE_DIRECT("Render Mode", false, true),
         MIRROR_DISPLAY("Mirror Display", false, true),
         LOW_PERSISTENCE("Low Persistence", false, true),
         DYNAMIC_PREDICTION("Dynamic Prediction", false, true),
@@ -2380,6 +2394,7 @@ public class VRSettings
         //Movement/aiming controls
         DECOUPLE_LOOK_MOVE("Decouple Look/Move", false, true),
         MOVEMENT_MULTIPLIER("Move. Speed Multiplier", true, false),
+        STRAFE_MULTIPLIER("Strafe Speed Multiplier", true, false),
         PITCH_AFFECTS_CAMERA("Pitch Affects Camera", false, true),
         JOYSTICK_SENSITIVITY("Joystick Sensitivity",true,false),
         JOYSTICK_DEADZONE("Joystick Deadzone",true,false),
@@ -2394,6 +2409,7 @@ public class VRSettings
         INERTIA_FACTOR("Player Inertia",false,true),
         USE_VR_COMFORT("VR Comfort", false, true),
         ALLOW_FORWARD_PLUS_STRAFE("Forward + Strafe", false, true),
+        VR_COMFORT_USE_KEY_BINDING_FOR_YAW("Trigger Yaw With", false, true),
         VR_COMFORT_TRANSITION_LINEAR("Transition Mode", false, true),
         MOVEMENT_ACCELERATION_SCALE_FACTOR("Player Accel.", true, false),
         VR_COMFORT_TRANSITION_TIME_SECS("Transition Time", true, false),
@@ -2528,6 +2544,7 @@ public class VRSettings
         mc.gameSettings = new GameSettings( mc, dataDir );
         mc.gameSettings.saveOptions();
         mc.vrSettings = new VRSettings( mc, dataDir );
+        mc.vrSettings.saveOptions();
     }
 
     public static synchronized void loadAll( Minecraft mc )

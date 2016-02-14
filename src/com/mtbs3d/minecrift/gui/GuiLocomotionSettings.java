@@ -14,12 +14,13 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.ALLOW_FORWARD_PLUS_STRAFE,
             VRSettings.VrOptions.WALK_UP_BLOCKS,
             VRSettings.VrOptions.MOVEMENT_MULTIPLIER,
+            VRSettings.VrOptions.STRAFE_MULTIPLIER,
             VRSettings.VrOptions.INERTIA_FACTOR,
             VRSettings.VrOptions.VIEW_BOBBING,
             VRSettings.VrOptions.PITCH_AFFECTS_FLYING,
-            VRSettings.VrOptions.DUMMY,
-            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.DUMMY_SMALL,
             VRSettings.VrOptions.USE_VR_COMFORT,
+            VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS,
             VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS,
@@ -41,14 +42,20 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
         this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 168, "Done"));
         VRSettings.VrOptions[] buttons = locomotionSettings;
 
+        int extra = 0;
         for (int var12 = 2; var12 < buttons.length + 2; ++var12)
         {
             VRSettings.VrOptions var8 = buttons[var12 - 2];
             int width = this.width / 2 - 155 + var12 % 2 * 160;
-            int height = this.height / 6 + 21 * (var12 / 2) - 10;
+            int height = this.height / 6 + 21 * (var12 / 2) - 10 + extra;
 
             if (var8 == VRSettings.VrOptions.DUMMY)
                 continue;
+
+            if (var8 == VRSettings.VrOptions.DUMMY_SMALL) {
+                extra += 5;
+                continue;
+            }
 
             if (var8.getEnumFloat())
             {
@@ -59,6 +66,12 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 if (var8 == VRSettings.VrOptions.MOVEMENT_MULTIPLIER)
                 {
                     minValue = 0.15f;
+                    maxValue = 1.0f;
+                    increment = 0.01f;
+                }
+                if (var8 == VRSettings.VrOptions.STRAFE_MULTIPLIER)
+                {
+                    minValue = 0f;
                     maxValue = 1.0f;
                     increment = 0.01f;
                 }
@@ -98,7 +111,15 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                (s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS.getEnumString() ||
                 s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS.getEnumString() ||
                 s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_BLANKING_MODE.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR.getEnumString()))
+                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR.getEnumString() ||
+                s == VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW.getEnumString()))
+        {
+            return false;
+        }
+
+        if ((this.guivrSettings.useVrComfort != this.guivrSettings.VR_COMFORT_YAW &&
+             this.guivrSettings.useVrComfort != this.guivrSettings.VR_COMFORT_PITCHANDYAW) &&
+             s == VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW.getEnumString())
         {
             return false;
         }
@@ -136,16 +157,19 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             }
             else if (par1GuiButton.id == ID_GENERIC_DEFAULTS)
             {
-                vr.useVrComfort = VRSettings.VR_COMFORT_OFF;
+                vr.useVrComfort = VRSettings.VR_COMFORT_YAW;
                 vr.allowForwardPlusStrafe = true;
                 vr.vrComfortTransitionLinear = false;
                 vr.movementAccelerationScaleFactor = 1f;
                 vr.vrComfortTransitionTimeSecs = 0.150f;
                 vr.vrComfortTransitionAngleDegs = 30f;
                 vr.vrComfortTransitionBlankingMode = VRSettings.VR_COMFORT_TRANS_BLANKING_MODE_OFF;
-                vr.movementQuantisation = 0;
+                vr.movementQuantisation = 4;
                 vr.inertiaFactor = VRSettings.INERTIA_NORMAL;
                 vr.allowPitchAffectsHeightWhileFlying = false;
+                vr.useKeyBindingForComfortYaw = false;
+                vr.movementSpeedMultiplier = 0.75f;
+                vr.strafeSpeedMultiplier = 0.33f;
                 Minecraft.getMinecraft().gameSettings.viewBobbing = true;
 
                 Minecraft.getMinecraft().gameSettings.saveOptions();
@@ -191,8 +215,19 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "simulator sickness.",
                             "WARNING: May trigger anti-cheat warnings if on a",
                             "Multiplayer server!!",
-                            "Defaults to 1.0 (no movement adjustment, standard",
-                            "Minecraft movement speed)."
+                            "Defaults to 0.75 (1.0 is standard Minecraft movement",
+                            "speed)."
+                    } ;
+                case STRAFE_MULTIPLIER:
+                    return new String[] {
+                            "Sets an additional strafe (side-to-side) movement",
+                            "multiplier. This is applied on top of the movement",
+                            "multiplier. A value of zero will disable strafe.",
+                            "This may help reduce locomotion induced simulator",
+                            "sickness. WARNING: May trigger anti-cheat warnings",
+                            "if on a Multiplayer server!!",
+                            "Defaults to 0.33 (1.0 is standard Minecraft movement",
+                            "speed)."
                     } ;
                 case WALK_UP_BLOCKS:
                     return new String[] {
@@ -288,6 +323,17 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "       input. Normal Minecraft operation.",
                             "  ON:  (Recommended) Pitch input affects elevation",
                             "       while flying. An enjoyable travel experience!"
+                    };
+                case VR_COMFORT_USE_KEY_BINDING_FOR_YAW:
+                    return new String[]{
+                            "Determines how a comfort mode yaw transition (player",
+                            "turn to the left or right) is triggered.",
+                            "  Crosshair: (Default) Moving the crosshair to the edge",
+                            "             of the keyhole will trigger a yaw",
+                            "             transition.",
+                            "  Key:       The 'Cycle Item Left / Right' key or",
+                            "             controller binding wil instead be used to",
+                            "             trigger a yaw transition."
                     };
                 default:
                     return null;

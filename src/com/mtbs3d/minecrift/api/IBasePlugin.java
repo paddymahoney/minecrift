@@ -30,13 +30,11 @@ public interface IBasePlugin {
 
 	public String getVersion();
 
-	public boolean init(File nativeDir);
-
-	public boolean init();
+	public boolean init() throws Exception;
 
 	public boolean isInitialized();
 
-	public void poll(int index);
+	public void poll(long frameIndex) throws Exception;
 
 	public void destroy();
 
@@ -50,7 +48,7 @@ public interface IBasePlugin {
 
     public void beginFrame();
 
-    public void beginFrame(int frameIndex);
+    public void beginFrame(long frameIndex);
 
-    public void endFrame();
+    public boolean endFrame();
 }

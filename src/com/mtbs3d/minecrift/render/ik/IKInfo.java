@@ -5,7 +5,7 @@ package com.mtbs3d.minecrift.render.ik;
  */
 public class IKInfo
 {
-    double angle1 = 0d;
-    double angle2 = 0d;
-    boolean foundValidSolution = false;
+    public double angle1 = 0d;
+    public double angle2 = 0d;
+    public boolean foundValidSolution = false;
 }

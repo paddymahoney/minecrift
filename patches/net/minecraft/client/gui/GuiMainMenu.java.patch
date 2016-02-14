@@ -93,7 +93,7 @@
          GL11.glPopMatrix();
 -        String var9 = "Minecraft 1.7.10";
 +		/** MINECRIFT **/
-+        String var9 = this.mc.minecriftVerString + ", " + OculusRift.getVersionString();
++        String var9 = this.mc.minecriftVerString + ", JRift " + OculusRift.getJRiftVersionString();
 +		/** END MINECRIFT **/
  
          if (this.mc.isDemo())

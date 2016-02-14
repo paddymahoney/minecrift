@@ -1,6 +1,14 @@
 --- a/net/minecraft/client/renderer/entity/RenderPlayer.java
 +++ b/net/minecraft/client/renderer/entity/RenderPlayer.java
-@@ -22,6 +22,7 @@
+@@ -3,6 +3,7 @@
+ import com.mojang.authlib.GameProfile;
+ import java.util.UUID;
+ import net.minecraft.block.Block;
++import net.minecraft.client.Minecraft;
+ import net.minecraft.client.entity.AbstractClientPlayer;
+ import net.minecraft.client.entity.EntityPlayerSP;
+ import net.minecraft.client.model.ModelBiped;
+@@ -22,6 +23,7 @@
  import net.minecraft.scoreboard.Score;
  import net.minecraft.scoreboard.ScoreObjective;
  import net.minecraft.scoreboard.Scoreboard;
@@ -8,7 +16,7 @@
  import net.minecraft.util.MathHelper;
  import net.minecraft.util.ResourceLocation;
  import net.minecraft.util.StringUtils;
-@@ -30,10 +31,18 @@
+@@ -30,10 +32,18 @@
  public class RenderPlayer extends RendererLivingEntity
  {
      private static final ResourceLocation steveTextures = new ResourceLocation("textures/entity/steve.png");
@@ -31,7 +39,7 @@
  
      public RenderPlayer()
      {
-@@ -43,6 +52,16 @@
+@@ -43,6 +53,22 @@
          this.modelArmor = new ModelBiped(0.5F);
      }
  
@@ -39,6 +47,12 @@
 +    public void setVR(boolean vrMode, boolean renderHeadWear, float offset) {
 +
 +        vrOffset = vrMode? offset : 0.0F;
++        if (Minecraft.getMinecraft().vrSettings.allowAvatarIK) {
++            this.modelBipedMain.vrMode = vrMode;
++        }
++        else {
++            this.modelBipedMain.vrMode = false;
++        }
 +        this.modelBipedMain.vrOffset = this.modelArmorChestplate.vrOffset = this.modelArmor.vrOffset = vrOffset;
 +        this.modelBipedMain._renderHead = this.modelArmorChestplate._renderHead = this.modelArmor._renderHead = _renderHead = !vrMode;
 +        this.modelBipedMain._renderHeadWear = this.modelArmorChestplate._renderHeadWear = this.modelArmor._renderHeadWear = _renderHeadwear = renderHeadWear;
@@ -48,7 +62,7 @@
      /**
       * Queries whether should render the specified pass or not.
       */
-@@ -50,6 +69,17 @@
+@@ -50,6 +76,17 @@
      {
          ItemStack var4 = p_77032_1_.inventory.armorItemInSlot(3 - p_77032_2_);
  
@@ -66,7 +80,7 @@
          if (var4 != null)
          {
              Item var5 = var4.getItem();
-@@ -57,7 +87,16 @@
+@@ -57,7 +94,16 @@
              if (var5 instanceof ItemArmor)
              {
                  ItemArmor var6 = (ItemArmor)var5;
@@ -84,7 +98,7 @@
                  ModelBiped var7 = p_77032_2_ == 2 ? this.modelArmor : this.modelArmorChestplate;
                  var7.bipedHead.showModel = p_77032_2_ == 0;
                  var7.bipedHeadwear.showModel = p_77032_2_ == 0;
-@@ -66,14 +105,26 @@
+@@ -66,14 +112,26 @@
                  var7.bipedLeftArm.showModel = p_77032_2_ == 1;
                  var7.bipedRightLeg.showModel = p_77032_2_ == 2 || p_77032_2_ == 3;
                  var7.bipedLeftLeg.showModel = p_77032_2_ == 2 || p_77032_2_ == 3;
@@ -113,7 +127,7 @@
                      float var9 = (float)(var8 >> 16 & 255) / 255.0F;
                      float var10 = (float)(var8 >> 8 & 255) / 255.0F;
                      float var11 = (float)(var8 & 255) / 255.0F;
-@@ -111,7 +162,16 @@
+@@ -111,7 +169,16 @@
  
              if (var5 instanceof ItemArmor)
              {
@@ -131,7 +145,7 @@
                  GL11.glColor3f(1.0F, 1.0F, 1.0F);
              }
          }
-@@ -125,6 +185,11 @@
+@@ -125,6 +192,11 @@
       */
      public void doRender(AbstractClientPlayer p_76986_1_, double p_76986_2_, double p_76986_4_, double p_76986_6_, float p_76986_8_, float p_76986_9_)
      {
@@ -143,7 +157,7 @@
          GL11.glColor3f(1.0F, 1.0F, 1.0F);
          ItemStack var10 = p_76986_1_.inventory.getCurrentItem();
          this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = var10 != null ? 1 : 0;
-@@ -155,6 +220,11 @@
+@@ -155,6 +227,11 @@
          this.modelArmorChestplate.aimedBow = this.modelArmor.aimedBow = this.modelBipedMain.aimedBow = false;
          this.modelArmorChestplate.isSneak = this.modelArmor.isSneak = this.modelBipedMain.isSneak = false;
          this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = 0;
@@ -155,7 +169,7 @@
      }
  
      /**
-@@ -167,20 +237,48 @@
+@@ -167,20 +244,48 @@
  
      protected void renderEquippedItems(AbstractClientPlayer p_77029_1_, float p_77029_2_)
      {
@@ -206,7 +220,7 @@
                  {
                      var4 = 0.625F;
                      GL11.glTranslatef(0.0F, -0.25F, 0.0F);
-@@ -241,6 +339,12 @@
+@@ -241,6 +346,12 @@
          }
  
          boolean var21 = p_77029_1_.hasCape();
@@ -219,7 +233,7 @@
          float var11;
  
          if (var21 && !p_77029_1_.isInvisible() && !p_77029_1_.getHideCape())
-@@ -291,10 +395,18 @@
+@@ -291,10 +402,18 @@
          }
  
          ItemStack var24 = p_77029_1_.inventory.getCurrentItem();
@@ -240,7 +254,7 @@
              this.modelBipedMain.bipedRightArm.postRender(0.0625F);
              GL11.glTranslatef(-0.0625F, 0.4375F, 0.0625F);
  
-@@ -310,8 +422,18 @@
+@@ -310,8 +429,18 @@
                  var26 = var24.getItemUseAction();
              }
  
@@ -261,7 +275,7 @@
                  var7 = 0.5F;
                  GL11.glTranslatef(0.0F, 0.1875F, -0.3125F);
                  var7 *= 0.75F;
-@@ -367,7 +489,13 @@
+@@ -367,7 +496,13 @@
  
              if (var24.getItem().requiresMultipleRenderPasses())
              {
@@ -276,7 +290,7 @@
                  {
                      int var8 = var24.getItem().getColorFromItemStack(var24, var28);
                      var30 = (float)(var8 >> 16 & 255) / 255.0F;
-@@ -389,6 +517,11 @@
+@@ -389,6 +524,11 @@
  
              GL11.glPopMatrix();
          }

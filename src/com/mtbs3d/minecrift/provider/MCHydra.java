@@ -109,7 +109,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	private Field keyDownField; //Whee, reflection
 	private Field buttonDownField; //Whee, reflection
 	private boolean mouseUseJoystick = true;
-	int lastIndex = -1;
+	long lastIndex = -1;
     boolean isCalibrating = false;
 
 	public MCHydra()
@@ -126,33 +126,26 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 
 	@Override
 	public String getVersion() {
-		return "0.28";
+		return "0.29";
 	}
 
 	@Override
-	public boolean init(File nativeDir) {
+	public boolean init() throws Exception {
 		hydraInitialized = libraryLoaded;
 
 		if( !libraryLoaded )
 		{
 			try {
+				File nativeDir = new File("Dummy");
 				libraryLoaded = Sixense.LoadLibrary(nativeDir);
 			}
 			catch( UnsatisfiedLinkError e )
 			{
 				initStatus = e.getMessage();
+				throw e;
 			}
 		}
 
-		if( libraryLoaded )
-		{
-			init();
-		}
-		return hydraInitialized;
-	}
-
-	@Override
-	public boolean init() {
 		Sixense.init();
 		cm = ControllerManager.getInstance();
 		cm.setGameType(com.sixense.utils.enums.EnumGameType.ONE_PLAYER_TWO_CONTROLLER);
@@ -178,14 +171,14 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	}
 	
 	@Override
-	public void poll(int index)
+	public void poll(long frameIndex)
     {
         if (!isInitialized())
             return;
-        if (index <= this.lastIndex)
+        if (frameIndex <= this.lastIndex)
             return;
 
-        lastIndex = index;
+        this.lastIndex = frameIndex;
 
         Minecraft mc = Minecraft.getMinecraft();
 
@@ -313,7 +306,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        	headYaw = mc.headTracker.getHeadYawDegrees(EyeType.ovrEye_Center);
 	        	
 	        	//Adjust keyhole width on controller pitch; otherwise its a very narrow window at the top and bottom
-	        	float keyholeYaw = mc.vrSettings.aimKeyholeWidthDegrees/2/ MathHelper.cos(cont2Pitch * PIOVER180);
+	        	float keyholeYaw = mc.vrSettings.keyholeWidth /2/ MathHelper.cos(cont2Pitch * PIOVER180);
 	        	
 	        	float bodyYawT = cont2Yaw - baseStationYawOffset; //
 
@@ -771,8 +764,8 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	}
 
     public void beginFrame() { beginFrame(0); }
-    public void beginFrame(int frameIndex) { }
-    public void endFrame() { }
+    public void beginFrame(long frameIndex) { }
+    public boolean endFrame() { return true; }
 
     @Override
     public double ratchetingYawTransitionPercent()
@@ -787,8 +780,23 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
     }
 
     @Override
-    public boolean initBodyAim()
+    public boolean initBodyAim() throws Exception
     {
         return init();
     }
+
+	@Override
+	public void saveOptions() {
+
+	}
+
+	@Override
+	public void loadDefaults() {
+
+	}
+
+	@Override
+	public void triggerYawTransition(boolean isPositive) {
+		this.discreteYaw.triggerChange(isPositive);
+	}
 }

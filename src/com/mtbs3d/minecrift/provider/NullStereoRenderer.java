@@ -3,22 +3,16 @@ package com.mtbs3d.minecrift.provider;
 import com.mtbs3d.minecrift.api.BasePlugin;
 import com.mtbs3d.minecrift.api.IStereoProvider;
 import com.mtbs3d.minecrift.api.PluginType;
-import de.fruitfly.ovr.EyeRenderParams;
-import de.fruitfly.ovr.structs.FullPoseState;
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-
-import java.io.File;
 
 /**
  * Created by StellaArtois on 26/6/2014.
  */
 public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 {
-    FrameTiming frameTiming = new FrameTiming();
-
     @Override
     public String getID() {
         return "mono";
@@ -35,30 +29,11 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public FovTextureInfo getFovTextureSize(FovPort LeftFov,
-            FovPort RightFov,
-            float renderScaleFactor)
+    public RenderTextureInfo getRenderTextureSizes(FovPort LeftFov,
+                                                   FovPort RightFov,
+                                                   float renderScaleFactor)
     {
         return null;
-    }
-
-    @Override
-    public EyeRenderParams configureRendering(Sizei InTextureSize, Sizei OutTextureSize, GLConfig glConfig, FovPort LeftFov,
-            FovPort RightFov, float worldScale)
-    {
-        return null;
-    }
-
-    @Override
-    public EyeRenderParams configureRenderingDualTexture(Sizei InTexture1Size, Sizei InTexture2Size, Sizei OutDisplaySize, GLConfig glConfig, FovPort LeftFov,
-            FovPort RightFov, float worldScale)
-    {
-        return null;
-    }
-
-    @Override
-    public void resetRenderConfig() {
-
     }
 
     @Override
@@ -85,23 +60,10 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public FrameTiming getFrameTiming()
-    {
-        return frameTiming;
-    }
-
+    public double getFrameTiming() { return (double)System.currentTimeMillis() / 1000d; }
+    
     @Override
-    public Posef getEyePose(EyeType eye) {
-        return null;
-    }
-
-    @Override
-    public FullPoseState getEyePoses(int frameIndex) {
-        return new FullPoseState();
-    }
-
-    @Override
-    public Matrix4f getMatrix4fProjection(FovPort fov, float nearClip, float farClip) {
+    public Matrix4f getProjectionMatrix(FovPort fov, float nearClip, float farClip) {
         return null;
     }
 
@@ -116,11 +78,6 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public boolean init(File nativeDir) {
-        return false;
-    }
-
-    @Override
     public boolean init() {
         return false;
     }
@@ -131,7 +88,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public void poll(int index) {
+    public void poll(long frameIndex) {
 
     }
 
@@ -163,16 +120,16 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     }
 
     @Override
-    public void beginFrame(int frameIndex)
+    public void beginFrame(long frameIndex)
     {
-        frameTiming = new FrameTiming();
-        frameTiming.ScanoutMidpointSeconds = getCurrentTimeSecs();  // Hack to current for now - doesn't really matter
+
     }
 
     @Override
-    public void endFrame() {
+    public boolean endFrame() {
         GL11.glFlush();
         Display.update();
+        return true;
     }
 
     @Override
@@ -180,4 +137,39 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     {
         return System.nanoTime() / 1000000000d;
     }
+
+    @Override
+    public boolean providesMirrorTexture() { return false; }
+
+    @Override
+    public int createMirrorTexture(int width, int height)
+    {
+        return -1;
+    }
+
+    @Override
+    public void deleteMirrorTexture() {}
+
+    @Override
+    public boolean providesRenderTextures() { return false; }
+
+    @Override
+    public RenderTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight)
+    {
+        return null;
+    }
+
+	@Override
+	public boolean setCurrentRenderTextureInfo(int index, int textureIdx, int depthId, int depthWidth, int depthHeight) {
+		return true;
+	}
+
+    @Override
+    public void deleteRenderTextures() {}
+
+    @Override
+    public String getLastError() { return "Success"; }
+
+    @Override
+    public void configureRenderer(GLConfig cfg) {}
 }

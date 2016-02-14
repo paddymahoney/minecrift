@@ -4,6 +4,7 @@
  */
 package com.mtbs3d.minecrift.control;
 
+import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 
@@ -21,6 +22,7 @@ public class WalkRightBinding extends ControlBinding {
 
 	@Override
 	public void setState(boolean state) {
-		setValue( state ? Minecraft.getMinecraft().vrSettings.movementSpeedMultiplier: 0.0f );
+		VRSettings settings = Minecraft.getMinecraft().vrSettings;
+		setValue( state ? settings.movementSpeedMultiplier * settings.strafeSpeedMultiplier : 0.0f );
 	}
 }

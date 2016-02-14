@@ -31,6 +31,8 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             new VROption(VRSettings.VrOptions.VR_HEAD_POSITION,    VROption.Position.POS_RIGHT,  4.25f, VROption.DISABLED, null),
             new VROption(208,                                      VROption.Position.POS_LEFT,   5.25f, VROption.DISABLED, "Move/Aim Control..."),
             new VROption(VRSettings.VrOptions.VR_CONTROLLER,       VROption.Position.POS_RIGHT,  5.25f, VROption.DISABLED, null),
+            new VROption(209,                                      VROption.Position.POS_LEFT,   6.25f, VROption.DISABLED, "Locomotion Settings..."),
+            new VROption(VRSettings.VrOptions.USE_VR_COMFORT,      VROption.Position.POS_RIGHT,  6.25f, VROption.DISABLED, null)
         };
 
     static VROption[] vrOnDeviceList = new VROption[]
@@ -45,6 +47,8 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             new VROption(VRSettings.VrOptions.VR_HEAD_POSITION,    VROption.Position.POS_RIGHT,  4.25f, VROption.DISABLED, null),
             new VROption(208,                                      VROption.Position.POS_LEFT,   5.25f, VROption.ENABLED, "Move/Aim Control..."),
             new VROption(VRSettings.VrOptions.VR_CONTROLLER,       VROption.Position.POS_RIGHT,  5.25f, VROption.DISABLED, null),
+            new VROption(209,                                      VROption.Position.POS_LEFT,   6.25f, VROption.ENABLED, "Locomotion Settings..."),
+            new VROption(VRSettings.VrOptions.USE_VR_COMFORT,      VROption.Position.POS_RIGHT,  6.25f, VROption.DISABLED, null)
         };
 
     /** An array of all of EnumOption's video options. */
@@ -70,8 +74,8 @@ public class GuiMinecriftSettings extends BaseGuiSettings
         int profileButtonWidth = 240;
         GuiSmallButtonEx profilesButton = new GuiSmallButtonEx(PROFILES_ID, (this.width / 2 - 155 + 1 * 160 / 2) - ((profileButtonWidth - 150) / 2), this.height / 6 - 14, profileButtonWidth, 20, "Profile: " + VRSettings.getCurrentProfile());
         this.buttonList.add(profilesButton);
-        buttonOrigin = new GuiButtonEx(211, this.width / 2 - 100, this.height / 6 + 128, "Reset Origin");
-        buttonRecali = new GuiButtonEx(210, this.width / 2 - 100, this.height / 6 + 148, "Recalibrate...");
+        buttonOrigin = new GuiButtonEx(211, this.width / 2 - 100, this.height / 6 + 148, 100, 20, "Reset Origin");
+        buttonRecali = new GuiButtonEx(210, this.width / 2, this.height / 6 + 148, 100, 20, "Recalibrate...");
         this.buttonList.add(new GuiButtonEx(200, this.width / 2 - 100, this.height / 6 + 168, "Done"));
         VROption[] buttons = null;
         if (true)
@@ -181,6 +185,12 @@ public class GuiMinecriftSettings extends BaseGuiSettings
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 this.mc.displayGuiScreen(this.parentGuiScreen);
             }
+            else if (par1GuiButton.id == 209)
+            {
+                this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.saveOptions();
+                this.mc.displayGuiScreen(new GuiLocomotionSettings(this, this.guivrSettings));
+            }
             else if (par1GuiButton.id == PROFILES_ID)
             {
                 Minecraft.getMinecraft().vrSettings.saveOptions();
@@ -193,6 +203,7 @@ public class GuiMinecriftSettings extends BaseGuiSettings
     protected String[] getTooltipLines(String displayString, int buttonId)
     {
         VRSettings.VrOptions e = VRSettings.VrOptions.getEnumOptions(buttonId);
+
     	if( e != null )
     	switch(e)
     	{
@@ -202,7 +213,18 @@ public class GuiMinecriftSettings extends BaseGuiSettings
 				"  ON: Yay Fun!",
 				"  OFF: Sad vanilla panda: gameplay unchanged"
     		};
-    	default:
+        case USE_VR_COMFORT:
+            return new String[] {
+                    "Enables view ratcheting on controller yaw or pitch input.",
+                    "For some people this can allow a more comfortable",
+                    "viewing experience while moving around. Known as",
+                    "'VR Comfort Mode' (with thanks to Cloudhead Games)!",
+                    "  OFF: (Default) No view ratcheting is applied.",
+                    "  Yaw Only: View ratcheting applied to Yaw only.",
+                    "  Pitch Only: View ratcheting applied to Pitch only.",
+                    "  Yaw and Pitch: You guessed it...",
+            } ;
+            default:
     		return null;
     	}
     	else
@@ -252,6 +274,11 @@ public class GuiMinecriftSettings extends BaseGuiSettings
 	    			"  Ex: Look/move/aim decouple, joystick sensitivty, " ,
 	    			"     Keyhole width, Mouse-pitch-affects camera" ,
 	    		};
+            case 209:
+                return new String[] {
+                        "Configure the locomotion based settings: movement",
+                        "attributes, VR comfort mode etc..."
+                } ;
             case 211:
                 return new String[] {
                         "Resets the origin point to your current head",

@@ -4,24 +4,24 @@
  */
 package com.mtbs3d.minecrift.provider;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.mtbs3d.minecrift.api.PluginType;
 import com.mtbs3d.minecrift.control.*;
 
+import com.mtbs3d.minecrift.settings.profile.ProfileManager;
+import com.mtbs3d.minecrift.settings.profile.ProfileReader;
+import com.mtbs3d.minecrift.settings.profile.ProfileWriter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.src.Reflector;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
@@ -29,7 +29,6 @@ import org.lwjgl.input.Controllers;
 import com.mtbs3d.minecrift.api.BasePlugin;
 import com.mtbs3d.minecrift.api.IBodyAimController;
 import com.mtbs3d.minecrift.control.GuiScreenNavigator;
-import com.mtbs3d.minecrift.settings.VRSettings;
 
 
 public class MCController extends BasePlugin implements IBodyAimController
@@ -38,7 +37,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 	JoystickAim joyAim;
 	boolean hasControllers = false;
 	ControlBinding nextBind = null;
-	Field fieldCreated = null;
+	static boolean allowControllerEnvReInit = false;
 
 	HashMap<String,String> bindingSaves = new HashMap<String,String>();
 	class BindingMap {
@@ -279,7 +278,7 @@ public class MCController extends BasePlugin implements IBodyAimController
 	private Minecraft mc;
 	private GuiScreenNavigator screenNavigator;
 	private boolean loaded = false;
-    int lastIndex = -1;
+    long lastIndex = -1;
 
 	public MCController() {
 		super();
@@ -300,51 +299,40 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	@Override
-	public boolean init(File nativeDir) {
-		return init();
-	}
-
-	@Override
 	public boolean init() {
 		try {
-		    setCreated(false);
+			loaded = false;
+			System.out.println("[Minecrift] Init MCController");
+			resetControllerEnvironment();
 			Controllers.create();
-			hasControllers = Controllers.getControllerCount()> 0;
+			hasControllers = Controllers.getControllerCount() > 0;
+			loadBindings();
 
-			System.out.println("[Minecrift]Initialized controllers: "+getInitializationStatus());
+			System.out.println("[Minecrift] Initialized controllers: "+getInitializationStatus());
 		} catch (LWJGLException e) {
 			e.printStackTrace();
 		}
 		return isInitialized();
 	}
 
-    public void setupControllerCreated()
-    {
-        try
-        {
-            if (fieldCreated == null) {
-                fieldCreated = Controllers.class.getDeclaredField("created");
-                fieldCreated.setAccessible(true);
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
+	// Initial credit to Florian Enner, StackOverflow user for the general methodology!
+	public void resetControllerEnvironment()
+	{
+		if (allowControllerEnvReInit) {
+			// Create a new default controller environment - expensive
+			Object defaultControllerEnvironment = Reflector.newInstance(Reflector.JInput_DefaultControllerEnv_Constructor, new Object[]{});
 
-    public void setCreated(boolean created)
-    {
-        setupControllerCreated();
-        if (fieldCreated != null)
-        {
-            try {
-                fieldCreated.set(null, (Object) created);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+			// Set this as the default
+			Reflector.setFieldValue(Reflector.JInput_ControllerEnv_defaultEnvironment, defaultControllerEnvironment);
+
+			// Set Controllers created field to false
+			Reflector.setFieldValue(Reflector.LWJGL_Controllers_created, false);
+		}
+	}
+
+	public void allowControllerEnvReInit() {
+		allowControllerEnvReInit = true;
+	}
 
 	@Override
 	public boolean isInitialized() {
@@ -352,14 +340,11 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	@Override
-	public void poll(int index)
-    {
-        if (index <= this.lastIndex)
+	public void poll(long frameIndex) throws Exception {
+        if (frameIndex <= this.lastIndex)
             return;
-        lastIndex = index;
+        this.lastIndex = frameIndex;
 
-		if(!loaded)
-			loadBindings();
 		JoystickAim.selectedJoystickMode = aimTypes[mc.vrSettings.joystickAimType];
 		joyAim = JoystickAim.selectedJoystickMode;
 		for( int c = 0; c < Controllers.getControllerCount();c++) {
@@ -404,16 +389,18 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	private void saveBindings() {
-		File bindingsSave = new File( mc.mcDataDir, "options_controller.txt");
-		PrintWriter bindingsWriter;
-		try {
-			bindingsWriter = new PrintWriter( new FileWriter(bindingsSave));
+		saveBindings(null); // Use null for the current profile
+	}
+
+	private void saveBindings(JSONObject theProfiles) {
+		//File bindingsSave = new File( mc.mcDataDir, "options_controller.txt");
+		if (isInitialized()) {
+			ProfileWriter bindingsWriter = new ProfileWriter(ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS, theProfiles);
 			for (Map.Entry<String, String> entry : bindingSaves.entrySet()) {
-				bindingsWriter.println(entry.getKey()+":"+entry.getValue());
+				bindingsWriter.println(entry.getKey() + ":" + entry.getValue());
 			}
 			bindingsWriter.close();
-		} catch (IOException e) {
-            logger.error("Failed to save controller bindings: " + e.getMessage());
+			System.out.println("[Minecrift] Saved MCController bindings");
 		}
 	}
 	
@@ -436,50 +423,55 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	private void loadBindings() {
-		File bindingsSave = new File( mc.mcDataDir, "options_controller.txt");
-		if( !bindingsSave.exists() ) {
-			//TODO: load a default binding?
-			
-		} else {
-            try {
-				BufferedReader bindingsReader = new BufferedReader(new FileReader(bindingsSave));
-				String line;
-				while ((line = bindingsReader.readLine()) != null)
-	            {
-                    String[] bindingTokens = line.split(":");
-                    if( bindingTokens.length > 1 )
-                    {
-                    	String key = bindingTokens[0];
-                    	for( ControlBinding binding : ControlBinding.bindings ) {
-                    		if( binding.key.equals(key) ) {
-                    			
-                    			if( binding.isGUI())
-                    				loadBinding( binding, GUI, bindingTokens );
-                    			else 
-                    				loadBinding( binding, ingame, bindingTokens );
+		loadBindings(null); // Use null for the current profile
+	}
 
-                    			if( binding instanceof InventoryBinding ||
-									binding instanceof MenuBinding  ) //These are in both
-                    				loadBinding( binding, GUI, bindingTokens );
-                    			break;
-                    		}
-                    	}
-                    }
-	            }
-				bindingsReader.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} 
-			
+	private void loadBindings(JSONObject theProfiles) {
+		// Cleanup any current bindings
+		ingame = new BindingMap();
+		GUI    = new BindingMap();
+		bindingSaves = new HashMap<String,String>();
+
+		try {
+			ProfileReader bindingsReader = new ProfileReader(ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS, theProfiles);
+			String line;
+			while ((line = bindingsReader.readLine()) != null)
+			{
+				String[] bindingTokens = line.split(":");
+				if( bindingTokens.length > 1 )
+				{
+					String key = bindingTokens[0];
+					for( ControlBinding binding : ControlBinding.bindings ) {
+						if( binding.key.equals(key) ) {
+
+							if( binding.isGUI())
+								loadBinding( binding, GUI, bindingTokens );
+							else
+								loadBinding( binding, ingame, bindingTokens );
+
+							if( binding instanceof InventoryBinding ||
+								binding instanceof MenuBinding  ) //These are in both
+								loadBinding( binding, GUI, bindingTokens );
+							break;
+						}
+					}
+				}
+			}
+			bindingsReader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+
 		loaded = true;
+		System.out.println("[Minecrift] Loaded MCController bindings");
 	}
 
 	@Override
 	public void destroy() {
 		Controllers.destroy();
+		allowControllerEnvReInit();
 	}
 
 	@Override
@@ -533,8 +525,8 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
     public void beginFrame() { beginFrame(0); }
-    public void beginFrame(int frameIndex) { }
-    public void endFrame() { }
+    public void beginFrame(long frameIndex) { }
+    public boolean endFrame() { return true; }
 
     @Override
     public double ratchetingYawTransitionPercent()
@@ -555,8 +547,25 @@ public class MCController extends BasePlugin implements IBodyAimController
     }
 
     @Override
-    public boolean initBodyAim()
-    {
+    public boolean initBodyAim() {
+		allowControllerEnvReInit();
         return init();
     }
+
+	@Override
+	public void saveOptions() {
+		if (loaded)
+			saveBindings();
+	}
+
+	@Override
+	public void loadDefaults() {
+		ProfileManager.loadControllerDefaults();
+		loadBindings();
+	}
+
+	@Override
+	public void triggerYawTransition(boolean isPositive) {
+		this.joyAim.triggerYawChange(isPositive);
+	}
 }

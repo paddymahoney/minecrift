@@ -5,7 +5,7 @@
                  if (y.getEnumFloat())
                  {
 -                    this.buttonList.add(new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y));
-+                    /** MINECRIFT */ // disable frame rate settings (always VSync) 
++                    /** MINECRIFT */ // disable frame rate settings (never VSync)
 +                    GuiOptionSlider slider = new GuiOptionSlider(y.returnEnumOrdinal(), x, y1, y);
 +                    if (y == GameSettings.Options.FRAMERATE_LIMIT)
 +                        slider.enabled = false;

@@ -32,16 +32,15 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     private int calibrationStep = NOT_CALIBRATING;
     private int MagCalSampleCount = 0;
     private boolean forceMagCalibration = false; // Don't force mag cal initially
-    private FrameTiming frameTiming = new FrameTiming();
+    private double PredictedDisplayTime = 0d;
     private float yawOffsetRad = 0f;
     private float pitchOffsetRad = 0f;
     private float rollHeadRad = 0f;
     private float pitchHeadRad = 0f;
     private float yawHeadRad = 0f;
-    private TrackerState ts = new TrackerState();
     private Posef[] eyePose = new Posef[3];
     private EulerOrient[] eulerOrient = new EulerOrient[3];
-    int lastIndex = -1;
+    long lastIndex = -1;
     FullPoseState fullPoseState = new FullPoseState();
     boolean isCalibrating = false;
 
@@ -59,11 +58,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     @Override
     public EyeType eyeRenderOrder(int index)
     {
-        HmdDesc desc = getHMDInfo();
-        if (index < 0 || index >= desc.EyeRenderOrder.length)
-            return EyeType.ovrEye_Left;
-
-        return desc.EyeRenderOrder[index];
+        return EyeType.fromInteger(index);
     }
 
     @Override
@@ -88,7 +83,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         return false;
     }
 
-    public FrameTiming getFrameTiming() { return frameTiming; };
+    public double getFrameTiming() { return PredictedDisplayTime; };
 
     public static UserProfileData theProfileData = null;
 
@@ -99,56 +94,43 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     @Override
-    public void beginFrame(int frameIndex)
+    public void beginFrame(long frameIndex)
     {
-        frameTiming = super.beginFrameGetTiming(frameIndex);
+
     }
 
     @Override
-    public Posef getEyePose(EyeType eye)
-    {
-        return this.eyePose[eye.value()];
-    }
-
-    @Override
-    public FullPoseState getEyePoses(int frameIndex)
+    public FullPoseState getTrackedPoses(long frameIndex)
     {
         return fullPoseState;
     }
 
-    public Matrix4f getMatrix4fProjection(FovPort fov,
-                                          float nearClip,
-                                          float farClip)
+    public Matrix4f getProjectionMatrix(FovPort fov,
+                                        float nearClip,
+                                        float farClip)
     {
-         return super.getMatrix4fProjection(fov, nearClip, farClip);
+         return super.getProjectionMatrix(fov, nearClip, farClip);
     }
 
-    public void endFrame()
+    public boolean endFrame()
     {
-        GL11.glDisable(GL11.GL_CULL_FACE);  // Oculus wants CW orientations, avoid the problem by turning off culling...
-        GL11.glDisable(GL11.GL_DEPTH_TEST); // Nothing is drawn with depth test on...
-        //GL30.glBindVertexArray(0);
-        GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0); // Unbind GL_ARRAY_BUFFER for my own vertex arrays to work...
-        GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
-
         // End the frame
-        super.endFrame();
-
-        GL11.glFrontFace(GL11.GL_CCW);   // Needed for OVR SDK 0.4.0
-        GL11.glEnable(GL11.GL_CULL_FACE); // Turn back on...
-        GL11.glEnable(GL11.GL_DEPTH_TEST); // Turn back on...
-        GL11.glClearDepth(1); // Oculus set this to 0 (the near plane), return to normal...
-        ARBShaderObjects.glUseProgramObjectARB(0); // Oculus shader is still active, turn it off...
+        ErrorInfo result = submitFrame();
 
         Display.processMessages();
+
+        if (result == null)
+            return true;
+
+        return result.unqualifiedSuccess;
     }
 
     @Override
-    public HmdDesc getHMDInfo()
+    public HmdParameters getHMDInfo()
     {
-        HmdDesc hmdDesc = new HmdDesc();
+        HmdParameters hmdDesc = new HmdParameters();
         if (isInitialized())
-            hmdDesc = getHmdDesc();
+            hmdDesc = getHmdParameters();
 
         return hmdDesc;
     }
@@ -241,7 +223,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         if (!isInitialized())
             return true;  // Return true if not initialised
 
-        if (!getHMDInfo().IsReal)
+        if (!getHMDInfo().isReal())
             return true;  // Return true if debug (fake) Rift...
 
         if (type != PluginType.PLUGIN_POSITION)   // Only position provider needs calibrating
@@ -261,15 +243,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
             case CALIBRATE_AWAITING_FIRST_ORIGIN:
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append("HEALTH AND SAFETY WARNING").append(newline).append(newline)
-                        .append("Read and follow all warnings and instructions").append(newline)
-                        .append("included with the Headset before use. Headset").append(newline)
-                        .append("should be calibrated for each user. Not for use by").append(newline)
-                        .append("children under 13. Stop use if you experience any").append(newline)
-                        .append("discomfort or health reactions.").append(newline).append(newline)
-                        .append("More: www.oculus.com/warnings").append(newline).append(newline)
-                        .append("Look ahead and press SPACEBAR to acknowledge").append(newline)
-                        .append("and reset origin.");
+                sb.append("Look ahead and press SPACEBAR to reset origin.");
                 step = sb.toString();
                 break;
             }
@@ -385,22 +359,22 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     @Override
-    public void poll(int index)
+    public void poll(long frameIndex)
     {
         //System.out.println("lastIndex: " + lastIndex);
 
         EyeType eye;
         if (!isInitialized())
             return;
-        if (index <= this.lastIndex)
+        if (frameIndex <= this.lastIndex)
             return;
 
-        lastIndex = index;
-        Vector3f leftViewAdjust = erp.Eyes[EyeType.ovrEye_Left.value()].ViewAdjust;
-        Vector3f rightViewAdjust = erp.Eyes[EyeType.ovrEye_Right.value()].ViewAdjust;
+        this.lastIndex = frameIndex;
 
         // Get our eye pose and tracker state in one hit
-        fullPoseState = super.getEyePoses(index, leftViewAdjust, rightViewAdjust);
+        fullPoseState = super.getTrackedPoses(frameIndex);
+        PredictedDisplayTime = fullPoseState.PredictedDisplayTime;
+        //System.out.println(fullPoseState.toString());
 
         // Set left eye pose
         eye = EyeType.ovrEye_Left;
@@ -426,7 +400,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
         // Set center eye pose
         eye = EyeType.ovrEye_Center;
-        this.eyePose[eye.value()] = fullPoseState.trackerState.HeadPose.ThePose;
+        this.eyePose[eye.value()] = fullPoseState.centerEyePose.ThePose;
         this.eulerOrient[eye.value()] = OculusRift.getEulerAnglesDeg(this.eyePose[eye.value()].Orientation,
                 1.0f,
                 Axis.Axis_Y,
@@ -434,9 +408,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
                 Axis.Axis_Z,
                 HandedSystem.Handed_L,
                 RotateDirection.Rotate_CCW);
-
-        // Set tracker info
-        ts = fullPoseState.trackerState;
     }
 
 
@@ -487,4 +458,10 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     {
         return getCurrentTimeSeconds();
     }
+
+    @Override
+    public boolean providesRenderTextures() { return true; }
+
+    @Override
+    public boolean providesMirrorTexture() { return true; }
 }

@@ -21,7 +21,7 @@ import com.mtbs3d.minecrift.control.ControlBinding;
 public class MCMouse extends BasePlugin implements IBodyAimController {
 
     private Aim aim = new Aim();
-    int lastIndex = -1;
+    long lastIndex = -1;
 
 	private Minecraft mc;
 
@@ -45,11 +45,6 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	}
 
 	@Override
-	public boolean init(File nativeDir) {
-		return init();
-	}
-
-	@Override
 	public boolean init() {
 		mc = Minecraft.getMinecraft();
 		return isInitialized();
@@ -61,12 +56,12 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	}
 
 	@Override
-	public void poll(int index)
+	public void poll(long frameIndex)
     {
-        if (index <= this.lastIndex)
+        if (frameIndex <= this.lastIndex)
             return;
 
-        lastIndex = index;
+        this.lastIndex = frameIndex;
         if(this.mc.currentScreen == null && Display.isActive())
         {
             this.mc.mouseHelper.mouseXYChange();
@@ -131,8 +126,8 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	public void mapBinding(ControlBinding binding) {
 	}
     public void beginFrame() { beginFrame(0); }
-    public void beginFrame(int frameIndex) { }
-    public void endFrame() { }
+    public void beginFrame(long frameIndex) { }
+    public boolean endFrame() { return true; }
 
     @Override
     public double ratchetingYawTransitionPercent()
@@ -151,4 +146,19 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
     {
         return init();
     }
+
+	@Override
+	public void saveOptions() {
+
+	}
+
+	@Override
+	public void loadDefaults() {
+
+	}
+
+	@Override
+	public void triggerYawTransition(boolean isPositive) {
+		this.aim.triggerYawChange(isPositive);
+	}
 }

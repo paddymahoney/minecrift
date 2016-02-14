@@ -1,6 +1,6 @@
 --- a/net/minecraft/src/Reflector.java
 +++ b/net/minecraft/src/Reflector.java
-@@ -4,19 +4,37 @@
+@@ -4,22 +4,41 @@
  import java.lang.reflect.Field;
  import java.lang.reflect.InvocationTargetException;
  import java.lang.reflect.Method;
@@ -38,7 +38,11 @@
  import net.minecraft.world.ChunkCoordIntPair;
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
-@@ -136,6 +154,265 @@
++import org.lwjgl.input.Controllers;
+ 
+ public class Reflector
+ {
+@@ -136,6 +155,273 @@
      public static ReflectorClass ForgeItemRecord = new ReflectorClass(ItemRecord.class);
      public static ReflectorMethod ForgeItemRecord_getRecordResource = new ReflectorMethod(ForgeItemRecord, "getRecordResource", new Class[] {String.class});
  
@@ -271,6 +275,14 @@
 +    public static ReflectorConstructor ShadersMod_GuiShaders_Constructor = new ReflectorConstructor(ShadersMod_GuiShaders, new Class[] {GuiScreen.class, GameSettings.class});
 +    /** END MINECRIFT SHADERS MOD **/
 +
++    // Various LWJGL hacks
++    public static ReflectorClass LWJGL_Controllers = new ReflectorClass(Controllers.class);
++    public static ReflectorField LWJGL_Controllers_created = new ReflectorField(LWJGL_Controllers, "created");
++    public static ReflectorClass JInput_ControllerEnv = new ReflectorClass("net.java.games.input.ControllerEnvironment");
++    public static ReflectorField JInput_ControllerEnv_defaultEnvironment = new ReflectorField(JInput_ControllerEnv, "defaultEnvironment");
++    public static ReflectorClass JInput_DefaultControllerEnv = new ReflectorClass("net.java.games.input.DefaultControllerEnvironment");
++    public static ReflectorConstructor JInput_DefaultControllerEnv_Constructor = new ReflectorConstructor(JInput_DefaultControllerEnv, new Class[] {});
++
 +    // Initialise classes / methods that require Forge only class parameters...
 +
 +    public static Class Class_ForgePlayerInteractEvent_Action;
@@ -304,7 +316,7 @@
      public static void callVoid(ReflectorMethod refMethod, Object ... params)
      {
          try
-@@ -467,8 +744,56 @@
+@@ -467,8 +753,56 @@
              {
                  return;
              }
@@ -315,46 +327,46 @@
 +            {
 +                e.set(obj, null);
 +            }
-+            else if (e.getType().isPrimitive())
-+            {
-+                Class<?> clazz = e.getType();
-+                if (clazz.equals(Boolean.class))
-+                {
-+                    e.setBoolean(obj, ((Boolean)value).booleanValue());
-+                }
-+                else if (clazz.equals(Integer.class))
-+                {
-+                    e.setInt(obj, ((Integer) value).intValue());
-+                }
-+                else if (clazz.equals(Character.class))
-+                {
-+                    e.setChar(obj, ((Character) value).charValue());
-+                }
-+                else if (clazz.equals(Byte.class))
-+                {
-+                    e.setByte(obj, ((Byte) value).byteValue());
-+                }
-+                else if (clazz.equals(Short.class))
-+                {
-+                    e.setShort(obj, ((Short) value).shortValue());
-+                }
-+                else if (clazz.equals(Double.class))
-+                {
-+                    e.setDouble(obj, ((Double) value).doubleValue());
-+                }
-+                else if (clazz.equals(Long.class))
-+                {
-+                    e.setLong(obj, ((Long) value).longValue());
-+                }
-+                else if (clazz.equals(Float.class))
-+                {
-+                    e.setFloat(obj, ((Float) value).floatValue());
-+                }
-+                else if (clazz.equals(Void.class))
-+                {
-+                    e.set(obj, null);
-+                }
-+            }
++//            else if (e.getType().isPrimitive())
++//            {
++//                Class<?> clazz = e.getType();
++//                if (clazz.equals(Boolean.class))
++//                {
++//                    e.setBoolean(obj, ((Boolean)value).booleanValue());
++//                }
++//                else if (clazz.equals(Integer.class))
++//                {
++//                    e.setInt(obj, ((Integer) value).intValue());
++//                }
++//                else if (clazz.equals(Character.class))
++//                {
++//                    e.setChar(obj, ((Character) value).charValue());
++//                }
++//                else if (clazz.equals(Byte.class))
++//                {
++//                    e.setByte(obj, ((Byte) value).byteValue());
++//                }
++//                else if (clazz.equals(Short.class))
++//                {
++//                    e.setShort(obj, ((Short) value).shortValue());
++//                }
++//                else if (clazz.equals(Double.class))
++//                {
++//                    e.setDouble(obj, ((Double) value).doubleValue());
++//                }
++//                else if (clazz.equals(Long.class))
++//                {
++//                    e.setLong(obj, ((Long) value).longValue());
++//                }
++//                else if (clazz.equals(Float.class))
++//                {
++//                    e.setFloat(obj, ((Float) value).floatValue());
++//                }
++//                else if (clazz.equals(Void.class))
++//                {
++//                    e.set(obj, null);
++//                }
++//            }
 +            else
 +            {
 +                e.set(obj, value);
