@@ -11,6 +11,9 @@
 - Controller map defaults have been added. These should match the Xbox controller defaults (layout 
   one). Controller mappings will now be saved to the profile. 
 - Press RCtrl-t in game to test timewarp.
+- Added the ability to use a key to trigger a comfort mode yaw transition, instead of moving the 
+  mouse cursor to the edge of the view.
+- Set better defaults on clean install.
 
 Bug fixes
 ---------
@@ -21,13 +24,7 @@ Bug fixes
         Rendering' and click Mode until you get to 'Oculus Rift'.
 - Better defaults on fresh install.
 - Fixed a framebuffer memory leak that occurred whenever the rendering configuration was changed.
-
-Known Issues
-------------
-
-- Forge: If crosshair max distance is set to 'Far', crosshair corruption occurs when no blocks are
-         aimed at. Workaround - set to 'Reach'.
-         
+        
          
 [Minecrift 1.7.10 R1c]
  
