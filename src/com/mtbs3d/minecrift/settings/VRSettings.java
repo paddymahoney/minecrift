@@ -190,6 +190,7 @@ public class VRSettings
 	public String headTrackerPluginID = "oculus";
 	public String hmdPluginID = "oculus";
     public String stereoProviderPluginID = "oculus";
+    public String badStereoProviderPluginID = "";
 	public String controllerPluginID = "controller";
     public int calibrationStrategy = CALIBRATION_STRATEGY_AT_STARTUP;
     public float crosshairScale = 1.0f;
@@ -344,6 +345,11 @@ public class VRSettings
                     if (optionTokens[0].equals("stereoProviderPluginID"))
                     {
                         this.stereoProviderPluginID = optionTokens[1];
+                    }
+
+                    if (optionTokens[0].equals("badStereoProviderPluginID"))
+                    {
+                        this.badStereoProviderPluginID = optionTokens[1];
                     }
 
                     if (optionTokens[0].equals("controllerPluginID"))
@@ -1981,6 +1987,7 @@ public class VRSettings
             var5.println("headPositionPluginID:"+ this.headPositionPluginID);
             var5.println("hmdPluginID:"+ this.hmdPluginID);
             var5.println("stereoProviderPluginID:"+ this.stereoProviderPluginID);
+            var5.println("badStereoProviderPluginID:"+ this.badStereoProviderPluginID);
             var5.println("controllerPluginID:"+ this.controllerPluginID);
             var5.println("leftHalfIpd:" + this.leftHalfIpd);
             var5.println("rightHalfIpd:" + this.rightHalfIpd);
