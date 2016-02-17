@@ -81,6 +81,11 @@ public class VRSettings
     public static final int DECOUPLE_OFF = 0;
     public static final int DECOUPLE_WITH_HUD = 1;
     public static final int DECOUPLE_WITH_CROSSHAIR = 2;
+    public static final int MIRROR_OFF = 0;
+    public static final int MIRROR_ON_ONE_THIRD_FRAME_RATE = 1;
+    public static final int MIRROR_ON_FULL_FRAME_RATE = 2;
+    public static final int MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW = 3;
+    public static final int MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW = 4;
 
     public static final int NO_SHADER = -1;
 
@@ -121,7 +126,7 @@ public class VRSettings
     public boolean useLowPersistence = true;
     public boolean useDynamicPrediction = true;
     public float   renderScaleFactor = 1.5f;
-    public boolean useDisplayMirroring = true;
+    public int displayMirrorMode = MIRROR_ON_ONE_THIRD_FRAME_RATE;
     public boolean usePositionalTimewarp = true;
     public boolean useDisplayOverdrive = true;
     public boolean useHighQualityDistortion = true;
@@ -454,9 +459,9 @@ public class VRSettings
                         this.useDisplayOverdrive = optionTokens[1].equals("true");
                     }
 
-                    if (optionTokens[0].equals("useDisplayMirroring"))
+                    if (optionTokens[0].equals("displayMirrorMode"))
                     {
-                        this.useDisplayMirroring = optionTokens[1].equals("true");
+                        this.displayMirrorMode = Integer.parseInt(optionTokens[1]);
                     }
 
                     if (optionTokens[0].equals("useDistortionTextureLookupOptimisation"))
@@ -1035,7 +1040,19 @@ public class VRSettings
             //case ENABLE_DIRECT:
             //    return this.mc.isDirectMode ? var4 + "Direct" : var4 + "Extended";
             case MIRROR_DISPLAY:
-                return this.useDisplayMirroring ? var4 + "ON" : var4 + "OFF";
+                switch(this.displayMirrorMode) {
+                    case MIRROR_OFF:
+                    default:
+                        return var4 + "OFF";
+                    case MIRROR_ON_ONE_THIRD_FRAME_RATE:
+                        return var4 + "DUAL (1/3)";
+                    case MIRROR_ON_FULL_FRAME_RATE:
+                        return var4 + "DUAL (Full)";
+                    case MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW:
+                        return var4 + "SINGLE (1/3)";
+                    case MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW:
+                        return var4 + "SINGLE (Full)";
+                }
             case POS_TRACK_HIDE_COLLISION:
                 return this.posTrackBlankOnCollision ? var4 + "YES" : var4 + "NO";
             case WALK_UP_BLOCKS:
@@ -1510,7 +1527,9 @@ public class VRSettings
                 this.useDisplayOverdrive = !this.useDisplayOverdrive;
                 break;
             case MIRROR_DISPLAY:
-                this.useDisplayMirroring = !this.useDisplayMirroring;
+                this.displayMirrorMode++;
+                if (this.displayMirrorMode > MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW)
+                    this.displayMirrorMode = MIRROR_OFF;
                 break;
             case POS_TRACK_HIDE_COLLISION:
                 this.posTrackBlankOnCollision = !this.posTrackBlankOnCollision;
@@ -2009,7 +2028,7 @@ public class VRSettings
             var5.println("useLowPersistence:" + this.useLowPersistence);
             var5.println("useDynamicPrediction:" + this.useDynamicPrediction);
             var5.println("useDisplayOverdrive:" + this.useDisplayOverdrive);
-            var5.println("useDisplayMirroring:" + this.useDisplayMirroring);
+            var5.println("displayMirrorMode:" + this.displayMirrorMode);
             var5.println("posTrackBlankOnCollision:" + this.posTrackBlankOnCollision);
             var5.println("walkUpBlocks:" + this.walkUpBlocks);
             var5.println("allowPitchAffectsHeightWhileFlying:" + this.allowPitchAffectsHeightWhileFlying);

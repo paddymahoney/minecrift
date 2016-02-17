@@ -194,7 +194,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useLowPersistence = true;
                 minecraft.vrSettings.useDynamicPrediction = true;
                 minecraft.vrSettings.renderScaleFactor = 1.5f;
-                minecraft.vrSettings.useDisplayMirroring = true;
+                minecraft.vrSettings.displayMirrorMode = VRSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE;
                 minecraft.vrSettings.useDisplayOverdrive = true;
                 minecraft.vrSettings.useHighQualityDistortion = true;
                 minecraft.vrSettings.useFsaa = false;
@@ -207,6 +207,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             else if (par1GuiButton.id == ID_GENERIC_MODE_CHANGE) // Mode Change
             {
                 Minecraft.getMinecraft().vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
+                Minecraft.getMinecraft().vrSettings.badStereoProviderPluginID = "";
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 try {
                     Minecraft.getMinecraft().stereoProvider = PluginManager.configureStereoProvider(Minecraft.getMinecraft().vrSettings.stereoProviderPluginID);
@@ -329,8 +330,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             case MIRROR_DISPLAY:
                 return new String[] {
                         "Mirrors image on HMD to separate desktop window.",
-                        "Only relevant if Direct mode is ON. Not currently",
-                        " working so set to NO currently."
+                        "Can be set to OFF, single or dual view at 1/3 or",
+                        "full framerate."
                 };
             case DYNAMIC_PREDICTION:
                 return new String[]{
