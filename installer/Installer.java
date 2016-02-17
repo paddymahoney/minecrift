@@ -35,6 +35,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final boolean ALLOW_FORGE_INSTALL = true;
     private static final boolean ALLOW_HYDRA_INSTALL = false;  // TODO: Change to true once Hydra is fixed up
 
+    private static final boolean NEEDS_2010_REDIST = true;
+    private static final boolean NEEDS_2012_REDIST = true;
+
     // Currently needed for Win boxes - C++ redists
 
     public static String winredist2012_64url = "http://download.microsoft.com/download/1/6/B/16B06F60-3B20-4FF2-B699-5E9B7962F9AE/VSU_4/vcredist_x64.exe";
@@ -422,8 +425,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 boolean neededRedist2010_32 = false;
 
                 // Download VS 2012 64bit
-				/*
-                if (redistSuccess && is64bitOS) {
+                if (NEEDS_2012_REDIST && redistSuccess && is64bitOS) {
                     if (!redist2012_64.exists()) {
                         neededRedist2012_64 = true;
                         monitor.setNote("Downloading VC 2012 C++ 64bit redist...");
@@ -434,10 +436,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         }
                     }
                 }
-				*/
 
                 // Download VS 2010 64bit
-                if (redistSuccess && is64bitOS) {
+                if (NEEDS_2010_REDIST && redistSuccess && is64bitOS) {
                     if (!redist2010_64.exists()) {
                         neededRedist2010_64 = true;
                         monitor.setNote("Downloading VC 2010 C++ 64bit redist...");
@@ -449,9 +450,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     }
                 }
 
-				/*
                 // Download VS 2012 32bit
-                if (redistSuccess && !redist2012_32.exists()) {
+                if (NEEDS_2012_REDIST && redistSuccess && !redist2012_32.exists()) {
                     neededRedist2012_32 = true;
                     monitor.setNote("Downloading VC 2012 C++ 32bit redist...");
                     monitor.setProgress(20);
@@ -460,10 +460,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         redistSuccess = false;
                     }
                 }
-				*/
 
                 // Download VS 2010 32bit
-                if (redistSuccess && !redist2010_32.exists()) {
+                if (NEEDS_2010_REDIST && redistSuccess && !redist2010_32.exists()) {
                     neededRedist2010_32 = true;
                     monitor.setNote("Downloading VC 2010 C++ 32bit redist...");
                     monitor.setProgress(25);
@@ -473,9 +472,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     }
                 }
 
-				/*
                 // Install VS2012 64bit
-                if (redistSuccess && is64bitOS && neededRedist2012_64) {
+                if (NEEDS_2012_REDIST && redistSuccess && is64bitOS && neededRedist2012_64) {
                     monitor.setNote("Installing VC 2010 C++ 32bit redist...");
                     monitor.setProgress(30);
                     try {
@@ -487,10 +485,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         redistSuccess = false;
                     }
                 }
-				*/
 
                 // Install VS2010 64bit
-                if (redistSuccess && is64bitOS && neededRedist2010_64) {
+                if (NEEDS_2010_REDIST && redistSuccess && is64bitOS && neededRedist2010_64) {
                     monitor.setNote("Installing VC 2010 C++ 64bit redist...");
                     monitor.setProgress(33);
                     try {
@@ -503,9 +500,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     }
                 }
 
-				/*
                 // Install VS2012 32bit
-                if (redistSuccess && neededRedist2012_32) {
+                if (NEEDS_2012_REDIST && redistSuccess && neededRedist2012_32) {
                     monitor.setNote("Installing VC 2012 C++ 32bit redist...");
                     monitor.setProgress(36);
                     try {
@@ -517,10 +513,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         redistSuccess = false;
                     }
                 }
-				*/
 
                 // Install VS2010 32bit
-                if (redistSuccess && neededRedist2010_32) {
+                if (NEEDS_2010_REDIST && redistSuccess && neededRedist2010_32) {
                     monitor.setNote("Installing VC 2010 C++ 32bit redist...");
                     monitor.setProgress(39);
                     try {
