@@ -53,7 +53,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final String OF_JSON_NAME      = "1.7.10_HD_U_B7";
     private static final String OF_MD5            = "c19ca972dab5b59a485d8af217ddd830";
     private static final String OF_VERSION_EXT    = ".jar";
-    private static final String FORGE_VERSION     = "10.13.4.1448";
+    private static final String FORGE_VERSION     = "10.13.4.1614";
     /* END OF DO NOT RENAME */
 
     private InstallTask task;
@@ -474,7 +474,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
                 // Install VS2012 64bit
                 if (NEEDS_2012_REDIST && redistSuccess && is64bitOS && neededRedist2012_64) {
-                    monitor.setNote("Installing VC 2010 C++ 32bit redist...");
+                    monitor.setNote("Installing VC 2012 C++ 32bit redist...");
                     monitor.setProgress(30);
                     try {
                         Process process = new ProcessBuilder(redist2012_64.getAbsolutePath(), "/quiet", "/norestart").start();
