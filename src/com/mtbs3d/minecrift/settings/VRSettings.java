@@ -354,7 +354,9 @@ public class VRSettings
 
                     if (optionTokens[0].equals("badStereoProviderPluginID"))
                     {
-                        this.badStereoProviderPluginID = optionTokens[1];
+                        if (optionTokens.length > 1) {  // Trap if no entry
+                            this.badStereoProviderPluginID = optionTokens[1];
+                        }
                     }
 
                     if (optionTokens[0].equals("controllerPluginID"))

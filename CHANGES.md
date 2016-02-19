@@ -1,3 +1,19 @@
+[Minecrift 1.7.10 R2a]
+
+- Supports Forge 1.7.10 #1614
+- Updated to Optifine 1.7.10 HD U D1
+- Now allows user to select mirror mode, single or dual viewport, 1/3 or full framerate. See 
+  the VRSettings->Stereo Rendering option dialog.
+  
+Bug fixes
+---------
+- On a failure to initialise Oculus SDK, will switch to 'mono' mode. However will now attempt
+  to use the Oculus SDK again after Minecrift is restarted (if the mode is not changed manually).
+- Made the Forge in-game crosshair more visible in most scenarios.
+- Ensure the installer installs the VS2012 redists. This should prevent issues loading the 
+  JRiftLibrary.
+  
+
 [Minecrift 1.7.10 R2]
 
 - Oculus SDK - now support SDK 0.8 on Windows ***KUDOS to darkTemp for all his work on this!!***

@@ -163,12 +163,15 @@
  
              this.updateVSync();
          }
-@@ -1035,6 +988,9 @@
+@@ -1033,8 +986,11 @@
+                 this.mc.entityRenderer.stopUseShader();
+             }
  
-             Config.updateFramebufferSize();
-             this.mc.renderGlobal.loadRenderers();
+-            Config.updateFramebufferSize();
 +            /** MINECRIFT **/
++            //Config.updateFramebufferSize();
 +            this.mc.reinitFramebuffers = true;
+             this.mc.renderGlobal.loadRenderers();
 +            /** END MINECRIFT **/
          }
  
@@ -353,7 +356,7 @@
          this.renderDistanceChunks = 8;
          this.viewBobbing = true;
          this.anaglyph = false;
-@@ -2966,17 +2966,38 @@
+@@ -2966,17 +2966,39 @@
          this.ofAnimatedTerrain = true;
          this.ofAnimatedItems = true;
          this.ofAnimatedTextures = true;
@@ -375,6 +378,7 @@
 +        this.anisotropicFiltering = 16;
 +        this.ofMipmapType = 3;
 +        this.ofFastMath = true;
++        this.ofFastRender = false;      // Not convinced this was helping with this ON, and other stuff breaks!
 +
 +        if (this.mc.renderGlobal != null) {
 +            this.mc.renderGlobal.updateCapes();
@@ -399,7 +403,7 @@
  
      private void updateWaterOpacity()
      {
-@@ -3181,12 +3202,12 @@
+@@ -3181,12 +3203,12 @@
              return null;
          }
  
@@ -415,7 +419,7 @@
          {
              this.enumString = p_i45004_3_;
              this.enumFloat = p_i45004_4_;
-@@ -3252,9 +3273,9 @@
+@@ -3252,9 +3274,9 @@
              return p_148264_1_;
          }
  
