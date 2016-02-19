@@ -517,11 +517,11 @@ def main(mcp_dir):
 
     os.chdir( base_dir )
 
-    # Create original decompile src dir
-    org_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig")
-    if os.path.exists( org_src_dir ):
-        shutil.rmtree( org_src_dir, True )
-    shutil.copytree( src_dir, org_src_dir )
+    # Create original nofix decompile src dir
+    org_no_fix_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig_nofix")
+    if os.path.exists( org_no_fix_src_dir ):
+        shutil.rmtree( org_no_fix_src_dir, True )
+    shutil.copytree( src_dir, org_no_fix_src_dir )
 
     if nocompilefixpatch == False:
         compile_error_patching_done = False
@@ -552,10 +552,12 @@ def main(mcp_dir):
             updatemd5( None, True, True, False )
             os.chdir( base_dir )
 
-            # Now re-create the .minecraft_orig with the new buildable state
-            if os.path.exists( org_src_dir ):
-                shutil.rmtree( org_src_dir, True )
-                shutil.copytree( src_dir, org_src_dir )
+            
+    # Create original (fixed) decompile src dir       
+    org_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig")
+    if os.path.exists( org_src_dir ):
+        shutil.rmtree( org_src_dir, True )
+    shutil.copytree( src_dir, org_src_dir )                
                 
     if nopatch == False:
         # Patch stage 2: Now apply our main Minecrift patches, only

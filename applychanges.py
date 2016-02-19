@@ -53,24 +53,27 @@ def merge_tree(root_src_dir, root_dst_dir):
             shutil.copy(src_file, dst_dir)
 
 
-def applychanges(mcp_dir, patch_dir = "patches", backup = True, copyOriginal=True, mergeInNew=True ):
+def applychanges(mcp_dir, patch_dir = "patches", applyPatches=True, backup = True, copyOriginal=True, origDir='.minecraft_orig', mergeInNew=True ):
     print("Applying Changes...")
 
     mod_src_dir = os.path.join(mcp_dir, "src","minecraft")
     mod_bak_dir = os.path.join(mcp_dir, "src","minecraft-bak")
-    org_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig")
+    org_src_dir = os.path.join(mcp_dir, "src",origDir)
     
     if backup and os.path.exists(mod_src_dir):
         print("Backing up src/minecraft to src/minecraft-bak")
         shutil.rmtree( mod_bak_dir, True )
         shutil.move( mod_src_dir, mod_bak_dir )
+        
     if copyOriginal:
         shutil.copytree( org_src_dir, mod_src_dir, ignore=lambda p,f: [".git"]  )
 
-    #apply patches
-    apply_patches( mcp_dir, os.path.join( base_dir, patch_dir ), mod_src_dir )
-    #merge in the new classes
+    if applyPatches:
+        #apply patches
+        apply_patches( mcp_dir, os.path.join( base_dir, patch_dir ), mod_src_dir )
+        
     if mergeInNew:
+        #merge in the new classes
         merge_tree( os.path.join( base_dir, "src" ), mod_src_dir )
     
 if __name__ == '__main__':

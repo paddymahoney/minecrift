@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/RenderGlobal.java
 +++ b/net/minecraft/client/renderer/RenderGlobal.java
-@@ -264,7 +264,6 @@
+@@ -265,7 +265,6 @@
      private long lastMovedTime = System.currentTimeMillis();
      private long lastActionTime = System.currentTimeMillis();
      private static AxisAlignedBB AABB_INFINITE = AxisAlignedBB.getBoundingBox(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
@@ -8,7 +8,7 @@
  
      public RenderGlobal(Minecraft par1Minecraft)
      {
-@@ -1817,7 +1816,7 @@
+@@ -1821,7 +1820,7 @@
                          float var19 = this.theWorld.provider.getCloudHeight() - var21 + 0.33F;
                          var19 += this.mc.gameSettings.ofCloudsHeight * 128.0F;
                          float var20 = (float)(dc * (double)var10);
@@ -17,7 +17,7 @@
                          var5.startDrawingQuads();
                          var5.setColorRGBA_F(exactPlayerX, var8, exactPlayerY, 0.8F);
  
-@@ -1825,10 +1824,10 @@
+@@ -1829,10 +1828,10 @@
                          {
                              for (int var23 = -var3 * var4; var23 < var3 * var4; var23 += var3)
                              {
@@ -32,7 +32,7 @@
                              }
                          }
  
-@@ -2501,15 +2500,10 @@
+@@ -2509,15 +2508,10 @@
              var16.addCrashSectionCallable("Position", new Callable()
              {
                  private static final String __OBFID = "CL_00000955";
@@ -48,7 +48,7 @@
              });
              throw new ReportedException(var15);
          }
-@@ -2532,7 +2526,7 @@
+@@ -2540,7 +2534,7 @@
              double var15 = this.mc.renderViewEntity.posX - par2;
              double var17 = this.mc.renderViewEntity.posY - par4;
              double var19 = this.mc.renderViewEntity.posZ - par6;

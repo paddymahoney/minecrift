@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/texture/TextureMap.java
 +++ b/net/minecraft/client/renderer/texture/TextureMap.java
-@@ -66,7 +66,6 @@
+@@ -67,7 +67,6 @@
      private double iconGridSizeV;
      private static final boolean ENABLE_SKIP = Boolean.parseBoolean(System.getProperty("fml.skipFirstTextureLoad", "true"));
      private boolean skipFirst;
@@ -8,7 +8,7 @@
  
      public TextureMap(int par1, String par2Str)
      {
-@@ -265,41 +264,26 @@
+@@ -267,41 +266,26 @@
                  var261.addCrashSectionCallable("Sprite name", new Callable()
                  {
                      private static final String __OBFID = "CL_00001059";
