@@ -1,14 +1,6 @@
 --- a/net/minecraft/client/gui/GuiVideoSettings.java
 +++ b/net/minecraft/client/gui/GuiVideoSettings.java
-@@ -2,7 +2,6 @@
- 
- import net.minecraft.client.resources.I18n;
- import net.minecraft.client.settings.GameSettings;
--import net.minecraft.src.Config;
- import net.minecraft.src.GuiAnimationSettingsOF;
- import net.minecraft.src.GuiDetailSettingsOF;
- import net.minecraft.src.GuiOtherSettingsOF;
-@@ -72,7 +71,12 @@
+@@ -72,7 +72,12 @@
  
                  if (y.getEnumFloat())
                  {
@@ -22,32 +14,12 @@
                  }
                  else
                  {
-@@ -173,28 +177,6 @@
-     {
-         this.drawDefaultBackground();
-         this.drawCenteredString(this.fontRendererObj, this.screenTitle, this.width / 2, this.is64bit ? 20 : 5, 16777215);
--        String ver = Config.getVersion();
--        String ed = "HD_U";
--
--        if (ed.equals("HD"))
--        {
--            ver = "OptiFine HD D1";
--        }
--
--        if (ed.equals("HD_U"))
--        {
--            ver = "OptiFine HD D1 Ultra";
--        }
--
--        if (ed.equals("L"))
--        {
--            ver = "OptiFine D1 Light";
--        }
--
--        this.drawString(this.fontRendererObj, ver, 2, this.height - 10, 8421504);
--        String verMc = "Minecraft 1.7.10";
--        int lenMc = this.fontRendererObj.getStringWidth(verMc);
--        this.drawString(this.fontRendererObj, verMc, this.width - lenMc - 2, this.height - 10, 8421504);
+@@ -192,7 +197,7 @@
+         }
  
-         if (!this.is64bit && this.guiGameSettings.renderDistanceChunks > 8)
-         {
+         this.drawString(this.fontRendererObj, ver, 2, this.height - 10, 8421504);
+-        String verMc = "Minecraft 1.7.10";
++        String verMc = this.mc.MINECRIFT_VERSION;
+         int lenMc = this.fontRendererObj.getStringWidth(verMc);
+         this.drawString(this.fontRendererObj, verMc, this.width - lenMc - 2, this.height - 10, 8421504);
+ 
