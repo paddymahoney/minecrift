@@ -1,15 +1,15 @@
 --- a/net/minecraft/client/renderer/ThreadDownloadImageData.java
 +++ b/net/minecraft/client/renderer/ThreadDownloadImageData.java
-@@ -28,7 +28,6 @@
-     private boolean textureUploaded;
+@@ -37,7 +37,6 @@
      private static final String __OBFID = "CL_00001049";
      public Boolean imageFound = null;
+     public boolean pipeline = false;
 -    private static final String __OBFID = "CL_00001049";
  
      public ThreadDownloadImageData(File par1GuiCreateFlatWorld, String p_i1049_2_, ResourceLocation p_i1049_3_, IImageBuffer p_i1049_4_)
      {
-@@ -112,7 +111,6 @@
-         this.imageThread = new Thread("Texture Downloader #" + field_147643_d.incrementAndGet())
+@@ -121,7 +120,6 @@
+         this.imageThread = new Thread("Texture Downloader #" + threadDownloadCounter.incrementAndGet())
          {
              private static final String __OBFID = "CL_00001050";
 -            private static final String __OBFID = "CL_00001050";

@@ -8,7 +8,7 @@
  
      public IntegratedServer(Minecraft par1Minecraft, String par2Str, String par3Str, WorldSettings par4WorldSettings)
      {
-@@ -253,20 +252,14 @@
+@@ -256,20 +255,14 @@
          par1CrashReport.getCategory().addCrashSectionCallable("Type", new Callable()
          {
              private static final String __OBFID = "CL_00001130";
@@ -29,7 +29,7 @@
              public String call()
              {
                  String var1 = ClientBrandRetriever.getClientModName();
-@@ -281,10 +274,6 @@
+@@ -284,10 +277,6 @@
                      return !var1.equals("vanilla") ? "Definitely; Server brand changed to \'" + var1 + "\'" : (Minecraft.class.getSigners() == null ? "Very likely; Jar signature invalidated" : "Probably not. Jar signature remains and both client + server brands are untouched.");
                  }
              }

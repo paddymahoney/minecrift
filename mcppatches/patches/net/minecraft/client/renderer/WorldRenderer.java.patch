@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/WorldRenderer.java
 +++ b/net/minecraft/client/renderer/WorldRenderer.java
-@@ -108,7 +108,6 @@
+@@ -110,7 +110,6 @@
      public RenderGlobal renderGlobal;
      public static int globalChunkOffsetX = 0;
      public static int globalChunkOffsetZ = 0;

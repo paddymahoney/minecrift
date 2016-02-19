@@ -1,11 +1,9 @@
 --- a/net/minecraft/src/EntityUtils.java
 +++ b/net/minecraft/src/EntityUtils.java
-@@ -14,68 +14,68 @@
- 
-     public static int getEntityAge(EntityLivingBase elb)
+@@ -16,18 +16,11 @@
      {
--        if (directEntityAge)
--        {
+         if (directEntityAge)
+         {
 -            try
 -            {
 -                return elb.entityAge;
@@ -13,37 +11,22 @@
 -            catch (IllegalAccessError var2)
 -            {
 -                directEntityAge = false;
--
++            directEntityAge = false;
+ 
 -                if (!ForgeEntityLivingBase_entityAge.exists())
 -                {
 -                    throw var2;
 -                }
--            }
--        }
-+//        if (directEntityAge)
-+//        {
-+//            try
-+//            {
-+//                return elb.entityAge;
-+//            }
-+//            catch (IllegalAccessError var2)
-+//            {
-+//                directEntityAge = false;
-+//
-+//                if (!ForgeEntityLivingBase_entityAge.exists())
-+//                {
-+//                    throw var2;
-+//                }
-+//            }
-+//        }
++            if (!ForgeEntityLivingBase_entityAge.exists())
++            {
++                throw new IllegalAccessError("EntityLivingBase.class - entityAge field doesn't exist!");
+             }
+         }
  
-         return ((Integer)Reflector.getFieldValue(elb, ForgeEntityLivingBase_entityAge)).intValue();
-     }
- 
-     public static void setEntityAge(EntityLivingBase elb, int age)
+@@ -38,19 +31,11 @@
      {
--        if (directEntityAge)
--        {
+         if (directEntityAge)
+         {
 -            try
 -            {
 -                elb.entityAge = age;
@@ -52,38 +35,22 @@
 -            catch (IllegalAccessError var3)
 -            {
 -                directEntityAge = false;
--
++            directEntityAge = false;
+ 
 -                if (!ForgeEntityLivingBase_entityAge.exists())
 -                {
 -                    throw var3;
 -                }
--            }
--        }
-+//        if (directEntityAge)
-+//        {
-+//            try
-+//            {
-+//                elb.entityAge = age;
-+//                return;
-+//            }
-+//            catch (IllegalAccessError var3)
-+//            {
-+//                directEntityAge = false;
-+//
-+//                if (!ForgeEntityLivingBase_entityAge.exists())
-+//                {
-+//                    throw var3;
-+//                }
-+//            }
-+//        }
++            if (!ForgeEntityLivingBase_entityAge.exists())
++            {
++                throw new IllegalAccessError("EntityLivingBase.class - entityAge field doesn't exist!");
+             }
+         }
  
-         Reflector.setFieldValue(elb, ForgeEntityLivingBase_entityAge, Integer.valueOf(age));
-     }
- 
-     public static void despawnEntity(EntityLiving el)
+@@ -61,19 +46,11 @@
      {
--        if (directDespawnEntity)
--        {
+         if (directDespawnEntity)
+         {
 -            try
 -            {
 -                el.despawnEntity();
@@ -92,30 +59,15 @@
 -            catch (IllegalAccessError var2)
 -            {
 -                directDespawnEntity = false;
--
++            directDespawnEntity = false;
+ 
 -                if (!ForgeEntityLiving_despawnEntity.exists())
 -                {
 -                    throw var2;
 -                }
--            }
--        }
-+//        if (directDespawnEntity)
-+//        {
-+//            try
-+//            {
-+//                el.despawnEntity();
-+//                return;
-+//            }
-+//            catch (IllegalAccessError var2)
-+//            {
-+//                directDespawnEntity = false;
-+//
-+//                if (!ForgeEntityLiving_despawnEntity.exists())
-+//                {
-+//                    throw var2;
-+//                }
-+//            }
-+//        }
++            if (!ForgeEntityLiving_despawnEntity.exists())
++            {
++                throw new IllegalAccessError("EntityLiving.class - despawnEntity method doesn't exist!");
+             }
+         }
  
-         Reflector.callVoid(el, ForgeEntityLiving_despawnEntity, new Object[0]);
-     }

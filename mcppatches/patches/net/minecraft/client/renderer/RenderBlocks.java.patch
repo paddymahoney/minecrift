@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/RenderBlocks.java
 +++ b/net/minecraft/client/renderer/RenderBlocks.java
-@@ -161,7 +161,6 @@
+@@ -325,7 +325,6 @@
      public float aoLightValueOpaque = 0.2F;
      public boolean betterSnowEnabled = true;
      private static RenderBlocks instance;

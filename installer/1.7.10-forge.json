@@ -6,14 +6,14 @@
   "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type} --tweakClass cpw.mods.fml.common.launcher.FMLTweaker --tweakClass optifine.OptiFineForgeTweaker --tweakClass com.mtbs3d.minecrift.tweaker.MinecriftForgeTweaker",
   "libraries": [
     {
-      "name": "optifine:OptiFine:1.7.10_HD_U_B7"
+      "name": "optifine:OptiFine:1.7.10_HD_D1"
     },
     {
       "name": "net.minecraftforge:forge:1.7.10-10.13.4.1614-1.7.10",
       "url": "http://files.minecraftforge.net/maven/"
     },
     {
-      "name": "net.minecraft:launchwrapper:1.12"
+      "name": "net.minecraft:launchwrapper:1.7"
     },
     {
       "name": "org.ow2.asm:asm-all:5.0.3"
@@ -281,5 +281,30 @@
   ],
   "mainClass": "net.minecraft.launchwrapper.Launch",
   "minimumLauncherVersion": 14,
-  "assets": "1.7.10"
+  "assets": "1.7.10",
+  "downloads": {
+    "client": {
+      "url": "https://launcher.mojang.com/mc/game/1.7.10/client/e80d9b3bf5085002218d4be59e668bac718abbc6/client.jar",
+      "sha1": "e80d9b3bf5085002218d4be59e668bac718abbc6",
+      "size": 5256245
+    },
+    "server": {
+      "url": "https://launcher.mojang.com/mc/game/1.7.10/server/952438ac4e01b4d115c5fc38f891710c4941df29/server.jar",
+      "sha1": "952438ac4e01b4d115c5fc38f891710c4941df29",
+      "size": 9605030
+    },
+    "windows_server": {
+      "url": "https://launcher.mojang.com/mc/game/1.7.10/windows_server/a79b91ef69b9b4af63d1c7007f60259106869b21/windows_server.exe",
+      "sha1": "a79b91ef69b9b4af63d1c7007f60259106869b21",
+      "size": 9999270
+    }
+  },
+  "assetIndex": {
+    "totalSize": 112220327,
+    "id": "1.7.10",
+    "known": true,
+    "url": "https://launchermeta.mojang.com/mc-staging/assets/1.7.10/f90ca2878ba3141d32d949ea7f665855dd073c65/1.7.10.json",
+    "sha1": "f90ca2878ba3141d32d949ea7f665855dd073c65",
+    "size": 88096
+  }
 }

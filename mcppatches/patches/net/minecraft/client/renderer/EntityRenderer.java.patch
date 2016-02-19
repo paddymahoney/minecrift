@@ -8,7 +8,7 @@
  
      public EntityRenderer(Minecraft p_i45076_1_, IResourceManager p_i45076_2_)
      {
-@@ -1346,41 +1345,26 @@
+@@ -1390,41 +1389,26 @@
                      var11.addCrashSectionCallable("Screen name", new Callable()
                      {
                          private static final String __OBFID = "CL_00000948";
