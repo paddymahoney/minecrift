@@ -42,7 +42,29 @@
      public boolean fancyGraphics = true;
  
      /** Smooth Lighting */
-@@ -275,88 +281,33 @@
+@@ -107,12 +113,10 @@
+     public int ofAutoSaveTicks = 4000;
+     public boolean ofLagometer = false;
+     public boolean ofProfiler = false;
+-    public boolean ofShowFps = false;
+     public boolean ofWeather = true;
+     public boolean ofSky = true;
+     public boolean ofStars = true;
+     public boolean ofSunMoon = true;
+-    public int ofVignette = 0;
+     public int ofChunkUpdates = 1;
+     public int ofChunkLoading = 0;
+     public boolean ofChunkUpdatesDynamic = false;
+@@ -131,7 +135,7 @@
+     public int ofConnectedTextures = 2;
+     public boolean ofNaturalTextures = false;
+     public boolean ofFastMath = false;
+-    public boolean ofFastRender = false;
++    public boolean ofFastRender = true;
+     public int ofTranslucentBlocks = 2;
+     public int ofAnimatedWater = 0;
+     public int ofAnimatedLava = 0;
+@@ -277,88 +281,33 @@
  
      public GameSettings(Minecraft par1Minecraft, File par2File)
      {
@@ -144,7 +166,7 @@
          this.pauseOnLostFocus = true;
          this.showCape = true;
          this.heldItemTooltips = true;
-@@ -474,14 +425,16 @@
+@@ -476,14 +425,16 @@
  
          if (par1EnumOptions == GameSettings.Options.FRAMERATE_LIMIT)
          {
@@ -163,7 +185,50 @@
  
              this.updateVSync();
          }
-@@ -1233,8 +1186,11 @@
+@@ -832,11 +783,6 @@
+             this.ofLagometer = !this.ofLagometer;
+         }
+ 
+-        if (par1EnumOptions == GameSettings.Options.SHOW_FPS)
+-        {
+-            this.ofShowFps = !this.ofShowFps;
+-        }
+-
+         if (par1EnumOptions == GameSettings.Options.AUTOSAVE_TICKS)
+         {
+             this.ofAutoSaveTicks *= 10;
+@@ -891,16 +837,6 @@
+             this.ofSunMoon = !this.ofSunMoon;
+         }
+ 
+-        if (par1EnumOptions == GameSettings.Options.VIGNETTE)
+-        {
+-            ++this.ofVignette;
+-
+-            if (this.ofVignette > 2)
+-            {
+-                this.ofVignette = 0;
+-            }
+-        }
+-
+         if (par1EnumOptions == GameSettings.Options.CHUNK_UPDATES)
+         {
+             ++this.ofChunkUpdates;
+@@ -1027,13 +963,6 @@
+         if (par1EnumOptions == GameSettings.Options.FAST_RENDER)
+         {
+             this.ofFastRender = !this.ofFastRender;
+-
+-            if (this.ofFastRender)
+-            {
+-                this.mc.entityRenderer.stopUseShader();
+-            }
+-
+-            Config.updateFramebufferSize();
+             this.mc.renderGlobal.loadRenderers();
+         }
+ 
+@@ -1257,8 +1186,11 @@
  
          if (par1EnumOptions == GameSettings.Options.ENABLE_VSYNC)
          {
@@ -177,7 +242,39 @@
          }
  
          this.saveOptions();
-@@ -1832,16 +1788,24 @@
+@@ -1638,10 +1570,6 @@
+         {
+             return this.ofLagometer ? var2 + "ON" : var2 + "OFF";
+         }
+-        else if (par1EnumOptions == GameSettings.Options.SHOW_FPS)
+-        {
+-            return this.ofShowFps ? var2 + "ON" : var2 + "OFF";
+-        }
+         else if (par1EnumOptions == GameSettings.Options.AUTOSAVE_TICKS)
+         {
+             return this.ofAutoSaveTicks <= 40 ? var2 + "Default (2s)" : (this.ofAutoSaveTicks <= 400 ? var2 + "20s" : (this.ofAutoSaveTicks <= 4000 ? var2 + "3min" : var2 + "30min"));
+@@ -1690,20 +1618,6 @@
+         {
+             return this.ofSunMoon ? var2 + "ON" : var2 + "OFF";
+         }
+-        else if (par1EnumOptions == GameSettings.Options.VIGNETTE)
+-        {
+-            switch (this.ofVignette)
+-            {
+-                case 1:
+-                    return var2 + "Fast";
+-
+-                case 2:
+-                    return var2 + "Fancy";
+-
+-                default:
+-                    return var2 + "Default";
+-            }
+-        }
+         else if (par1EnumOptions == GameSettings.Options.CHUNK_UPDATES)
+         {
+             return var2 + this.ofChunkUpdates;
+@@ -1874,16 +1788,24 @@
      /**
       * Loads the options from the options file. It appears that this has replaced the previous 'loadOptions'
       */
@@ -206,7 +303,7 @@
              String var2 = "";
              this.mapSoundLevels.clear();
  
-@@ -1913,14 +1877,16 @@
+@@ -1955,14 +1877,16 @@
  
                      if (var8[0].equals("maxFps"))
                      {
@@ -225,7 +322,7 @@
  
                          this.updateVSync();
                      }
-@@ -2018,8 +1984,10 @@
+@@ -2060,8 +1984,10 @@
  
                      if (var8[0].equals("enableVsync"))
                      {
@@ -237,7 +334,7 @@
                      }
  
                      if (var8[0].equals("hideServerAddress"))
-@@ -2213,21 +2181,28 @@
+@@ -2255,21 +2181,28 @@
      /**
       * Saves the options to the options file.
       */
@@ -268,7 +365,7 @@
              var81.println("invertYMouse:" + this.invertMouse);
              var81.println("mouseSensitivity:" + this.mouseSensitivity);
              var81.println("fov:" + (this.fovSetting - 70.0F) / 40.0F);
-@@ -2343,23 +2318,29 @@
+@@ -2385,23 +2318,29 @@
          return this.renderDistanceChunks >= 4 && this.clouds;
      }
  
@@ -305,7 +402,32 @@
              String s = "";
  
              while ((s = bufferedreader.readLine()) != null)
-@@ -2749,11 +2730,20 @@
+@@ -2618,11 +2557,6 @@
+                         this.ofLagometer = Boolean.valueOf(exception1[1]).booleanValue();
+                     }
+ 
+-                    if (exception1[0].equals("ofShowFps") && exception1.length >= 2)
+-                    {
+-                        this.ofShowFps = Boolean.valueOf(exception1[1]).booleanValue();
+-                    }
+-
+                     if (exception1[0].equals("ofAutoSaveTicks") && exception1.length >= 2)
+                     {
+                         this.ofAutoSaveTicks = Integer.valueOf(exception1[1]).intValue();
+@@ -2661,12 +2595,6 @@
+                         this.ofSunMoon = Boolean.valueOf(exception1[1]).booleanValue();
+                     }
+ 
+-                    if (exception1[0].equals("ofVignette") && exception1.length >= 2)
+-                    {
+-                        this.ofVignette = Integer.valueOf(exception1[1]).intValue();
+-                        this.ofVignette = Config.limit(this.ofVignette, 0, 2);
+-                    }
+-
+                     if (exception1[0].equals("ofChunkUpdates") && exception1.length >= 2)
+                     {
+                         this.ofChunkUpdates = Integer.valueOf(exception1[1]).intValue();
+@@ -2802,11 +2730,20 @@
          }
      }
  
@@ -327,7 +449,23 @@
              exception.println("ofRenderDistanceChunks:" + this.renderDistanceChunks);
              exception.println("ofFogType:" + this.ofFogType);
              exception.println("ofFogStart:" + this.ofFogStart);
-@@ -2827,8 +2817,15 @@
+@@ -2842,7 +2779,6 @@
+             exception.println("ofAnimatedItems:" + this.ofAnimatedItems);
+             exception.println("ofRainSplash:" + this.ofRainSplash);
+             exception.println("ofLagometer:" + this.ofLagometer);
+-            exception.println("ofShowFps:" + this.ofShowFps);
+             exception.println("ofAutoSaveTicks:" + this.ofAutoSaveTicks);
+             exception.println("ofBetterGrass:" + this.ofBetterGrass);
+             exception.println("ofConnectedTextures:" + this.ofConnectedTextures);
+@@ -2850,7 +2786,6 @@
+             exception.println("ofSky:" + this.ofSky);
+             exception.println("ofStars:" + this.ofStars);
+             exception.println("ofSunMoon:" + this.ofSunMoon);
+-            exception.println("ofVignette:" + this.ofVignette);
+             exception.println("ofChunkUpdates:" + this.ofChunkUpdates);
+             exception.println("ofChunkLoading:" + this.ofChunkLoading);
+             exception.println("ofChunkUpdatesDynamic:" + this.ofChunkUpdatesDynamic);
+@@ -2882,8 +2817,15 @@
          }
      }
  
@@ -343,7 +481,30 @@
          this.renderDistanceChunks = 8;
          this.viewBobbing = true;
          this.anaglyph = false;
-@@ -2909,17 +2906,38 @@
+@@ -2912,7 +2854,7 @@
+         this.ofSmoothWorld = Config.isSingleProcessor();
+         this.ofLazyChunkLoading = Config.isSingleProcessor();
+         this.ofFastMath = false;
+-        this.ofFastRender = false;
++        this.ofFastRender = true;
+         this.ofTranslucentBlocks = 2;
+         this.ofAoLevel = 1.0F;
+         this.ofAaLevel = 0;
+@@ -2925,13 +2867,11 @@
+         this.ofBetterGrass = 3;
+         this.ofAutoSaveTicks = 4000;
+         this.ofLagometer = false;
+-        this.ofShowFps = false;
+         this.ofProfiler = false;
+         this.ofWeather = true;
+         this.ofSky = true;
+         this.ofStars = true;
+         this.ofSunMoon = true;
+-        this.ofVignette = 0;
+         this.ofChunkUpdates = 1;
+         this.ofChunkLoading = 0;
+         this.ofChunkUpdatesDynamic = false;
+@@ -2966,17 +2906,38 @@
          this.ofAnimatedTerrain = true;
          this.ofAnimatedItems = true;
          this.ofAnimatedTextures = true;
@@ -389,3 +550,140 @@
  
      private void updateWaterOpacity()
      {
+@@ -3104,53 +3065,51 @@
+         ANIMATED_PORTAL("ANIMATED_PORTAL", 59, "", 999, "Portal Animated", false, false),
+         AO_LEVEL("AO_LEVEL", 60, "", 999, "Smooth Lighting Level", true, false),
+         LAGOMETER("LAGOMETER", 61, "", 999, "Lagometer", false, false),
+-        SHOW_FPS("SHOW_FPS", 62, "", 999, "Show FPS", false, false),
+-        AUTOSAVE_TICKS("AUTOSAVE_TICKS", 63, "", 999, "Autosave", false, false),
+-        BETTER_GRASS("BETTER_GRASS", 64, "", 999, "Better Grass", false, false),
+-        ANIMATED_REDSTONE("ANIMATED_REDSTONE", 65, "", 999, "Redstone Animated", false, false),
+-        ANIMATED_EXPLOSION("ANIMATED_EXPLOSION", 66, "", 999, "Explosion Animated", false, false),
+-        ANIMATED_FLAME("ANIMATED_FLAME", 67, "", 999, "Flame Animated", false, false),
+-        ANIMATED_SMOKE("ANIMATED_SMOKE", 68, "", 999, "Smoke Animated", false, false),
+-        WEATHER("WEATHER", 69, "", 999, "Weather", false, false),
+-        SKY("SKY", 70, "", 999, "Sky", false, false),
+-        STARS("STARS", 71, "", 999, "Stars", false, false),
+-        SUN_MOON("SUN_MOON", 72, "", 999, "Sun & Moon", false, false),
+-        VIGNETTE("VIGNETTE", 73, "", 999, "Vignette", false, false),
+-        CHUNK_UPDATES("CHUNK_UPDATES", 74, "", 999, "Chunk Updates", false, false),
+-        CHUNK_UPDATES_DYNAMIC("CHUNK_UPDATES_DYNAMIC", 75, "", 999, "Dynamic Updates", false, false),
+-        TIME("TIME", 76, "", 999, "Time", false, false),
+-        CLEAR_WATER("CLEAR_WATER", 77, "", 999, "Clear Water", false, false),
+-        SMOOTH_WORLD("SMOOTH_WORLD", 78, "", 999, "Smooth World", false, false),
+-        DEPTH_FOG("DEPTH_FOG", 79, "", 999, "Depth Fog", false, false),
+-        VOID_PARTICLES("VOID_PARTICLES", 80, "", 999, "Void Particles", false, false),
+-        WATER_PARTICLES("WATER_PARTICLES", 81, "", 999, "Water Particles", false, false),
+-        RAIN_SPLASH("RAIN_SPLASH", 82, "", 999, "Rain Splash", false, false),
+-        PORTAL_PARTICLES("PORTAL_PARTICLES", 83, "", 999, "Portal Particles", false, false),
+-        POTION_PARTICLES("POTION_PARTICLES", 84, "", 999, "Potion Particles", false, false),
+-        PROFILER("PROFILER", 85, "", 999, "Debug Profiler", false, false),
+-        DRIPPING_WATER_LAVA("DRIPPING_WATER_LAVA", 86, "", 999, "Dripping Water/Lava", false, false),
+-        BETTER_SNOW("BETTER_SNOW", 87, "", 999, "Better Snow", false, false),
+-        FULLSCREEN_MODE("FULLSCREEN_MODE", 88, "", 999, "Fullscreen Mode", false, false),
+-        ANIMATED_TERRAIN("ANIMATED_TERRAIN", 89, "", 999, "Terrain Animated", false, false),
+-        ANIMATED_ITEMS("ANIMATED_ITEMS", 90, "", 999, "Items Animated", false, false),
+-        SWAMP_COLORS("SWAMP_COLORS", 91, "", 999, "Swamp Colors", false, false),
+-        RANDOM_MOBS("RANDOM_MOBS", 92, "", 999, "Random Mobs", false, false),
+-        SMOOTH_BIOMES("SMOOTH_BIOMES", 93, "", 999, "Smooth Biomes", false, false),
+-        CUSTOM_FONTS("CUSTOM_FONTS", 94, "", 999, "Custom Fonts", false, false),
+-        CUSTOM_COLORS("CUSTOM_COLORS", 95, "", 999, "Custom Colors", false, false),
+-        SHOW_CAPES("SHOW_CAPES", 96, "", 999, "Show Capes", false, false),
+-        CONNECTED_TEXTURES("CONNECTED_TEXTURES", 97, "", 999, "Connected Textures", false, false),
+-        AA_LEVEL("AA_LEVEL", 98, "", 999, "Antialiasing", false, false),
+-        ANIMATED_TEXTURES("ANIMATED_TEXTURES", 99, "", 999, "Textures Animated", false, false),
+-        NATURAL_TEXTURES("NATURAL_TEXTURES", 100, "", 999, "Natural Textures", false, false),
+-        CHUNK_LOADING("CHUNK_LOADING", 101, "", 999, "Chunk Loading", false, false),
+-        HELD_ITEM_TOOLTIPS("HELD_ITEM_TOOLTIPS", 102, "", 999, "Held Item Tooltips", false, false),
+-        DROPPED_ITEMS("DROPPED_ITEMS", 103, "", 999, "Dropped Items", false, false),
+-        LAZY_CHUNK_LOADING("LAZY_CHUNK_LOADING", 104, "", 999, "Lazy Chunk Loading", false, false),
+-        CUSTOM_SKY("CUSTOM_SKY", 105, "", 999, "Custom Sky", false, false),
+-        FAST_MATH("FAST_MATH", 106, "", 999, "Fast Math", false, false),
+-        FAST_RENDER("FAST_RENDER", 107, "", 999, "Fast Render", false, false),
+-        TRANSLUCENT_BLOCKS("TRANSLUCENT_BLOCKS", 108, "", 999, "Translucent Blocks", false, false);
++        AUTOSAVE_TICKS("AUTOSAVE_TICKS", 62, "", 999, "Autosave", false, false),
++        BETTER_GRASS("BETTER_GRASS", 63, "", 999, "Better Grass", false, false),
++        ANIMATED_REDSTONE("ANIMATED_REDSTONE", 64, "", 999, "Redstone Animated", false, false),
++        ANIMATED_EXPLOSION("ANIMATED_EXPLOSION", 65, "", 999, "Explosion Animated", false, false),
++        ANIMATED_FLAME("ANIMATED_FLAME", 66, "", 999, "Flame Animated", false, false),
++        ANIMATED_SMOKE("ANIMATED_SMOKE", 67, "", 999, "Smoke Animated", false, false),
++        WEATHER("WEATHER", 68, "", 999, "Weather", false, false),
++        SKY("SKY", 69, "", 999, "Sky", false, false),
++        STARS("STARS", 70, "", 999, "Stars", false, false),
++        SUN_MOON("SUN_MOON", 71, "", 999, "Sun & Moon", false, false),
++        CHUNK_UPDATES("CHUNK_UPDATES", 72, "", 999, "Chunk Updates", false, false),
++        CHUNK_UPDATES_DYNAMIC("CHUNK_UPDATES_DYNAMIC", 73, "", 999, "Dynamic Updates", false, false),
++        TIME("TIME", 74, "", 999, "Time", false, false),
++        CLEAR_WATER("CLEAR_WATER", 75, "", 999, "Clear Water", false, false),
++        SMOOTH_WORLD("SMOOTH_WORLD", 76, "", 999, "Smooth World", false, false),
++        DEPTH_FOG("DEPTH_FOG", 77, "", 999, "Depth Fog", false, false),
++        VOID_PARTICLES("VOID_PARTICLES", 78, "", 999, "Void Particles", false, false),
++        WATER_PARTICLES("WATER_PARTICLES", 79, "", 999, "Water Particles", false, false),
++        RAIN_SPLASH("RAIN_SPLASH", 80, "", 999, "Rain Splash", false, false),
++        PORTAL_PARTICLES("PORTAL_PARTICLES", 81, "", 999, "Portal Particles", false, false),
++        POTION_PARTICLES("POTION_PARTICLES", 82, "", 999, "Potion Particles", false, false),
++        PROFILER("PROFILER", 83, "", 999, "Debug Profiler", false, false),
++        DRIPPING_WATER_LAVA("DRIPPING_WATER_LAVA", 84, "", 999, "Dripping Water/Lava", false, false),
++        BETTER_SNOW("BETTER_SNOW", 85, "", 999, "Better Snow", false, false),
++        FULLSCREEN_MODE("FULLSCREEN_MODE", 86, "", 999, "Fullscreen Mode", false, false),
++        ANIMATED_TERRAIN("ANIMATED_TERRAIN", 87, "", 999, "Terrain Animated", false, false),
++        ANIMATED_ITEMS("ANIMATED_ITEMS", 88, "", 999, "Items Animated", false, false),
++        SWAMP_COLORS("SWAMP_COLORS", 89, "", 999, "Swamp Colors", false, false),
++        RANDOM_MOBS("RANDOM_MOBS", 90, "", 999, "Random Mobs", false, false),
++        SMOOTH_BIOMES("SMOOTH_BIOMES", 91, "", 999, "Smooth Biomes", false, false),
++        CUSTOM_FONTS("CUSTOM_FONTS", 92, "", 999, "Custom Fonts", false, false),
++        CUSTOM_COLORS("CUSTOM_COLORS", 93, "", 999, "Custom Colors", false, false),
++        SHOW_CAPES("SHOW_CAPES", 94, "", 999, "Show Capes", false, false),
++        CONNECTED_TEXTURES("CONNECTED_TEXTURES", 95, "", 999, "Connected Textures", false, false),
++        AA_LEVEL("AA_LEVEL", 96, "", 999, "Antialiasing", false, false),
++        ANIMATED_TEXTURES("ANIMATED_TEXTURES", 97, "", 999, "Textures Animated", false, false),
++        NATURAL_TEXTURES("NATURAL_TEXTURES", 98, "", 999, "Natural Textures", false, false),
++        CHUNK_LOADING("CHUNK_LOADING", 99, "", 999, "Chunk Loading", false, false),
++        HELD_ITEM_TOOLTIPS("HELD_ITEM_TOOLTIPS", 100, "", 999, "Held Item Tooltips", false, false),
++        DROPPED_ITEMS("DROPPED_ITEMS", 101, "", 999, "Dropped Items", false, false),
++        LAZY_CHUNK_LOADING("LAZY_CHUNK_LOADING", 102, "", 999, "Lazy Chunk Loading", false, false),
++        CUSTOM_SKY("CUSTOM_SKY", 103, "", 999, "Custom Sky", false, false),
++        FAST_MATH("FAST_MATH", 104, "", 999, "Fast Math", false, false),
++        FAST_RENDER("FAST_RENDER", 105, "", 999, "Fast Render", false, false),
++        TRANSLUCENT_BLOCKS("TRANSLUCENT_BLOCKS", 106, "", 999, "Translucent Blocks", false, false);
+         private final boolean enumFloat;
+         private final boolean enumBoolean;
+         private final String enumString;
+@@ -3160,8 +3119,7 @@
+         private static final GameSettings.Options[] $VALUES = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, ADVANCED_OPENGL, FRAMERATE_LIMIT, FBO_ENABLE, DIFFICULTY, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, RENDER_CLOUDS, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, SHOW_CAPE, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, ANISOTROPIC_FILTERING, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR};
+         private static final String __OBFID = "CL_00000653";
+ 
+-        private static final GameSettings.Options[] $VALUES$ = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, ADVANCED_OPENGL, FRAMERATE_LIMIT, FBO_ENABLE, DIFFICULTY, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, RENDER_CLOUDS, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, SHOW_CAPE, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, ANISOTROPIC_FILTERING, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR, FOG_FANCY, FOG_START, MIPMAP_TYPE, LOAD_FAR, PRELOADED_CHUNKS, SMOOTH_FPS, CLOUDS, CLOUD_HEIGHT, TREES, GRASS, RAIN, WATER, ANIMATED_WATER, ANIMATED_LAVA, ANIMATED_FIRE, ANIMATED_PORTAL, AO_LEVEL, LAGOMETER, SHOW_FPS, AUTOSAVE_TICKS, BETTER_GRASS, ANIMATED_REDSTONE, ANIMATED_EXPLOSION, ANIMATED_FLAME, ANIMATED_SMOKE, WEATHER, SKY, STARS, SUN_MOON, VIGNETTE, CHUNK_UPDATES, CHUNK_UPDATES_DYNAMIC, TIME, CLEAR_WATER, SMOOTH_WORLD, DEPTH_FOG, VOID_PARTICLES, WATER_PARTICLES, RAIN_SPLASH, PORTAL_PARTICLES, POTION_PARTICLES, PROFILER, DRIPPING_WATER_LAVA, BETTER_SNOW, FULLSCREEN_MODE, ANIMATED_TERRAIN, ANIMATED_ITEMS, SWAMP_COLORS, RANDOM_MOBS, SMOOTH_BIOMES, CUSTOM_FONTS, CUSTOM_COLORS, SHOW_CAPES, CONNECTED_TEXTURES, AA_LEVEL, ANIMATED_TEXTURES, NATURAL_TEXTURES, CHUNK_LOADING, HELD_ITEM_TOOLTIPS, DROPPED_ITEMS, LAZY_CHUNK_LOADING, CUSTOM_SKY, FAST_MATH, FAST_RENDER, TRANSLUCENT_BLOCKS};
+-
++        private static final GameSettings.Options[] $VALUES$ = new GameSettings.Options[]{INVERT_MOUSE, SENSITIVITY, FOV, GAMMA, SATURATION, RENDER_DISTANCE, VIEW_BOBBING, ANAGLYPH, ADVANCED_OPENGL, FRAMERATE_LIMIT, FBO_ENABLE, DIFFICULTY, GRAPHICS, AMBIENT_OCCLUSION, GUI_SCALE, RENDER_CLOUDS, PARTICLES, CHAT_VISIBILITY, CHAT_COLOR, CHAT_LINKS, CHAT_OPACITY, CHAT_LINKS_PROMPT, SNOOPER_ENABLED, USE_FULLSCREEN, ENABLE_VSYNC, SHOW_CAPE, TOUCHSCREEN, CHAT_SCALE, CHAT_WIDTH, CHAT_HEIGHT_FOCUSED, CHAT_HEIGHT_UNFOCUSED, MIPMAP_LEVELS, ANISOTROPIC_FILTERING, FORCE_UNICODE_FONT, STREAM_BYTES_PER_PIXEL, STREAM_VOLUME_MIC, STREAM_VOLUME_SYSTEM, STREAM_KBPS, STREAM_FPS, STREAM_COMPRESSION, STREAM_SEND_METADATA, STREAM_CHAT_ENABLED, STREAM_CHAT_USER_FILTER, STREAM_MIC_TOGGLE_BEHAVIOR, FOG_FANCY, FOG_START, MIPMAP_TYPE, LOAD_FAR, PRELOADED_CHUNKS, SMOOTH_FPS, CLOUDS, CLOUD_HEIGHT, TREES, GRASS, RAIN, WATER, ANIMATED_WATER, ANIMATED_LAVA, ANIMATED_FIRE, ANIMATED_PORTAL, AO_LEVEL, LAGOMETER, AUTOSAVE_TICKS, BETTER_GRASS, ANIMATED_REDSTONE, ANIMATED_EXPLOSION, ANIMATED_FLAME, ANIMATED_SMOKE, WEATHER, SKY, STARS, SUN_MOON, CHUNK_UPDATES, CHUNK_UPDATES_DYNAMIC, TIME, CLEAR_WATER, SMOOTH_WORLD, DEPTH_FOG, VOID_PARTICLES, WATER_PARTICLES, RAIN_SPLASH, PORTAL_PARTICLES, POTION_PARTICLES, PROFILER, DRIPPING_WATER_LAVA, BETTER_SNOW, FULLSCREEN_MODE, ANIMATED_TERRAIN, ANIMATED_ITEMS, SWAMP_COLORS, RANDOM_MOBS, SMOOTH_BIOMES, CUSTOM_FONTS, CUSTOM_COLORS, SHOW_CAPES, CONNECTED_TEXTURES, AA_LEVEL, ANIMATED_TEXTURES, NATURAL_TEXTURES, CHUNK_LOADING, HELD_ITEM_TOOLTIPS, DROPPED_ITEMS, LAZY_CHUNK_LOADING, CUSTOM_SKY, FAST_MATH, FAST_RENDER, TRANSLUCENT_BLOCKS};
+ 
+         public static GameSettings.Options getEnumOptions(int par0)
+         {
+@@ -3181,12 +3139,12 @@
+             return null;
+         }
+ 
+-        private Options(String p_i46438_1_, int p_i46438_2_, String par1Str, int par2, String par3Str, boolean par4, boolean par5)
++        private Options(String p_i46429_1_, int p_i46429_2_, String par1Str, int par2, String par3Str, boolean par4, boolean par5)
+         {
+-            this(p_i46438_1_, p_i46438_2_, par1Str, par2, par3Str, par4, par5, 0.0F, 1.0F, 0.0F);
++            this(p_i46429_1_, p_i46429_2_, par1Str, par2, par3Str, par4, par5, 0.0F, 1.0F, 0.0F);
+         }
+ 
+-        private Options(String p_i46439_1_, int p_i46439_2_, String p_i45004_1_, int p_i45004_2_, String p_i45004_3_, boolean p_i45004_4_, boolean p_i45004_5_, float p_i45004_6_, float p_i45004_7_, float p_i45004_8_)
++        private Options(String p_i46430_1_, int p_i46430_2_, String p_i45004_1_, int p_i45004_2_, String p_i45004_3_, boolean p_i45004_4_, boolean p_i45004_5_, float p_i45004_6_, float p_i45004_7_, float p_i45004_8_)
+         {
+             this.enumString = p_i45004_3_;
+             this.enumFloat = p_i45004_4_;
+@@ -3252,9 +3210,9 @@
+             return p_148264_1_;
+         }
+ 
+-        private Options(String p_i46440_1_, int p_i46440_2_, String p_i45005_1_, int p_i45005_2_, String p_i45005_3_, boolean p_i45005_4_, boolean p_i45005_5_, float p_i45005_6_, float p_i45005_7_, float p_i45005_8_, Object p_i45005_9_)
++        private Options(String p_i46431_1_, int p_i46431_2_, String p_i45005_1_, int p_i45005_2_, String p_i45005_3_, boolean p_i45005_4_, boolean p_i45005_5_, float p_i45005_6_, float p_i45005_7_, float p_i45005_8_, Object p_i45005_9_)
+         {
+-            this(p_i46440_1_, p_i46440_2_, p_i45005_1_, p_i45005_2_, p_i45005_3_, p_i45005_4_, p_i45005_5_, p_i45005_6_, p_i45005_7_, p_i45005_8_);
++            this(p_i46431_1_, p_i46431_2_, p_i45005_1_, p_i45005_2_, p_i45005_3_, p_i45005_4_, p_i45005_5_, p_i45005_6_, p_i45005_7_, p_i45005_8_);
+         }
+ 
+         Options(String x0, int x1, String x2, int x3, String x4, boolean x5, boolean x6, float x7, float x8, float x9, Object x10, Object x11)

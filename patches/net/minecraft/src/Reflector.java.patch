@@ -43,10 +43,21 @@
  
  public class Reflector
  {
-@@ -135,6 +155,275 @@
+@@ -111,7 +131,6 @@
+     public static ReflectorField Event_Result_DEFAULT = new ReflectorField(Event_Result, "DEFAULT");
+     public static ReflectorClass ForgeEventFactory = new ReflectorClass("net.minecraftforge.event.ForgeEventFactory");
+     public static ReflectorMethod ForgeEventFactory_canEntitySpawn = new ReflectorMethod(ForgeEventFactory, "canEntitySpawn");
+-    public static ReflectorMethod ForgeEventFactory_canEntityDespawn = new ReflectorMethod(ForgeEventFactory, "canEntityDespawn");
+     public static ReflectorClass ChunkWatchEvent_UnWatch = new ReflectorClass("net.minecraftforge.event.world.ChunkWatchEvent$UnWatch");
+     public static ReflectorConstructor ChunkWatchEvent_UnWatch_Constructor = new ReflectorConstructor(ChunkWatchEvent_UnWatch, new Class[] {ChunkCoordIntPair.class, EntityPlayerMP.class});
+     public static ReflectorClass ForgeBlock = new ReflectorClass(Block.class);
+@@ -136,9 +155,275 @@
      public static ReflectorMethod ForgeItemStack_hasEffect = new ReflectorMethod(ForgeItemStack, "hasEffect", new Class[] {Integer.TYPE});
      public static ReflectorClass ForgeItemRecord = new ReflectorClass(ItemRecord.class);
      public static ReflectorMethod ForgeItemRecord_getRecordResource = new ReflectorMethod(ForgeItemRecord, "getRecordResource", new Class[] {String.class});
+-    public static ReflectorClass Launch = new ReflectorClass("net.minecraft.launchwrapper.Launch");
+-    public static ReflectorField Launch_blackboard = new ReflectorField(Launch, "blackboard");
+-    public static ReflectorClass SplashScreen = new ReflectorClass("net.minecraftforge.fml.client.SplashProgress");
 +    public static ReflectorClass ForgeTextureMap = new ReflectorClass(TextureMap.class);
 +    public static ReflectorConstructor ForgeTextureMap_Constructor = new ReflectorConstructor(ForgeTextureMap, new Class[] {Integer.TYPE, String.class, Boolean.TYPE});
 +
@@ -319,7 +330,67 @@
  
      public static void callVoid(ReflectorMethod refMethod, Object ... params)
      {
-@@ -467,8 +756,56 @@
+@@ -228,29 +513,6 @@
+         }
+     }
+ 
+-    public static double callDouble(ReflectorMethod refMethod, Object ... params)
+-    {
+-        try
+-        {
+-            Method e = refMethod.getTargetMethod();
+-
+-            if (e == null)
+-            {
+-                return 0.0D;
+-            }
+-            else
+-            {
+-                Double retVal = (Double)e.invoke((Object)null, params);
+-                return retVal.doubleValue();
+-            }
+-        }
+-        catch (Throwable var4)
+-        {
+-            handleException(var4, (Object)null, refMethod, params);
+-            return 0.0D;
+-        }
+-    }
+-
+     public static String callString(ReflectorMethod refMethod, Object ... params)
+     {
+         try
+@@ -390,29 +652,6 @@
+         }
+     }
+ 
+-    public static double callDouble(Object obj, ReflectorMethod refMethod, Object ... params)
+-    {
+-        try
+-        {
+-            Method e = refMethod.getTargetMethod();
+-
+-            if (e == null)
+-            {
+-                return 0.0D;
+-            }
+-            else
+-            {
+-                Double retVal = (Double)e.invoke(obj, params);
+-                return retVal.doubleValue();
+-            }
+-        }
+-        catch (Throwable var5)
+-        {
+-            handleException(var5, obj, refMethod, params);
+-            return 0.0D;
+-        }
+-    }
+-
+     public static String callString(Object obj, ReflectorMethod refMethod, Object ... params)
+     {
+         try
+@@ -517,8 +756,56 @@
              {
                  return;
              }
