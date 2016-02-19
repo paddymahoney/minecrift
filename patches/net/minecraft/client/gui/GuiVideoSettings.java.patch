@@ -19,7 +19,7 @@
  
          this.drawString(this.fontRendererObj, ver, 2, this.height - 10, 8421504);
 -        String verMc = "Minecraft 1.7.10";
-+        String verMc = this.mc.MINECRIFT_VERSION;
++        String verMc = this.mc.minecriftVerString;
          int lenMc = this.fontRendererObj.getStringWidth(verMc);
          this.drawString(this.fontRendererObj, verMc, this.width - lenMc - 2, this.height - 10, 8421504);
  

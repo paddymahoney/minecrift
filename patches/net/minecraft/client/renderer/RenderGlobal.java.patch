@@ -426,28 +426,3 @@
      }
  
      /**
-@@ -3332,24 +3520,4 @@
-             ++this.countSortedWorldRenderers;
-         }
-     }
--
--    public int getCountRenderers()
--    {
--        return this.renderersLoaded;
--    }
--
--    public int getCountActiveRenderers()
--    {
--        return this.renderersBeingRendered;
--    }
--
--    public int getCountEntitiesRendered()
--    {
--        return this.countEntitiesRendered;
--    }
--
--    public int getCountTileEntitiesRendered()
--    {
--        return this.countTileEntitiesRendered;
--    }
- }
