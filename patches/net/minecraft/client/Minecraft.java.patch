@@ -228,7 +228,7 @@
 +     * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +     * Modify minecriftversion.py in root minecrift dir.
 +     */
-+    public final String minecriftVerString = "Minecrift 1.7.10 R2a";
++    public final String minecriftVerString = "Minecrift 1.7.10 R2b";
 +    /* end version */
 +    /** END MINECRIFT */
 +

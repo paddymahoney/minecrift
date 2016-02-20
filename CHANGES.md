@@ -1,3 +1,11 @@
+[Minecrift 1.7.10 R2b]
+
+Bug fixes
+---------
+- Ensure correct version of launcherwrapper is used by Forge versions. Prevents crash at startup
+  when some mods are loaded.
+  
+
 [Minecrift 1.7.10 R2a]
 
 - Supports Forge 1.7.10 #1614

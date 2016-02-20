@@ -13,7 +13,7 @@
       "url": "http://files.minecraftforge.net/maven/"
     },
     {
-      "name": "net.minecraft:launchwrapper:1.7"
+      "name": "net.minecraft:launchwrapper:1.12"
     },
     {
       "name": "org.ow2.asm:asm-all:5.0.3"
@@ -281,5 +281,7 @@
   ],
   "mainClass": "net.minecraft.launchwrapper.Launch",
   "minimumLauncherVersion": 14,
-  "assets": "1.7.10"
+  "assets": "1.7.10",
+  "jar": "1.7.10",
+  "downloads": {}
 }
