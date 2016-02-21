@@ -23,3 +23,4 @@ crash-reports/
 saves/
 *.ex_
 mcppatches - Copy/
+hs_err_pid*.log
