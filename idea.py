@@ -9,7 +9,8 @@ PROJECT_NAME = 'minecrift'
 def createIdeaProject(project_root_dir, version, mcpDirName, are32bitNatives):
 
     # generate IML xml
-    srcPaths = [os.path.join(project_root_dir, 'JRift', 'JRift', 'src'), \
+    srcPaths = [os.path.join(project_root_dir, 'JOpenVR', 'JOpenVR', 'src'), \
+                os.path.join(project_root_dir, 'JRift', 'JRift', 'src'), \
                 os.path.join(project_root_dir, 'JMumbleLink', 'JMumble', 'src'), \
                 os.path.join(project_root_dir, 'Sixense-Java', 'SixenseJava', 'src'), \
                 os.path.join(project_root_dir, mcpDirName, 'src', 'minecraft')]
@@ -42,7 +43,8 @@ def createIdeaProject(project_root_dir, version, mcpDirName, are32bitNatives):
         platform = 'windows'
 
     mainClass = 'Start'
-    nativesPaths = [os.path.join(project_root_dir, 'JRift', 'JRiftLibrary', 'natives', platform), \
+    nativesPaths = [os.path.join(project_root_dir, 'JOpenVR', 'JOpenVRLibrary', 'natives', platform), \
+                    os.path.join(project_root_dir, 'JRift', 'JRiftLibrary', 'natives', platform), \
                     os.path.join(project_root_dir, 'JMumbleLink', 'JMumbleLibrary', 'natives', platform), \
                     os.path.join(project_root_dir, 'Sixense-Java', 'SixenseJavaLibrary', 'natives', platform), \
                     os.path.join(project_root_dir, 'lib', version, 'natives', platform)]
