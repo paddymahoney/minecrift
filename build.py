@@ -7,7 +7,8 @@ from tempfile import mkstemp
 from shutil import move
 from os import remove, close
 from install import download_deps, download_native, download_file, mkdir_p, replacelineinfile
-from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version, forge_version
+from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, \
+  minecrift_build, of_file_extension, of_file_md5, mcp_version, forge_version, mc_file_md5
 
 try:
     WindowsError
@@ -89,6 +90,7 @@ def create_install(mcp_dir):
     installer_java_file = os.path.join("installer","Installer.java")
     replacelineinfile( installer_java_file, "private static final String MINECRAFT_VERSION", "    private static final String MINECRAFT_VERSION = \"%s\";\n" % mc_version );
     replacelineinfile( installer_java_file, "private static final String MC_VERSION",        "    private static final String MC_VERSION        = \"%s\";\n" % minecrift_version_num );
+    replacelineinfile( installer_java_file, "private static final String MC_MD5",            "    private static final String MC_MD5            = \"%s\";\n" % mc_file_md5 );
     replacelineinfile( installer_java_file, "private static final String OF_FILE_NAME",      "    private static final String OF_FILE_NAME      = \"%s\";\n" % of_file_name );
     replacelineinfile( installer_java_file, "private static final String OF_JSON_NAME",      "    private static final String OF_JSON_NAME      = \"%s\";\n" % of_json_name );
     replacelineinfile( installer_java_file, "private static final String OF_MD5",            "    private static final String OF_MD5            = \"%s\";\n" % of_file_md5 );

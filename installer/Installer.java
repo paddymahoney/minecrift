@@ -31,6 +31,7 @@ import javax.swing.border.LineBorder;
 public class Installer extends JPanel  implements PropertyChangeListener
 {
     private static final long serialVersionUID = -562178983462626162L;
+    private String tempDir = System.getProperty("java.io.tmpdir");
 
     private static final boolean ALLOW_FORGE_INSTALL = true;
     private static final boolean ALLOW_HYDRA_INSTALL = false;  // TODO: Change to true once Hydra is fixed up
@@ -48,6 +49,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     /* DO NOT RENAME THESE STRING CONSTS - THEY ARE USED IN (AND THE VALUES UPDATED BY) THE AUTOMATED BUILD SCRIPTS */
     private static final String MINECRAFT_VERSION = "1.7.10";
     private static final String MC_VERSION        = "1.7.10";
+    private static final String MC_MD5            = "e6b7a531b95d0c172acb704d1f54d1b3";
     private static final String OF_LIB_PATH       = "libraries/optifine/OptiFine/";
     private static final String OF_FILE_NAME      = "1.7.10_HD_U_D1";
     private static final String OF_JSON_NAME      = "1.7.10_HD_U_D1";
@@ -56,10 +58,16 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final String FORGE_VERSION     = "10.13.4.1614";
     /* END OF DO NOT RENAME */
 
+    private String mc_url = "https://s3.amazonaws.com/Minecraft.Download/versions/" + MINECRAFT_VERSION + "/" + MINECRAFT_VERSION +".jar";
+
     private InstallTask task;
     private static ProgressMonitor monitor;
-
     static private File targetDir;
+    private String[] forgeVersions = null;
+    private boolean forgeVersionInstalled = false;
+    private static final String FULL_FORGE_VERSION = MINECRAFT_VERSION + "-" + FORGE_VERSION + "-" + MINECRAFT_VERSION;
+    private String forge_url = "http://files.minecraftforge.net/maven/net/minecraftforge/forge/" + FULL_FORGE_VERSION + "/forge-" + FULL_FORGE_VERSION + "-installer.jar";
+    private File forgeInstaller = new File(tempDir + "/" + FULL_FORGE_VERSION + ".jar");
     private JTextField selectedDirText;
     private JLabel infoLabel;
     private JDialog dialog;
@@ -149,6 +157,11 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
         private boolean downloadFile(String surl, File fo)
         {
+            return downloadFile(surl, fo, null);
+        }
+
+        private boolean downloadFile(String surl, File fo, String md5)
+        {
             boolean success = true;
 
             FileOutputStream fos = null;
@@ -169,6 +182,14 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     try {
                         fos.close();
                     } catch (Exception e) { }
+                }
+            }
+            if (success && md5 != null) {
+                String OnDiskMd5 = GetMd5(fo);
+                if (OnDiskMd5 == null || !OnDiskMd5.equalsIgnoreCase(md5)) {
+                    System.out.println("Bad md5 for " + fo.getName() + "!");
+                    fo.delete();
+                    success = false;
                 }
             }
 
@@ -217,13 +238,207 @@ public class Installer extends JPanel  implements PropertyChangeListener
             }
         }
 
+        // Shamelessly ripped from Forge ClientInstall
+        private boolean installForge(File target)
+        {
+            File versionRootDir = new File(target,"versions");
+            File versionTarget = new File(versionRootDir,MINECRAFT_VERSION);
+            if (!versionTarget.mkdirs() && !versionTarget.isDirectory())
+            {
+                versionTarget.delete();
+                versionTarget.mkdirs();
+            }
+
+            File librariesDir = new File(target, "libraries");
+            List<JsonNode> libraries = VersionInfo.getVersionInfo().getArrayNode("libraries");
+            monitor.setMaximum(libraries.size() + 3);
+            int progress = 3;
+
+            File versionJsonFile = new File(versionTarget,VersionInfo.getVersionTarget()+".json");
+
+            if (!VersionInfo.isInheritedJson())
+            {
+                File clientJarFile = new File(versionTarget, VersionInfo.getVersionTarget()+".jar");
+                File minecraftJarFile = VersionInfo.getMinecraftFile(versionRootDir);
+
+                try
+                {
+                    boolean delete = false;
+                    monitor.setNote("Considering minecraft client jar");
+                    monitor.setProgress(1);
+
+                    if (!minecraftJarFile.exists())
+                    {
+                        minecraftJarFile = File.createTempFile("minecraft_client", ".jar");
+                        delete = true;
+                        monitor.setNote(String.format("Downloading minecraft client version %s", VersionInfo.getMinecraftVersion()));
+                        String clientUrl = String.format(DownloadUtils.VERSION_URL_CLIENT.replace("{MCVER}", VersionInfo.getMinecraftVersion()));
+                        System.out.println("  Temp File: " + minecraftJarFile.getAbsolutePath());
+
+                        if (!DownloadUtils.downloadFileEtag("minecraft server", minecraftJarFile, clientUrl))
+                        {
+                            minecraftJarFile.delete();
+                            JOptionPane.showMessageDialog(null, "Downloading minecraft failed, invalid e-tag checksum.\n" +
+                                            "Try again, or use the official launcher to run Minecraft " +
+                                            VersionInfo.getMinecraftVersion() + " first.",
+                                    "Error downloading", JOptionPane.ERROR_MESSAGE);
+                            return false;
+                        }
+                        monitor.setProgress(2);
+                    }
+
+                    if (VersionInfo.getStripMetaInf())
+                    {
+                        monitor.setNote("Copying and filtering minecraft client jar");
+                        copyAndStrip(minecraftJarFile, clientJarFile);
+                        monitor.setProgress(3);
+                    }
+                    else
+                    {
+                        monitor.setNote("Copying minecraft client jar");
+                        Files.copy(minecraftJarFile, clientJarFile);
+                        monitor.setProgress(3);
+                    }
+
+                    if (delete)
+                    {
+                        minecraftJarFile.delete();
+                    }
+                }
+                catch (IOException e1)
+                {
+                    JOptionPane.showMessageDialog(null, "You need to run the version "+VersionInfo.getMinecraftVersion()+" manually at least once", "Error", JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
+            }
+
+            File targetLibraryFile = VersionInfo.getLibraryPath(librariesDir);
+            grabbed = Lists.newArrayList();
+            List<Artifact> bad = Lists.newArrayList();
+            progress = DownloadUtils.downloadInstalledLibraries("clientreq", librariesDir, monitor, libraries, progress, grabbed, bad);
+
+            monitor.close();
+            if (bad.size() > 0)
+            {
+                String list = Joiner.on("\n").join(bad);
+                JOptionPane.showMessageDialog(null, "These libraries failed to download. Try again.\n"+list, "Error downloading", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            if (!targetLibraryFile.getParentFile().mkdirs() && !targetLibraryFile.getParentFile().isDirectory())
+            {
+                if (!targetLibraryFile.getParentFile().delete())
+                {
+                    JOptionPane.showMessageDialog(null, "There was a problem with the launcher version data. You will need to clear "+targetLibraryFile.getAbsolutePath()+" manually", "Error", JOptionPane.ERROR_MESSAGE);
+                    return false;
+                }
+                else
+                {
+                    targetLibraryFile.getParentFile().mkdirs();
+                }
+            }
+
+
+            JsonRootNode versionJson = JsonNodeFactories.object(VersionInfo.getVersionInfo().getFields());
+
+            try
+            {
+                BufferedWriter newWriter = Files.newWriter(versionJsonFile, Charsets.UTF_8);
+                PrettyJsonFormatter.fieldOrderPreservingPrettyJsonFormatter().format(versionJson,newWriter);
+                newWriter.close();
+            }
+            catch (Exception e)
+            {
+                JOptionPane.showMessageDialog(null, "There was a problem writing the launcher version data,  is it write protected?", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            try
+            {
+                VersionInfo.extractFile(targetLibraryFile);
+            }
+            catch (IOException e)
+            {
+                JOptionPane.showMessageDialog(null, "There was a problem writing the system library file", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            JdomParser parser = new JdomParser();
+            JsonRootNode jsonProfileData;
+
+            try
+            {
+                jsonProfileData = parser.parse(Files.newReader(launcherProfiles, Charsets.UTF_8));
+            }
+            catch (InvalidSyntaxException e)
+            {
+                JOptionPane.showMessageDialog(null, "The launcher profile file is corrupted. Re-run the minecraft launcher to fix it!", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            catch (Exception e)
+            {
+                throw Throwables.propagate(e);
+            }
+
+
+
+
+            HashMap<JsonStringNode, JsonNode> profileCopy = Maps.newHashMap(jsonProfileData.getNode("profiles").getFields());
+            HashMap<JsonStringNode, JsonNode> rootCopy = Maps.newHashMap(jsonProfileData.getFields());
+            if(profileCopy.containsKey(JsonNodeFactories.string(VersionInfo.getProfileName())))
+            {
+                HashMap<JsonStringNode, JsonNode> forgeProfileCopy = Maps.newHashMap(profileCopy.get(JsonNodeFactories.string(VersionInfo.getProfileName())).getFields());
+                forgeProfileCopy.put(JsonNodeFactories.string("name"), JsonNodeFactories.string(VersionInfo.getProfileName()));
+                forgeProfileCopy.put(JsonNodeFactories.string("lastVersionId"), JsonNodeFactories.string(VersionInfo.getVersionTarget()));
+            }
+            else
+            {
+                JsonField[] fields = new JsonField[] {
+                        JsonNodeFactories.field("name", JsonNodeFactories.string(VersionInfo.getProfileName())),
+                        JsonNodeFactories.field("lastVersionId", JsonNodeFactories.string(VersionInfo.getVersionTarget())),
+                };
+                profileCopy.put(JsonNodeFactories.string(VersionInfo.getProfileName()), JsonNodeFactories.object(fields));
+            }
+            JsonRootNode profileJsonCopy = JsonNodeFactories.object(profileCopy);
+            rootCopy.put(JsonNodeFactories.string("profiles"), profileJsonCopy);
+
+            jsonProfileData = JsonNodeFactories.object(rootCopy);
+
+            try
+            {
+                BufferedWriter newWriter = Files.newWriter(launcherProfiles, Charsets.UTF_8);
+                PrettyJsonFormatter.fieldOrderPreservingPrettyJsonFormatter().format(jsonProfileData,newWriter);
+                newWriter.close();
+            }
+            catch (Exception e)
+            {
+                JOptionPane.showMessageDialog(null, "There was a problem writing the launch profile,  is it write protected?", "Error", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            return true;
+
+
+//            return success;
+        }
+
         private boolean SetupMinecraftAsLibrary() {
             File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MINECRAFT_VERSION );
             lib_dir.mkdirs();
             File lib_file = new File(lib_dir,"Minecraft-"+MINECRAFT_VERSION+".jar");
+            File mc_jar = null;
             if( lib_file.exists() && lib_file.length() > 4500000 )return true; //TODO: should md5sum it here, I suppose
             try {
-                ZipInputStream input_jar = new ZipInputStream(new FileInputStream(new File(targetDir,"versions/"+MINECRAFT_VERSION+"/"+MINECRAFT_VERSION+".jar")));
+                // Download the minecraft jar (we don't wont to require that it has previously been downloaded in Minecraft)
+
+                mc_jar = new File(tempDir + "/" + MINECRAFT_VERSION + ".jar");
+                if (!mc_jar.exists()) {
+                    if (!downloadFile(mc_url, mc_jar, MC_MD5)) {
+                        finalMessage += " Error: Failed to download " + MINECRAFT_VERSION + ".jar from " + mc_url;
+                        return false;
+                    }
+                }
+                ZipInputStream input_jar = new ZipInputStream(new FileInputStream(mc_jar));
                 ZipOutputStream lib_jar= new ZipOutputStream(new FileOutputStream(lib_file));
 
                 ZipEntry ze = null;
@@ -380,6 +595,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
             String minecriftVersionName = "minecrift-" + version + mod;
             boolean checkedRedists = false;
             boolean redistSuccess = true;
+            boolean downloadedForge = false;
+            boolean installedForge = false;
+
             monitor.setProgress(0);
 
             try {
@@ -401,7 +619,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
             finalMessage = "Failed: Couldn't download C++ redistributables. ";
             monitor.setNote("Checking for required libraries...");
             monitor.setProgress(5);
-            sleep(800);
 
             if (System.getProperty("os.name").contains("Windows"))
             {
@@ -409,7 +626,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
                 checkedRedists = true;
 
-                String tempDir = System.getProperty("java.io.tmpdir");
+
 
                 // Determine if we have a Win 64bit OS.
                 boolean is64bitOS = (System.getenv("ProgramFiles(x86)") != null);
@@ -539,7 +756,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
             monitor.setProgress(42);
             // Attempt optifine download...
             boolean downloadedOptifine = false;
-            sleep(1800);
             monitor.setNote("Downloading Optifine... Please donate to them!");
 
             for (int i = 1; i <= 3; i++)
@@ -565,15 +781,24 @@ public class Installer extends JPanel  implements PropertyChangeListener
             monitor.setProgress(50);
             monitor.setNote("Setting up Minecrift as a library...");
             finalMessage = "Failed: Couldn't setup Minecrift "+MC_VERSION+" as library. Have you run "+MINECRAFT_VERSION+" at least once yet?";
-            sleep(800);
             if(!SetupMinecraftAsLibrary())
             {
                 monitor.close();
                 return null;
             }
+            // Setup forge if necessary
+            if (useForge.isSelected() && !forgeVersionInstalled) {
+                monitor.setProgress(55);
+                monitor.setNote("Downloading Forge " + FULL_FORGE_VERSION + "...");
+                downloadedForge = downloadFile(forge_url, forgeInstaller);
+            }
+            if (downloadedForge && useForge.isSelected() && !forgeVersionInstalled) {
+                monitor.setProgress(65);
+                monitor.setNote("Installing Forge " + FULL_FORGE_VERSION + "...");
+                installedForge = installForge(forgeInstaller);
+            }
             monitor.setProgress(75);
             monitor.setNote("Extracting correct Minecrift version...");
-            sleep(700);
             finalMessage = "Failed: Couldn't extract Minecrift. Try redownloading this installer.";
             if(!ExtractVersion())
             {
@@ -584,7 +809,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
             {
                 monitor.setProgress(85);
                 monitor.setNote("Configuring HRTF audio...");
-                sleep(800);
                 if(!EnableHRTF())
                 {
                     sbErrors.append("Failed to set up HRTF! Minecrift will still work but audio won't be binaural.\n");
@@ -595,7 +819,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
             {
                 monitor.setProgress(95);
                 monitor.setNote("Creating Minecrift profile...");
-                sleep(800);
                 if (!updateLauncherJson(targetDir, minecriftVersionName))
                     sbErrors.append("Failed to set up 'Minecrift' profile (you can still manually select Edit Profile->Use Version " + minecriftVersionName + " in the Minecraft launcher)\n");
                 else
@@ -968,14 +1191,22 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
     private void updateFilePath()
     {
-        String[] forgeVersions = null;
         try
         {
             targetDir = targetDir.getCanonicalFile();
             if( targetDir.exists() ) {
-                File ForgeDir = new File( targetDir, "libraries"+File.separator+"net"+File.separator+"minecraftforge"+File.separator+"minecraftforge");
+                File ForgeDir = new File( targetDir, "libraries"+File.separator+"net"+File.separator+"minecraftforge"+File.separator+"forge");
                 if( ForgeDir.isDirectory() ) {
                     forgeVersions = ForgeDir.list();
+                    if (forgeVersions != null && forgeVersions.length > 0) {
+                        // Check for the currently required forge
+                        for (String forgeVersion : forgeVersions) {
+                            if (forgeVersion.contains(FORGE_VERSION)) {
+                                forgeVersionInstalled = true;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             selectedDirText.setText(targetDir.getPath());

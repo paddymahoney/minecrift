@@ -344,6 +344,7 @@ def download_deps( mcp_dir, download_mc, forgedep=False ):
         jar_file = os.path.join(versions,mc_version+".jar")
         jar_url = repo + "versions/"+mc_version+"/"+mc_version+".jar"
         download_file( jar_url, jar_file, mc_file_md5 )
+        print 'Used url: ' + jar_url
         shutil.copy(jar_file,os.path.join(flat_lib_dir, os.path.basename(jar_file))) 
         
         if mc_file_md5 == "":
