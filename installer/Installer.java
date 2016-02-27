@@ -241,7 +241,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         // Shamelessly ripped from Forge ClientInstall
         private boolean installForge(File target)
         {
-            File versionRootDir = new File(target,"versions");
+/*            File versionRootDir = new File(target,"versions");
             File versionTarget = new File(versionRootDir,MINECRAFT_VERSION);
             if (!versionTarget.mkdirs() && !versionTarget.isDirectory())
             {
@@ -415,7 +415,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 JOptionPane.showMessageDialog(null, "There was a problem writing the launch profile,  is it write protected?", "Error", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
-
+ */
             return true;
 
 
@@ -1335,7 +1335,11 @@ public class Installer extends JPanel  implements PropertyChangeListener
 	
 	private boolean copyInputStreamToFile( InputStream in, File file ) 
 	{
+        if (in == null || file == null)
+            return false;
+
         boolean success = true;
+
         try {
             OutputStream out = new FileOutputStream(file);
             byte[] buf = new byte[1024];
