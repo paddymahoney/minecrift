@@ -289,6 +289,12 @@ public class MCController extends BasePlugin implements IBodyAimController
 	}
 
 	@Override
+	public String getName() { return pluginName; }
+
+	@Override
+	public String getID() { return pluginID; }
+
+	@Override
 	public String getInitializationStatus() {
 		return hasControllers ? "Ready." : "No Controllers found.";
 	}

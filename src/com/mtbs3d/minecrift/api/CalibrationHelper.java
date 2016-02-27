@@ -36,7 +36,9 @@ public class CalibrationHelper {
 			{
                 type = iterator.next();
 				currentPlugin = pluginsToCalibrate.get(type);
-                currentPlugin.beginCalibration(type);
+				if (currentPlugin != null) {
+					currentPlugin.beginCalibration(type);
+				}
 			}
 
             if( currentPlugin != null )
@@ -44,7 +46,7 @@ public class CalibrationHelper {
                 currentPlugin.updateCalibration(type);
             }
 
-			if( currentPlugin.isCalibrated(type) )
+			if( currentPlugin != null && currentPlugin.isCalibrated(type) )
 			{
 				currentPlugin = null;
 			}

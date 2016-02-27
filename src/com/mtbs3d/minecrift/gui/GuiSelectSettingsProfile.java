@@ -124,7 +124,7 @@ public class GuiSelectSettingsProfile extends BaseGuiSettings implements GuiYesN
                         this.mc.vrSettings,
                         button.id,
                         "Create New Profile",
-                        "Create new profile (based on defaults) called:",
+                        "Create new profile (using defaults) called:",
                         "New Profile",
                         "Create",
                         "Cancel"

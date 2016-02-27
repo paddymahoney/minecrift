@@ -11,6 +11,8 @@ import com.mtbs3d.minecrift.provider.MCHydra;
 import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
+import com.mtbs3d.minecrift.provider.MCOpenVR;
+import com.mtbs3d.minecrift.provider.NeckModelEyePosition;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -43,6 +45,20 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
     };
 
     static VRSettings.VrOptions[] oculusOptions = new VRSettings.VrOptions[]{
+            VRSettings.VrOptions.POSITION_TRACKING,
+            VRSettings.VrOptions.POS_TRACK_HIDE_COLLISION,
+            VRSettings.VrOptions.POS_TRACK_DIST_SCALE,
+            VRSettings.VrOptions.EYE_PROTRUSION,
+    };
+
+    static VRSettings.VrOptions[] openVROptions = new VRSettings.VrOptions[]{
+            VRSettings.VrOptions.POSITION_TRACKING,
+            VRSettings.VrOptions.POS_TRACK_HIDE_COLLISION,
+            VRSettings.VrOptions.POS_TRACK_DIST_SCALE,
+            VRSettings.VrOptions.EYE_PROTRUSION,
+    };
+
+    static VRSettings.VrOptions[] nullOptions = new VRSettings.VrOptions[]{
             VRSettings.VrOptions.POSITION_TRACKING,
             VRSettings.VrOptions.POS_TRACK_HIDE_COLLISION,
             VRSettings.VrOptions.POS_TRACK_DIST_SCALE,
@@ -100,8 +116,18 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
             this.buttonList.add(resetPosButton);
             var10 = oculusOptions;
         }
-        else
+        else if ( Minecraft.getMinecraft().positionTracker instanceof MCOpenVR)
+        {
+            GuiButtonEx resetPosButton = new GuiButtonEx(ID_GENERIC_RESETORIGIN, this.width / 2 - 100, this.height / 6 + 128, "Reset Origin");
+            this.buttonList.add(resetPosButton);
+            var10 = openVROptions;
+        }
+        else if ( Minecraft.getMinecraft().positionTracker instanceof NeckModelEyePosition )
+        {
             var10 = neckModelOptions;
+        }
+        else
+            var10 = nullOptions;
 
         int var11 = var10.length;
 

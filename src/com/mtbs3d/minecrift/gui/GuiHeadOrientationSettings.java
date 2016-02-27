@@ -11,6 +11,7 @@ import com.mtbs3d.minecrift.provider.MCHydra;
 import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
+import com.mtbs3d.minecrift.provider.MCOpenVR;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -27,6 +28,12 @@ public class GuiHeadOrientationSettings  extends BaseGuiSettings implements GuiE
             VRSettings.VrOptions.HEAD_TRACKING,
             VRSettings.VrOptions.HEAD_TRACK_SENSITIVITY,
     };
+    static VRSettings.VrOptions[] openVRHeadOrientationOptions = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.HEAD_TRACKING,
+    };
+    static VRSettings.VrOptions[] nullHeadOrientationOptions = new VRSettings.VrOptions[] {
+    };
+
 	private PluginModeChangeButton pluginModeChangeutton;
     public GuiHeadOrientationSettings(GuiScreen par1GuiScreen,
                                        VRSettings par2vrSettings)
@@ -50,8 +57,12 @@ public class GuiHeadOrientationSettings  extends BaseGuiSettings implements GuiE
         VRSettings.VrOptions[] var10 = null;
         if( Minecraft.getMinecraft().headTracker instanceof MCHydra )
             var10 = hydraHeadOrientationOptions;
-        else
+        else if ( Minecraft.getMinecraft().headTracker instanceof MCOculus )
             var10 = oculusHeadOrientationOptions;
+        else if ( Minecraft.getMinecraft().headTracker instanceof MCOpenVR )
+            var10 = openVRHeadOrientationOptions;
+        else
+            var10 = nullHeadOrientationOptions;
 
         int var11 = var10.length;
 

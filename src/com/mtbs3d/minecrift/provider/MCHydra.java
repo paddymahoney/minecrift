@@ -119,6 +119,13 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
         pluginName = "Razer Hydra";
 
 	}
+
+	@Override
+	public String getName() { return pluginName; }
+
+	@Override
+	public String getID() { return pluginID; }
+
 	@Override
 	public String getInitializationStatus() {
 		return initStatus;

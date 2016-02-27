@@ -90,6 +90,7 @@ public class VRSettings
     public static final int NO_SHADER = -1;
 
     public int version = UNKNOWN_VERSION;
+    public boolean firstLoad = true;
     public boolean newlyCreated = true;
     public boolean useVRRenderer  = false; //default to false
     public boolean debugPose = false;
@@ -191,10 +192,10 @@ public class VRSettings
 	public boolean keyholeHeadRelative = true;
     public boolean crosshairHeadRelative = false;
     public boolean hydraUseFilter = true;
-	public String headPositionPluginID = "oculus";
-	public String headTrackerPluginID = "oculus";
-	public String hmdPluginID = "oculus";
-    public String stereoProviderPluginID = "oculus";
+	public String headPositionPluginID   = "null";
+	public String headTrackerPluginID    = "null";
+	public String hmdPluginID            = "null";
+    public String stereoProviderPluginID = "mono";
     public String badStereoProviderPluginID = "";
 	public String controllerPluginID = "controller";
     public int calibrationStrategy = CALIBRATION_STRATEGY_AT_STARTUP;
@@ -286,6 +287,11 @@ public class VRSettings
                     {
                         this.newlyCreated = optionTokens[1].equals("true");
                     }
+
+//                    if (optionTokens[0].equals("firstLoad"))
+//                    {
+//                        this.firstLoad = optionTokens[1].equals("true");
+//                    }
 
                     if (optionTokens[0].equals("useVRRenderer"))
                     {
@@ -1998,6 +2004,7 @@ public class VRSettings
 
             var5.println("version:" + version);
             var5.println("newlyCreated:" + false );
+            //var5.println("firstLoad:" + this.firstLoad );
             var5.println("useVRRenderer:"+ this.useVRRenderer );
             var5.println("debugPose:"+ this.debugPose );
             var5.println("playerEyeHeight:" + this.playerEyeHeight);

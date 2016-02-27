@@ -4,6 +4,10 @@
  */
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.api.IEyePositionProvider;
+import com.mtbs3d.minecrift.api.IHMDInfo;
+import com.mtbs3d.minecrift.api.IOrientationProvider;
+import com.mtbs3d.minecrift.api.IStereoProvider;
 import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
 import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
 import com.mtbs3d.minecrift.gui.framework.GuiSmallButtonEx;
@@ -113,6 +117,12 @@ public class GuiMinecriftSettings extends BaseGuiSettings
     {
         if (par1GuiButton.enabled)
         {
+            VRSettings vr = Minecraft.getMinecraft().vrSettings;
+            IHMDInfo hmdInfo = Minecraft.getMinecraft().hmdInfo;
+            IStereoProvider stereoProvider = Minecraft.getMinecraft().stereoProvider;
+            IOrientationProvider headTracker = Minecraft.getMinecraft().headTracker;
+            IEyePositionProvider positionTracker = Minecraft.getMinecraft().positionTracker;
+
             if (par1GuiButton.id < 200 && par1GuiButton instanceof GuiSmallButtonEx)
             {
                 VRSettings.VrOptions num = VRSettings.VrOptions.getEnumOptions(par1GuiButton.id);
@@ -148,7 +158,7 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             } 
             else if (par1GuiButton.id == 206)
             {
-            	if( Minecraft.getMinecraft().headTracker != null && Minecraft.getMinecraft().hmdInfo != null && Minecraft.getMinecraft().positionTracker != null )
+            	if( headTracker != null && hmdInfo != null && positionTracker != null )
             	{
                     Minecraft.getMinecraft().vrSettings.saveOptions();
 	                this.mc.displayGuiScreen(new GuiRenderOpticsSettings(this, this.guivrSettings, this.settings));

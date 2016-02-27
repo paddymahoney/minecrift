@@ -12,12 +12,7 @@ package com.mtbs3d.minecrift.api;
  */
 public abstract class BasePlugin implements IBasePlugin, IEventListener
 {
-	@Override
-	public String getID() { return pluginID; };
 	public String pluginID = "BasePlugin";
-
-	@Override
-	public String getName(){ return pluginName; };
 	public String pluginName = "BasePlugin - Not Named!";
 
 	/**
@@ -26,5 +21,55 @@ public abstract class BasePlugin implements IBasePlugin, IEventListener
 	public BasePlugin()
 	{
 		PluginManager.register(this);
+	}
+
+	public void eventNotification(int eventId) {
+
+	}
+
+	public String getInitializationStatus() {
+		return null;
+	}
+
+	public boolean init() throws Exception {
+		return false;
+	}
+
+	public boolean isInitialized() {
+		return true;
+	}
+
+	public void poll(long frameIndex) throws Exception {
+
+	}
+
+	public void destroy() {
+
+	}
+
+	public void beginFrame()
+	{
+		beginFrame(0);
+	}
+
+	public void beginFrame(long frameIndex)
+	{
+
+	}
+
+	public boolean endFrame() {
+		return true;
+	}
+
+	public boolean isCalibrated(PluginType type) {
+		return true;
+	}
+
+	public void beginCalibration(PluginType type) {}
+
+	public void updateCalibration(PluginType type) {}
+
+	public String getCalibrationStep(PluginType type) {
+		return null;
 	}
 }

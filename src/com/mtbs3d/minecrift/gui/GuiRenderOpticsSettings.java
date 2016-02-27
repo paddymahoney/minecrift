@@ -8,6 +8,7 @@ import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
+import com.mtbs3d.minecrift.provider.MCOpenVR;
 import com.mtbs3d.minecrift.settings.VRSettings;
 
 import de.fruitfly.ovr.structs.HmdParameters;
@@ -23,7 +24,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     protected boolean reinit = false;
     private PluginModeChangeButton pluginModeChangeButton;
 
-    static VRSettings.VrOptions[] defaultDisplayOptions = new VRSettings.VrOptions[] {
+    static VRSettings.VrOptions[] monoDisplayOptions = new VRSettings.VrOptions[] {
             //VRSettings.VrOptions.USE_ORTHO_GUI,
             VRSettings.VrOptions.MONO_FOV,
             VRSettings.VrOptions.DUMMY,
@@ -50,6 +51,21 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     };
 
     static VRSettings.VrOptions[] oculusDK1DisplayOptions = new VRSettings.VrOptions[] {
+            VRSettings.VrOptions.HMD_NAME_PLACEHOLDER,
+            VRSettings.VrOptions.DUMMY,
+            VRSettings.VrOptions.RENDER_SCALEFACTOR,
+            VRSettings.VrOptions.MIRROR_DISPLAY,
+            VRSettings.VrOptions.FSAA,
+            VRSettings.VrOptions.FSAA_SCALEFACTOR,
+            VRSettings.VrOptions.WORLD_SCALE,/*
+            VRSettings.VrOptions.TIMEWARP,
+            VRSettings.VrOptions.TIMEWARP_JIT_DELAY,
+            VRSettings.VrOptions.VIGNETTE,
+            VRSettings.VrOptions.HIGH_QUALITY_DISTORTION,
+            VRSettings.VrOptions.OTHER_RENDER_SETTINGS,*/
+    };
+
+    static VRSettings.VrOptions[] openVRDisplayOptions = new VRSettings.VrOptions[] {
             VRSettings.VrOptions.HMD_NAME_PLACEHOLDER,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
@@ -102,8 +118,17 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             else
                 var10 = oculusDK2DisplayOptions;
         }
+        else if( Minecraft.getMinecraft().stereoProvider instanceof MCOpenVR )
+        {
+            HmdParameters hmd = Minecraft.getMinecraft().hmdInfo.getHMDInfo();
+            productName = hmd.ProductName;
+            if (!hmd.isReal())
+                productName += " (Debug)";
+
+            var10 = openVRDisplayOptions;
+        }
         else
-            var10 = defaultDisplayOptions;
+            var10 = monoDisplayOptions;
 
         int var11 = var10.length;
 
@@ -206,6 +231,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             }
             else if (par1GuiButton.id == ID_GENERIC_MODE_CHANGE) // Mode Change
             {
+                Minecraft.getMinecraft().vrSettings.saveOptions();
+                this.mc.displayGuiScreen(new GuiSelectOption(this, this.guivrSettings, "Select StereoProvider", "Select the render provider:", new String[] {"Mono", "Oculus", "OpenVR"}));
+                /*
                 Minecraft.getMinecraft().vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
                 Minecraft.getMinecraft().vrSettings.badStereoProviderPluginID = "";
                 Minecraft.getMinecraft().vrSettings.saveOptions();
@@ -217,6 +245,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 }
                 minecraft.reinitFramebuffers = true;
                 this.reinit = true;
+                */
             }
             else if (par1GuiButton.id == VRSettings.VrOptions.OTHER_RENDER_SETTINGS.returnEnumOrdinal())
             {
@@ -259,17 +288,25 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     @Override
     public boolean event(int id, VRSettings.VrOptions enumm)
     {
+        boolean ret = false;
+
         if (enumm == VRSettings.VrOptions.RENDER_SCALEFACTOR ||
             enumm == VRSettings.VrOptions.FSAA_SCALEFACTOR)
         {
             Minecraft.getMinecraft().reinitFramebuffers = true;
+            ret = true;
         }
 
-        return true;
+        return ret;
     }
 
     @Override
     public boolean event(int id, String s) {
+
+        if (id == GuiSelectOption.ID_OPTION_SELECTED) {
+
+        }
+
         return true;
     }
 
