@@ -55,12 +55,7 @@ public class GuiSelectOption extends BaseGuiSettings implements GuiYesNoCallback
                 boolean exit = true;
                 if (this.parentGuiScreen instanceof GuiEventEx)
                 {
-                    exit = ((GuiEventEx) this.parentGuiScreen).event(this.ID_OPTION_SELECTED, button.displayString);
-                }
-
-                if (exit)
-                {
-                    this.mc.displayGuiScreen(this.parentGuiScreen);
+                    ((GuiEventEx) this.parentGuiScreen).event(this.ID_OPTION_SELECTED, button.displayString);
                 }
             }
         }

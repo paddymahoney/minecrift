@@ -192,10 +192,10 @@ public class VRSettings
 	public boolean keyholeHeadRelative = true;
     public boolean crosshairHeadRelative = false;
     public boolean hydraUseFilter = true;
-	public String headPositionPluginID   = "null";
-	public String headTrackerPluginID    = "null";
-	public String hmdPluginID            = "null";
-    public String stereoProviderPluginID = "mono";
+	public String headPositionPluginID   = "openvr";
+	public String headTrackerPluginID    = "openvr";
+	public String hmdPluginID            = "openvr";
+    public String stereoProviderPluginID = "openvr";
     public String badStereoProviderPluginID = "";
 	public String controllerPluginID = "controller";
     public int calibrationStrategy = CALIBRATION_STRATEGY_AT_STARTUP;

@@ -4,6 +4,7 @@
  */
 package com.mtbs3d.minecrift.gui;
 
+import com.mtbs3d.minecrift.api.ErrorHelper;
 import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.provider.MCOculus;
 import com.mtbs3d.minecrift.api.IBasePlugin;
@@ -297,8 +298,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     public boolean event(int id, String s)
     {
         boolean success = true;
-        String className = null;
-        String message = null;
+        String title = null;
+        String error = null;
 
         if (id == GuiSelectOption.ID_OPTION_SELECTED)
         {
@@ -313,23 +314,15 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 mc.reinitFramebuffers = true;
                 this.reinit = true;
             }
-            catch (Exception e) {
-                e.printStackTrace();
-                className = e.getClass().getName();
-                message = e.getMessage();
-                success = false;
-            }
             catch (Throwable e) {
                 e.printStackTrace();
-                className = e.getClass().getName();
-                message = e.getMessage();
+                error = e.getClass().getName() + ": " + e.getMessage();
+                title = "Failed to initialise stereo provider: " + pluginModeChangeButton.getSelectedName();
+                mc.errorHelper = new ErrorHelper(title, error, "Reverted to previous renderer!", mc.ERROR_DISPLAY_TIME_SECS);
                 success = false;
             }
 
             if (!success) {
-                if (selectOption != null) {
-                    selectOption.setErrorText(className + ": " + message);
-                }
                 pluginModeChangeButton.setPluginByID(origId);
                 vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
                 try {
