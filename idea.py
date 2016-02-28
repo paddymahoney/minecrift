@@ -167,9 +167,9 @@ r"""<?xml version="1.0" encoding="UTF-8"?>
         # Add vm args
 
         # Format natives path string
-        pathSeparator = ';'
-        if _platform == "darwin":
-            pathSeparator = ':'
+        pathSeparator = ':'
+        if _platform == "win32":
+            pathSeparator = ';'
         vm_args = '-Djava.library.path=\"'
         firstEntry = True
 

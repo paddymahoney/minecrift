@@ -40,6 +40,7 @@ Install build prerequisites
 - Python 2.7.x (NOT 3.x)
 - Scala is NOT required (and currently for Windows should NOT be present on your path to avoid
   build issues)
+- On Linux, install astyle or the patching process will fail.
 
 Installing
 ----------
