@@ -13,13 +13,16 @@ public class GuiSelectOption extends BaseGuiSettings implements GuiYesNoCallback
     private String[] options;
     private String title = "No title";
     private String question = "No question";
-    private int ID_CANCEL = 9999;
+    protected long errorTextDisplayStart = 0;
+    protected String errorText = "";
     public static final int ID_OPTION_SELECTED = 9998;
+    protected final int ERROR_TEXT_TIMEOUT_MS = 4000;
 
     public GuiSelectOption(GuiScreen par1GuiScreen, VRSettings par2vrSettings, String title, String question, String[] options) {
         super(par1GuiScreen, par2vrSettings);
         this.options = options;
         this.title = title;
+        this.question = question;
     }
 
     @Override
@@ -33,8 +36,9 @@ public class GuiSelectOption extends BaseGuiSettings implements GuiYesNoCallback
     {
         this.buttonList.clear();
         for (int i = 0; i < options.length; i++) {
-            this.buttonList.add(new GuiButton(i, this.width / 2 - 100, this.height / 4 + 96 + (i * 20) + 12, options[i]));
+            this.buttonList.add(new GuiButton(i, this.width / 2 - 100, this.height / 4 + (i * 20) + 12, options[i]));
         }
+        this.buttonList.add(new GuiButton(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 4 + 130 + 12, "Cancel"));
     }
 
     @Override
@@ -42,7 +46,7 @@ public class GuiSelectOption extends BaseGuiSettings implements GuiYesNoCallback
     {
         if (button.enabled)
         {
-            if (button.id == ID_CANCEL)
+            if (button.id == ID_GENERIC_DONE)
             {
                 this.mc.displayGuiScreen(this.parentGuiScreen);
             }
@@ -65,7 +69,6 @@ public class GuiSelectOption extends BaseGuiSettings implements GuiYesNoCallback
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        /*
         if (this.errorTextDisplayStart != 0)
         {
             long currentTime = System.currentTimeMillis();
@@ -75,13 +78,18 @@ public class GuiSelectOption extends BaseGuiSettings implements GuiYesNoCallback
                 this.errorTextDisplayStart = 0;
             }
         }
-        */
+
         this.drawDefaultBackground();
         this.drawCenteredString(this.fontRendererObj, this.title, this.width / 2, 20, 16777215);
         this.drawString(this.fontRendererObj, this.question, this.width / 2 - 100, 47, 10526880);
-        //this.drawString(this.fontRendererObj, this.errorText, this.width / 2 - 100, 87, 16711680);
-        //this.guiTextField.drawTextBox();
+        this.drawString(this.fontRendererObj, this.errorText, this.width / 2 - 100, 57, 16711680);
         super.drawScreen(mouseX, mouseY, partialTicks, false);
+    }
+
+    public void setErrorText(String errorText)
+    {
+        this.errorText = errorText;
+        this.errorTextDisplayStart = System.currentTimeMillis();
     }
 
     @Override

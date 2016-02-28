@@ -47,6 +47,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     public MCOculus()
     {
         super();
+        PluginManager.register(this);
         eyePose[0] = new Posef();
         eyePose[1] = new Posef();
         eyePose[2] = new Posef();

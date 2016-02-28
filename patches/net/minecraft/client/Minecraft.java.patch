@@ -1726,7 +1726,7 @@
  
      /**
       * Returns whether snooping is enabled or not.
-@@ -3134,4 +3768,1076 @@
+@@ -3134,4 +3768,1077 @@
              }
          }
      }
@@ -2341,7 +2341,8 @@
 +        // Initialise Oculus library
 +
 +        OculusRift.LoadLibrary();      // TODO: We need to load this currently to support Quat->Euler, move this to some common area at some point
-+        //PluginManager.register(new MCOculus()); // create and register new plugin
++        new MCOculus(); // create and register new plugin
++        new MCOpenVR();
 +        //hmdInfo = PluginManager.configureHMD("oculus");
 +
 +        new NullHmdInfo();

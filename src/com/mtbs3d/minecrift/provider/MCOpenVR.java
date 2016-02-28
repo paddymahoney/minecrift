@@ -14,6 +14,12 @@ import org.lwjgl.util.vector.Quaternion;
 public class MCOpenVR extends OpenVR
     implements IEyePositionProvider, IOrientationProvider, IBasePlugin, IHMDInfo, IStereoProvider, IEventNotifier, IEventListener
 {
+    public MCOpenVR()
+    {
+        super();
+        PluginManager.register(this);
+    }
+
     @Override
     public String getID() {
         return "openvr";

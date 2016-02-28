@@ -120,6 +120,10 @@ public class PluginManager implements IEventListener
     }
 
     public static IStereoProvider configureStereoProvider( String pluginID ) throws Exception {
+        return configureStereoProvider(pluginID, false);
+    }
+
+    public static IStereoProvider configureStereoProvider( String pluginID, boolean raiseException ) throws Exception {
 
         IStereoProvider stereoProvider = null;
         for( IStereoProvider sp : thePluginManager.stereoProviderPlugins )
@@ -138,13 +142,19 @@ public class PluginManager implements IEventListener
 
         if( stereoProvider != null )
         {
-            initForMinecrift( stereoProvider );
+            initForMinecrift( stereoProvider, raiseException );
         }
         return stereoProvider;
     }
 
-    private static void initForMinecrift(IBasePlugin plugin) throws Exception
+    private static boolean initForMinecrift(IBasePlugin plugin) throws Exception {
+        return initForMinecrift(plugin, false);
+    }
+
+    private static boolean initForMinecrift(IBasePlugin plugin, boolean raiseException) throws Exception
     {
+        boolean success = true;
+
         if( !plugin.isInitialized() )
         {
             System.out.println("[Minecrift] Attempting to initialise plugin: " + plugin.getName() + " (" + PluginManager.getPluginTypes(plugin) + ")");
@@ -152,13 +162,19 @@ public class PluginManager implements IEventListener
             if ( !plugin.init() ) {
                 String error = "Error! Couldn't load " + plugin.getName() + ": " + plugin.getInitializationStatus();
                 System.err.println(error);
+                success = false;
                 try {
                     throw new Exception(error);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    if (raiseException) {
+                        throw e;
+                    }
                 }
             }
         }
+
+        return success;
     }
 
     public static void register( IBasePlugin that )

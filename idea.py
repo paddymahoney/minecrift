@@ -34,16 +34,17 @@ def createIdeaProject(project_root_dir, version, mcpDirName, are32bitNatives):
     writeFile(os.path.join(project_root_dir, '.idea', 'libraries', version + '.xml'), libXML.xmlString)
 
     if _platform == "linux" or _platform == "linux2":
-        #platform = 'linux32' if are32bitNatives else 'linux64'
+        platformbits = 'linux/32' if are32bitNatives else 'linux/64'
         platform = 'linux'
     elif _platform == "darwin":
+        platformbits = 'osx/32' if are32bitNatives else 'osx/64'
         platform = 'osx'
     elif _platform == "win32":
-        #platform = 'win32' if are32bitNatives else 'win64'
+        platformbits = 'windows/32' if are32bitNatives else 'windows/64'
         platform = 'windows'
 
     mainClass = 'Start'
-    nativesPaths = [os.path.join(project_root_dir, 'JOpenVR', 'JOpenVRLibrary', 'natives', platform), \
+    nativesPaths = [os.path.join(project_root_dir, 'JOpenVR', 'JOpenVRLibrary', 'natives', platformbits), \
                     os.path.join(project_root_dir, 'JRift', 'JRiftLibrary', 'natives', platform), \
                     os.path.join(project_root_dir, 'JMumbleLink', 'JMumbleLibrary', 'natives', platform), \
                     os.path.join(project_root_dir, 'Sixense-Java', 'SixenseJavaLibrary', 'natives', platform), \

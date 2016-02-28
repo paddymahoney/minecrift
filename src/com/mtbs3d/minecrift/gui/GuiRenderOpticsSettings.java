@@ -81,12 +81,17 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     };
 
     GameSettings settings;
+    VRSettings vrSettings;
+    Minecraft mc;
+    GuiSelectOption selectOption;
 
     public GuiRenderOpticsSettings(GuiScreen par1GuiScreen, VRSettings par2vrSettings, GameSettings gameSettings)
     {
     	super( par1GuiScreen, par2vrSettings);
         screenTitle = "Stereo Renderer Settings";
         settings = gameSettings;
+        this.vrSettings = par2vrSettings;
+        this.mc = Minecraft.getMinecraft();
     }
 
     /**
@@ -232,20 +237,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             else if (par1GuiButton.id == ID_GENERIC_MODE_CHANGE) // Mode Change
             {
                 Minecraft.getMinecraft().vrSettings.saveOptions();
-                this.mc.displayGuiScreen(new GuiSelectOption(this, this.guivrSettings, "Select StereoProvider", "Select the render provider:", new String[] {"Mono", "Oculus", "OpenVR"}));
-                /*
-                Minecraft.getMinecraft().vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
-                Minecraft.getMinecraft().vrSettings.badStereoProviderPluginID = "";
-                Minecraft.getMinecraft().vrSettings.saveOptions();
-                try {
-                    Minecraft.getMinecraft().stereoProvider = PluginManager.configureStereoProvider(Minecraft.getMinecraft().vrSettings.stereoProviderPluginID);
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-                minecraft.reinitFramebuffers = true;
-                this.reinit = true;
-                */
+                selectOption = new GuiSelectOption(this, this.guivrSettings, "Select StereoProvider", "Select the render provider:", pluginModeChangeButton.getPluginNames());
+                this.mc.displayGuiScreen(selectOption);
             }
             else if (par1GuiButton.id == VRSettings.VrOptions.OTHER_RENDER_SETTINGS.returnEnumOrdinal())
             {
@@ -301,13 +294,52 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     }
 
     @Override
-    public boolean event(int id, String s) {
+    public boolean event(int id, String s)
+    {
+        boolean success = true;
+        String className = null;
+        String message = null;
 
-        if (id == GuiSelectOption.ID_OPTION_SELECTED) {
+        if (id == GuiSelectOption.ID_OPTION_SELECTED)
+        {
+            String origId = pluginModeChangeButton.getSelectedID();
 
+            try {
+                pluginModeChangeButton.setPluginByName(s);
+                vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
+                mc.stereoProvider = PluginManager.configureStereoProvider(vrSettings.stereoProviderPluginID, true);
+                vrSettings.badStereoProviderPluginID = "";
+                vrSettings.saveOptions();
+                mc.reinitFramebuffers = true;
+                this.reinit = true;
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+                className = e.getClass().getName();
+                message = e.getMessage();
+                success = false;
+            }
+            catch (Throwable e) {
+                e.printStackTrace();
+                className = e.getClass().getName();
+                message = e.getMessage();
+                success = false;
+            }
+
+            if (!success) {
+                if (selectOption != null) {
+                    selectOption.setErrorText(className + ": " + message);
+                }
+                pluginModeChangeButton.setPluginByID(origId);
+                vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
+                try {
+                    mc.stereoProvider = PluginManager.configureStereoProvider(vrSettings.stereoProviderPluginID);
+                }
+                catch (Exception ex) {}
+            }
         }
 
-        return true;
+        return success;
     }
 
     @Override

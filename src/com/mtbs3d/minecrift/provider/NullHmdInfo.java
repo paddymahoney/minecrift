@@ -7,7 +7,8 @@ import de.fruitfly.ovr.structs.HmdParameters;
 /**
  * Created by StellaArtois on 2/27/2016.
  */
-public class NullHmdInfo extends BasePlugin implements IBasePlugin, IHMDInfo {
+public class NullHmdInfo extends BasePlugin implements IBasePlugin, IHMDInfo
+{
     @Override
     public HmdParameters getHMDInfo() {
         return null;
