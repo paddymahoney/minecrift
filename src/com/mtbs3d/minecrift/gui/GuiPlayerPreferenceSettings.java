@@ -14,8 +14,6 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
             VRSettings.VrOptions.RENDER_FULL_FIRST_PERSON_MODEL_MODE,
             VRSettings.VrOptions.USE_PROFILE_PLAYER_HEIGHT,
             VRSettings.VrOptions.EYE_HEIGHT,
-            VRSettings.VrOptions.EYE_PROTRUSION,
-            VRSettings.VrOptions.NECK_LENGTH,
             VRSettings.VrOptions.RENDER_PLAYER_OFFSET,
             VRSettings.VrOptions.RENDER_OWN_HEADWEAR,
             VRSettings.VrOptions.DUMMY,
@@ -93,18 +91,6 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
                     maxValue = 0.25f;
                     increment = 0.01f;
                 }
-                else if (var8 == VRSettings.VrOptions.EYE_PROTRUSION)
-                {
-                    minValue = 0.00f;
-                    maxValue = 0.25f;
-                    increment = 0.001f;
-                }
-                else if (var8 == VRSettings.VrOptions.NECK_LENGTH)
-                {
-                    minValue = 0.00f;
-                    maxValue = 0.25f;
-                    increment = 0.001f;
-                }
 
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.enabled = getEnabledState(var8);
@@ -159,8 +145,6 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
                 this.guivrSettings.renderHeadWear = false;
                 this.guivrSettings.renderFullFirstPersonModelMode = VRSettings.RENDER_FIRST_PERSON_FULL;
                 this.guivrSettings.renderPlayerOffset = 0.2f;
-                this.guivrSettings.eyeProtrusion = 0.01f;
-                this.guivrSettings.neckBaseToEyeHeight = 0.01f;
                 this.guivrSettings.calibrationStrategy = VRSettings.CALIBRATION_STRATEGY_AT_STARTUP;
                 this.guivrSettings.soundOrientWithHead = true;
 

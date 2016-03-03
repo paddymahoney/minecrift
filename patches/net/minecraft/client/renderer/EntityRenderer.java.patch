@@ -317,7 +317,7 @@
  
      /**
       * Updates the entity renderer
-@@ -431,41 +550,87 @@
+@@ -431,41 +550,86 @@
       */
      public void getMouseOver(float par1)
      {
@@ -329,7 +329,6 @@
 +    {
 +        Vec3 basePosition = Vec3.createVectorHelper(0f, -(Minecraft.getMinecraft().vrSettings.getPlayerEyeHeight() - 1.62f), 0f);
 +        Vec3 centerEyePos = mc.positionTracker.getCenterEyePosition();  // Get center eye, so it is the same point for each eye render...
-+        centerEyePos.zCoord += -Minecraft.getMinecraft().vrSettings.eyeProtrusion;
 +        centerEyePos.rotateAroundX(-lookPitchOffset * this.mc.PIOVER180);
 +        centerEyePos.rotateAroundY(-lookYawOffset   * this.mc.PIOVER180);
 +        Vec3 centerEyePosOffset = centerEyePos.addVector(basePosition.xCoord, basePosition.yCoord, basePosition.zCoord);
@@ -421,7 +420,7 @@
  
              for (int var14 = 0; var14 < var11.size(); ++var14)
              {
-@@ -475,20 +640,20 @@
+@@ -475,20 +639,20 @@
                  {
                      float var16 = var15.getCollisionBorderSize();
                      AxisAlignedBB var17 = var15.boundingBox.expand((double)var16, (double)var16, (double)var16);
@@ -446,7 +445,7 @@
  
                          if (var19 < var12 || var12 == 0.0D)
                          {
-@@ -518,15 +683,41 @@
+@@ -518,15 +682,41 @@
                  }
              }
  
@@ -492,7 +491,7 @@
          }
      }
  
-@@ -663,9 +854,11 @@
+@@ -663,9 +853,11 @@
          {
              EntityPlayer var2 = (EntityPlayer)this.mc.renderViewEntity;
              float var3 = var2.distanceWalkedModified - var2.prevDistanceWalkedModified;
@@ -507,7 +506,7 @@
              GL11.glTranslatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 0.5F, -Math.abs(MathHelper.cos(var4 * (float)Math.PI) * var5), 0.0F);
              GL11.glRotatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 3.0F, 0.0F, 0.0F, 1.0F);
              GL11.glRotatef(Math.abs(MathHelper.cos(var4 * (float)Math.PI - 0.2F) * var5) * 5.0F, 1.0F, 0.0F, 0.0F);
-@@ -683,8 +876,9 @@
+@@ -683,8 +875,9 @@
          double var4 = var2.prevPosX + (var2.posX - var2.prevPosX) * (double)par1;
          double var6 = var2.prevPosY + (var2.posY - var2.prevPosY) * (double)par1 - (double)var3;
          double var8 = var2.prevPosZ + (var2.posZ - var2.prevPosZ) * (double)par1;
@@ -519,7 +518,7 @@
          if (var2.isPlayerSleeping())
          {
              var3 = (float)((double)var3 + 1.0D);
-@@ -772,20 +966,22 @@
+@@ -772,20 +965,22 @@
          }
          else
          {
@@ -546,7 +545,7 @@
      }
  
      /**
-@@ -793,6 +989,9 @@
+@@ -793,6 +988,9 @@
       */
      private void setupCameraTransform(float par1, int par2)
      {
@@ -556,7 +555,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,18 +1003,21 @@
+@@ -804,18 +1002,21 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -580,7 +579,7 @@
          if (clipDistance < 128.0F)
          {
              clipDistance = 128.0F;
-@@ -825,17 +1027,26 @@
+@@ -825,17 +1026,26 @@
          {
              clipDistance = 256.0F;
          }
@@ -611,7 +610,7 @@
          {
              var4 = 0.6666667F;
              GL11.glScalef(1.0F, var4, 1.0F);
-@@ -844,21 +1055,23 @@
+@@ -844,21 +1054,23 @@
          GL11.glMatrixMode(GL11.GL_MODELVIEW);
          GL11.glLoadIdentity();
  
@@ -639,7 +638,7 @@
          {
              byte var7 = 20;
  
-@@ -876,7 +1089,7 @@
+@@ -876,7 +1088,7 @@
  
          this.orientCamera(par1);
  
@@ -648,7 +647,7 @@
          {
              int var71 = this.debugViewDirection - 1;
  
-@@ -905,33 +1118,51 @@
+@@ -905,33 +1117,51 @@
                  GL11.glRotatef(-90.0F, 1.0F, 0.0F, 0.0F);
              }
          }
@@ -707,7 +706,7 @@
              {
                  float var4 = 0.6666667F;
                  GL11.glScalef(1.0F, var4, 1.0F);
-@@ -940,39 +1171,69 @@
+@@ -940,39 +1170,69 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glLoadIdentity();
  
@@ -793,7 +792,7 @@
      }
  
      /**
-@@ -983,6 +1244,12 @@
+@@ -983,6 +1243,12 @@
          OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
          GL11.glDisable(GL11.GL_TEXTURE_2D);
          OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
@@ -806,7 +805,7 @@
      }
  
      /**
-@@ -1005,6 +1272,12 @@
+@@ -1005,6 +1271,12 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          GL11.glEnable(GL11.GL_TEXTURE_2D);
          OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
@@ -819,7 +818,7 @@
      }
  
      /**
-@@ -1200,25 +1473,35 @@
+@@ -1200,25 +1472,35 @@
          Config.checkDisplayMode();
          WorldClient world1 = this.mc.theWorld;
  
@@ -870,7 +869,7 @@
          if (this.mc.currentScreen instanceof GuiMainMenu)
          {
              this.updateMainMenu((GuiMainMenu)this.mc.currentScreen);
-@@ -1242,9 +1525,9 @@
+@@ -1242,9 +1524,9 @@
          }
  
          this.mc.mcProfiler.endSection();
@@ -882,7 +881,7 @@
          {
              if (Minecraft.getSystemTime() - this.prevFrameTime > 500L)
              {
-@@ -1255,65 +1538,94 @@
+@@ -1255,65 +1537,94 @@
          {
              this.prevFrameTime = Minecraft.getSystemTime();
          }
@@ -1023,7 +1022,7 @@
                  if (OpenGlHelper.shadersSupported)
                  {
                      if (this.theShaderGroup != null)
-@@ -1323,6 +1635,9 @@
+@@ -1323,6 +1634,9 @@
                          GL11.glLoadIdentity();
                          this.theShaderGroup.loadShaderGroup(par1);
                          GL11.glPopMatrix();
@@ -1033,7 +1032,7 @@
                      }
  
                      this.mc.getFramebuffer().bindFramebuffer(true);
-@@ -1330,9 +1645,11 @@
+@@ -1330,9 +1644,11 @@
  
                  this.renderEndNanoTime = System.nanoTime();
                  this.mc.mcProfiler.endStartSection("gui");
@@ -1048,7 +1047,7 @@
                      GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
                      var12 = this.mc.gameSettings.fancyGraphics;
  
-@@ -1341,32 +1658,76 @@
+@@ -1341,32 +1657,76 @@
                          this.mc.gameSettings.fancyGraphics = false;
                      }
  
@@ -1135,7 +1134,7 @@
                  try
                  {
                      var12 = false;
-@@ -1413,7 +1774,14 @@
+@@ -1413,7 +1773,14 @@
                      });
                      throw new ReportedException(var10);
                  }
@@ -1150,7 +1149,7 @@
          }
  
          this.frameFinish();
-@@ -1447,6 +1815,13 @@
+@@ -1447,6 +1814,13 @@
  
      public void renderWorld(float par1, long par2)
      {
@@ -1164,7 +1163,7 @@
          this.mc.mcProfiler.startSection("lightTex");
  
          if (this.lightmapUpdateNeeded)
-@@ -1469,9 +1844,22 @@
+@@ -1469,9 +1843,22 @@
          EntityLivingBase var4 = this.mc.renderViewEntity;
          RenderGlobal var5 = this.mc.renderGlobal;
          EffectRenderer var6 = this.mc.effectRenderer;
@@ -1190,7 +1189,7 @@
          this.mc.mcProfiler.endStartSection("center");
  
          for (int var13 = 0; var13 < 2; ++var13)
-@@ -1491,26 +1879,70 @@
+@@ -1491,26 +1878,70 @@
              }
  
              this.mc.mcProfiler.endStartSection("clear");
@@ -1267,7 +1266,7 @@
  
              GL11.glEnable(GL11.GL_FOG);
              this.setupFog(1, par1);
-@@ -1522,11 +1954,28 @@
+@@ -1522,11 +1953,28 @@
  
              this.mc.mcProfiler.endStartSection("culling");
              Frustrum var14 = new Frustrum();
@@ -1301,7 +1300,7 @@
                  this.mc.mcProfiler.endStartSection("updatechunks");
  
                  while (!this.mc.renderGlobal.updateRenderers(var4, false) && par2 != 0L)
-@@ -1538,6 +1987,11 @@
+@@ -1538,6 +1986,11 @@
                          break;
                      }
                  }
@@ -1313,7 +1312,7 @@
              }
  
              if (var4.posY < 128.0D)
-@@ -1553,12 +2007,26 @@
+@@ -1553,12 +2006,26 @@
              this.mc.mcProfiler.endStartSection("terrain");
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glPushMatrix();
@@ -1340,7 +1339,7 @@
              if (this.debugViewDirection == 0)
              {
                  GL11.glMatrixMode(GL11.GL_MODELVIEW);
-@@ -1584,14 +2052,14 @@
+@@ -1584,14 +2051,14 @@
                  GL11.glMatrixMode(GL11.GL_MODELVIEW);
                  GL11.glPopMatrix();
                  GL11.glPushMatrix();
@@ -1358,7 +1357,7 @@
                      {
                          var5.drawSelectionBox(var18, this.mc.objectMouseOver, 0, par1);
                      }
-@@ -1602,42 +2070,70 @@
+@@ -1602,42 +2069,70 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glPopMatrix();
  
@@ -1432,7 +1431,7 @@
              GL11.glDisable(GL11.GL_BLEND);
              GL11.glEnable(GL11.GL_CULL_FACE);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1670,12 +2166,28 @@
+@@ -1670,12 +2165,28 @@
                      {
                          GL11.glColorMask(true, false, false, true);
                      }
@@ -1462,7 +1461,7 @@
                  }
  
                  GL11.glDisable(GL11.GL_BLEND);
-@@ -1684,9 +2196,17 @@
+@@ -1684,9 +2195,17 @@
              else
              {
                  this.mc.mcProfiler.endStartSection("water");
@@ -1481,7 +1480,7 @@
              WrUpdates.pauseBackgroundUpdates();
  
              if (hasForge && this.debugViewDirection == 0)
-@@ -1716,15 +2236,46 @@
+@@ -1716,15 +2235,46 @@
                  Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, new Object[] {var5, Float.valueOf(par1)});
              }
  
@@ -1534,7 +1533,7 @@
              if (!this.mc.gameSettings.anaglyph)
              {
                  this.mc.mcProfiler.endSection();
-@@ -1741,17 +2292,33 @@
+@@ -1741,17 +2291,33 @@
       */
      private void renderCloudsCheck(RenderGlobal par1RenderGlobal, float par2)
      {
@@ -1569,7 +1568,7 @@
      }
  
      private void addRainParticles()
-@@ -2241,8 +2808,15 @@
+@@ -2241,8 +2807,15 @@
              this.fogColorGreen = Reflector.getFieldValueFloat(event1, Reflector.EntityViewRenderEvent_FogColors_green, this.fogColorGreen);
              this.fogColorBlue = Reflector.getFieldValueFloat(event1, Reflector.EntityViewRenderEvent_FogColors_blue, this.fogColorBlue);
          }
@@ -1587,7 +1586,7 @@
      }
  
      /**
-@@ -2259,17 +2833,31 @@
+@@ -2259,17 +2832,31 @@
          {
              var4 = ((EntityPlayer)var3).capabilities.isCreativeMode;
          }
@@ -1622,7 +1621,7 @@
              }
  
              GL11.glFogf(GL11.GL_FOG_START, 0.0F);
-@@ -2300,8 +2888,13 @@
+@@ -2300,8 +2887,13 @@
                      {
                          var6 = 5.0F + (this.farPlaneDistance - 5.0F) * (1.0F - (float)var101 / 20.0F);
                      }
@@ -1638,7 +1637,7 @@
  
                      if (par1 < 0)
                      {
-@@ -2316,17 +2909,35 @@
+@@ -2316,17 +2908,35 @@
  
                      if (Config.isFogFancy())
                      {
@@ -1677,7 +1676,7 @@
  
                      if (var3.isPotionActive(Potion.waterBreathing))
                      {
-@@ -2334,7 +2945,7 @@
+@@ -2334,7 +2944,7 @@
                      }
                      else
                      {
@@ -1686,7 +1685,7 @@
                      }
  
                      if (Config.isClearWater())
-@@ -2344,7 +2955,13 @@
+@@ -2344,7 +2954,13 @@
                  }
                  else if (var5.getMaterial() == Material.lava)
                  {
@@ -1701,7 +1700,7 @@
                      GL11.glFogf(GL11.GL_FOG_DENSITY, 2.0F);
                  }
                  else
-@@ -2377,8 +2994,13 @@
+@@ -2377,8 +2993,13 @@
                              }
                          }
                      }
@@ -1717,7 +1716,7 @@
  
                      if (par1 < 0)
                      {
-@@ -2395,12 +3017,24 @@
+@@ -2395,12 +3016,24 @@
                      {
                          if (Config.isFogFancy())
                          {
@@ -1744,7 +1743,7 @@
                          }
                      }
  
-@@ -2418,6 +3052,7 @@
+@@ -2418,6 +3051,7 @@
              GL11.glEnable(GL11.GL_COLOR_MATERIAL);
              GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT);
          }
@@ -1752,7 +1751,7 @@
      }
  
      /**
-@@ -2425,6 +3060,12 @@
+@@ -2425,6 +3059,12 @@
       */
      private FloatBuffer setFogColorBuffer(float par1, float par2, float par3, float par4)
      {
@@ -1765,7 +1764,7 @@
          this.fogColorBuffer.clear();
          this.fogColorBuffer.put(par1).put(par2).put(par3).put(par4);
          this.fogColorBuffer.flip();
-@@ -2589,6 +3230,8 @@
+@@ -2589,6 +3229,8 @@
  
      private void frameFinish()
      {
@@ -1774,7 +1773,7 @@
          if (this.mc.theWorld != null)
          {
              long now = System.currentTimeMillis();
-@@ -2606,6 +3249,8 @@
+@@ -2606,6 +3248,8 @@
                  }
              }
          }
@@ -1783,7 +1782,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3295,1035 @@
+@@ -2650,4 +3294,1035 @@
              ;
          }
      }
@@ -2453,7 +2452,7 @@
 +        // Position
 +        GL11.glTranslatef(camRelX,
 +                camRelY,
-+                camRelZ + Minecraft.getMinecraft().vrSettings.eyeProtrusion);
++                camRelZ);
 +
 +        if (correctOffsets)
 +        {
