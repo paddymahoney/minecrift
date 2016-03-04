@@ -1782,7 +1782,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3294,1035 @@
+@@ -2650,4 +3294,1052 @@
              ;
          }
      }
@@ -2014,6 +2014,23 @@
 +            hudHeadYaw = 0f;
 +            guiYawOrientationResetRequested = false;
 +            //hudShowingLastFrame = false;
++        }
++
++        // Set entity variables
++        if (entity != null)
++        {
++            entity.isPlayer              = true;
++            entity.vr_cameraYaw = cameraYaw;
++            entity.vr_cameraPitch = cameraPitch;
++            entity.vr_cameraRoll = cameraRoll;
++            entity.vr_aimYaw = aimYaw;
++            entity.vr_aimPitch = aimPitch;
++            entity.vr_cameraRelX = camRelX;
++            entity.vr_cameraRelY = camRelY;
++            entity.vr_cameraRelZ = camRelZ;
++            entity.vr_cameraPosX = entity.posX + (double)camRelX;
++            entity.vr_cameraPosY = entity.posY + (double)camRelY;
++            entity.vr_cameraPosZ = entity.posZ + (double)camRelZ;
 +        }
 +    }
 +
