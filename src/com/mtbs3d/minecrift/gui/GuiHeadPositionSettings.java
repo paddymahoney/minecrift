@@ -48,21 +48,15 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
             VRSettings.VrOptions.POSITION_TRACKING,
             VRSettings.VrOptions.POS_TRACK_HIDE_COLLISION,
             VRSettings.VrOptions.POS_TRACK_DIST_SCALE,
-            VRSettings.VrOptions.EYE_PROTRUSION,
     };
 
     static VRSettings.VrOptions[] openVROptions = new VRSettings.VrOptions[]{
             VRSettings.VrOptions.POSITION_TRACKING,
             VRSettings.VrOptions.POS_TRACK_HIDE_COLLISION,
             VRSettings.VrOptions.POS_TRACK_DIST_SCALE,
-            VRSettings.VrOptions.EYE_PROTRUSION,
     };
 
     static VRSettings.VrOptions[] nullOptions = new VRSettings.VrOptions[]{
-            VRSettings.VrOptions.POSITION_TRACKING,
-            VRSettings.VrOptions.POS_TRACK_HIDE_COLLISION,
-            VRSettings.VrOptions.POS_TRACK_DIST_SCALE,
-            VRSettings.VrOptions.EYE_PROTRUSION,
     };
 
     protected boolean reinit = false;
@@ -375,8 +369,8 @@ public class GuiHeadPositionSettings extends BaseGuiSettings implements GuiEvent
         }
         else
         {
-            this.guivrSettings.eyeProtrusion = 0.01f;
-            this.guivrSettings.neckBaseToEyeHeight = 0.01f;
+            this.guivrSettings.eyeProtrusion = 0.185f;
+            this.guivrSettings.neckBaseToEyeHeight = 0.225f;
             this.guivrSettings.posTrackBlankOnCollision = true;
         }
     }

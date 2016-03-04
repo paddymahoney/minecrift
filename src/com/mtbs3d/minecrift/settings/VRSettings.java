@@ -96,9 +96,9 @@ public class VRSettings
     public boolean debugPose = false;
     public boolean debugPos = false;
 	protected float playerEyeHeight = 1.74f;  // Use getPlayerEyeHeight()
-	public float eyeProtrusion = 0.01f;
+	public float eyeProtrusion = 0.185f;
+	public float neckBaseToEyeHeight = 0.225f;
     public float eyeReliefAdjust = 0f;
-	public float neckBaseToEyeHeight = 0.01f;
     public float movementSpeedMultiplier = 0.75f;
     public float strafeSpeedMultiplier = 0.33f;
     public boolean useDistortion = true;

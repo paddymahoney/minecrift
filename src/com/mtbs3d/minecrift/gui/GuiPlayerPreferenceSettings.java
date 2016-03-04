@@ -202,28 +202,6 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
                             "  strive to get it as close as possible for an accurate",
                             "  experience"
                     };
-                case EYE_PROTRUSION:
-                    return new String[] {
-                            "Distance from \"head-center\" to your eyes (in meters)",
-                            "  (with pos track affects origin position only)",
-                            " (\"X\" distance below)     ____  ",
-                            "                              /      \\ ",
-                            "                              |    XXo ",
-                            "                              |      _\\",
-                            "                               \\   /",
-                            "                                 | |"
-                    };
-                case NECK_LENGTH:
-                    return new String[] {
-                            "Distance from \"head-center\" to your shoulders",
-                            "  (with pos track affects origin position only)",
-                            " (\"Y\" distance below)     ____  ",
-                            "                              /      \\ ",
-                            "                              |   Y  o ",
-                            "                              |   Y  _\\",
-                            "                               \\ Y /",
-                            "                                 |Y|"
-                    };
                 case SOUND_ORIENT:
                     return new String[] {
                             "Sets the sound position dependent on how you are",
