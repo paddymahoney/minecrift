@@ -6,16 +6,18 @@ import errno
 import platform
 import shutil
 import time
+import stat
 from shutil import move
 from tempfile import mkstemp
 from os import remove, close
 from minecriftversion import mc_version, of_file_name, of_json_name, minecrift_version_num, \
     minecrift_build, of_file_extension, of_file_md5, mcp_version, mc_file_md5, \
-    mcp_download_url, mcp_uses_generics
+    mcp_download_url, mcp_uses_generics, forge_version, mcp_mappings
 from hashlib import md5  # pylint: disable-msg=E0611
 from optparse import OptionParser
 from applychanges import applychanges, apply_patch
 from idea import createIdeaProject, removeIdeaProject
+from subprocess import Popen, PIPE
 
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -433,6 +435,7 @@ def main(mcp_dir):
     print 'Using base dir: %s' % base_dir
     print 'Using mcp dir: %s (use -m <mcp-dir> to change)' % mcp_dir
     print 'Preferred architecture: %sbit - preferring %sbit native extraction (use -a 32 or -a 64 to change)' % (preferredarch, preferredarch)
+    mcp_dir_clean = mcp_dir + '_clean'
     if dependenciesOnly:
         print 'Downloading dependencies ONLY'
     else:
@@ -442,7 +445,9 @@ def main(mcp_dir):
             print 'SKIPPING Apply compile fix patches'
         if nopatch is True:
             print 'SKIPPING Apply Minecrift patches'
-        
+        if includeForge:
+            print 'CREATE Forge Project'
+    
     if clean == True:
         print 'Cleaning...'
         if force == False:
@@ -459,6 +464,7 @@ def main(mcp_dir):
                 sys.exit(1)        
         print 'Cleaning mcp dir...'
         reallyrmtree(mcp_dir)
+        reallyrmtree(mcp_dir_clean)
         print 'Cleaning lib dir...'
         reallyrmtree(os.path.join(base_dir,'lib'))
         print 'Cleaning patchsrc dir...'
@@ -468,12 +474,14 @@ def main(mcp_dir):
 
     print 'Installing mcp...'
     installAndPatchMcp(mcp_dir)
+    if includeForge:
+        installAndPatchMcp(mcp_dir_clean)
 
     print("\nDownloading dependencies...")
-    if includeForge:
-        download_deps( mcp_dir, True, True ) # Forge libs
-
     download_deps( mcp_dir, True, False ) # Vanilla libs
+    if includeForge:
+        download_deps( mcp_dir_clean, True, True ) # Forge libs
+
     if dependenciesOnly:
         sys.exit(1)
 
@@ -485,44 +493,13 @@ def main(mcp_dir):
         zipmerge( minecraft_jar, optifine )
     else:
         print("Skipping Optifine merge!")
+
+    if includeForge:
+        setupForgeSrc()
     
-    print("Decompiling...")
-    src_dir = os.path.join(mcp_dir, "src","minecraft")
-    if os.path.exists( src_dir ):
-        shutil.rmtree( src_dir, True )
-    sys.path.append(mcp_dir)
-    os.chdir(mcp_dir)
-    from runtime.decompile import decompile
-
-    # This *has* to sync with the default options used in <mcpdir>/runtime/decompile.py for
-    # the currently used version of MCP
-    
-    decompile(conffile=None,      # -c
-              force_jad=False,    # -j
-              force_csv=False,    # -s
-              no_recompile=False, # -r
-              no_comments=False,  # -d
-              no_reformat=False,  # -a
-              no_renamer=False,   # -n
-              no_patch=False,     # -p
-              only_patch=False,   # -o
-              keep_lvt=False,     # -l
-              keep_generics=mcp_uses_generics, # -g, True for MCP 1.8.8+, False otherwise
-              only_client=True,   # --client
-              only_server=False,  # --server
-              force_rg=False,     # --rg
-              workdir=None,       # -w
-              json=None,          # --json
-              nocopy=True         # --nocopy
-              )
-
-    os.chdir( base_dir )
-
-    # Create original nofix decompile src dir
-    org_no_fix_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig_nofix")
-    if os.path.exists( org_no_fix_src_dir ):
-        shutil.rmtree( org_no_fix_src_dir, True )
-    shutil.copytree( src_dir, org_no_fix_src_dir )
+    decompileMc(mcp_dir)
+    if includeForge:
+        decompileMc(mcp_dir_clean)
 
     if nocompilefixpatch == False:
         compile_error_patching_done = False
@@ -558,6 +535,7 @@ def main(mcp_dir):
     org_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig")
     if os.path.exists( org_src_dir ):
         shutil.rmtree( org_src_dir, True )
+    src_dir = os.path.join(mcp_dir, "src","minecraft")
     shutil.copytree( src_dir, org_src_dir )                
                 
     if nopatch == False:
@@ -572,6 +550,109 @@ def main(mcp_dir):
     if not os.path.exists(os.path.join(base_dir, '.idea')):
         print("Creating idea project...")
         createIdeaProject(base_dir, mc_version, os.path.basename(mcp_dir), is32bitPreferred())
+
+def setupForgeSrc(clean=False):
+
+    # Download forge src zip to temp file
+    full_forge_version = mc_version + "-" + forge_version + "-" + mc_version
+    forge_src_zip = "forge-" + full_forge_version + "-src.zip"
+    forge_src = os.path.join(tempfile.gettempdir(), forge_src_zip)
+    if clean and os.path.exists(forge_src):
+        os.remove(forge_src)
+    forge_url = "http://files.minecraftforge.net/maven/net/minecraftforge/forge/" + full_forge_version + "/" + forge_src_zip
+    if not os.path.exists(forge_src):
+        if not download_file(forge_url, forge_src):
+            return False
+
+    # unzip to Forge dir
+    forge_src_dir = os.path.join(base_dir, 'forge')
+    if clean:
+        reallyrmtree(forge_src_dir)
+    if not os.path.exists(forge_src_dir):
+        os.mkdir(forge_src_dir)
+    forge_zip = zipfile.ZipFile(forge_src)
+    forge_zip.extractall(forge_src_dir)
+
+    # update forge build.gradle with the mappings used by minecrift
+    forge_build_gradle_file = os.path.join(forge_src_dir, "build.gradle")
+    if not "mappings = '" in open(forge_build_gradle_file).read():
+        replacelineinfile(forge_build_gradle_file, "    runDir = \"eclipse\"", "    runDir = \"eclipse\"\n    mappings = '%s'\n" % mcp_mappings, True)
+
+    # run forge gradle build to generate forge decompiled src
+    old_cur_dir = os.getcwd()
+    os.chdir(forge_src_dir)
+    gradle_cmd = "gradlew"
+    if sys.platform.startswith('win'):
+        gradle_cmd = "gradlew.bat"
+    gradle_cmd_path = os.path.join(os.getcwd(), gradle_cmd)
+
+    # set executable permissions
+    if not sys.platform.startswith('win'):
+        st = os.stat(gradle_cmd_path)
+        os.chmod(gradle_cmd_path, st.st_mode | stat.S_IEXEC)
+
+    # run the gradle build
+    params = [gradle_cmd_path, "setupDecompWorkspace", "idea", "eclipse"]
+    process = Popen(params, shell=False)
+    (output, err) = process.communicate()
+    exit_code = process.wait()
+    os.chdir(old_cur_dir)
+
+    # copy the decompiled forge and forge src jars from the .gradle cache to the forge libs dir
+    home_dir = os.path.expanduser("~")
+    mapping_names = mcp_mappings.split('_')
+    forge_decomp_jars_dir = os.path.join(home_dir, ".gradle", "caches", "minecraft", "net", \
+            "minecraftforge", "forge", full_forge_version, mapping_names[0], mapping_names[1])
+    forge_decomp_jar_file = "forgeSrc-%s.jar" % full_forge_version
+    forge_decomp_jar = os.path.join(forge_decomp_jars_dir, forge_decomp_jar_file)
+    forge_decomp_src_jar_file = "forgeSrc-%s-sources.jar" % full_forge_version
+    forge_decomp_src_jar = os.path.join(forge_decomp_jars_dir, forge_decomp_src_jar_file)
+    lib_dir = os.path.join(base_dir,"lib",mc_version+"-forge")
+    if os.path.exists(forge_decomp_jar):
+        shutil.copy2(forge_decomp_jar, os.path.join(lib_dir, forge_decomp_jar_file))
+    if os.path.exists(forge_decomp_src_jar):
+        shutil.copy2(forge_decomp_src_jar, os.path.join(lib_dir, forge_decomp_src_jar_file))
+
+
+def decompileMc(mcp_dir):
+    
+    print("Decompiling...")
+    src_dir = os.path.join(mcp_dir, "src","minecraft")
+    if os.path.exists( src_dir ):
+        shutil.rmtree( src_dir, True )
+    sys.path.append(mcp_dir)
+    os.chdir(mcp_dir)
+    from runtime.decompile import decompile
+
+    # This *has* to sync with the default options used in <mcpdir>/runtime/decompile.py for
+    # the currently used version of MCP
+
+    decompile(conffile=None,      # -c
+              force_jad=False,    # -j
+              force_csv=False,    # -s
+              no_recompile=False, # -r
+              no_comments=False,  # -d
+              no_reformat=False,  # -a
+              no_renamer=False,   # -n
+              no_patch=False,     # -p
+              only_patch=False,   # -o
+              keep_lvt=False,     # -l
+              keep_generics=mcp_uses_generics, # -g, True for MCP 1.8.8+, False otherwise
+              only_client=True,   # --client
+              only_server=False,  # --server
+              force_rg=False,     # --rg
+              workdir=None,       # -w
+              json=None,          # --json
+              nocopy=True         # --nocopy
+              )
+    
+    os.chdir( base_dir )
+    
+    # Create original nofix decompile src dir
+    org_no_fix_src_dir = os.path.join(mcp_dir, "src",".minecraft_orig_nofix")
+    if os.path.exists( org_no_fix_src_dir ):
+        shutil.rmtree( org_no_fix_src_dir, True )
+    shutil.copytree( src_dir, org_no_fix_src_dir )
 
 
 def reallyrmtree(path):
@@ -626,6 +707,8 @@ def replacelineinfile(file_path, pattern, subst, firstmatchonly=False):
     move(abs_path, file_path)
     
 if __name__ == '__main__':
+    setupForgeSrc()
+
     parser = OptionParser()
     parser.add_option('-o', '--no-optifine', dest='nomerge', default=False, action='store_true', help='If specified, no optifine merge will be carried out')
     parser.add_option('-c', '--clean', dest='clean', default=False, action='store_true', help='Cleans the mcp dir, and REMOVES ALL SOURCE IN THE MCPxxx/SRC dir. Re-downloads dependencies')
@@ -654,6 +737,7 @@ if __name__ == '__main__':
     clean = options.clean
     force = options.force
     dependenciesOnly = options.dep
+    includeForge = options.includeForge
     
     if not options.mcp_dir is None:
         main(os.path.abspath(options.mcp_dir))
