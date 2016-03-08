@@ -34,6 +34,7 @@ def main(mcp_dir, patch_dir = "patches", orig_dir = ".minecraft_orig"):
     new_src_dir    = os.path.join( base_dir , "src" )
     patch_base_dir = os.path.join( base_dir , patch_dir )
     patchsrc_base_dir = os.path.join( base_dir , "patchsrc" )
+    mcp_patches_dir = os.path.join( base_dir , "mcppatches" )
 
     try:
         shutil.rmtree( new_src_dir )
@@ -91,6 +92,10 @@ def main(mcp_dir, patch_dir = "patches", orig_dir = ".minecraft_orig"):
                 if os.path.exists( new_file ):
                     os.remove( new_file )
                 shutil.copy(mod_file, new_dir)
+                
+    # copy Start.java
+    start_file = os.path.join( mcp_dir , "src", "minecraft", "Start.java" )
+    shutil.copy(start_file, mcp_patches_dir)
     
     removeEmptyFolders(patch_base_dir)
     removeEmptyFolders(new_src_dir)

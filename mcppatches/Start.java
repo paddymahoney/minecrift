@@ -13,13 +13,13 @@ import joptsimple.OptionSet;
 import net.minecraft.client.main.Main;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.util.Session;
-import org.json.JSONObject;   // JAR available at http://mvnrepository.com/artifact/org.json/json/20140107
+import org.json.JSONObject;
 
 public class Start
 {
     public static void main(String[] args) throws Exception
     {
-        // Support --username <username> and --password <password> parameters as args.
+        // Supports --username <username> and --password <password> parameters as args.
         /** LEAVE THE LINE BELOW - IT'S UPDATED BY THE INSTALL SCRIPTS TO THE CORRECT MINECRAFT VERSION */
         args = concat(new String[] {"--version", "mcp", "--accessToken", "0", "--assetsDir", "assets", "--assetIndex", "1.7.10", "--userProperties", "{}"}, args);
 
@@ -51,7 +51,12 @@ public class Start
             catch (Exception ex)
             {
                 ex.printStackTrace();
-                Main.main(args);
+                if (!useLaunchwrapper) {
+                    Main.main(args);
+                }
+                else {
+                    Launch.main(args);
+                }
             }
 
             ArrayList<String> newArgs = new ArrayList<String>();
