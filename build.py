@@ -158,12 +158,12 @@ def readpomversion(pomFile):
 	version = str(project.getElementsByTagName("version")[0].firstChild.nodeValue)
 	return version
   
-def main(mcp_dir):
+def main(mcp_dir, isforge):
     print 'Using mcp dir: %s' % mcp_dir
     print 'Using base dir: %s' % base_dir
     
     print("Refreshing dependencies...")
-    download_deps( mcp_dir, False )
+    download_deps( mcp_dir, isforge )
     
     sys.path.append(mcp_dir)
     os.chdir(mcp_dir)
@@ -203,11 +203,12 @@ def main(mcp_dir):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
+    parser.add_option('-f', '--forge', dest='isforge', default=False, action='store_true', help='Use forge libs')
     options, _ = parser.parse_args()
 
     if not options.mcp_dir is None:
-        main(os.path.abspath(options.mcp_dir))
+        main(os.path.abspath(options.mcp_dir, options.isforge))
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
-        main(os.path.abspath('..'))
+        main(os.path.abspath('..'), options.isforge)
     else:
-        main(os.path.abspath(mcp_version))	
+        main(os.path.abspath(mcp_version), options.isforge)

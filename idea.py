@@ -38,10 +38,11 @@ def createIdeaProject(project_root_dir, version, mcpDirName, are32bitNatives, is
             for file in files:
                 if file.endswith(".jar"):
                     jarFile = os.path.join(root, file)
-                    if not 'sources' in file:
-                        jarPaths.append(jarFile)
-                    else:
-                        sourcePaths.append(jarFile)
+                    if not 'Optifine' in file:  # don't add Optifine jar
+                        if not 'sources' in file:
+                            jarPaths.append(jarFile)
+                        else:
+                            sourcePaths.append(jarFile)
         libName = 'Forge-' + forgeVersion
         libNames.append(libName)
         libXML = LibraryXML(libraryName=libName, rootDir=project_root_dir, libraryJarPathNames=jarPaths, sourcesJarPathNames=sourcePaths)

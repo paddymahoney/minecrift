@@ -1,6 +1,7 @@
 import os
 import shutil
 from optparse import OptionParser
+from mcutils import *
 
 def create_relative_file_list(dir_path):
 
@@ -20,7 +21,7 @@ def copy_filtered_files(filter_dir, sourceDir, destDir, cleanDest):
     if cleanDest:
         # clean dest dir
         print 'Cleaning dest: %s' % destDir
-        shutil.rmtree(destDir, ignore_errors=True)
+        reallyrmtree(destDir)
 
     # create filter list
     print 'Filter list:'

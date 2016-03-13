@@ -3,6 +3,7 @@ import shutil, fnmatch
 import subprocess, shlex
 from optparse import OptionParser
 from minecriftversion import mc_version, minecrift_version_num, minecrift_build, of_file_extension, of_file_md5, mcp_version
+from mcutils import *
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -53,7 +54,7 @@ def merge_tree(root_src_dir, root_dst_dir):
             shutil.copy(src_file, dst_dir)
 
 
-def applychanges(mcp_dir, patch_dir = "patches", applyPatches=True, backup = True, copyOriginal=True, origDir='.minecraft_orig', mergeInNew=True ):
+def applychanges(mcp_dir, patch_dir = "patches", applyPatches=True, backup = True, copyOriginal=True, origDir='.minecraft_orig', mergeInNew=True, isForge=False ):
     print("Applying Changes...")
 
     mod_src_dir = os.path.join(mcp_dir, "src","minecraft")
@@ -75,16 +76,21 @@ def applychanges(mcp_dir, patch_dir = "patches", applyPatches=True, backup = Tru
     if mergeInNew:
         #merge in the new classes
         merge_tree( os.path.join( base_dir, "src" ), mod_src_dir )
+
+    if isForge:
+        doForgeFileDiffs(mcp_dir, mcp_dir+'_clean', os.path.join(base_dir, 'forgesrc'), os.path.join(base_dir, 'mcppatches'))
+
     
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
-    parser.add_option('-p', '--patch-dir', action='store', dest='patch_dir', help='Path to base patch dir', default='patches')    
+    parser.add_option('-p', '--patch-dir', action='store', dest='patch_dir', help='Path to base patch dir', default='patches')
+    parser.add_option('-f', '--forge-src', dest='isforge', default=False, action='store_true', help='Apply Forge source changes')
     options, _ = parser.parse_args()
 
     if not options.mcp_dir is None:
-        applychanges(os.path.abspath(options.mcp_dir), options.patch_dir)
+        applychanges(os.path.abspath(options.mcp_dir), options.patch_dir, isForge=options.isforge)
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
-        applychanges(os.path.abspath('..'), options.patch_dir)
+        applychanges(os.path.abspath('..'), options.patch_dir, isForge=options.isforge)
     else:
-        applychanges(os.path.abspath(mcp_version), options.patch_dir)
+        applychanges(os.path.abspath(mcp_version), options.patch_dir, isForge=options.isforge)

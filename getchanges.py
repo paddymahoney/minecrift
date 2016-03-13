@@ -7,6 +7,7 @@ from optparse import OptionParser
 from minecriftversion import mcp_version, minecrift_version_num, minecrift_build
 from build import replacelineinfile
 from copyfilteredfiles import copy_filtered_files
+from mcutils import *
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -38,10 +39,12 @@ def main(mcp_dir, patch_dir = "patches", orig_dir = ".minecraft_orig", isforge=F
     if isforge:
         # get forge source first
         forge_src_dir = os.path.join(base_dir, 'forgesrc')
+        minecraft_forge_src_dir = os.path.join(forge_src_dir, 'minecraft')
         optifine_forge_src_dir = os.path.join(forge_src_dir, 'optifine')
         minecrift_forge_src_dir = os.path.join(forge_src_dir, 'minecrift')
 
-        copy_filtered_files(optifine_forge_src_dir, optifine_forge_src_dir, mod_src_dir, True)
+        copy_filtered_files(minecraft_forge_src_dir, minecraft_forge_src_dir, mod_src_dir, True)
+        copy_filtered_files(optifine_forge_src_dir, optifine_forge_src_dir, mod_src_dir, False)
         copy_filtered_files(minecrift_forge_src_dir, minecrift_forge_src_dir, mod_src_dir, False)
 
 
@@ -113,23 +116,6 @@ def main(mcp_dir, patch_dir = "patches", orig_dir = ".minecraft_orig", isforge=F
     removeEmptyFolders(patch_base_dir)
     removeEmptyFolders(new_src_dir)
     removeEmptyFolders(patchsrc_base_dir)
-
-def removeEmptyFolders(path):
-    if not os.path.isdir(path):
-        return
-
-    # remove empty subfolders
-    files = os.listdir(path)
-    if len(files):
-        for f in files:
-            fullpath = os.path.join(path, f)
-            if os.path.isdir(fullpath):
-                removeEmptyFolders(fullpath)
-
-    # if folder empty, delete it
-    files = os.listdir(path)
-    if len(files) == 0:
-        os.rmdir(path)
 
     
 if __name__ == '__main__':
