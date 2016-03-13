@@ -616,7 +616,7 @@ def setupForgeSrc(mcp_dir, mcp_dir_clean, clean, isForge):
     # copy assets
     home_dir = os.path.expanduser("~")
     forge_assets_dir = os.path.join(home_dir, ".gradle", "caches", "minecraft", "assets")
-    dest_vanilla_assets_dir = os.path.join(getLibDirForge(base_dir), 'assets')
+    dest_vanilla_assets_dir = os.path.join(getLibDirVanilla(base_dir), 'assets')
     dest_forge_assets_dir = os.path.join(getLibDirForge(base_dir), 'assets')
     copy_and_overwrite(forge_assets_dir, dest_vanilla_assets_dir)
     copy_and_overwrite(forge_assets_dir, dest_forge_assets_dir)
