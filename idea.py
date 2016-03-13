@@ -4,34 +4,66 @@ import sys, os
 from sys import platform as _platform
 import shutil
 
-PROJECT_NAME = 'minecrift'
+def createIdeaProject(project_root_dir, version, mcpDirName, are32bitNatives, isForge=False, forgeVersion=None, forge_src_dir=None, cleanMcpDirName=None):
 
-def createIdeaProject(project_root_dir, version, mcpDirName, are32bitNatives):
+    PROJECT_NAME = 'minecrift'
+    if isForge:
+        PROJECT_NAME += '-forge'
+        version += '-forge'
 
-    # generate IML xml
-    srcPaths = [os.path.join(project_root_dir, 'JOpenVR', 'JOpenVR', 'src'), \
-                os.path.join(project_root_dir, 'JRift', 'JRift', 'src'), \
-                os.path.join(project_root_dir, 'JMumbleLink', 'JMumble', 'src'), \
-                os.path.join(project_root_dir, 'Sixense-Java', 'SixenseJava', 'src'), \
-                os.path.join(project_root_dir, mcpDirName, 'src', 'minecraft')]
-    libNames = [version]
-
-    imlxml = IMLXML(srcDirPaths=srcPaths, rootDir=project_root_dir, libraryNames=libNames)
-    #print "./%s.iml:\n\n%s\n" % (PROJECT_NAME, imlxml.xmlString)
-    writeFile(os.path.join(project_root_dir, PROJECT_NAME +'.iml'), imlxml.xmlString)
-
-    # generate library xml
+    # generate <version> library xml
     jarPaths = []
+    sourcePaths = []
     jarDir = os.path.join(project_root_dir, 'lib', version)
     for root, dirs, files in os.walk(jarDir):
         for file in files:
             if file.endswith(".jar"):
                 jarFile = os.path.join(root, file)
-                jarPaths.append(jarFile)
+                if not 'sources' in file:
+                    jarPaths.append(jarFile)
+                else:
+                    sourcePaths.append(jarFile)
     libName = version
-    libXML = LibraryXML(libraryName=libName, rootDir=project_root_dir, libraryJarPathNames=jarPaths)
+    libXML = LibraryXML(libraryName=libName, rootDir=project_root_dir, libraryJarPathNames=jarPaths, sourcesJarPathNames=sourcePaths)
     #print "./.idea/libraries/%s.xml:\n\n%s\n" % (version, libXML.xmlString)
-    writeFile(os.path.join(project_root_dir, '.idea', 'libraries', version + '.xml'), libXML.xmlString)
+    writeFile(os.path.join(project_root_dir, '.idea', 'libraries', libName + '.xml'), libXML.xmlString, removeHiphensInFilename=True)
+
+    libNames = []
+    if isForge:
+        # generate <forge version> library xml
+        jarPaths = []
+        sourcePaths = []
+        jarDir = os.path.join(project_root_dir, 'lib', forgeVersion)
+        for root, dirs, files in os.walk(jarDir):
+            for file in files:
+                if file.endswith(".jar"):
+                    jarFile = os.path.join(root, file)
+                    if not 'sources' in file:
+                        jarPaths.append(jarFile)
+                    else:
+                        sourcePaths.append(jarFile)
+        libName = 'Forge-' + forgeVersion
+        libNames.append(libName)
+        libXML = LibraryXML(libraryName=libName, rootDir=project_root_dir, libraryJarPathNames=jarPaths, sourcesJarPathNames=sourcePaths)
+        #print "./.idea/libraries/%s.xml:\n\n%s\n" % (version, libXML.xmlString)
+        writeFile(os.path.join(project_root_dir, '.idea', 'libraries', libName + '.xml'), libXML.xmlString, removeHiphensInFilename=True)
+
+    # generate IML xml
+    srcPaths = [os.path.join(project_root_dir, 'JOpenVR', 'JOpenVR', 'src'), \
+                os.path.join(project_root_dir, 'JRift', 'JRift', 'src'), \
+                os.path.join(project_root_dir, 'JMumbleLink', 'JMumble', 'src'), \
+                os.path.join(project_root_dir, 'Sixense-Java', 'SixenseJava', 'src')]
+    if not isForge:
+        srcPaths.append(os.path.join(project_root_dir, mcpDirName, 'src', 'minecraft'))
+    else:
+        srcPaths.append(os.path.join(project_root_dir, forge_src_dir, 'minecrift'))
+        srcPaths.append(os.path.join(project_root_dir, forge_src_dir, 'optifine'))
+        #srcPaths.append(os.path.join(project_root_dir, forge_src_dir, 'minecraft'))
+
+    libNames.append(version)
+    imlxml = IMLXML(srcDirPaths=srcPaths, rootDir=project_root_dir, libraryNames=libNames)
+    #print "./%s.iml:\n\n%s\n" % (PROJECT_NAME, imlxml.xmlString)
+    writeFile(os.path.join(project_root_dir, PROJECT_NAME +'.iml'), imlxml.xmlString)
 
     if _platform == "linux" or _platform == "linux2":
         platformbits = 'linux/32' if are32bitNatives else 'linux/64'
@@ -49,9 +81,16 @@ def createIdeaProject(project_root_dir, version, mcpDirName, are32bitNatives):
                     os.path.join(project_root_dir, 'JMumbleLink', 'JMumbleLibrary', 'natives', platform), \
                     os.path.join(project_root_dir, 'Sixense-Java', 'SixenseJavaLibrary', 'natives', platform), \
                     os.path.join(project_root_dir, 'lib', version, 'natives', platform)]
-    prog_args = '--username mcuser --password pass'
+    prog_args = '--username mcuser --password pass --assetsDir "%s"' % os.path.join(project_root_dir, 'lib', version, 'assets')
+    jvm_args = ''
+    if isForge:
+        prog_args += ' --useLaunchWrapper 1 --gameDir "%s" --tweakClass cpw.mods.fml.common.launcher.FMLTweaker' % project_root_dir + \
+                     ' --tweakClass optifine.OptiFineTweaker'
+        jvm_args += ' -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true'
+
     moduleName = PROJECT_NAME
-    workspaceXML = WorkspaceXML(mainClassName=mainClass, mcpDir=mcpDirName, rootDir=project_root_dir, nativeDirs=nativesPaths, programParams=prog_args, moduleName=moduleName)
+    workspaceXML = WorkspaceXML(mainClassName=mainClass, mcpDir=(mcpDirName if not isForge else forge_src_dir), rootDir=project_root_dir, nativeDirs=nativesPaths, \
+                                programParams=prog_args, moduleName=moduleName, jvmargs=jvm_args, isForge=isForge)
     #print "./.idea/workspace.xml:\n\n%s\n" % (workspaceXML.xmlString)
     writeFile(os.path.join(project_root_dir, '.idea', 'workspace.xml'), workspaceXML.xmlString)
 
@@ -148,13 +187,65 @@ r"""<?xml version="1.0" encoding="UTF-8"?>
   </component>
 </project>
 """)
-    def __init__(self, mainClassName, rootDir, mcpDir, nativeDirs, programParams, moduleName):
+
+    BASE_FORGE_Workspace = (
+r"""<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RunManager" selected="Application.Run Minecrift Forge Client">
+    <configuration default="false" name="Run Minecrift Forge Client" type="Application" factoryName="Application" singleton="true">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" value="" />
+      <option name="ENABLE_SWING_INSPECTOR" value="false" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <envs />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Application.Run Minecrift Forge Client" />
+    </list>
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file leaf-file-name="Minecraft.java" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/$MCP_DIR$/minecrift/net/minecraft/client/Minecraft.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.01783591">
+              <caret line="444" column="0" selection-start-line="444" selection-start-column="0" selection-end-line="444" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EntityRenderer.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/$MCP_DIR$/minecrift/net/minecraft/client/renderer/EntityRenderer.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="98" column="13" selection-start-line="98" selection-start-column="13" selection-end-line="98" selection-end-column="13" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+</project>
+""")
+    def __init__(self, mainClassName, rootDir, mcpDir, nativeDirs, programParams, moduleName, jvmargs, isForge):
 
         # Subst in MCP dir
-        self.BASE_Workspace = self.BASE_Workspace.replace('$MCP_DIR$', mcpDir)
+        if not isForge:
+            self.BASE_Workspace = self.BASE_Workspace.replace('$MCP_DIR$', mcpDir)
+        else:
+            self.BASE_FORGE_Workspace = self.BASE_FORGE_Workspace.replace('$MCP_DIR$', mcpDir)
 
         # Read base xml
-        xml = ET.ElementTree(ET.fromstring(self.BASE_Workspace))
+        if not isForge:
+            xml = ET.ElementTree(ET.fromstring(self.BASE_Workspace))
+        else:
+            xml = ET.ElementTree(ET.fromstring(self.BASE_FORGE_Workspace))
 
         # Get ./project/component/configuration element
         project = xml.getroot()
@@ -170,7 +261,7 @@ r"""<?xml version="1.0" encoding="UTF-8"?>
         pathSeparator = ':'
         if _platform == "win32":
             pathSeparator = ';'
-        vm_args = '-Djava.library.path=\"'
+        vm_args = jvmargs + ' -Djava.library.path=\"'
         firstEntry = True
 
         # Add all native dirs, convert each to relative to project root
@@ -227,7 +318,7 @@ r"""<component name="libraryTable">
 </component>
 """)
 
-    def __init__(self, libraryName, rootDir, libraryJarPathNames):
+    def __init__(self, libraryName, rootDir, libraryJarPathNames, sourcesJarPathNames):
 
         # Read base xml
         xml = ET.ElementTree(ET.fromstring(self.BASE_Library))
@@ -242,11 +333,20 @@ r"""<component name="libraryTable">
         # Get classes element
         CLASSES = library.find('CLASSES')
 
-        # Add libraries in order
+        # Add library jars in order
         for libraryJarPathName in libraryJarPathNames:
             # convert to relative path
             relativeLibraryJarPathName = os.path.relpath(libraryJarPathName, rootDir)
             self._add_LibraryJar(self.PROJECT_DIR+'/' + relativeLibraryJarPathName, CLASSES)
+
+        # Get sources element
+        SOURCES = library.find('SOURCES')
+
+        # Add sources jars in order
+        for sourcesJarPathName in sourcesJarPathNames:
+            # convert to relative path
+            relativeLibraryJarPathName = os.path.relpath(sourcesJarPathName, rootDir)
+            self._add_LibraryJar(self.PROJECT_DIR+'/' + relativeLibraryJarPathName, SOURCES)
 
         # get result
         self.xmlString = dumpXml(element=component)
@@ -318,7 +418,12 @@ r"""<?xml version="1.0" encoding="UTF-8"?>
         componentElement.append(orderEntry)
 
 
-def removeIdeaProject(project_root_dir):
+def removeIdeaProject(project_root_dir, isForge=False):
+
+    PROJECT_NAME = 'minecrift'
+    if isForge:
+        PROJECT_NAME += '-forge'
+
      # clean up
     shutil.rmtree(path=os.path.join(project_root_dir, '.idea'), ignore_errors=True)
     filename=os.path.join(project_root_dir, PROJECT_NAME + '.iml')
@@ -329,21 +434,29 @@ def dumpXml(element):
     return '\n'.join([line for line in MD.parseString(ET.tostring(element)).toprettyxml(indent=' '*2).split('\n') if line.strip()])
 
 
-def writeFile(filename, contents):
+def writeFile(filename, contents, removeHiphensInFilename=False):
     dir = os.path.dirname(filename)
+    file = os.path.basename(filename)
+    if removeHiphensInFilename:
+        file = file.replace('-','_')
     try:
         os.makedirs(name=dir)
     except:
         pass
 
-    f = open(filename, 'w+')
+    f = open(os.path.join(dir, file), 'w+')
     f.write(contents)
     f.close()
 
 if __name__ == "__main__":
 
-    baseDir = '~/minecrift-public-1710'
+    baseDir = os.path.join(os.path.expanduser("~"), 'minecrift-public-1710-openvr')
     mcpDirName = 'mcp908'
+    cleanMcpDirName = 'mcp908_clean'
     version = '1.7.10'
     is32 = False
-    createIdeaProject(project_root_dir=baseDir, mcpDirName=mcpDirName, version=version, are32bitNatives=is32)
+
+    #createIdeaProject(project_root_dir=baseDir, mcpDirName=mcpDirName, version=version, are32bitNatives=is32, isForge=False, forgeVersion=None, forge_src_dir=None)
+    removeIdeaProject(baseDir, True)
+    createIdeaProject(project_root_dir=baseDir, mcpDirName=mcpDirName, version=version, are32bitNatives=is32, isForge=True, \
+                      forgeVersion="1.7.10-10.13.4.1614-1.7.10", forge_src_dir='forgesrc', cleanMcpDirName=cleanMcpDirName)

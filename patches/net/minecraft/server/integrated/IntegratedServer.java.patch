@@ -1,0 +1,10 @@
+--- a/net/minecraft/server/integrated/IntegratedServer.java
++++ b/net/minecraft/server/integrated/IntegratedServer.java
+@@ -86,6 +86,7 @@
+         else
+         {
+             this.worldServers = new WorldServer[3];
++            /** MINECRIFT FORGE - COMMENT OUT BELOW LINE FOR FORGE PROJ **/
+             this.timeOfLastDimensionTick = new long[this.worldServers.length][100];
+ 
+             for (int var15 = 0; var15 < this.worldServers.length; ++var15)

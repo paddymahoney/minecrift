@@ -6,6 +6,7 @@ import subprocess, logging, shlex, re
 from optparse import OptionParser
 from minecriftversion import mcp_version, minecrift_version_num, minecrift_build
 from build import replacelineinfile
+from copyfilteredfiles import copy_filtered_files
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,7 +31,20 @@ def create_patch( target_dir, src_file, mod_file, label, patch_file ):
         with open( patch_file, 'wb') as out:
             out.write( stdout.replace('\r\n','\n').replace('\r','\n') )
 
-def main(mcp_dir, patch_dir = "patches", orig_dir = ".minecraft_orig"):
+def main(mcp_dir, patch_dir = "patches", orig_dir = ".minecraft_orig", isforge=False):
+
+    mod_src_dir = os.path.join( mcp_dir , "src", "minecraft" )
+
+    if isforge:
+        # get forge source first
+        forge_src_dir = os.path.join(base_dir, 'forgesrc')
+        optifine_forge_src_dir = os.path.join(forge_src_dir, 'optifine')
+        minecrift_forge_src_dir = os.path.join(forge_src_dir, 'minecrift')
+
+        copy_filtered_files(optifine_forge_src_dir, optifine_forge_src_dir, mod_src_dir, True)
+        copy_filtered_files(minecrift_forge_src_dir, minecrift_forge_src_dir, mod_src_dir, False)
+
+
     new_src_dir    = os.path.join( base_dir , "src" )
     patch_base_dir = os.path.join( base_dir , patch_dir )
     patchsrc_base_dir = os.path.join( base_dir , "patchsrc" )
@@ -51,7 +65,6 @@ def main(mcp_dir, patch_dir = "patches", orig_dir = ".minecraft_orig"):
     if not os.path.exists( patchsrc_base_dir ):
         os.mkdir( patchsrc_base_dir )
 
-    mod_src_dir = os.path.join( mcp_dir , "src", "minecraft" )
     org_src_dir = os.path.join( mcp_dir , "src", orig_dir )
 
     for src_dir, dirs, files in os.walk(mod_src_dir):
@@ -119,11 +132,12 @@ if __name__ == '__main__':
     parser.add_option('-m', '--mcp-dir', action='store', dest='mcp_dir', help='Path to MCP to use', default=None)
     parser.add_option('-o', '--orig-dir', action='store', dest='orig_dir', help='Name of original source dir', default=".minecraft_orig")
     parser.add_option('-p', '--patch-dir', action='store', dest='patch_dir', help='Patch dest dir base name to use', default='patches')
+    parser.add_option('-f', '--forge-src', dest='isforge', default=False, action='store_true', help='Get Forge source changes')
     options, _ = parser.parse_args()
 
     if not options.mcp_dir is None:
-        main(os.path.abspath(options.mcp_dir), options.patch_dir, options.orig_dir)
+        main(os.path.abspath(options.mcp_dir), options.patch_dir, options.orig_dir, options.isforge)
     elif os.path.isfile(os.path.join('..', 'runtime', 'commands.py')):
-        main(os.path.abspath('..'), options.patch_dir, options.orig_dir)
+        main(os.path.abspath('..'), options.patch_dir, options.orig_dir, options.isforge)
     else:
-        main(os.path.abspath(mcp_version), options.patch_dir, options.orig_dir)
+        main(os.path.abspath(mcp_version), options.patch_dir, options.orig_dir, options.isforge)

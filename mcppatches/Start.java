@@ -21,7 +21,7 @@ public class Start
     {
         // Support --username <username> and --password <password> parameters as args.
         /** LEAVE THE LINE BELOW - IT'S UPDATED BY THE INSTALL SCRIPTS TO THE CORRECT MINECRAFT VERSION */
-        args = concat(new String[] {"--version", "mcp", "--accessToken", "0", "--assetsDir", "assets", "--assetIndex", "1.7.10", "--userProperties", "{}"}, args);
+        args = concat(new String[] {"--version", "mcp", "--accessToken", "0", "--assetIndex", "1.7.10", "--userProperties", "{}"}, args);
 
         // Authenticate --username <username> and --password <password> with Mojang.
         // *** Username should most likely be an email address!!! ***
@@ -34,7 +34,7 @@ public class Start
         String user = (String)optionSet.valueOf(username);
         String pass = (String)optionSet.valueOf(password);
         boolean useLaunchwrapper = (((Integer)optionSet.valueOf(launchwrapper)).intValue() == 0 ? false : true);
-        
+
         if (user != null && pass != null)
         {
             Session session = null;
@@ -51,7 +51,28 @@ public class Start
             catch (Exception ex)
             {
                 ex.printStackTrace();
-                Main.main(args);
+
+                // Remove bad username and password
+                ArrayList<String> newArgs = new ArrayList<String>();
+                for (int i = 0; i < args.length; i++)
+                {
+                    if (args[i].compareToIgnoreCase("--username") == 0 ||
+                            args[i].compareToIgnoreCase("--password") == 0)
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        newArgs.add(args[i]);
+                    }
+                }
+                if (!useLaunchwrapper) {
+                    Main.main(newArgs.toArray(new String[0]));
+                }
+                else {
+                    System.out.println("ARGS: " + newArgs.toString());
+                    Launch.main(newArgs.toArray(new String[0]));
+                }
             }
 
             ArrayList<String> newArgs = new ArrayList<String>();
@@ -71,7 +92,7 @@ public class Start
                     newArgs.add(args[i]);
                 }
             }
-            
+
             newArgs.add("--username");
             newArgs.add(session.getUsername());
             newArgs.add("--uuid");

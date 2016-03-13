@@ -25,3 +25,5 @@ saves/
 mcppatches - Copy/
 hs_err_pid*.log
 forge
+forgesrc
+config
