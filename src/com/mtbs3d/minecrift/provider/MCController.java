@@ -16,8 +16,10 @@ import com.mtbs3d.minecrift.control.*;
 import com.mtbs3d.minecrift.settings.profile.ProfileManager;
 import com.mtbs3d.minecrift.settings.profile.ProfileReader;
 import com.mtbs3d.minecrift.settings.profile.ProfileWriter;
+import de.fruitfly.ovr.enums.EyeType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.src.Reflector;
+import net.minecraft.util.Vec3;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -574,4 +576,13 @@ public class MCController extends BasePlugin implements IBodyAimController
 	public void triggerYawTransition(boolean isPositive) {
 		this.joyAim.triggerYawChange(isPositive);
 	}
+
+	// VIVE START - interact source
+	@Override
+	public Vec3 getAimSource( int controller ) { return null; }
+	public Vec3 getSmoothedAimVelocity(int controller) { return null; }
+	public void triggerHapticPulse(int controller, int duration) { }
+	public de.fruitfly.ovr.structs.Matrix4f getAimRotation( int controller ) { return null; }
+	public boolean applyGUIModelView( EyeType eyeType ) { return false; }
+	// VIVE END - interact source
 }

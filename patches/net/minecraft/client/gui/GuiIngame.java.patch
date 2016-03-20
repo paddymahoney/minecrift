@@ -83,7 +83,15 @@
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
              this.mc.mcProfiler.startSection("bossHealth");
              this.renderBossHealth();
-@@ -312,7 +322,9 @@
+@@ -156,6 +166,7 @@
+             RenderHelper.disableStandardItemLighting();
+             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+             this.mc.mcProfiler.endSection();
++
+             GL11.glDisable(GL11.GL_BLEND);
+         }
+ 
+@@ -312,7 +323,9 @@
          {
              this.mc.mcProfiler.startSection("debug");
              GL11.glPushMatrix();
@@ -94,7 +102,7 @@
              var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 12, 16777215);
              var8.drawStringWithShadow(this.mc.getEntityDebug(), 2, 22, 16777215);
              var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 32, 16777215);
-@@ -326,6 +338,19 @@
+@@ -326,6 +339,19 @@
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 2, 14737632);
              var20 = "Allocated memory: " + var41 * 100L / var36 + "% (" + var41 / 1024L / 1024L + "MB)";
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 12, 14737632);
@@ -114,7 +122,7 @@
              var22 = MathHelper.floor_double(this.mc.thePlayer.posX);
              var23 = MathHelper.floor_double(this.mc.thePlayer.posY);
              int var24 = MathHelper.floor_double(this.mc.thePlayer.posZ);
-@@ -501,9 +526,10 @@
+@@ -501,9 +527,10 @@
      {
          this.streamIndicator.render((int)(p_152126_1_ - 10.0F), 10);
      }
@@ -128,7 +136,7 @@
          Scoreboard var5 = p_96136_1_.getScoreboard();
          Collection var6 = var5.getSortedScores(p_96136_1_);
  
-@@ -549,9 +575,10 @@
+@@ -549,9 +576,10 @@
              }
          }
      }
@@ -142,7 +150,7 @@
          boolean var3 = this.mc.thePlayer.hurtResistantTime / 3 % 2 == 1;
  
          if (this.mc.thePlayer.hurtResistantTime < 10)
-@@ -830,7 +857,9 @@
+@@ -830,7 +858,9 @@
      /**
       * Renders dragon's (boss) health on the HUD
       */
@@ -153,7 +161,7 @@
      {
          if (BossStatus.bossName != null && BossStatus.statusBarTime > 0)
          {
-@@ -856,9 +885,15 @@
+@@ -856,9 +886,15 @@
              this.mc.getTextureManager().bindTexture(icons);
          }
      }
@@ -171,7 +179,7 @@
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glDepthMask(false);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -881,8 +916,15 @@
+@@ -881,8 +917,15 @@
      /**
       * Renders the vignette. Args: vignetteBrightness, width, height
       */
@@ -188,7 +196,7 @@
          p_73829_1_ = 1.0F - p_73829_1_;
  
          if (p_73829_1_ < 0.0F)
-@@ -913,8 +955,9 @@
+@@ -913,8 +956,9 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
      }
@@ -200,7 +208,7 @@
      {
          if (p_130015_1_ < 1.0F)
          {
-@@ -950,7 +993,9 @@
+@@ -950,7 +994,9 @@
      /**
       * Renders the specified item of the inventory slot at the specified location. Args: slot, x, y, partialTick
       */
@@ -211,7 +219,7 @@
      {
          ItemStack var5 = this.mc.thePlayer.inventory.mainInventory[p_73832_1_];
  
-@@ -1039,4 +1084,22 @@
+@@ -1039,4 +1085,22 @@
      {
          return this.updateCounter;
      }

@@ -1,0 +1,309 @@
+--- a/net/minecraft/client/renderer/ItemRenderer.java
++++ b/net/minecraft/client/renderer/ItemRenderer.java
+@@ -1,5 +1,7 @@
+ package net.minecraft.client.renderer;
+ 
++import com.mtbs3d.minecrift.render.OpenGLdebugging;
++import de.fruitfly.ovr.structs.Matrix4f;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.Minecraft;
+@@ -14,18 +16,17 @@
+ import net.minecraft.entity.EntityLivingBase;
+ import net.minecraft.init.Blocks;
+ import net.minecraft.init.Items;
+-import net.minecraft.item.EnumAction;
+-import net.minecraft.item.Item;
+-import net.minecraft.item.ItemBlock;
+-import net.minecraft.item.ItemCloth;
+-import net.minecraft.item.ItemStack;
++import net.minecraft.item.*;
+ import net.minecraft.util.IIcon;
+ import net.minecraft.util.MathHelper;
+ import net.minecraft.util.ResourceLocation;
++import net.minecraft.world.gen.structure.StructureVillagePieces;
+ import net.minecraft.world.storage.MapData;
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL12;
+ 
++import java.nio.FloatBuffer;
++
+ public class ItemRenderer
+ {
+     private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
+@@ -249,16 +250,45 @@
+         float var2 = this.prevEquippedProgress + (this.equippedProgress - this.prevEquippedProgress) * p_78440_1_;
+         EntityClientPlayerMP var3 = this.mc.thePlayer;
+         float var4 = var3.prevRotationPitch + (var3.rotationPitch - var3.prevRotationPitch) * p_78440_1_;
+-        GL11.glPushMatrix();
+-        GL11.glRotatef(var4, 1.0F, 0.0F, 0.0F);
+-        GL11.glRotatef(var3.prevRotationYaw + (var3.rotationYaw - var3.prevRotationYaw) * p_78440_1_, 0.0F, 1.0F, 0.0F);
++
++        // VIVE START - rotate item by aim direction
++        if (this.mc.lookaimController.getAimSource(0)!=null)
++        {
++            var4 = this.mc.lookaimController.getAimPitch();
++
++            GL11.glPushMatrix();
++            GL11.glRotatef(var4, 1.0F, 0.0F, 0.0F);
++            GL11.glRotatef(this.mc.lookaimController.getAimYaw(), 0.0F, 1.0F, 0.0F);
++        }
++        else
++        {
++            GL11.glPushMatrix();
++            GL11.glRotatef(var4, 1.0F, 0.0F, 0.0F);
++            GL11.glRotatef(var3.prevRotationYaw + (var3.rotationYaw - var3.prevRotationYaw) * p_78440_1_, 0.0F, 1.0F, 0.0F);
++        }
++        // VIVE END
++
+         RenderHelper.enableStandardItemLighting();
+         GL11.glPopMatrix();
+         EntityPlayerSP var5 = (EntityPlayerSP)var3;
+         float var6 = var5.prevRenderArmPitch + (var5.renderArmPitch - var5.prevRenderArmPitch) * p_78440_1_;
+         float var7 = var5.prevRenderArmYaw + (var5.renderArmYaw - var5.prevRenderArmYaw) * p_78440_1_;
+-        GL11.glRotatef((var3.rotationPitch - var6) * 0.1F, 1.0F, 0.0F, 0.0F);
+-        GL11.glRotatef((var3.rotationYaw - var7) * 0.1F, 0.0F, 1.0F, 0.0F);
++
++        // VIVE START - rotate item by aim direction
++        Matrix4f rotation = this.mc.lookaimController.getAimRotation(0);
++        if (rotation!=null)
++        {
++            GL11.glMultMatrix(rotation.transposed().toFloatBuffer());
++            GL11.glRotatef(-110.0F, 1.0F, 0.0F, 0.0F);
++            GL11.glTranslatef(-0.046f, -0.02f, -0.008f);
++        }
++        else
++        {
++            GL11.glRotatef((var3.rotationPitch - var6) * 0.1F, 1.0F, 0.0F, 0.0F);
++            GL11.glRotatef((var3.rotationYaw - var7) * 0.1F, 0.0F, 1.0F, 0.0F);
++        }
++        // VIVE END - rotate item by aim direction
++
+         ItemStack var8 = this.itemToRender;
+ 
+         if (var8 != null && var8.getItem() instanceof ItemCloth)
+@@ -316,6 +346,12 @@
+                 var13 = 1.0F;
+             }
+ 
++            // VIVE START - adjust overall map position
++            GL11.glRotatef(150.0f, 1.0F, 0.0F, 0.0F);
++            GL11.glTranslatef(-0.1F, 0.3F, 0.2f);
++            GL11.glScalef(0.6f, 0.6f, 0.6f);
++            // VIVE END - adjust overall map position
++
+             var13 = -MathHelper.cos(var13 * (float)Math.PI) * 0.5F + 0.5F;
+             GL11.glTranslatef(0.0F, 0.0F * var22 - (1.0F - var2) * 1.2F - var13 * 0.5F + 0.04F, -0.9F * var22);
+             GL11.glRotatef(90.0F, 0.0F, 1.0F, 0.0F);
+@@ -323,19 +359,21 @@
+             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+             this.mc.getTextureManager().bindTexture(var3.getLocationSkin());
+ 
+-            for (int var24 = 0; var24 < 2; ++var24)
++            for (int var24 = 1; var24 < 2; ++var24) // VIVE - only draw right arm holding map,
+             {
+                 int var25 = var24 * 2 - 1;
+                 GL11.glPushMatrix();
+                 GL11.glTranslatef(-0.0F, -0.6F, 1.1F * (float)var25);
+-                GL11.glRotatef((float)(-45 * var25), 1.0F, 0.0F, 0.0F);
++                GL11.glTranslatef(-0.21f, -0.05f, -0.65f); // VIVE - adjust arm position
++                GL11.glRotatef((float)(0 * var25), 1.0F, 0.0F, 0.0F); // VIVE - adjust arm rotation
+                 GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
+-                GL11.glRotatef(59.0F, 0.0F, 0.0F, 1.0F);
++                GL11.glRotatef(39.0F, 0.0F, 0.0F, 1.0F); // VIVE - adjust arm rotation
+                 GL11.glRotatef((float)(-65 * var25), 0.0F, 1.0F, 0.0F);
+                 var26 = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
+                 var29 = (RenderPlayer)var26;
+-                var18 = 1.0F;
++                var18 = 0.5F;       // VIVE - adjust arm scale
+                 GL11.glScalef(var18, var18, var18);
++
+                 var29.renderFirstPersonArm(this.mc.thePlayer);
+                 GL11.glPopMatrix();
+             }
+@@ -402,20 +440,107 @@
+                 var13 = var3.getSwingProgress(p_78440_1_);
+                 var14 = MathHelper.sin(var13 * (float)Math.PI);
+                 var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
+-                GL11.glTranslatef(-var15 * 0.4F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI * 2.0F) * 0.2F, -var14 * 0.2F);
++                // VIVE START - different attack anim
++                if (this.mc.lookaimController.getAimSource(0)!=null)
++                {
++                    var14 = -0.2F * MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
++                    var15 = -0.0F * MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
++                    GL11.glTranslatef(-var15, 0.9F * MathHelper.sin(var13 * (float)Math.PI), -var14);
++                }
++                else
++                {
++                    GL11.glTranslatef(-var15 * 0.4F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI * 2.0F) * 0.2F, -var14 * 0.2F);
++                }
++                // VIVE END - different attack anim
+             }
+ 
+-            GL11.glTranslatef(0.7F * var22, -0.65F * var22 - (1.0F - var2) * 0.6F, -0.9F * var22);
++            // VIVE START - adjust item position based on type
++            if (this.mc.lookaimController.getAimSource(0)!=null)
++            {
++                Item item = var8.getItem();
++                if (item != null)
++                {
++                    if (item instanceof ItemBow)
++                    {
++                        if (var3.getItemInUseCount() > 0)
++                        {
++                            GL11.glRotatef(105.f, 1.0F, 0.0F, 0.0F);
++                            GL11.glRotatef(8.f, 0.0F, 1.0F, 0.0F);
++                            GL11.glTranslatef(0.15f, -0.15f, -0.00f);
++                        }
++                        else
++                        {
++                            GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
++                            GL11.glTranslatef(0.00f, -0.08f, -0.00f);
++                        }
++                    }
++                    else if (item instanceof ItemCarrotOnAStick
++                            || item instanceof ItemFishingRod
++                            )
++                    {
++                        GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
++                        GL11.glTranslatef(0.00f, -0.08f, 0.10f);
++                    }
++                    else if (item instanceof ItemPotion
++                            || item instanceof ItemGlassBottle)
++                    {
++                        GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
++                        GL11.glTranslatef(0.00f, -0.26f, -0.00f);
++                    }
++                    else if (item instanceof ItemMonsterPlacer
++                            || item instanceof ItemRedstone
++                            || item instanceof ItemBucket
++                            || item instanceof ItemBucketMilk
++                            || item instanceof ItemDoor
++                            || item instanceof ItemSign
++                            )
++                    {
++                        GL11.glTranslatef(0.01f, -0.0f, -0.11f);
++                        GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
++                    }
++                    else if (item instanceof ItemBlock)
++                    {
++                        Block block = Block.getBlockFromItem(item);
++                        if (var8.getItemSpriteNumber() == 0 && RenderBlocks.renderItemIn3d(block.getRenderType()))
++                        {
++                            // default orientation is fine
++                        }
++                        else
++                        {
++                            GL11.glTranslatef(0.01f, -0.0f, -0.11f);
++                            GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
++                        }
++                    }
++                }
++
++                GL11.glTranslatef(0.04f, -0.02f, -0.05f);
++            }
++            else
++            {
++                GL11.glTranslatef(0.7F * var22, -0.65F * var22 - (1.0F - var2) * 0.6F, -0.9F * var22);
++            }
++            // VIVE END - adjust item position based on type
+             GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
+             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+             var13 = var3.getSwingProgress(p_78440_1_);
+             var14 = MathHelper.sin(var13 * var13 * (float)Math.PI);
+             var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
+-            GL11.glRotatef(-var14 * 20.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glRotatef(-var15 * 20.0F, 0.0F, 0.0F, 1.0F);
+-            GL11.glRotatef(-var15 * 80.0F, 1.0F, 0.0F, 0.0F);
+-            var16 = 0.4F;
+-            GL11.glScalef(var16, var16, var16);
++
++            // VIVE START - adjust held item
++            if (this.mc.lookaimController.getAimSource(0)!=null)
++            {
++                var16 = 0.26F;
++                GL11.glScalef(var16, var16, var16);
++            }
++            else
++            {
++                GL11.glRotatef(-var14 * 20.0F, 0.0F, 1.0F, 0.0F);
++                GL11.glRotatef(-var15 * 20.0F, 0.0F, 0.0F, 1.0F);
++                GL11.glRotatef(-var15 * 80.0F, 1.0F, 0.0F, 0.0F);
++                var16 = 0.4F;
++                GL11.glScalef(var16, var16, var16);
++            }
++            // VIVE END - adjust held item
+             float var19;
+             float var20;
+ 
+@@ -425,10 +550,10 @@
+ 
+                 if (var27 == EnumAction.block)
+                 {
+-                    GL11.glTranslatef(-0.5F, 0.2F, 0.0F);
+-                    GL11.glRotatef(30.0F, 0.0F, 1.0F, 0.0F);
+-                    GL11.glRotatef(-80.0F, 1.0F, 0.0F, 0.0F);
+-                    GL11.glRotatef(60.0F, 0.0F, 1.0F, 0.0F);
++                    // VIVE START - adjust block angle
++                    GL11.glRotatef(70.0F, 0.0F, 0.0F, 1.0F);
++                    GL11.glRotatef(40.0F, 0.0F, 1.0F, 0.0F);
++                    // VIVE END - adjust block angle
+                 }
+                 else if (var27 == EnumAction.bow)
+                 {
+@@ -491,22 +616,39 @@
+             var13 = var3.getSwingProgress(p_78440_1_);
+             var14 = MathHelper.sin(var13 * (float)Math.PI);
+             var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
+-            GL11.glTranslatef(-var15 * 0.3F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI * 2.0F) * 0.4F, -var14 * 0.4F);
+-            GL11.glTranslatef(0.8F * var22, -0.75F * var22 - (1.0F - var2) * 0.6F, -0.9F * var22);
+-            GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+-            var13 = var3.getSwingProgress(p_78440_1_);
+-            var14 = MathHelper.sin(var13 * var13 * (float)Math.PI);
+-            var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
+-            GL11.glRotatef(var15 * 70.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glRotatef(-var14 * 20.0F, 0.0F, 0.0F, 1.0F);
+-            this.mc.getTextureManager().bindTexture(var3.getLocationSkin());
+-            GL11.glTranslatef(-1.0F, 3.6F, 3.5F);
+-            GL11.glRotatef(120.0F, 0.0F, 0.0F, 1.0F);
+-            GL11.glRotatef(200.0F, 1.0F, 0.0F, 0.0F);
+-            GL11.glRotatef(-135.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glScalef(1.0F, 1.0F, 1.0F);
+-            GL11.glTranslatef(5.6F, 0.0F, 0.0F);
++
++            // VIVE START - adjust arm
++            if (this.mc.lookaimController.getAimSource(0)!=null)
++            {
++                GL11.glEnable(GL12.GL_RESCALE_NORMAL);
++                GL11.glScalef(0.3f, 0.3F, 0.3F);
++                GL11.glRotatef(10.0F, 1.0F, 0.0F, 0.0F);
++                GL11.glRotatef(0.0F, 0.0F, 1.0F, 0.0F);
++                GL11.glRotatef(-10.0F, 0.0F, 0.0F, 1.0F);
++                GL11.glTranslatef(0.5f, -0.5f, 0);
++                GL11.glTranslatef(-var15 * 0.3F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI * 2.0F) * 0.4F, -var14 * 0.4F);
++
++                this.mc.getTextureManager().bindTexture(var3.getLocationSkin());
++            }
++            else
++            {
++                GL11.glTranslatef(-var15 * 0.3F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI * 2.0F) * 0.4F, -var14 * 0.4F);
++                GL11.glTranslatef(0.8F * var22, -0.75F * var22 - (1.0F - var2) * 0.6F, -0.9F * var22);
++                GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
++                GL11.glEnable(GL12.GL_RESCALE_NORMAL);
++                var13 = var3.getSwingProgress(p_78440_1_);
++                var14 = MathHelper.sin(var13 * var13 * (float) Math.PI);
++                var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI);
++                GL11.glRotatef(var15 * 70.0F, 0.0F, 1.0F, 0.0F);
++                GL11.glRotatef(-var14 * 20.0F, 0.0F, 0.0F, 1.0F);
++                this.mc.getTextureManager().bindTexture(var3.getLocationSkin());
++                GL11.glTranslatef(-1.0F, 3.6F, 3.5F);
++                GL11.glRotatef(120.0F, 0.0F, 0.0F, 1.0F);
++                GL11.glRotatef(200.0F, 1.0F, 0.0F, 0.0F);
++                GL11.glRotatef(-135.0F, 0.0F, 1.0F, 0.0F);
++                GL11.glScalef(1.0F, 1.0F, 1.0F);
++                GL11.glTranslatef(5.6F, 0.0F, 0.0F);
++            }
+             var26 = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
+             var29 = (RenderPlayer)var26;
+             var18 = 1.0F;

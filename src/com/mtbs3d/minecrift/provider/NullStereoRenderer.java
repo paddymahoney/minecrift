@@ -5,6 +5,7 @@ import com.mtbs3d.minecrift.api.IStereoProvider;
 import com.mtbs3d.minecrift.api.PluginType;
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
+import net.minecraft.client.gui.GuiScreen;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 
@@ -63,9 +64,9 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     public double getFrameTiming() { return (double)System.currentTimeMillis() / 1000d; }
     
     @Override
-    public Matrix4f getProjectionMatrix(FovPort fov, float nearClip, float farClip) {
+    public Matrix4f getProjectionMatrix(FovPort fov, EyeType eyeType, float nearClip, float farClip) {
         return null;
-    }
+    } // VIVE included eyeType
 
     @Override
     public String getInitializationStatus() {
@@ -172,4 +173,8 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 
     @Override
     public void configureRenderer(GLConfig cfg) {}
+
+    // VIVE START
+    public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen) { }
+    // VIVE END
 }

@@ -1,8 +1,9 @@
 --- a/net/minecraft/client/entity/EntityPlayerSP.java
 +++ b/net/minecraft/client/entity/EntityPlayerSP.java
-@@ -1,5 +1,9 @@
+@@ -1,5 +1,10 @@
  package net.minecraft.client.entity;
  
++import com.mtbs3d.minecrift.gameplay.VRPlayer;
 +import net.minecraft.block.Block;
 +import net.minecraft.block.BlockLiquid;
 +import net.minecraft.block.material.Material;
@@ -10,15 +11,28 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.audio.PositionedSoundRecord;
  import net.minecraft.client.gui.GuiCommandBlock;
-@@ -31,6 +35,7 @@
+@@ -30,7 +35,9 @@
+ import net.minecraft.inventory.IInventory;
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
++import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.potion.Potion;
 +import net.minecraft.src.Reflector;
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.tileentity.TileEntityBeacon;
  import net.minecraft.tileentity.TileEntityBrewingStand;
-@@ -182,7 +187,9 @@
+@@ -61,6 +68,10 @@
+      */
+     protected int sprintToggleTimer;
+ 
++    // VIVE START - teleport movement
++    public int movementTeleportTimer;
++    // VIVE END - teleport movement
++
+     /** Ticks left before sprinting is disabled. */
+     public int sprintingTicksLeft;
+     public float renderArmYaw;
+@@ -182,7 +193,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -29,7 +43,7 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -240,18 +247,24 @@
+@@ -240,18 +253,24 @@
                  }
              }
  
@@ -56,7 +70,18 @@
  
              if (this.isRidingHorse())
              {
-@@ -341,7 +354,15 @@
+@@ -296,6 +315,10 @@
+ 
+             super.onLivingUpdate();
+ 
++            // VIVE START - teleport movement
++            mc.vrPlayer.onLivingUpdate(this, this.mc, this.rand);
++            // VIVE END - teleport movement
++
+             if (this.onGround && this.capabilities.isFlying)
+             {
+                 this.capabilities.isFlying = false;
+@@ -341,7 +364,15 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -73,7 +98,7 @@
      }
  
      /**
-@@ -524,70 +545,164 @@
+@@ -524,70 +555,164 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -126,10 +151,10 @@
 -                var18 = 1;
 -            }
 +            int entHeight = Math.max(Math.round(this.height), 1);
++
++            boolean inTranslucentBlock = true;
  
 -            if (var16 && var12 < var19)
-+            boolean inTranslucentBlock = true;
-+
 +            for (int i1 = 0; i1 < entHeight; i1++)
              {
 -                var19 = var12;
@@ -283,7 +308,7 @@
  
          return false;
      }
-@@ -640,6 +755,20 @@
+@@ -640,6 +765,20 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -304,7 +329,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +791,30 @@
+@@ -662,4 +801,50 @@
      }
  
      protected void sendHorseJump() {}
@@ -334,4 +359,24 @@
 +            return false;
 +        }
 +    }
++
++    // VIVE START - update room origin when player entity is moved
++    public void setPositionAndRotation(double x, double y, double z, float yaw, float pitch)
++    {
++        super.setPositionAndRotation(x, y, z, yaw, pitch);
++        VRPlayer.get().teleportRoomOrigin(this.posX, this.posY, this.posZ);
++    }
++
++    public void readFromNBT(NBTTagCompound tagCompund)
++    {
++        super.readFromNBT(tagCompund);
++        VRPlayer.get().teleportRoomOrigin(this.posX, this.posY, this.posZ);
++    }
++
++    public void setPosition(double x, double y, double z)
++    {
++        super.setPosition(x, y, z);
++        VRPlayer.get().teleportRoomOrigin(this.posX, this.posY, this.posZ);
++    }
++    // VIVE END - update room origin when player entity is moved
  }

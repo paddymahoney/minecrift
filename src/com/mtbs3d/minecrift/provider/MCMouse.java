@@ -11,7 +11,9 @@ import com.mtbs3d.minecrift.api.PluginType;
 import com.mtbs3d.minecrift.control.Aim;
 import com.mtbs3d.minecrift.control.DiscreteAngle;
 import com.mtbs3d.minecrift.settings.VRSettings;
+import de.fruitfly.ovr.enums.EyeType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.Display;
 
 import com.mtbs3d.minecrift.api.BasePlugin;
@@ -161,4 +163,13 @@ public class MCMouse extends BasePlugin implements IBodyAimController {
 	public void triggerYawTransition(boolean isPositive) {
 		this.aim.triggerYawChange(isPositive);
 	}
+
+	// VIVE START - interact source
+	@Override
+	public Vec3 getAimSource( int controller ) { return null; }
+	public Vec3 getSmoothedAimVelocity(int controller) { return null; }
+	public void triggerHapticPulse(int controller, int duration) { }
+	public de.fruitfly.ovr.structs.Matrix4f getAimRotation( int controller ) { return null; }
+	public boolean applyGUIModelView( EyeType eyeType ) { return false; }
+	// VIVE END - interact source
 }

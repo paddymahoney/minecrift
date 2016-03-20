@@ -5,6 +5,9 @@
 package com.mtbs3d.minecrift.api;
 
 import com.mtbs3d.minecrift.control.ControlBinding;
+import de.fruitfly.ovr.enums.EyeType;
+import de.fruitfly.ovr.structs.Matrix4f;
+import net.minecraft.util.Vec3;
 
 /**
  * @author Mark Browning
@@ -55,4 +58,12 @@ public interface IBodyAimController extends IBasePlugin {
     public double ratchetingPitchTransitionPercent();
 
 	public void triggerYawTransition(boolean isPositive);
+
+	// VIVE START - interact source
+	public Vec3 getAimSource( int controller );
+	public Vec3 getSmoothedAimVelocity(int controller);
+	public void triggerHapticPulse(int controller, int duration);
+	public Matrix4f getAimRotation( int controller );
+	public boolean applyGUIModelView( EyeType eyeType );
+	// VIVE END - interact source
 }

@@ -1,0 +1,25 @@
+--- a/net/minecraft/client/multiplayer/PlayerControllerMP.java
++++ b/net/minecraft/client/multiplayer/PlayerControllerMP.java
+@@ -301,12 +301,22 @@
+         }
+     }
+ 
++    // VIVE START - function to allow damaging blocks immediately
++    public void clearBlockHitDelay() { this.blockHitDelay = 0; }
++    // VIVE END - function to allow damaging blocks immediately
++
+     /**
+      * player reach distance = 4F
+      */
+     public float getBlockReachDistance()
+     {
++        // VIVE START - more reach in VR to reduce movement
++        if (!mc.vrPlayer.restrictedViveClient)
++        {
++            return 6.0F;
++        }
+         return this.currentGameType.isCreative() ? 5.0F : 4.5F;
++        // VIVE END - more reach in VR to reduce movement
+     }
+ 
+     public void updateController()

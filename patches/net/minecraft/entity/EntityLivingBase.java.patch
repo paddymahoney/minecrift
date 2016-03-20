@@ -1,11 +1,12 @@
 --- a/net/minecraft/entity/EntityLivingBase.java
 +++ b/net/minecraft/entity/EntityLivingBase.java
-@@ -6,8 +6,12 @@
+@@ -6,8 +6,13 @@
  import java.util.List;
  import java.util.Random;
  import java.util.UUID;
 +
 +import com.mtbs3d.minecrift.settings.VRSettings;
++import de.fruitfly.ovr.enums.EyeType;
  import net.minecraft.block.Block;
  import net.minecraft.block.material.Material;
 +import net.minecraft.client.Minecraft;
@@ -13,7 +14,7 @@
  import net.minecraft.enchantment.EnchantmentHelper;
  import net.minecraft.entity.ai.attributes.AttributeModifier;
  import net.minecraft.entity.ai.attributes.BaseAttributeMap;
-@@ -17,6 +21,7 @@
+@@ -17,6 +22,7 @@
  import net.minecraft.entity.item.EntityItem;
  import net.minecraft.entity.item.EntityXPOrb;
  import net.minecraft.entity.monster.EntityZombie;
@@ -21,7 +22,7 @@
  import net.minecraft.entity.passive.EntityWolf;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.entity.player.EntityPlayerMP;
-@@ -37,6 +42,7 @@
+@@ -37,6 +43,7 @@
  import net.minecraft.potion.PotionEffect;
  import net.minecraft.potion.PotionHelper;
  import net.minecraft.scoreboard.Team;
@@ -29,7 +30,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.CombatTracker;
  import net.minecraft.util.DamageSource;
-@@ -304,11 +310,22 @@
+@@ -304,11 +311,22 @@
                      this.attackEntityFrom(DamageSource.drown, 2.0F);
                  }
              }
@@ -57,7 +58,7 @@
          }
          else
          {
-@@ -469,6 +486,13 @@
+@@ -469,6 +487,13 @@
      {
          this.entityLivingToAttack = p_70604_1_;
          this.revengeTimer = this.ticksExisted;
@@ -71,7 +72,7 @@
      }
  
      public EntityLivingBase getLastAttacker()
-@@ -828,6 +852,14 @@
+@@ -828,6 +853,14 @@
       */
      public void heal(float p_70691_1_)
      {
@@ -86,7 +87,7 @@
          float var2 = this.getHealth();
  
          if (var2 > 0.0F)
-@@ -851,6 +883,14 @@
+@@ -851,6 +884,14 @@
       */
      public boolean attackEntityFrom(DamageSource source, float amount)
      {
@@ -101,7 +102,7 @@
          if (this.isEntityInvulnerable())
          {
              return false;
-@@ -917,7 +957,18 @@
+@@ -917,7 +958,18 @@
                          this.recentlyHit = 100;
                          this.attackingPlayer = (EntityPlayer)var4;
                      }
@@ -121,7 +122,7 @@
                      {
                          EntityWolf var5 = (EntityWolf)var4;
  
-@@ -927,6 +978,7 @@
+@@ -927,6 +979,7 @@
                              this.attackingPlayer = null;
                          }
                      }
@@ -129,7 +130,7 @@
                  }
  
                  if (var3)
-@@ -1010,6 +1062,14 @@
+@@ -1010,6 +1063,14 @@
       */
      public void onDeath(DamageSource p_70645_1_)
      {
@@ -144,7 +145,7 @@
          Entity var2 = p_70645_1_.getEntity();
          EntityLivingBase var3 = this.func_94060_bK();
  
-@@ -1035,6 +1095,14 @@
+@@ -1035,6 +1096,14 @@
                  var4 = EnchantmentHelper.getLootingModifier((EntityLivingBase)var2);
              }
  
@@ -159,7 +160,7 @@
              if (this.func_146066_aG() && this.worldObj.getGameRules().getGameRuleBooleanValue("doMobLoot"))
              {
                  this.dropFewItems(this.recentlyHit > 0, var4);
-@@ -1042,14 +1110,29 @@
+@@ -1042,14 +1111,29 @@
  
                  if (this.recentlyHit > 0)
                  {
@@ -191,7 +192,7 @@
          }
  
          this.worldObj.setEntityState(this, (byte)3);
-@@ -1116,8 +1199,18 @@
+@@ -1116,8 +1200,18 @@
          int var2 = MathHelper.floor_double(this.boundingBox.minY);
          int var3 = MathHelper.floor_double(this.posZ);
          Block var4 = this.worldObj.getBlock(var1, var2, var3);
@@ -212,7 +213,7 @@
  
      /**
       * Checks whether target entity is alive.
-@@ -1132,6 +1225,14 @@
+@@ -1132,6 +1226,14 @@
       */
      protected void fall(float distance)
      {
@@ -227,7 +228,7 @@
          super.fall(distance);
          PotionEffect var2 = this.getActivePotionEffect(Potion.jump);
          float var3 = var2 != null ? (float)(var2.getAmplifier() + 1) : 0.0F;
-@@ -1270,6 +1371,14 @@
+@@ -1270,6 +1372,14 @@
      {
          if (!this.isEntityInvulnerable())
          {
@@ -242,7 +243,7 @@
              p_70665_2_ = this.applyArmorCalculations(p_70665_1_, p_70665_2_);
              p_70665_2_ = this.applyPotionDamageCalculations(p_70665_1_, p_70665_2_);
              float var3 = p_70665_2_;
-@@ -1331,6 +1440,23 @@
+@@ -1331,6 +1441,23 @@
       */
      public void swingItem()
      {
@@ -266,7 +267,7 @@
          if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0)
          {
              this.swingProgressInt = -1;
-@@ -1568,6 +1694,13 @@
+@@ -1568,6 +1695,13 @@
          }
  
          this.isAirBorne = true;
@@ -280,7 +281,7 @@
      }
  
      /**
-@@ -1577,6 +1710,15 @@
+@@ -1577,6 +1711,15 @@
      {
          double var8;
  
@@ -296,7 +297,7 @@
          if (this.isInWater() && (!(this instanceof EntityPlayer) || !((EntityPlayer)this).capabilities.isFlying))
          {
              var8 = this.posY;
-@@ -1627,8 +1769,8 @@
+@@ -1627,8 +1770,8 @@
              {
                  var5 = this.jumpMovementFactor;
              }
@@ -307,7 +308,7 @@
              var3 = 0.91F;
  
              if (this.onGround)
-@@ -1636,6 +1778,8 @@
+@@ -1636,6 +1779,8 @@
                  var3 = this.worldObj.getBlock(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.boundingBox.minY) - 1, MathHelper.floor_double(this.posZ)).slipperiness * 0.91F;
              }
  
@@ -316,7 +317,7 @@
              if (this.isOnLadder())
              {
                  float var6 = 0.15F;
-@@ -1675,7 +1819,9 @@
+@@ -1675,7 +1820,9 @@
                  }
              }
  
@@ -327,7 +328,7 @@
  
              if (this.isCollidedHorizontally && this.isOnLadder())
              {
-@@ -1695,12 +1841,16 @@
+@@ -1695,12 +1842,16 @@
              }
              else
              {
@@ -349,7 +350,7 @@
          }
  
          this.prevLimbSwingAmount = this.limbSwingAmount;
-@@ -1716,6 +1866,61 @@
+@@ -1716,6 +1867,61 @@
          this.limbSwingAmount += (var10 - this.limbSwingAmount) * 0.4F;
          this.limbSwing += this.limbSwingAmount;
      }
@@ -411,7 +412,7 @@
  
      /**
       * Returns true if the newer Entity AI code should be run
-@@ -1760,6 +1965,13 @@
+@@ -1760,6 +1966,13 @@
       */
      public void onUpdate()
      {
@@ -425,7 +426,7 @@
          super.onUpdate();
  
          if (!this.worldObj.isRemote)
-@@ -1948,20 +2160,22 @@
+@@ -1948,20 +2161,22 @@
              this.motionZ *= 0.98D;
          }
  
@@ -451,7 +452,36 @@
  
          this.worldObj.theProfiler.startSection("ai");
  
-@@ -2293,7 +2507,46 @@
+@@ -2149,16 +2364,24 @@
+ 
+         if (p_70676_1_ == 1.0F)
+         {
+-            var2 = MathHelper.cos(-this.rotationYaw * 0.017453292F - (float)Math.PI);
+-            var3 = MathHelper.sin(-this.rotationYaw * 0.017453292F - (float)Math.PI);
+-            var4 = -MathHelper.cos(-this.rotationPitch * 0.017453292F);
+-            var5 = MathHelper.sin(-this.rotationPitch * 0.017453292F);
++            // VIVE START - use pitch/yaw from HMD instead of aim (controller)
++            float pitch = Minecraft.getMinecraft().headTracker.getHeadPitchDegrees(EyeType.ovrEye_Left);
++            float yaw = Minecraft.getMinecraft().headTracker.getHeadYawDegrees(EyeType.ovrEye_Left);
++            var2 = MathHelper.cos(-yaw * 0.017453292F - (float)Math.PI);
++            var3 = MathHelper.sin(-yaw * 0.017453292F - (float)Math.PI);
++            var4 = -MathHelper.cos(-pitch * 0.017453292F);
++            var5 = MathHelper.sin(-pitch * 0.017453292F);
++            // VIVE END - use pitch/yaw from HMD instead of aim (controller)
+             return Vec3.createVectorHelper((double)(var3 * var4), (double)var5, (double)(var2 * var4));
+         }
+         else
+         {
+             var2 = this.prevRotationPitch + (this.rotationPitch - this.prevRotationPitch) * p_70676_1_;
+             var3 = this.prevRotationYaw + (this.rotationYaw - this.prevRotationYaw) * p_70676_1_;
++            // VIVE START - use pitch/yaw from HMD instead of aim (controller)
++            var2 = Minecraft.getMinecraft().headTracker.getHeadPitchDegrees(EyeType.ovrEye_Left);
++            var3 = Minecraft.getMinecraft().headTracker.getHeadYawDegrees(EyeType.ovrEye_Left);
++            // VIVE END - use pitch/yaw from HMD instead of aim (controller)
+             var4 = MathHelper.cos(-var3 * 0.017453292F - (float)Math.PI);
+             var5 = MathHelper.sin(-var3 * 0.017453292F - (float)Math.PI);
+             float var6 = -MathHelper.cos(-var2 * 0.017453292F);
+@@ -2293,7 +2516,46 @@
      {
          return this.getTeam() != null ? this.getTeam().isSameTeam(p_142012_1_) : false;
      }

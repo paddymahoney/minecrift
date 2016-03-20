@@ -13,6 +13,7 @@ import com.mtbs3d.minecrift.control.DiscreteAngle;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import com.sixense.utils.enums.EnumControllerDesc;
 import de.fruitfly.ovr.enums.EyeType;
+import de.fruitfly.ovr.structs.Matrix4f;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.settings.GameSettings;
@@ -806,4 +807,13 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	public void triggerYawTransition(boolean isPositive) {
 		this.discreteYaw.triggerChange(isPositive);
 	}
+
+	// VIVE START - interact source
+	@Override
+	public Vec3 getAimSource( int controller ) { return null; }
+	public Vec3 getSmoothedAimVelocity(int controller) { return null; }
+	public void triggerHapticPulse(int controller, int duration) { }
+	public Matrix4f getAimRotation( int controller ) { return null; }
+	public boolean applyGUIModelView( EyeType eyeType ) { return false; }
+	// VIVE END - interact source
 }

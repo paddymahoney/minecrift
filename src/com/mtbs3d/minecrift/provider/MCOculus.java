@@ -12,6 +12,7 @@ import de.fruitfly.ovr.*;
 import de.fruitfly.ovr.enums.*;
 import de.fruitfly.ovr.structs.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.Vec3;
 import org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.Quaternion;
@@ -107,6 +108,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
     public Matrix4f getProjectionMatrix(FovPort fov,
+                                        EyeType eyeType,      // VIVE added eyeType
                                         float nearClip,
                                         float farClip)
     {
@@ -465,4 +467,8 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
     @Override
     public boolean providesMirrorTexture() { return true; }
+
+    // VIVE START
+    public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen) { }
+    // VIVE END
 }

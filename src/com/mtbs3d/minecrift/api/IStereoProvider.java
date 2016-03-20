@@ -7,6 +7,7 @@ package com.mtbs3d.minecrift.api;
 
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
+import net.minecraft.client.gui.GuiScreen;
 
 /**
  * Implement this to provide Minecrift with stereo rendering services
@@ -43,6 +44,7 @@ public interface IStereoProvider extends IBasePlugin
     public double getFrameTiming();
 
     public Matrix4f getProjectionMatrix(FovPort fov,
+                                        EyeType eyeType,  // VIVE added eyeType
                                         float nearClip,
                                         float farClip);
 
@@ -53,4 +55,8 @@ public interface IStereoProvider extends IBasePlugin
     public String getLastError();
 
     public void configureRenderer(GLConfig cfg);
+
+    // VIVE START - new stereo provider functions
+    public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen);
+    // VIVE END - new stereo provider functions
 }
