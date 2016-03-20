@@ -1,0 +1,69 @@
+--- a/net/minecraft/network/NetHandlerPlayServer.java
++++ b/net/minecraft/network/NetHandlerPlayServer.java
+@@ -58,14 +58,7 @@
+ import net.minecraft.network.play.client.C15PacketClientSettings;
+ import net.minecraft.network.play.client.C16PacketClientStatus;
+ import net.minecraft.network.play.client.C17PacketCustomPayload;
+-import net.minecraft.network.play.server.S00PacketKeepAlive;
+-import net.minecraft.network.play.server.S02PacketChat;
+-import net.minecraft.network.play.server.S08PacketPlayerPosLook;
+-import net.minecraft.network.play.server.S23PacketBlockChange;
+-import net.minecraft.network.play.server.S2FPacketSetSlot;
+-import net.minecraft.network.play.server.S32PacketConfirmTransaction;
+-import net.minecraft.network.play.server.S3APacketTabComplete;
+-import net.minecraft.network.play.server.S40PacketDisconnect;
++import net.minecraft.network.play.server.*;
+ import net.minecraft.server.MinecraftServer;
+ import net.minecraft.server.management.UserListBansEntry;
+ import net.minecraft.stats.AchievementList;
+@@ -293,9 +286,11 @@
+ 
+                     if (!this.playerEntity.isPlayerSleeping() && (var13 > 1.65D || var13 < 0.1D))
+                     {
+-                        this.kickPlayerFromServer("Illegal stance");
+-                        logger.warn(this.playerEntity.getCommandSenderName() + " had an illegal stance: " + var13);
+-                        return;
++                        // VIVE START - don't check for stance changes
++                        //this.kickPlayerFromServer("Illegal stance");
++                        //logger.warn(this.playerEntity.getCommandSenderName() + " had an illegal stance: " + var13);
++                        //return;
++                        // VIVE END - don't check for stance changes
+                     }
+ 
+                     if (Math.abs(packetIn.getPositionX()) > 3.2E7D || Math.abs(packetIn.getPositionZ()) > 3.2E7D)
+@@ -362,7 +357,9 @@
+                 if (var25 > 0.0625D && !this.playerEntity.isPlayerSleeping() && !this.playerEntity.theItemInWorldManager.isCreative())
+                 {
+                     var31 = true;
+-                    logger.warn(this.playerEntity.getCommandSenderName() + " moved wrongly!");
++                    // VIVE START - remove movement warning
++                    //logger.warn(this.playerEntity.getCommandSenderName() + " moved wrongly!");
++                    // VIVE END - remove movement warning
+                 }
+ 
+                 this.playerEntity.setPositionAndRotation(var5, var7, var9, var11, var12);
+@@ -370,7 +367,9 @@
+ 
+                 if (var28 && (var31 || !var32) && !this.playerEntity.isPlayerSleeping())
+                 {
+-                    this.setPlayerLocation(this.lastPosX, this.lastPosY, this.lastPosZ, var11, var12);
++                    // VIVE START - prevent moving
++                    //this.setPlayerLocation(this.lastPosX, this.lastPosY, this.lastPosZ, var11, var12);
++                    // VIVE END - prevent moving
+                     return;
+                 }
+ 
+@@ -1333,6 +1332,13 @@
+                     var41.updateItemName("");
+                 }
+             }
++            // VIVE START - client querying if server is running this mod too
++            else if ("MC|Vive".equals(packetIn.getChannel()))
++            {
++                String ok = "ok";
++                sendPacket(new S3FPacketCustomPayload("MC|ViveOK", ok.getBytes(Charsets.UTF_8)));
++            }
++            // VIVE END - client querying if server is running this mod too
+         }
+     }
+ 
