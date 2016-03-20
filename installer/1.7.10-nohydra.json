@@ -1,5 +1,5 @@
 {
-  "id": "1.7.10-minecrift-$VERSION",
+  "id": "1.7.10-minecrift-Vive-$VERSION",
   "time": "2014-05-14T18:29:23+01:00",
   "releaseTime": "2014-05-14T18:29:23+01:00",
   "type": "release",
@@ -100,6 +100,10 @@
       "name": "org.lwjgl.lwjgl:lwjgl_util:2.9.1"
     },
     {
+      "name": "com.sun:jna:4.2.1",
+      "url": "http://automat-gh.github.io/minecrift/"
+    },
+    {
       "name": "de.fruitfly.ovr:JRift:0.8.0.0.1",
 	    "url": "http://repo.minecraft-vr.com/"
     },
@@ -196,25 +200,7 @@
           "META-INF/"
         ]
       }
-    },
-    {
-      "name": "com.valvesoftware.openvr:JOpenVR:0.9.16.0",
-	    "url": "http://repo.minecraft-vr.com/"
-    },
-    {
-      "name": "com.valvesoftware.openvr:JOpenVRLibrary:0.9.16.0",
-	    "url": "http://repo.minecraft-vr.com/",
-      "natives": {
-        "linux": "natives-linux-${arch}",
-        "windows": "natives-windows-${arch}",
-        "osx": "natives-osx-${arch}"
-      },
-      "extract": {
-        "exclude": [
-          "META-INF/"
-        ]
-      }
-    },    
+    },  
     {
       "name": "net.aib42.mumblelink:JMumbleLibrary:1.11",
 	    "url": "http://repo.minecraft-vr.com/",

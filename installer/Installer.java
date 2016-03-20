@@ -33,7 +33,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final long serialVersionUID = -562178983462626162L;
     private String tempDir = System.getProperty("java.io.tmpdir");
 
-    private static final boolean ALLOW_FORGE_INSTALL = true;
+    private static final boolean ALLOW_FORGE_INSTALL = false;  // VIVE: disabled, forge install isn't working currently
     private static final boolean ALLOW_HYDRA_INSTALL = false;  // TODO: Change to true once Hydra is fixed up
 
     private static final boolean NEEDS_2010_REDIST = true;
@@ -576,6 +576,24 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
             return false;
         }
+        
+        // VIVE START - install openVR dlls
+        private boolean InstallOpenVR() {
+			File win32_dir = new File (targetDir, "win32" );
+			File win64_dir = new File (targetDir, "win64" );
+			win32_dir.mkdirs();
+			win64_dir.mkdirs();
+			
+			InputStream openvrdll = Installer.class.getResourceAsStream("win64/openvr_api.dll");
+			File dll_out = new File (targetDir, "win64/openvr_api.dll");
+			if (!copyInputStreamToFile(openvrdll, dll_out))
+				return false;
+				
+			openvrdll = Installer.class.getResourceAsStream("win32/openvr_api.dll");
+			dll_out = new File (targetDir, "win32/openvr_api.dll");
+			return copyInputStreamToFile(openvrdll, dll_out);
+        }
+        // VIVE END - install openVR dll
 
         private void sleep(int millis)
         {
@@ -786,6 +804,17 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 monitor.close();
                 return null;
             }
+            // VIVE START - install openVR
+            monitor.setProgress(52);
+            monitor.setNote("Installing OpenVR...");
+            finalMessage = "Failed: Couldn't extract openvr_api.dll to .minecraft folder.";
+            if(!InstallOpenVR())
+            {
+				monitor.close();
+				return null;
+            }
+            // VIVE END - install openVR
+            
             // Setup forge if necessary
             if (useForge.isSelected() && !forgeVersionInstalled) {
                 monitor.setProgress(55);
@@ -1008,7 +1037,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             logoLabel.setAlignmentX(CENTER_ALIGNMENT);
             logoLabel.setAlignmentY(CENTER_ALIGNMENT);
             logoLabel.setSize(image.getWidth(), image.getHeight());
-            if (!QUIET_DEV)
+            if (!QUIET_DEV && false)	// VIVE - hide oculus logo
 	            logoSplash.add(logoLabel);
         } catch (IOException e) {
         } catch( IllegalArgumentException e) {
@@ -1304,10 +1333,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private String getMinecraftProfileName(boolean usingForge)
     {
         if(!usingForge) {
-            return "Minecrift " + MINECRAFT_VERSION;
+            return "Minecrift-Vive " + MINECRAFT_VERSION;
         }
         else {
-            return "Minecrift " + MINECRAFT_VERSION + " Forge";
+            return "Minecrift-Vive " + MINECRAFT_VERSION + " Forge";
         }
     }
 

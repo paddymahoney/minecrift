@@ -10,6 +10,3 @@
 [submodule "JMumbleLink"]
 	path = JMumbleLink
     url  = https://github.com/StellaArtois/java-mumble-link.git
-[submodule "JOpenVR"]
-	path = JOpenVR
-	url  = https://github.com/StellaArtois/JOpenVR.git
