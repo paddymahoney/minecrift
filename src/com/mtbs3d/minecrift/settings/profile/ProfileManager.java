@@ -64,7 +64,7 @@ public class ProfileManager
 
     public static synchronized void init( File dataDir )
     {
-        vrProfileCfgFile = new File(dataDir, "optionsvrprofiles.txt");
+        vrProfileCfgFile = new File(dataDir, "optionsviveprofiles.txt");        // VIVE - changed cfg file name to avoid conflicts
         legacyMcProfileCfgFile = new File(dataDir, "options.txt");
         legacyOfProfileCfgFile = new File(dataDir, "optionsof.txt");
         legacyVrProfileCfgFile = new File(dataDir, VRSettings.LEGACY_OPTIONS_VR_FILENAME);
@@ -163,6 +163,8 @@ public class ProfileManager
                     }
                 }
 
+                // VIVE START - comment, don't load legacy config, will be wrong settings and plugins for room scale VR
+                /*
                 if (Mc == null) {
                     // Attempt legacy file read
                     if (!loadLegacySettings(legacyMcProfileCfgFile, profile, ProfileManager.PROFILE_SET_MC))
@@ -198,6 +200,8 @@ public class ProfileManager
                         loadLegacySettings(ProfileManager.DEFAULT_BINDINGS, profile, ProfileManager.PROFILE_SET_CONTROLLER_BINDINGS);
                     }
                 }
+                */
+                // VIVE END - comment, don't load legacy config, will be wrong settings and plugins for room scale VR
             }
         }
     }
