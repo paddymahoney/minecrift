@@ -70,7 +70,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.HMD_NAME_PLACEHOLDER,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
-            VRSettings.VrOptions.MIRROR_DISPLAY,
+            //VRSettings.VrOptions.MIRROR_DISPLAY,      // VIVE removed mirror display option
             VRSettings.VrOptions.FSAA,
             VRSettings.VrOptions.FSAA_SCALEFACTOR,
             VRSettings.VrOptions.WORLD_SCALE,/*

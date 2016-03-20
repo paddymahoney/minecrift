@@ -25,23 +25,26 @@ public class GuiMinecriftSettings extends BaseGuiSettings
 
     static VROption[] vrOffDeviceList = new VROption[]
         {
-            new VROption(201,                                      VROption.Position.POS_LEFT,   1,     VROption.DISABLED, "Player Preferences..."),
+            // VIVE START - hide options not relevant to teleport/room scale
+            //new VROption(201,                                      VROption.Position.POS_LEFT,   1,     VROption.DISABLED, "Player Preferences..."),
             new VROption(202,                                      VROption.Position.POS_RIGHT,  1,     VROption.DISABLED, "HUD / Overlay Settings..."),
             new VROption(206,                                      VROption.Position.POS_LEFT,   2.25f, VROption.DISABLED, "Stereo Rendering..."),
             new VROption(VRSettings.VrOptions.VR_RENDERER,         VROption.Position.POS_RIGHT,  2.25f, VROption.DISABLED, null),
             new VROption(205,                                      VROption.Position.POS_LEFT,   3.25f, VROption.DISABLED, "Head Orientation Tracking..."),
             new VROption(VRSettings.VrOptions.VR_HEAD_ORIENTATION, VROption.Position.POS_RIGHT,  3.25f, VROption.DISABLED, null),
             new VROption(207,                                      VROption.Position.POS_LEFT,   4.25f, VROption.DISABLED, "Head Position Tracking..."),
-            new VROption(VRSettings.VrOptions.VR_HEAD_POSITION,    VROption.Position.POS_RIGHT,  4.25f, VROption.DISABLED, null),
-            new VROption(208,                                      VROption.Position.POS_LEFT,   5.25f, VROption.DISABLED, "Move/Aim Control..."),
-            new VROption(VRSettings.VrOptions.VR_CONTROLLER,       VROption.Position.POS_RIGHT,  5.25f, VROption.DISABLED, null),
-            new VROption(209,                                      VROption.Position.POS_LEFT,   6.25f, VROption.DISABLED, "Locomotion Settings..."),
-            new VROption(VRSettings.VrOptions.USE_VR_COMFORT,      VROption.Position.POS_RIGHT,  6.25f, VROption.DISABLED, null)
+            new VROption(VRSettings.VrOptions.VR_HEAD_POSITION,    VROption.Position.POS_RIGHT,  4.25f, VROption.DISABLED, null)
+            //new VROption(208,                                      VROption.Position.POS_LEFT,   5.25f, VROption.DISABLED, "Move/Aim Control..."),
+            //new VROption(VRSettings.VrOptions.VR_CONTROLLER,       VROption.Position.POS_RIGHT,  5.25f, VROption.DISABLED, null),
+            //new VROption(209,                                      VROption.Position.POS_LEFT,   6.25f, VROption.DISABLED, "Locomotion Settings..."),
+            //new VROption(VRSettings.VrOptions.USE_VR_COMFORT,      VROption.Position.POS_RIGHT,  6.25f, VROption.DISABLED, null)
+            // VIVE END - hide options not relevant to teleport/room scale
         };
 
     static VROption[] vrOnDeviceList = new VROption[]
         {
-            new VROption(201,                                      VROption.Position.POS_LEFT,   1,     VROption.ENABLED, "Player Preferences..."),
+            // VIVE START - hide options not relevant to teleport/room scale
+            //new VROption(201,                                      VROption.Position.POS_LEFT,   1,     VROption.ENABLED, "Player Preferences..."),
             new VROption(202,                                      VROption.Position.POS_RIGHT,  1,     VROption.ENABLED, "HUD / Overlay Settings..."),
             new VROption(206,                                      VROption.Position.POS_LEFT,   2.25f, VROption.ENABLED, "Stereo Rendering..."),
             new VROption(VRSettings.VrOptions.VR_RENDERER,         VROption.Position.POS_RIGHT,  2.25f, VROption.DISABLED, null),
@@ -49,10 +52,11 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             new VROption(VRSettings.VrOptions.VR_HEAD_ORIENTATION, VROption.Position.POS_RIGHT,  3.25f, VROption.DISABLED, null),
             new VROption(207,                                      VROption.Position.POS_LEFT,   4.25f, VROption.ENABLED, "Head Position Tracking..."),
             new VROption(VRSettings.VrOptions.VR_HEAD_POSITION,    VROption.Position.POS_RIGHT,  4.25f, VROption.DISABLED, null),
-            new VROption(208,                                      VROption.Position.POS_LEFT,   5.25f, VROption.ENABLED, "Move/Aim Control..."),
-            new VROption(VRSettings.VrOptions.VR_CONTROLLER,       VROption.Position.POS_RIGHT,  5.25f, VROption.DISABLED, null),
+            //new VROption(208,                                      VROption.Position.POS_LEFT,   5.25f, VROption.ENABLED, "Move/Aim Control..."),
+            //new VROption(VRSettings.VrOptions.VR_CONTROLLER,       VROption.Position.POS_RIGHT,  5.25f, VROption.DISABLED, null),
             new VROption(209,                                      VROption.Position.POS_LEFT,   6.25f, VROption.ENABLED, "Locomotion Settings..."),
             new VROption(VRSettings.VrOptions.USE_VR_COMFORT,      VROption.Position.POS_RIGHT,  6.25f, VROption.DISABLED, null)
+            // VIVE END - hide options not relevant to teleport/room scale
         };
 
     /** An array of all of EnumOption's video options. */
@@ -85,8 +89,9 @@ public class GuiMinecriftSettings extends BaseGuiSettings
         if (true)
         {
             buttons = vrOnDeviceList;
-            buttonOrigin.enabled = true;
-            buttonRecali.enabled = true;
+            // VIVE disable - runtime calibration not required
+            buttonOrigin.enabled = false;
+            buttonRecali.enabled = false;
         }
         else
         {

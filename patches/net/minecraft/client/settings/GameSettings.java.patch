@@ -42,7 +42,7 @@
      public boolean fancyGraphics = true;
  
      /** Smooth Lighting */
-@@ -277,88 +283,33 @@
+@@ -277,96 +283,41 @@
  
      public GameSettings(Minecraft par1Minecraft, File par2File)
      {
@@ -138,12 +138,22 @@
          this.chatOpacity = 1.0F;
          this.snooperEnabled = true;
 -        this.enableVsync = true;
+-        this.pauseOnLostFocus = true;
 +        /** MINECRIFT */
 +        this.enableVsync = false;
 +        /** END MINECRIFT **/
-         this.pauseOnLostFocus = true;
++        this.pauseOnLostFocus = false;      // VIVE - don't pause on lost focus, desktop mouse is unusable when GUI is up
          this.showCape = true;
          this.heldItemTooltips = true;
+         this.chatScale = 1.0F;
+         this.chatWidth = 1.0F;
+         this.chatHeightUnfocused = 0.44366196F;
+         this.chatHeightFocused = 1.0F;
+-        this.showInventoryAchievementHint = true;
++        this.showInventoryAchievementHint = false;  // VIVE - hide keyboard tips
+         this.mipmapLevels = 4;
+         this.anisotropicFiltering = 1;
+         this.mapSoundLevels = Maps.newEnumMap(SoundCategory.class);
 @@ -476,14 +427,16 @@
  
          if (par1EnumOptions == GameSettings.Options.FRAMERATE_LIMIT)

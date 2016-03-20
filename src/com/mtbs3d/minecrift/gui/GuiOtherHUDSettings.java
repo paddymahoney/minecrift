@@ -12,20 +12,22 @@ import net.minecraft.client.gui.GuiScreen;
 
 public class GuiOtherHUDSettings extends BaseGuiSettings
 {
+    // VIVE START - hide options not supported by tracked controller UI
     static VRSettings.VrOptions[] hudOptions = new VRSettings.VrOptions[] {
-            VRSettings.VrOptions.CROSSHAIR_SCALE,
+            //VRSettings.VrOptions.CROSSHAIR_SCALE,
             VRSettings.VrOptions.RENDER_CROSSHAIR_MODE,
-            VRSettings.VrOptions.CROSSHAIR_ROLL,
+            //VRSettings.VrOptions.CROSSHAIR_ROLL,
             VRSettings.VrOptions.RENDER_BLOCK_OUTLINE_MODE,
             VRSettings.VrOptions.MENU_CROSSHAIR_SCALE,
             VRSettings.VrOptions.CROSSHAIR_OCCLUSION,
-            VRSettings.VrOptions.MAX_CROSSHAIR_DISTANCE_AT_BLOCKREACH,
-            VRSettings.VrOptions.CROSSHAIR_SCALES_WITH_DISTANCE,
+            //VRSettings.VrOptions.MAX_CROSSHAIR_DISTANCE_AT_BLOCKREACH,
+            //VRSettings.VrOptions.CROSSHAIR_SCALES_WITH_DISTANCE,
             VRSettings.VrOptions.CHAT_FADE_AWAY,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.CHAT_OFFSET_X,
             VRSettings.VrOptions.CHAT_OFFSET_Y,
     };
+    // VIVE END - hide options not supported by tracked controller UI
 
     public GuiOtherHUDSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
         super( guiScreen, guivrSettings );

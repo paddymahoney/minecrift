@@ -11,20 +11,25 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
 {
     static VRSettings.VrOptions[] locomotionSettings = new VRSettings.VrOptions[]
     {
-            VRSettings.VrOptions.ALLOW_FORWARD_PLUS_STRAFE,
+            // VIVE START - hide options not relevant for standing
+            //VRSettings.VrOptions.ALLOW_FORWARD_PLUS_STRAFE,
             VRSettings.VrOptions.WALK_UP_BLOCKS,
             VRSettings.VrOptions.MOVEMENT_MULTIPLIER,
-            VRSettings.VrOptions.STRAFE_MULTIPLIER,
-            VRSettings.VrOptions.INERTIA_FACTOR,
-            VRSettings.VrOptions.VIEW_BOBBING,
+            //VRSettings.VrOptions.STRAFE_MULTIPLIER,
+            //VRSettings.VrOptions.INERTIA_FACTOR,
+            //VRSettings.VrOptions.VIEW_BOBBING,
             VRSettings.VrOptions.PITCH_AFFECTS_FLYING,
-            VRSettings.VrOptions.DUMMY_SMALL,
-            VRSettings.VrOptions.USE_VR_COMFORT,
-            VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW,
-            VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR,
-            VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS,
-            VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS,
-            VRSettings.VrOptions.VR_COMFORT_TRANSITION_BLANKING_MODE,
+            //VRSettings.VrOptions.DUMMY_SMALL,
+            //VRSettings.VrOptions.USE_VR_COMFORT,
+            //VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW,
+            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR,
+            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS,
+            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS,
+            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_BLANKING_MODE,
+            VRSettings.VrOptions.CAMERA_UPDATE_INTERVAL,        // VIVE new option
+            VRSettings.VrOptions.SIMULATE_FALLING,              // VIVE new option
+            VRSettings.VrOptions.WEAPON_COLLISION,              // VIVE new option
+            // VIVE END - hide options not relevant for standing
     };
 
     public GuiLocomotionSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
@@ -87,6 +92,14 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                     maxValue = 0.75f;
                     increment = 0.005f;
                 }
+                // VIVE START - new options
+                else if ( var8 == VRSettings.VrOptions.CAMERA_UPDATE_INTERVAL)
+                {
+                    minValue = 0f;
+                    maxValue = 2.0f;
+                    increment = 0.1f;
+                }
+                // VIVE END - new options
 
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height - 20, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.setEventHandler(this);
@@ -335,6 +348,24 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "             controller binding wil instead be used to",
                             "             trigger a yaw transition."
                     };
+                // VIVE START - new options
+                case CAMERA_UPDATE_INTERVAL:
+                    return new String[] {
+                            "When connected to a server that doesn't support",
+                            "teleporting, this determines the time between",
+                            "camera updates, in seconds."
+                    } ;
+                case SIMULATE_FALLING:
+                    return new String[] {
+                            "If enabled the player will teleport to the ground",
+                            "when standing above empty space."
+                    } ;
+                case WEAPON_COLLISION:
+                    return new String[] {
+                            "If enabled, you can swing your pickaxe at blocks to",
+                            "mine them, or your sword at enemies to hit them."
+                    } ;
+                // VIVE END - new options
                 default:
                     return null;
             }

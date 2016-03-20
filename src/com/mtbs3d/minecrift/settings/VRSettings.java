@@ -99,7 +99,7 @@ public class VRSettings
 	public float eyeProtrusion = 0.01f;
     public float eyeReliefAdjust = 0f;
 	public float neckBaseToEyeHeight = 0.01f;
-    public float movementSpeedMultiplier = 0.75f;
+    public float movementSpeedMultiplier = 1.0f;   // VIVE - use full speed by default
     public float strafeSpeedMultiplier = 0.33f;
     public boolean useDistortion = true;
     public boolean loadMumbleLib = true;
@@ -117,7 +117,7 @@ public class VRSettings
     public float hudOpacity = 0.95f;
     public boolean menuBackground = false;
     public boolean renderHeadWear = false;
-    public int renderFullFirstPersonModelMode = RENDER_FIRST_PERSON_FULL;
+    public int renderFullFirstPersonModelMode = RENDER_FIRST_PERSON_HAND;   // VIVE - hand only by default
     public int shaderIndex = NO_SHADER;
     public float renderPlayerOffset = 0.2f;
     public boolean testTimewarp = false;
@@ -132,12 +132,15 @@ public class VRSettings
     public boolean useDisplayOverdrive = true;
     public boolean useHighQualityDistortion = true;
     public boolean posTrackBlankOnCollision = true;
-    public boolean walkUpBlocks = false;
+    public boolean walkUpBlocks = true;     // VIVE default to enable climbing
     public float   menuCrosshairScale = 1f;
     public boolean useCrosshairOcclusion = false;
     public boolean maxCrosshairDistanceAtBlockReach = false;
     public boolean useMaxFov = false;
     public boolean chatFadeAway = true;
+    public float restrictedCameraUpdateInterval = 0.0f;     // VIVE
+    public boolean simulateFalling = true;  // VIVE if HMD is over empty space, teleport down
+    public boolean weaponCollision = true;  // VIVE weapon hand collides with blocks/enemies
 
     // TODO: Clean-up all the redundant crap!
     public boolean useDistortionTextureLookupOptimisation = false;
@@ -155,7 +158,7 @@ public class VRSettings
     protected float headTrackSensitivity = 1.0f;
     public boolean useFsaa = false;   // default to off
     public float fsaaScaleFactor = 1.4f;
-    public int lookMoveDecoupled = DECOUPLE_WITH_CROSSHAIR;
+    public int lookMoveDecoupled = DECOUPLE_OFF;        // VIVE - keep player entity facing the same way as the HMD
     public boolean useOculusProfileIpd = true;
     public boolean useHalfIpds = false;
     public boolean useOculusProfilePlayerHeight = true;
@@ -197,7 +200,7 @@ public class VRSettings
 	public String hmdPluginID            = "openvr";
     public String stereoProviderPluginID = "openvr";
     public String badStereoProviderPluginID = "";
-	public String controllerPluginID = "controller";
+	public String controllerPluginID = "openvr";    // VIVE use openVR for controller
     public int calibrationStrategy = CALIBRATION_STRATEGY_AT_STARTUP;
     public float crosshairScale = 1.0f;
     public int renderInGameCrosshairMode = RENDER_CROSSHAIR_MODE_ALWAYS;
@@ -226,7 +229,7 @@ public class VRSettings
     public boolean smoothTick = false;
     public static final String LEGACY_OPTIONS_VR_FILENAME = "optionsvr.txt";
     public boolean allowAvatarIK = false;
-    public boolean hideGui = true;
+    public boolean hideGui = false;     // VIVE show gui
     public boolean useKeyBindingForComfortYaw = false;
 
     private Minecraft mc;
@@ -931,6 +934,21 @@ public class VRSettings
                     {
                         this.movementQuantisation = Integer.parseInt(optionTokens[1]);
                     }
+
+                    // VIVE START - new options
+                    if (optionTokens[0].equals("restrictedCameraUpdateInterval"))
+                    {
+                        this.restrictedCameraUpdateInterval = this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("simulateFalling"))
+                    {
+                        this.simulateFalling = optionTokens[1].equals("true");
+                    }
+                    if (optionTokens[0].equals("weaponCollision"))
+                    {
+                        this.weaponCollision = optionTokens[1].equals("true");
+                    }
+                    // VIVE END - new options
                 }
                 catch (Exception var7)
                 {
@@ -1093,7 +1111,7 @@ public class VRSettings
 	        case PITCH_AFFECTS_CAMERA:
 	            return this.allowMousePitchInput ? var4 + "ON" : var4 + "OFF";
             case HUD_LOCK_TO:
-                return this.hudLockToHead ? var4 + "Head" : var4 + "Body";
+                return this.hudLockToHead ? var4 + "Head" : var4 + "Hand";      // VIVE - lock to hand instead of body
 	        case HUD_DISTANCE:
 	            return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.hudDistance) });
 	        case HUD_PITCH:
@@ -1337,6 +1355,14 @@ public class VRSettings
                 case MOVEMENT_QUANTISATION_1:
                     return var4 + "Digital";
                 }
+                // VIVE START - new options
+            case CAMERA_UPDATE_INTERVAL:
+                return var4 + String.format("%.2f s", new Object[] { Float.valueOf(this.restrictedCameraUpdateInterval) });
+            case SIMULATE_FALLING:
+                return this.simulateFalling ? var4 + "ON" : var4 + "OFF";
+            case WEAPON_COLLISION:
+                return this.weaponCollision ? var4 + "ON" : var4 + "OFF";
+                // VIVE END - new options
  	        default:
 	        	return "";
         }
@@ -1470,6 +1496,10 @@ public class VRSettings
                 return vrComfortTransitionTimeSecs;
             case VR_COMFORT_TRANSITION_ANGLE_DEGS:
                 return vrComfortTransitionAngleDegs;
+            // VIVE START - new options
+            case CAMERA_UPDATE_INTERVAL:
+                return restrictedCameraUpdateInterval;
+            // VIVE END - new options
 
             default:
                 return 0.0f;
@@ -1698,6 +1728,14 @@ public class VRSettings
                     break;
                 }
                 break;
+            // VIVE START - new options
+            case SIMULATE_FALLING:
+                this.simulateFalling = !this.simulateFalling;
+                break;
+            case WEAPON_COLLISION:
+                this.weaponCollision = !this.weaponCollision;
+                break;
+            // VIVE END - new options
             default:
                     break;
     	}
@@ -1891,6 +1929,11 @@ public class VRSettings
             case VR_COMFORT_TRANSITION_ANGLE_DEGS:
                 this.vrComfortTransitionAngleDegs = par2;
                 break;
+            // VIVE START - new options
+            case CAMERA_UPDATE_INTERVAL:
+                this.restrictedCameraUpdateInterval = par2;
+                break;
+            // VIVE END - new options
             default:
 	        	break;
     	}
@@ -2131,6 +2174,9 @@ public class VRSettings
             var5.println("allowAvatarIK:" + this.allowAvatarIK);
             var5.println("hideGui:" + this.hideGui);
             var5.println("movementQuantisation:" + this.movementQuantisation);
+            var5.println("restrictedCameraUpdateInterval" + this.restrictedCameraUpdateInterval);
+            var5.println("simulateFalling" + this.simulateFalling);
+            var5.println("weaponCollision" + this.weaponCollision);
 
             var5.close();
         }
@@ -2451,6 +2497,11 @@ public class VRSettings
         VR_COMFORT_TRANSITION_ANGLE_DEGS("Transition Angle", true, false),
         VR_COMFORT_TRANSITION_BLANKING_MODE("Transition Blanking", false, false),
         MOVEMENT_QUANTISATION("Movement", false, false),
+        // VIVE START - new options
+        CAMERA_UPDATE_INTERVAL("View update interval", true, false ),
+        SIMULATE_FALLING("Simulate falling", false, true),
+        WEAPON_COLLISION("Weapon collision", false, true),
+        // VIVE END - new options
 
         // Calibration
         CALIBRATION_STRATEGY("Initial Calibration", false, false),
