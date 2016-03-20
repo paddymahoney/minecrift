@@ -10,17 +10,17 @@ This mod uses phr00t's JOpenVR wrapper from his JMonkeyVR project. Be sure to ch
 Controls
 ========
 
-Right controller:
-	Trigger - Attack (equivalent of left mouse button)
-	Press touchpad - Use (equivalent of right mouse button)
-	Grip - If you have torches on your hotbar, this quickly places a torch
+- Right controller:
+  - Trigger - Attack (equivalent of left mouse button)
+  - Press touchpad - Use (equivalent of right mouse button)
+  - Grip - If you have torches on your hotbar, this quickly places a torch
 
-Left controller:
-	Trigger - teleport
-	Swipe touchpad - switch between hotbar items
-	Press touchpad - toggle inventory
-	Menu button - game menu (equivalent of escape key)
-	Grip - Switches to the 1st hotbar slot
+- Left controller:
+  - Trigger - teleport
+  - Swipe touchpad - switch between hotbar items
+  - Press touchpad - toggle inventory
+  - Menu button - game menu (equivalent of escape key)
+  - Grip - Switches to the 1st hotbar slot
 
 You can also swing your pickaxe at blocks or swing your sword at enemies to hit them.
 
