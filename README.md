@@ -31,6 +31,12 @@ Multiplayer
 Multiplayer will work if all clients and the server are running this mod. If you connect to a vanilla Minecraft server, it will fall back to a traditional movement scheme with continuous camera movement, which typically causes some amount of nausea for VR users. This is because vanilla servers don't allow clients to teleport as a form of cheat protection. You can also force the traditional movement scheme in singleplayer by pressing Right CTRL+R.
 
 
+Performance
+===========
+
+If you're seeing lots of judder, try lowering your Minecraft video settings. Setting graphics from Fancy to Fast or reducing the view distance should help.
+
+
 Building the Installer
 ======================
 
