@@ -6,6 +6,7 @@ package com.mtbs3d.minecrift.settings;
 
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
+import com.mtbs3d.minecrift.gameplay.VRPlayer;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.input.Keyboard;
@@ -133,6 +134,29 @@ public class VRHotkeys {
             PluginManager.notifyAll(IBasePlugin.EVENT_CALIBRATION_ABORT);
             gotKey = true;
         }
+
+        // VIVE START - hotkeys
+        /*
+        // Testing different movement styles
+        if (Keyboard.getEventKey() == Keyboard.KEY_M && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+        {
+            // cycle VR movement styles
+            if (mc.vrMovementStyle.name == "Minimal") mc.vrMovementStyle.setStyle("Beam");
+            else if (mc.vrMovementStyle.name == "Beam") mc.vrMovementStyle.setStyle("Tunnel");
+            else if (mc.vrMovementStyle.name == "Tunnel") mc.vrMovementStyle.setStyle("Grapple");
+            else if (mc.vrMovementStyle.name == "Grapple") mc.vrMovementStyle.setStyle("Arc");
+            else mc.vrMovementStyle.setStyle("Minimal");
+            gotKey = true;
+        }
+        */
+        if (Keyboard.getEventKey() == Keyboard.KEY_R && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+        {
+            // for testing restricted client mode
+            mc.vrPlayer.restrictedViveClient = true;
+            mc.printChatMessage("Restricted movement enabled (no teleporting)");
+            gotKey = true;
+        }
+        // VIVE END - hotkeys
 
         if (gotKey) {
             nextRead = System.currentTimeMillis() + COOLOFF_PERIOD_MILLIS;
