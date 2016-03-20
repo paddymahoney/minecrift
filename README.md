@@ -1,3 +1,80 @@
+
+Minecrift Vive
+==============
+
+This is a modified version of the Minecrift VR mod that focuses on the Vive and room scale VR. It adds a teleporting method of locomotion and tracked controller support to interact with the world.
+
+This mod uses phr00t's JOpenVR wrapper from his JMonkeyVR project. Be sure to check that out! Thanks also go to StellaArtois, Mabrowning and everyone else who worked on the Minecrift mod.
+
+
+Controls
+========
+
+Right controller:
+	Trigger - Attack (equivalent of left mouse button)
+	Press touchpad - Use (equivalent of right mouse button)
+	Grip - If you have torches on your hotbar, this quickly places a torch
+
+Left controller:
+	Trigger - teleport
+	Swipe touchpad - switch between hotbar items
+	Press touchpad - toggle inventory
+	Menu button - game menu (equivalent of escape key)
+	Grip - Switches to the 1st hotbar slot
+
+You can also swing your pickaxe at blocks or swing your sword at enemies to hit them.
+
+
+Multiplayer
+===========
+
+Multiplayer will work if all clients and the server are running this mod. If you connect to a vanilla Minecraft server, it will fall back to a traditional movement scheme with continuous camera movement, which typically causes some amount of nausea for VR users. This is because vanilla servers don't allow clients to teleport as a form of cheat protection. You can also force the traditional movement scheme in singleplayer by pressing Right CTRL+R.
+
+
+Building the Installer
+======================
+
+* Install Java JDK 1.6, 1.7 or 1.8. The Java JRE will NOT work, it MUST be the JDK. This has been tested with JDK1.6.0_38 x64. [Download from oracle.com](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase6-419409.html#jdk-6u38-oth-JPR)
+* Set the JAVA_HOME environment variable to the JDK directory
+* Add %JAVA_HOME%\bin to your PATH environment variable
+* Install Python 2.7.x (NOT 3.x). Be sure to tick the 'add python to your PATH' option during install. [Download from python.org](https://www.python.org/downloads/)
+* Download this repo with the "Download ZIP" button in the top right and extract the files somewhere (or clone the repo if you have Git)
+* Open a command prompt and navigate to the extracted files
+* Run install.bat
+* Run build.bat
+
+You should then have a Vive installer .exe you can run to install the mod. 
+
+
+Troubleshooting
+===============
+
+* It is normal to see errors in the middle of the install.bat stage.
+* Make sure you don't have Scala on your path.
+* Make sure you don't have a HTTP_PROXY/HTTPS_PROXY environment variable set.
+* See below for a more detailed description of the build process.
+
+
+Technical Implementation Notes
+==============================
+
+For programmers/contributors:
+
+Since this branch focuses on room scale, it makes a number of invasive changes to Minecrift that make it unsuitable for merging back into the main branch for now. These changes were made in a quick and dirty fashion to easily experiment and get something playable. They are all commented with "// VIVE". They should serve to highlight the problematic areas of vanilla Minecraft for a control scheme like this. Lots of small changes were made to avoid nausea and support tracked controllers independent of the player. The Matrix/Vector/Quaternion operations are kind of a mess, since there are multiple implementations of these classes available with slightly different features (Vec3 in particular is heavily used in Minecraft 1.7.10 but has a pretty poor feature set) and quite a lot of Minecraft's code uses coordinates relative to something that isn't helpful for independent objects.
+
+Some major new concepts are:
+
+1) Room origin - these are the coordinates in the world corresponding to the centre of your room. These coordinates and the player's coordinates are updated whenever you teleport around.
+
+2) Player movement - the player entity's X/Z coords are set continuously as the VR headset moves around the room. This keeps the player entity at your current real world position (offset from the room origin).
+
+3) Aim source - this is the 3D position in the world of each controller.
+
+
+
+Below is the original Minecrift README:
+
+
 Minecrift Mod for Minecraft
 ===========================
 
