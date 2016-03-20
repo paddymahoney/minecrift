@@ -1,3 +1,11 @@
+[Minecrift 1.7.10 R2b Vive]
+
+- Forked repo
+- Integrated JOpenVR
+- Added tracked controller aiming and UI
+- Added teleport movement scheme
+
+
 [Minecrift 1.7.10 R2b]
 
 Bug fixes
