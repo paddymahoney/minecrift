@@ -61,13 +61,15 @@ def create_install(mcp_dir):
     print("Creating Installer...")
     reobf = os.path.join(mcp_dir,'reobf','minecraft')
     
+    # VIVE - removed from inner loop. blk.class is EntityPlayerSP, not anything to do with sound?
+    #if cur_file=='blk.class': #skip SoundManager
+		#continue
+    
     in_mem_zip = StringIO.StringIO()
     with zipfile.ZipFile( in_mem_zip,'w', zipfile.ZIP_DEFLATED) as zipout:
         for abs_path, _, filelist in os.walk(reobf, followlinks=True):
             arc_path = os.path.relpath( abs_path, reobf ).replace('\\','/').replace('.','')+'/'
             for cur_file in fnmatch.filter(filelist, '*.class'):
-                if cur_file=='blk.class': #skip SoundManager
-                    continue
                 in_file= os.path.join(abs_path,cur_file) 
                 arcname =  arc_path + cur_file
                 zipout.write(in_file, arcname)
