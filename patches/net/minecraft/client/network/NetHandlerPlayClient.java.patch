@@ -13,7 +13,7 @@
          this.gameController.gameSettings.sendSettingsToServer();
          this.netManager.scheduleOutboundPacket(new C17PacketCustomPayload("MC|Brand", ClientBrandRetriever.getClientModName().getBytes(Charsets.UTF_8)), new GenericFutureListener[0]);
 +        // VIVE START - ask server if it's running this mod
-+        this.gameController.vrPlayer.restrictedViveClient = true;
++        this.gameController.vrPlayer.setFreeMoveMode(true);
 +        String please = "please";
 +        this.netManager.scheduleOutboundPacket(new C17PacketCustomPayload("MC|Vive", please.getBytes(Charsets.UTF_8)), new GenericFutureListener[0]);
 +        // VIVE END - ask server if it's running this mod
@@ -25,7 +25,7 @@
      {
          this.netManager.closeChannel(packetIn.func_149165_c());
 +        // VIVE START - no longer on a vanilla server, reset restricted state
-+        VRPlayer.get().restrictedViveClient = false;
++        VRPlayer.get().setFreeMoveMode(false);
 +        // VIVE END - no longer on a vanilla server, reset restricted state
      }
  
@@ -37,7 +37,7 @@
 +        // VIVE START - server told us that it has this mod too, allow extended reach, etc.
 +        else if ("MC|ViveOK".equals(packetIn.func_149169_c()))
 +        {
-+            this.gameController.vrPlayer.restrictedViveClient = false;
++            this.gameController.vrPlayer.setFreeMoveMode(false);
 +        }
 +        // VIVE END
      }

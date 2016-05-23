@@ -424,7 +424,7 @@
 +            }
 +
 +            // VIVE START - more reach in VR to reduce teleport frequency
-+            if (!mc.vrPlayer.restrictedViveClient)
++            if (!mc.vrPlayer.getFreeMoveMode())
 +            {
 +                blockReachDistance = 6.0D;
 +                entityReachDistance = 6.0D;
@@ -845,7 +845,7 @@
 -                this.enableLightmap((double)par1);
 -                this.itemRenderer.renderItemInFirstPerson(par1);
 -                this.disableLightmap((double)par1);
-+                        if (mc.vrPlayer.restrictedViveClient && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
++                        if (mc.vrPlayer.getFreeMoveMode() && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
 +                        {
 +                            px = player.posX;
 +                            py = player.posY;
@@ -1908,7 +1908,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3375,1644 @@
+@@ -2650,4 +3375,1697 @@
              ;
          }
      }
@@ -2076,7 +2076,7 @@
 +            double py = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)renderPartialTicks;
 +            double pz = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)renderPartialTicks;
 +
-+            if (mc.vrPlayer.restrictedViveClient && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
++            if (mc.vrPlayer.getFreeMoveMode() && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
 +            {
 +                px = entity.posX;
 +                py = entity.posY;
@@ -3252,20 +3252,40 @@
 +            }
 +            tes.draw();
 +
-+            if (validLocation && vrPlayer.movementTeleportDestinationSideHit == 1)
-+            {
++            if (validLocation){
 +                Vec3 circlePos = vrPlayer.getInterpolatedArcPosition(1.0f);
-+                circlePos.yCoord += 0.01f;
-+                circlePos.xCoord -= renderOriginX;
++
++				int side = vrPlayer.movementTeleportDestinationSideHit;
++				
++				float o = 0.01f;
++				
++				circlePos.xCoord -= renderOriginX;
 +                circlePos.yCoord -= renderOriginY;
 +                circlePos.zCoord -= renderOriginZ;
-+                renderCircle(circlePos, 0.2f, 32, validLineR, validLineG, validLineB, 64);
-+                circlePos.yCoord += 0.001f;
-+                renderCircle(circlePos, 0.15f, 32, validLineR, validLineG, validLineB, 128);
-+                circlePos.yCoord += 0.001f;
-+                renderCircle(circlePos, 0.1f, 32, validLineR, validLineG, validLineB, 128);
-+            }
++				
++				if (side ==0)   circlePos.yCoord -= o;
++				if (side ==1)   circlePos.yCoord += o;
++				if (side ==2)   circlePos.zCoord -= o;
++				if (side ==3)   circlePos.zCoord += o;
++				if (side ==4)   circlePos.xCoord -= o;
++				if (side ==5)   circlePos.xCoord += o;						
 +
++                renderCircle(circlePos, 0.2f, 32, validLineR, validLineG, validLineB, 64,side);
++          		if (side ==0)   circlePos.yCoord -= o;
++				if (side ==1)   circlePos.yCoord += o;
++				if (side ==2)   circlePos.zCoord -= o;
++				if (side ==3)   circlePos.zCoord += o;
++				if (side ==4)   circlePos.xCoord -= o;
++				if (side ==5)   circlePos.xCoord += o;
++                renderCircle(circlePos, 0.15f, 32, validLineR, validLineG, validLineB, 128,side);
++                if (side ==0)   circlePos.yCoord -= o;
++				if (side ==1)   circlePos.yCoord += o;
++				if (side ==2)   circlePos.zCoord -= o;
++				if (side ==3)   circlePos.zCoord += o;
++				if (side ==4)   circlePos.xCoord -= o;
++				if (side ==5)   circlePos.xCoord += o;
++                renderCircle(circlePos, 0.1f, 32, validLineR, validLineG, validLineB, 128,side);
++			}
 +            GL11.glEnable(GL11.GL_TEXTURE_2D);
 +            GL11.glDisable(GL11.GL_BLEND);
 +
@@ -3314,7 +3334,7 @@
 +        float handY = (float)(handPos.yCoord - renderOriginY);
 +        float handZ = (float)(handPos.zCoord - renderOriginZ);
 +
-+        if (mc.vrPlayer.restrictedViveClient && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
++        if (mc.vrPlayer.getFreeMoveMode() && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
 +        {
 +            handX = (float)(handPos.xCoord - mc.thePlayer.posX);
 +            handY = (float)(handPos.yCoord - mc.thePlayer.posY);
@@ -3526,7 +3546,7 @@
 +        tes.addVertex(backLeftBottom.xCoord, backLeftBottom.yCoord, backLeftBottom.zCoord);
 +    }
 +
-+    private void renderCircle(Vec3 pos, float radius, int edges, int r, int g, int b, int a)
++    private void renderCircle(Vec3 pos, float radius, int edges, int r, int g, int b, int a, int side)
 +    {
 +        Tessellator tes = Tessellator.instance;
 +        tes.startDrawing(GL11.GL_TRIANGLES);
@@ -3534,22 +3554,55 @@
 +        tes.setColorRGBA(r, g, b, a);
 +        for (int i=0;i<edges;i++)
 +        {
-+            float endAngle = ( (float) i / (float) edges ) * (float) Math.PI * 2.0f;
-+            float startAngle = ( (float) (i+1) / (float) edges ) * (float) Math.PI * 2.0f;
++		
++			float startAngle, endAngle;
++		
++		if (side == 1 || side == 3 || side == 5) {
++		     endAngle = ( (float) i / (float) edges ) * (float) Math.PI * 2.0f;
++             startAngle = ( (float) (i+1) / (float) edges ) * (float) Math.PI * 2.0f;
++		} else {
++			 startAngle = ( (float) i / (float) edges ) * (float) Math.PI * 2.0f;
++             endAngle = ( (float) (i+1) / (float) edges ) * (float) Math.PI * 2.0f;
++		}
++		    tes.addVertex(pos.xCoord, pos.yCoord, pos.zCoord);
 +
-+            tes.addVertex(pos.xCoord, pos.yCoord, pos.zCoord);
-+
-+            float x = (float) pos.xCoord + (float) Math.cos(startAngle) * radius;
-+            float y = (float) pos.yCoord;
-+            float z = (float) pos.zCoord + (float) Math.sin(startAngle) * radius;
-+
-+            tes.addVertex(x, y, z);
-+
-+            x = (float) pos.xCoord + (float) Math.cos(endAngle) * radius;
-+            z = (float) pos.zCoord + (float) Math.sin(endAngle) * radius;
-+            tes.addVertex(x, y, z);
++			if (side == 0 || side == 1) { //y
++				float x = (float) pos.xCoord + (float) Math.cos(startAngle) * radius;
++				float y = (float) pos.yCoord;
++				float z = (float) pos.zCoord + (float) Math.sin(startAngle) * radius;
++				tes.addVertex(x, y, z);
++				x = (float) pos.xCoord + (float) Math.cos(endAngle) * radius;
++				z = (float) pos.zCoord + (float) Math.sin(endAngle) * radius;
++				tes.addVertex(x, y, z);
++			} else if (side == 2 || side == 3) { //z
++				float x = (float) pos.xCoord + (float) Math.cos(startAngle) * radius;
++				float y = (float) pos.yCoord + (float) Math.sin(startAngle) * radius;
++				float z = (float) pos.zCoord; 
++				tes.addVertex(x, y, z);
++				x = (float) pos.xCoord + (float) Math.cos(endAngle) * radius;
++				y = (float) pos.yCoord + (float) Math.sin(endAngle) * radius;
++				tes.addVertex(x, y, z);
++			} else if (side == 4 || side == 5){ //x
++				float x = (float) pos.xCoord ;
++				float y = (float) pos.yCoord + (float) Math.cos(startAngle) * radius;
++				float z = (float) pos.zCoord + (float) Math.sin(startAngle) * radius;
++				tes.addVertex(x, y, z);
++				y = (float) pos.yCoord + (float) Math.cos(endAngle) * radius;
++				z = (float) pos.zCoord + (float) Math.sin(endAngle) * radius;
++				tes.addVertex(x, y, z);
++			} else{	
++			      tes.setColorRGBA(50, 50, 50, a);
++			float x = (float) pos.xCoord ;
++				float y = (float) pos.yCoord + (float) Math.cos(startAngle) * radius;
++				float z = (float) pos.zCoord + (float) Math.sin(startAngle) * radius;
++				tes.addVertex(x, y, z);
++				y = (float) pos.yCoord + (float) Math.cos(endAngle) * radius;
++				z = (float) pos.zCoord + (float) Math.sin(endAngle) * radius;
++				tes.addVertex(x, y, z);}
++				
 +        }
 +        tes.draw();
 +    }
++	
 +    // VIVE END - render functions
  }

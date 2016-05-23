@@ -29,7 +29,7 @@
      public float getBlockReachDistance()
      {
 +        // VIVE START - more reach in VR to reduce movement
-+        if (!mc.vrPlayer.restrictedViveClient)
++        if (!mc.vrPlayer.getFreeMoveMode())
 +        {
 +            return 6.0F;
 +        }

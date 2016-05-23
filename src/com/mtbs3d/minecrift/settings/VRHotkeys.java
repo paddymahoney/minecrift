@@ -141,7 +141,7 @@ public class VRHotkeys {
 		if (Keyboard.getEventKey() == Keyboard.KEY_M && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			// JRBUDDA ADDED all dis.
-			if (mc.vrPlayer.restrictedViveClient) {
+			if (mc.vrPlayer.getFreeMoveMode()) {
 				//cycle restricted movement styles
 				if (mc.vrPlayer.useLControllerForRestricedMovement) {
 					mc.vrPlayer.useLControllerForRestricedMovement = false;
@@ -171,11 +171,11 @@ public class VRHotkeys {
 		{
 			// for testing restricted client mode
 			
-			if (mc.vrPlayer.restrictedViveClient) {
-				mc.vrPlayer.restrictedViveClient = false;
+			if (mc.vrPlayer.getFreeMoveMode()) {
+				mc.vrPlayer.setFreeMoveMode(false);
 							mc.printChatMessage("Restricted movement disabled (teleporting allowed)");
 				} else {
-				mc.vrPlayer.restrictedViveClient = true;
+				mc.vrPlayer.setFreeMoveMode(true);
 				mc.printChatMessage("Restricted movement enabled (no teleporting)");
 			}
 			

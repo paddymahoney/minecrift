@@ -37,8 +37,8 @@ public class VRPlayer
     public VRMovementStyle vrMovementStyle = new VRMovementStyle();
     public Vec3[] movementTeleportArc = new Vec3[50];
     public int movementTeleportArcSteps = 0;
-    public boolean restrictedViveClient = true;        // true when connected to another server that doesn't have this mod
-	public boolean useLControllerForRestricedMovement = false;
+    private boolean restrictedViveClient = true;        // true when connected to another server that doesn't have this mod
+	public boolean useLControllerForRestricedMovement = true;
     public double lastTeleportArcDisplayOffset = 0;
     public double fallTime = 0;
 
@@ -96,6 +96,7 @@ public class VRPlayer
 
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
+	
         updateSwingAttack();
 		
         // don't do teleport movement if on a server that doesn't have this mod installed
@@ -103,14 +104,13 @@ public class VRPlayer
 			  return; //let mc handle look direction movement
 			// controller vs gaze movement is handled in Entity.java > moveFlying
           }
-
-					
+				
         mc.mcProfiler.startSection("VRPlayerOnLivingUpdate");
 
         boolean doTeleport = false;
         Vec3 dest = null;
 
-        if (player.movementInput.moveForward != 0)
+        if (player.movementInput.moveForward != 0) //holding down Ltrigger
         {
             dest = movementTeleportDestination;
 
@@ -247,7 +247,7 @@ public class VRPlayer
                 }
             }
         }
-        else
+        else //not holding down Ltrigger
         {
             if (vrMovementStyle.teleportOnRelease && movementTeleportProgress>=1.0f)
             {
@@ -258,7 +258,7 @@ public class VRPlayer
             movementTeleportProgress = 0;
         }
 
-        if (doTeleport && dest!=null && (dest.xCoord != 0 || dest.yCoord !=0 || dest.zCoord != 0))
+        if (doTeleport && dest!=null && (dest.xCoord != 0 || dest.yCoord !=0 || dest.zCoord != 0)) //execute teleport
         {
             float teleportDistance = (float)MathHelper.sqrt_double(dest.squareDistanceTo(player.posX, player.posY, player.posZ));
             boolean playTeleportSound = teleportDistance > 0.0f && vrMovementStyle.endTeleportingSound != null;
@@ -295,11 +295,19 @@ public class VRPlayer
 
             player.movementTeleportTimer = -1;
         }
-        else
+        else //standing still
         {
-            float playerHalfWidth = player.width / 2.0F;
-            if (!restrictedViveClient)
-            {
+			doPlayerMoveInRoom(player);
+        }
+        mc.mcProfiler.endSection();
+    }
+
+	private void doPlayerMoveInRoom(EntityPlayerSP player){
+		// this needs... work...
+	
+				Minecraft mc = Minecraft.getMinecraft();
+	            float playerHalfWidth = player.width / 2.0F;
+
                 // move player's X/Z coords as the HMD moves around the room
 
                 Vec3 eyePos = mc.positionTracker.getCenterEyePosition();
@@ -307,7 +315,7 @@ public class VRPlayer
                 double x = roomOrigin.xCoord - eyePos.xCoord;
                 double y = player.posY;
                 double z = roomOrigin.zCoord - eyePos.zCoord;
-
+			
                 // create bounding box at dest position
                 AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(
                         x - (double) playerHalfWidth,
@@ -322,6 +330,7 @@ public class VRPlayer
                 // valid place to move player to?
                 float var27 = 0.0625F;
                 boolean emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bb).isEmpty();
+				
                 if (emptySpot)
                 {
                     // don't call setPosition style functions to avoid shifting room origin
@@ -334,7 +343,7 @@ public class VRPlayer
                     torso = getEstimatedTorsoPosition(x, y, z);
 
                     // test falling
-                    if (mc.vrSettings.simulateFalling && mc.playerController.isNotCreative())
+                    if (mc.vrSettings.simulateFalling)
                     {
                         float fallPadding = player.width * 0.0f;
 
@@ -432,7 +441,8 @@ public class VRPlayer
                             player.lastTickPosY = player.prevPosY = player.posY = y;
                             player.lastTickPosZ = player.prevPosZ = player.posZ = z;
                             player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
-                            roomOrigin.xCoord += xOffset;
+                            
+							roomOrigin.xCoord += xOffset;
                             roomOrigin.yCoord += 1.0f;
                             roomOrigin.zCoord += zOffset;
 
@@ -445,11 +455,9 @@ public class VRPlayer
                         }
                     }
                 }
-            }
-        }
-        mc.mcProfiler.endSection();
-    }
-
+            
+	}
+	
     public void playFootstepSound( Minecraft mc, double x, double y, double z )
     {
         Block block = mc.theWorld.getBlock(MathHelper.floor_double(x),
@@ -519,7 +527,7 @@ public class VRPlayer
         float pitch = (float)Math.atan2(tiltedAim.yCoord, horizontalAimDist);
         if (pitch > (float)Math.PI * 0.25f)
         {
-            maxSteps = 4;
+            maxSteps = 6;
         }
 
         // calculate gravity vector for arc
@@ -551,7 +559,8 @@ public class VRPlayer
             newPos.yCoord = pos.yCoord + velocity.yCoord;
             newPos.zCoord = pos.zCoord + velocity.zCoord;
 
-            MovingObjectPosition collision = mc.theWorld.rayTraceBlocks(pos, newPos, false, true, true);
+            MovingObjectPosition collision = mc.theWorld.rayTraceBlocks(pos, newPos, !mc.thePlayer.isInWater(), true, false);
+			
             if (collision != null && collision.typeOfHit != MovingObjectPosition.MovingObjectType.MISS)
             {
                 movementTeleportArc[i].xCoord = collision.hitVec.xCoord;
@@ -617,7 +626,7 @@ public class VRPlayer
                     aimDir.xCoord * movementTeleportDistance,
                     aimDir.yCoord * movementTeleportDistance,
                     aimDir.zCoord * movementTeleportDistance);
-            MovingObjectPosition collision = mc.theWorld.rayTraceBlocks(start, movementTeleportPos, true, false, true);
+            MovingObjectPosition collision = mc.theWorld.rayTraceBlocks(start, movementTeleportPos, !mc.thePlayer.isInWater(), true, false);
             Vec3 traceDir = start.subtract(movementTeleportPos).normalize();
             Vec3 reverseEpsilon = Vec3.createVectorHelper(-traceDir.xCoord * 0.02, -traceDir.yCoord * 0.02, -traceDir.zCoord * 0.02);
 
@@ -638,10 +647,21 @@ public class VRPlayer
     {
         boolean bFoundValidSpot = false;
 
-		if (!(mc.thePlayer.capabilities.allowFlying) && collision.sideHit != 1 && vrMovementStyle.arcAiming) {
+		if (collision.sideHit > 1) { //sides
 		//jrbudda require arc hitting top of block.	unless ladder or vine.
 			Block testClimb = player.worldObj.getBlock(collision.blockX, collision.blockY, collision.blockZ);
-			if(!( testClimb == Blocks.ladder || testClimb == Blocks.vine)) return false;
+		//	System.out.println(testClimb.getUnlocalizedName() + " " + collision.typeOfHit + " " + collision.sideHit);
+			   				   			   
+			if ( testClimb == Blocks.ladder || testClimb == Blocks.vine) {
+			            Vec3 dest = Vec3.createVectorHelper(collision.blockX+0.5, collision.blockY + 0.5, collision.blockZ+0.5);
+                        movementTeleportDestination.xCoord = dest.xCoord;
+                        movementTeleportDestination.yCoord = dest.yCoord;
+                        movementTeleportDestination.zCoord = dest.zCoord;
+                        movementTeleportDestinationSideHit = collision.sideHit;
+						return true; //really should check if the block above is passable. Maybe later.
+			} else {
+					if (!mc.thePlayer.capabilities.allowFlying ) {return false;} //if creative, check if can hop on top.
+			}
 		}
 		
         for ( int k = 0; k < 2 && !bFoundValidSpot; k++ )
@@ -666,7 +686,7 @@ public class VRPlayer
                 Block testPos2 = player.worldObj.getBlock(bx, by + 1, bz);
                 Block testPos3 = player.worldObj.getBlock(bx, by + 2, bz);
 
-                boolean bSolid = testPos!=null && !testPos.isPassable(player.worldObj, bx, by, bz);
+                boolean bSolid = testPos!=null && (!testPos.isPassable(player.worldObj, bx, by, bz) || testPos.getMaterial().isLiquid());
                 boolean bSolid2 = testPos2!=null && !testPos2.isPassable(player.worldObj, bx, by + 1, bz);
                 boolean bSolid3 = testPos3!=null && !testPos3.isPassable(player.worldObj, bx, by + 2, bz);
 
@@ -872,4 +892,13 @@ public class VRPlayer
         }
         mc.mcProfiler.endSection();
     }
+	
+	public boolean getFreeMoveMode() { return restrictedViveClient; }
+	
+	public void setFreeMoveMode(boolean free) { 
+		restrictedViveClient = free;
+		
+		Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY, Minecraft.getMinecraft().thePlayer.posZ); //reset room origin on mode change.
+	}
+	
 }

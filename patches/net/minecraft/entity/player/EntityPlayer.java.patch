@@ -1314,12 +1314,12 @@
          private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
      }
 +
-+    // VIVE START - prevent moving
-+    public boolean allowMoveEntity;
++    // VIVE START - prevent moving: JRBUDDA: WHY???
++    public boolean allowMoveEntity = true;
 +
 +    public void moveEntity(double x, double y, double z)
 +    {
-+        if (VRPlayer.get().restrictedViveClient)
++        if (VRPlayer.get().getFreeMoveMode())
 +        {
 +            super.moveEntity(x,y,z);
 +

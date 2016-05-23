@@ -1,5 +1,5 @@
 
-Minecrift Vive
+Minecrift Vive (jrbudda revision)
 ==============
 
 This is a modified version of the Minecrift VR mod that focuses on the Vive and room scale VR. It adds a teleporting method of locomotion and tracked controller support to interact with the world.
@@ -13,16 +13,28 @@ Controls
 - Right controller:
   - Trigger - Attack (equivalent of left mouse button)
   - Press touchpad - Use (equivalent of right mouse button)
-  - Grip - If you have torches on your hotbar, this quickly places a torch
+  - Grip - Pick Block (middle mouse button)
+  - Menu button - Drop item
 
 - Left controller:
-  - Trigger - teleport
+  - Trigger - teleport or free move.
   - Swipe touchpad - switch between hotbar items
-  - Press touchpad - toggle inventory
+  - Press touchpad top half - toggle inventory
+  - Press touchpad bottom half - jump in free move mode
   - Menu button - game menu (equivalent of escape key)
-  - Grip - Switches to the 1st hotbar slot
+  - Grip - Sneak (Shift button)
 
 You can also swing your pickaxe at blocks or swing your sword at enemies to hit them.
+
+Keyboard Hotkeys:
+r_ctrl + R: switch between teleport and free movmemnt mode.
+r_ctrl + M. cycle movement mode (teleportion style (Arc/Beam) or free move source (HMD/L_controller)
+r_ctrl + B: Toggle walk up blocks for free move mode.
+r_ctrl + I: Toggle player inertia mode for free move mode.
+r_ctrl + H: toggle full player model or just hands.
+r_ctrl + Back. reset plugins
+r_ctrl + Enter: reset head position
+r_ctrl + P: debug position
 
 
 Multiplayer
