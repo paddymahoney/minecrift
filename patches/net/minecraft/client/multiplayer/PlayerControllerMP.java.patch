@@ -1,6 +1,21 @@
 --- a/net/minecraft/client/multiplayer/PlayerControllerMP.java
 +++ b/net/minecraft/client/multiplayer/PlayerControllerMP.java
-@@ -301,12 +301,22 @@
+@@ -111,6 +111,14 @@
+     {
+         this.currentGameType = p_78746_1_;
+         this.currentGameType.configurePlayerCapabilities(this.mc.thePlayer.capabilities);
++		if (this.currentGameType == WorldSettings.GameType.SURVIVAL) {
++				mc.vrPlayer.vrMovementStyle.setStyle("Arc");
++				mc.vrSettings.allowPitchAffectsHeightWhileFlying = false;
++		} else {
++				//I don't know where else to put this  - JRBUDDA, ongamemodechanged?
++				mc.vrPlayer.vrMovementStyle.setStyle("Beam");
++				mc.vrSettings.allowPitchAffectsHeightWhileFlying = true;
++		}
+     }
+ 
+     /**
+@@ -301,12 +309,22 @@
          }
      }
  

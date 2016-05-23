@@ -21,6 +21,15 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.tileentity.TileEntityBeacon;
  import net.minecraft.tileentity.TileEntityBrewingStand;
+@@ -52,7 +59,7 @@
+ public class EntityPlayerSP extends AbstractClientPlayer
+ {
+     public MovementInput movementInput;
+-    protected Minecraft mc;
++    public Minecraft mc; //jrbudda needs this public
+ 
+     /**
+      * Used to tell if the player pressed forward twice. If this is at 0 and it's pressed (And they are allowed to
 @@ -61,6 +68,10 @@
       */
      protected int sprintToggleTimer;
@@ -43,6 +52,15 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
+@@ -208,7 +221,7 @@
+             {
+                 if (this.sprintToggleTimer <= 0 && !this.mc.gameSettings.keyBindSprint.getIsKeyPressed())
+                 {
+-                    this.sprintToggleTimer = 7;
++                    this.sprintToggleTimer = 14;
+                 }
+                 else
+                 {
 @@ -240,18 +253,24 @@
                  }
              }

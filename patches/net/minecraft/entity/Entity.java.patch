@@ -1,6 +1,6 @@
 --- a/net/minecraft/entity/Entity.java
 +++ b/net/minecraft/entity/Entity.java
-@@ -1,19 +1,22 @@
+@@ -1,19 +1,24 @@
  package net.minecraft.entity;
  
 -import java.util.List;
@@ -10,6 +10,8 @@
  import java.util.concurrent.Callable;
 +
 +import com.mtbs3d.minecrift.settings.VRSettings;
++import com.mtbs3d.minecrift.api.IBodyAimController;
++import com.mtbs3d.minecrift.provider.MCOpenVR;
  import net.minecraft.block.Block;
  import net.minecraft.block.BlockLiquid;
  import net.minecraft.block.material.Material;
@@ -27,7 +29,7 @@
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
  import net.minecraft.nbt.NBTTagCompound;
-@@ -21,16 +24,8 @@
+@@ -21,16 +26,8 @@
  import net.minecraft.nbt.NBTTagFloat;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.server.MinecraftServer;
@@ -46,7 +48,7 @@
  import net.minecraft.world.Explosion;
  import net.minecraft.world.World;
  import net.minecraft.world.WorldServer;
-@@ -175,7 +170,7 @@
+@@ -175,7 +172,7 @@
       * The amount of ticks you have to stand inside of fire before be set on fire
       */
      public int fireResistance;
@@ -55,7 +57,7 @@
  
      /**
       * Whether this entity is currently inside of water (if it handles water movement that is)
-@@ -220,7 +215,34 @@
+@@ -220,7 +217,34 @@
      protected UUID entityUniqueID;
      public Entity.EnumEntitySize myEntitySize;
      private static final String __OBFID = "CL_00001533";
@@ -91,7 +93,7 @@
      public int getEntityId()
      {
          return this.entityId;
-@@ -257,7 +279,41 @@
+@@ -257,7 +281,41 @@
          this.dataWatcher.addObject(0, Byte.valueOf((byte)0));
          this.dataWatcher.addObject(1, Short.valueOf((short)300));
          this.entityInit();
@@ -133,7 +135,7 @@
  
      protected abstract void entityInit();
  
-@@ -1171,9 +1227,38 @@
+@@ -1171,9 +1229,38 @@
  
          if (var7.getMaterial() == materialIn)
          {
@@ -175,7 +177,7 @@
          }
          else
          {
-@@ -1193,13 +1278,25 @@
+@@ -1193,13 +1280,25 @@
      {
          return this.worldObj.isMaterialInBB(this.boundingBox.expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava);
      }
@@ -203,7 +205,7 @@
  
          if (var4 >= 1.0E-4F)
          {
-@@ -1213,11 +1310,42 @@
+@@ -1213,11 +1312,66 @@
              var4 = friction / var4;
              strafe *= var4;
              forward *= var4;
@@ -211,25 +213,50 @@
 -            float var6 = MathHelper.cos(this.rotationYaw * (float)Math.PI / 180.0F);
 -            this.motionX += (double)(strafe * var6 - forward * var5);
 -            this.motionZ += (double)(forward * var6 + strafe * var5);
+-        }
 +
 +            directionVec.xCoord = strafe;
 +            directionVec.yCoord = 0;
 +            directionVec.zCoord = forward;
 +
++						
 +            if (this instanceof EntityPlayerSP)
 +            {
 +                // Modify acceleration sequence (each tick)
 +                addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
 +
++				EntityPlayerSP esp = (EntityPlayerSP) this;
++		
 +                // Account for pitch if required
 +                if (allowYAdjust & Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
 +                    yAddFactor = addFactor;
-+                    directionVec.rotateAroundX(-this.headPitch * PIOVER180);
++					if (esp.mc.vrPlayer.useLControllerForRestricedMovement) {
++			
++						IBodyAimController con = esp.mc.lookaimController;
++						if (con instanceof MCOpenVR) {
++						  directionVec.rotateAroundX(-(((MCOpenVR)con).laimPitch) * PIOVER180);		   
++						}
++							 
++					} else {
++				       directionVec.rotateAroundX(-this.headPitch * PIOVER180);	
++					}		
 +                }
-+            }
-+
-+            // Account for yaw
-+            directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
++				
++				// Account for yaw
++				if (esp.mc.vrPlayer.useLControllerForRestricedMovement) {
++					IBodyAimController con = esp.mc.lookaimController;
++						if (con instanceof MCOpenVR) {
++						  directionVec.rotateAroundY(-(((MCOpenVR)con).laimYaw) * PIOVER180);		   
++						}
++				} else {
++					directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
++				}
++			
++            } else {
++				directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
++			}
++			  						
++			
 +            mX = directionVec.xCoord;
 +            mY = directionVec.yCoord;
 +            mZ = directionVec.zCoord;
@@ -237,7 +264,7 @@
 +            this.motionX = this.motionX + (mX * addFactor);
 +            this.motionZ = this.motionZ + (mZ * addFactor);
 +            this.motionY = this.motionY + (mY * yAddFactor);
-         }
++        }
 +
 +        //if (this instanceof EntityPlayerSP) {
 +        //    System.out.println(String.format("FLYING: %B, forward: %.4f, strafe: %.4f, pitch: %.4f, yaw: %.4f, mx: %.4f, mz: %.4f, my: %.4f", allowYAdjust, forward, strafe, this.headPitch, this.rotationYaw, mX, mZ, mY));
@@ -250,7 +277,7 @@
      }
  
      public int getBrightnessForRender(float p_70070_1_)
-@@ -1526,6 +1654,31 @@
+@@ -1526,6 +1680,31 @@
              tagCompund.setInteger("PortalCooldown", this.timeUntilPortal);
              tagCompund.setLong("UUIDMost", this.getUniqueID().getMostSignificantBits());
              tagCompund.setLong("UUIDLeast", this.getUniqueID().getLeastSignificantBits());
@@ -282,7 +309,7 @@
              this.writeEntityToNBT(tagCompund);
  
              if (this.ridingEntity != null)
-@@ -1596,6 +1749,37 @@
+@@ -1596,6 +1775,37 @@
  
              this.setPosition(this.posX, this.posY, this.posZ);
              this.setRotation(this.rotationYaw, this.rotationPitch);
@@ -320,7 +347,7 @@
              this.readEntityFromNBT(tagCompund);
  
              if (this.shouldSetPosAfterLoading())
-@@ -1697,7 +1881,16 @@
+@@ -1697,7 +1907,16 @@
          {
              EntityItem var3 = new EntityItem(this.worldObj, this.posX, this.posY + (double)offsetY, this.posZ, itemStackIn);
              var3.delayBeforeCanPickup = 10;
@@ -338,7 +365,7 @@
              return var3;
          }
          else
-@@ -2008,7 +2201,16 @@
+@@ -2008,7 +2227,16 @@
       */
      public boolean isRiding()
      {
@@ -356,7 +383,7 @@
      }
  
      /**
-@@ -2375,7 +2577,17 @@
+@@ -2375,7 +2603,17 @@
       */
      public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
      {
@@ -375,7 +402,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2665,204 @@
+@@ -2453,6 +2691,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  

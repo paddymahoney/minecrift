@@ -7,6 +7,7 @@ import de.fruitfly.ovr.structs.Quatf;
 import de.fruitfly.ovr.structs.Vector3f;
 import jopenvr.OpenVRUtil;
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -37,6 +38,7 @@ public class VRPlayer
     public Vec3[] movementTeleportArc = new Vec3[50];
     public int movementTeleportArcSteps = 0;
     public boolean restrictedViveClient = true;        // true when connected to another server that doesn't have this mod
+	public boolean useLControllerForRestricedMovement = false;
     public double lastTeleportArcDisplayOffset = 0;
     public double fallTime = 0;
 
@@ -95,11 +97,14 @@ public class VRPlayer
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
         updateSwingAttack();
-
+		
         // don't do teleport movement if on a server that doesn't have this mod installed
-        if (restrictedViveClient)
-            return;
+        if (restrictedViveClient) {
+			  return; //let mc handle look direction movement
+			// controller vs gaze movement is handled in Entity.java > moveFlying
+          }
 
+					
         mc.mcProfiler.startSection("VRPlayerOnLivingUpdate");
 
         boolean doTeleport = false;
@@ -140,7 +145,9 @@ public class VRPlayer
 
                         // cloud of sparks moving past you
                         Vec3 motionDir = dest.addVector(-eyeCenterPos.xCoord, -eyeCenterPos.yCoord, -eyeCenterPos.zCoord).normalize();
-                        Vec3 forward = player.getLookVec();
+                        Vec3 forward;
+						
+						forward	= player.getLookVec();
 
                         Vec3 right = forward.crossProduct(Vec3.createVectorHelper(0, 1, 0));
                         Vec3 up = right.crossProduct(forward);
@@ -327,7 +334,7 @@ public class VRPlayer
                     torso = getEstimatedTorsoPosition(x, y, z);
 
                     // test falling
-                    if (mc.vrSettings.simulateFalling)
+                    if (mc.vrSettings.simulateFalling && mc.playerController.isNotCreative())
                     {
                         float fallPadding = player.width * 0.0f;
 
@@ -610,7 +617,7 @@ public class VRPlayer
                     aimDir.xCoord * movementTeleportDistance,
                     aimDir.yCoord * movementTeleportDistance,
                     aimDir.zCoord * movementTeleportDistance);
-            MovingObjectPosition collision = mc.theWorld.rayTraceBlocks(start, movementTeleportPos, false, true, true);
+            MovingObjectPosition collision = mc.theWorld.rayTraceBlocks(start, movementTeleportPos, true, false, true);
             Vec3 traceDir = start.subtract(movementTeleportPos).normalize();
             Vec3 reverseEpsilon = Vec3.createVectorHelper(-traceDir.xCoord * 0.02, -traceDir.yCoord * 0.02, -traceDir.zCoord * 0.02);
 
@@ -631,6 +638,12 @@ public class VRPlayer
     {
         boolean bFoundValidSpot = false;
 
+		if (!(mc.thePlayer.capabilities.allowFlying) && collision.sideHit != 1 && vrMovementStyle.arcAiming) {
+		//jrbudda require arc hitting top of block.	unless ladder or vine.
+			Block testClimb = player.worldObj.getBlock(collision.blockX, collision.blockY, collision.blockZ);
+			if(!( testClimb == Blocks.ladder || testClimb == Blocks.vine)) return false;
+		}
+		
         for ( int k = 0; k < 2 && !bFoundValidSpot; k++ )
         {
             Vec3 hitVec = ( k == 0 ) ? collision.hitVec.addVector(-reverseEpsilon.xCoord, -reverseEpsilon.yCoord, -reverseEpsilon.zCoord)

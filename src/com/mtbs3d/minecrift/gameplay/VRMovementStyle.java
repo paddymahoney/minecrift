@@ -152,7 +152,7 @@ public class VRMovementStyle
 
         if (changedStyle && Minecraft.getMinecraft()!=null)
         {
-            Minecraft.getMinecraft().printChatMessage("Teleport style (RCTRL-M): " + name);
+				    Minecraft.getMinecraft().printChatMessage("Teleport style (RCTRL-M): " + name);
         }
     }
 }

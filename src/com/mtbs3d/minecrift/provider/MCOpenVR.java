@@ -75,6 +75,10 @@ public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBa
     private float bodyYaw = 0;
     private float aimYaw = 0;
     private float aimPitch = 0;
+	
+	public float laimPitch = 0;
+	public float laimYaw = 0;
+	
     private Vec3[] aimSource = new Vec3[2];
 
     // Controllers
@@ -706,6 +710,7 @@ public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBa
         KeyBinding keyBindDrop = mc.gameSettings.keyBindDrop;
         KeyBinding keyBindTeleport = mc.gameSettings.keyBindForward;
         KeyBinding keyBindJump = mc.gameSettings.keyBindJump;
+	    KeyBinding keyPick = mc.gameSettings.keyBindPickBlock;
 
         boolean gui = (mc.currentScreen != null);
         boolean sleeping = (mc.thePlayer != null && mc.thePlayer.isPlayerSleeping());
@@ -717,8 +722,8 @@ public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBa
         {
             if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > 0.05)
             {
-                if (!leftMouseClicked)
-                    mc.clickMouse();
+             //   if (!leftMouseClicked)
+                  //  mc.clickMouse();
                 if (!keyBindAttack.pressed)
                     keyBindAttack.pressed = true;
                 //keyBindAttack.pressTime=1;
@@ -730,12 +735,12 @@ public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBa
                     keyBindAttack.pressed = false;
             }
 
-            if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_nPlaceBlockButton) > 0 &&
-                    (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_nPlaceBlockButton) == 0)
-            {
-                mc.rightClickMouse();
+            //if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_nPlaceBlockButton) > 0 &&
+            //        (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_nPlaceBlockButton) == 0)
+            //{
+               // mc.rightClickMouse();
                 //keyBindUseItem.pressTime=1;
-            }
+            //}
             keyBindUseItem.pressed = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_nPlaceBlockButton) > 0;
         }
 
@@ -809,22 +814,9 @@ public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBa
             if ((controllerStateReference[c].ulButtonPressed.longValue() & k_nQuickTorchButton) > 0 &&
                     (lastControllerState[c].ulButtonPressed.longValue() & k_nQuickTorchButton) == 0)
             {
-                // search hotbar for torches
-                for (int slot=0;slot<9;slot++)
-                {
-                    ItemStack itemStack = mc.thePlayer.inventory.getStackInSlot(slot);
-                    if (itemStack!=null && itemStack.getUnlocalizedName().equals("tile.torch") )
-                    {
-                        quickTorchPreviousSlot = mc.thePlayer.inventory.currentItem;
-                        mc.thePlayer.inventory.currentItem = slot;
-                        mc.rightClickMouse();
-                        // switch back immediately
-                        mc.thePlayer.inventory.currentItem = quickTorchPreviousSlot;
-                        quickTorchPreviousSlot = -1;
-
-                        break;
-                    }
-                }
+             
+			 mc.middleClickMouse();
+			 
             }
         }
     }
@@ -1378,6 +1370,11 @@ public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBa
         aimPitch = (float)Math.toDegrees(Math.asin(controllerDirection.y/controllerDirection.length()));
         aimYaw = -(float)Math.toDegrees(Math.atan2(controllerDirection.x, controllerDirection.z));
 
+		Vector3f lcontrollerDirection = controllerRotation[1].transform(forward);
+        laimPitch = (float)Math.toDegrees(Math.asin(lcontrollerDirection.y/lcontrollerDirection.length()));
+        laimYaw = -(float)Math.toDegrees(Math.atan2(lcontrollerDirection.x, lcontrollerDirection.z));
+
+		
         // update off hand aim
         Vector3f leftControllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[1]);
         aimSource[1].xCoord = -leftControllerPos.x;

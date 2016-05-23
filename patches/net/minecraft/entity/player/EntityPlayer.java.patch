@@ -979,11 +979,22 @@
          if (p_71063_1_ != null)
          {
              this.spawnChunk = new ChunkCoordinates(p_71063_1_);
-@@ -1739,7 +2230,14 @@
+@@ -1727,7 +2218,7 @@
+     /**
+      * Moves the entity based on the specified heading.  Args: strafe, forward
+      */
+-    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_)
++    public void moveEntityWithHeading(float strafe, float foreward)
+     {
+         double var3 = this.posX;
+         double var5 = this.posY;
+@@ -1738,13 +2229,20 @@
+             double var9 = this.motionY;
              float var11 = this.jumpMovementFactor;
              this.jumpMovementFactor = this.capabilities.getFlySpeed();
-             super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+-            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
 -            this.motionY = var9 * 0.6D;
++            super.moveEntityWithHeading(strafe, foreward);
 +            /** MINECRIFT **/
 +            if (this instanceof EntityPlayerSP && Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying && this.capabilities.isFlying) {
 +                // Do nothing
@@ -995,6 +1006,12 @@
              this.jumpMovementFactor = var11;
          }
          else
+         {
+-            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
++            super.moveEntityWithHeading(strafe, foreward);
+         }
+ 
+         this.addMovementStat(this.posX - var3, this.posY - var5, this.posZ - var7);
 @@ -1878,6 +2376,13 @@
  
              super.fall(distance);
