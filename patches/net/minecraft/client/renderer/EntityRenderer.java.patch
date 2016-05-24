@@ -1916,7 +1916,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3377,1709 @@
+@@ -2650,4 +3377,1718 @@
              ;
          }
      }
@@ -2096,6 +2096,8 @@
 +            camRelY -= (mc.vrPlayer.roomOrigin.yCoord - py + teleportSlide.yCoord);
 +            camRelZ += (mc.vrPlayer.roomOrigin.zCoord - pz + teleportSlide.zCoord);
 +        }
++        
++ 
 +        // VIVE END - render camera from tracking origin, not player pos
 +
 +        if (this.mc.vrSettings.debugPose)
@@ -2939,6 +2941,10 @@
 +    
 +    public void renderCrosshairAtDepth()
 +    {
++ 
++    	//debug room origin
++ //       renderCircle(mc.vrPlayer.roomOrigin.addVector(-renderOriginX, -renderOriginY + 0.1f, -renderOriginZ), 0.2f, 32, 0, 255, 0, 255, 1);
++            	
 +        if (this.aimStartPos != null)
 +        {
 +            Vec3 originOffset = renderOrigin.subtract(this.aimRenderOrigin);
@@ -3015,6 +3021,9 @@
 +
 +        // VIVE START - render teleport line
 +        VRPlayer vrPlayer = mc.vrPlayer;
++        
++ 
++        
 +        boolean renderTeleportLine = vrPlayer.movementTeleportDestination.xCoord != 0
 +                || vrPlayer.movementTeleportDestination.yCoord != 0
 +                || vrPlayer.movementTeleportDestination.zCoord != 0;

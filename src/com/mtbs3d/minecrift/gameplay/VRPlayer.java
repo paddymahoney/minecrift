@@ -279,6 +279,9 @@ public class VRPlayer
             }
 
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);
+            
+            player.addExhaustion(teleportDistance / 16 * 1.5f);
+            
           //  System.out.println("teleport " + dest.toString());
             player.fallDistance = 0.0F;
 
@@ -304,9 +307,13 @@ public class VRPlayer
         mc.mcProfiler.endSection();
     }
 
+    private boolean wasYMoving;
+    
 	private void doPlayerMoveInRoom(EntityPlayerSP player){
 		// this needs... work...
 	
+				if(player.isSneaking()) {return;} //jrbudda : prevent falling off things or walking up blocks while moving in room scale.
+		
 				Minecraft mc = Minecraft.getMinecraft();
 	            float playerHalfWidth = player.width / 2.0F;
 
@@ -337,7 +344,11 @@ public class VRPlayer
                 {
                     // don't call setPosition style functions to avoid shifting room origin
                     player.lastTickPosX = player.prevPosX = player.posX = x;
-                    player.lastTickPosY = player.prevPosY = player.posY = y;
+                    
+                    if (mc.vrSettings.simulateFalling && !player.onGround)	{
+                    	player.lastTickPosY = player.prevPosY = player.posY = y;                  	
+                    }
+                                        
                     player.lastTickPosZ = player.prevPosZ = player.posZ = z;
                     player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
                     player.fallDistance = 0.0F;
@@ -345,62 +356,68 @@ public class VRPlayer
                     torso = getEstimatedTorsoPosition(x, y, z);
 
                     // test falling
-                    if (mc.vrSettings.simulateFalling)
-                    {
-                        float fallPadding = player.width * 0.0f;
-
-                        double paddedFallHalfWidth = playerHalfWidth + fallPadding;
-                        AxisAlignedBB bbFall = AxisAlignedBB.getBoundingBox(
-                                torso.xCoord - paddedFallHalfWidth,
-                                bb.minY,
-                                torso.zCoord - paddedFallHalfWidth,
-                                torso.xCoord + paddedFallHalfWidth,
-                                bb.maxY,
-                                torso.zCoord + paddedFallHalfWidth);
-
-                        int fallCount = 0;
-                        while (emptySpot && fallCount < 32)
-                        {
-                            bbFall.maxY -= 1.0f;
-                            bbFall.minY -= 1.0f;
-                            emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bbFall).isEmpty();
-                            fallCount++;
-                        }
-                        if (fallCount > 1)
-                        {
-                            if (mc.stereoProvider.getCurrentTimeSecs() >= fallTime)
-                            {
-                                double xOffset = torso.xCoord - x;
-                                double zOffset = torso.zCoord - z;
-
-                                float fallDist = 1.0f * (fallCount - 1);
-                                x += xOffset;
-                                y -= fallDist;
-                                z += zOffset;
-                                bb.minX += xOffset;
-                                bb.maxX += xOffset;
-                                bb.minY -= fallDist;
-                                bb.maxY -= fallDist;
-                                bb.minZ += zOffset;
-                                bb.maxZ += zOffset;
-                                player.lastTickPosX = player.prevPosX = player.posX = x;
-                                player.lastTickPosY = player.prevPosY = player.posY = y;
-                                player.lastTickPosZ = player.prevPosZ = player.posZ = z;
-                                player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
-                                player.fallDistance = fallDist;
-                                roomOrigin.xCoord += xOffset;
-                                roomOrigin.yCoord -= fallDist;
-                                roomOrigin.zCoord += zOffset;
-
-                                playFootstepSound(mc, player.posX, player.posY-1.62f, player.posZ);
-                            }
-                        }
-                        else
-                        {
-                            fallTime = mc.stereoProvider.getCurrentTimeSecs() + 0.25;
-                        }
+                    if (mc.vrSettings.simulateFalling)	{
+                    	if(!this.restrictedViveClient && (!player.onGround || wasYMoving)){                 		
+                           roomOrigin.yCoord = player.boundingBox.minY;     
+                            wasYMoving = !player.onGround;
+                    	}         	
                     }
-                }
+//                        float fallPadding = player.width * 0.0f;
+//
+//                        double paddedFallHalfWidth = playerHalfWidth + fallPadding;
+//                        AxisAlignedBB bbFall = AxisAlignedBB.getBoundingBox(
+//                                torso.xCoord - paddedFallHalfWidth,
+//                                bb.minY,
+//                                torso.zCoord - paddedFallHalfWidth,
+//                                torso.xCoord + paddedFallHalfWidth,
+//                                bb.maxY,
+//                                torso.zCoord + paddedFallHalfWidth);
+//
+//                        int fallCount = 0;
+//                        
+//                        while (emptySpot && fallCount < 32)
+//                        {
+//                            bbFall.maxY -= 1.0f;
+//                            bbFall.minY -= 1.0f;
+//                            emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bbFall).isEmpty();
+//                            fallCount++;
+//                        }
+//                        
+//                        if (fallCount > 1)
+//                        {
+//                            if (mc.stereoProvider.getCurrentTimeSecs() >= fallTime)
+//                            {
+//                                double xOffset = torso.xCoord - x;
+//                                double zOffset = torso.zCoord - z;
+//
+//                                float fallDist = 1.0f * (fallCount - 1);
+//                                x += xOffset;
+//                                y -= fallDist;
+//                                z += zOffset;
+//                                bb.minX += xOffset;
+//                                bb.maxX += xOffset;
+//                                bb.minY -= fallDist;
+//                                bb.maxY -= fallDist;
+//                                bb.minZ += zOffset;
+//                                bb.maxZ += zOffset;
+//                                player.lastTickPosX = player.prevPosX = player.posX = x;
+//                                player.lastTickPosY = player.prevPosY = player.posY = y;
+//                                player.lastTickPosZ = player.prevPosZ = player.posZ = z;
+//                                player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
+//                                player.fallDistance = fallDist;
+//                                roomOrigin.xCoord += xOffset;
+//                                roomOrigin.yCoord -= fallDist;
+//                                roomOrigin.zCoord += zOffset;
+//
+//                                playFootstepSound(mc, player.posX, player.posY-1.62f, player.posZ);
+//                            }
+//                        }
+//                        else
+//                        {
+//                            fallTime = mc.stereoProvider.getCurrentTimeSecs() + 0.25;
+//                        }
+//                	}
+                    		}
 
                 // test for climbing up a block
                 if (mc.vrSettings.walkUpBlocks && player.fallDistance == 0)

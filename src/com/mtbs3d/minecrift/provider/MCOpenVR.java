@@ -499,7 +499,7 @@ IEventNotifier, IEventListener, IBodyAimController
 						
 						if (pressedAttack || pressedPlaceBlock)
 						{
-					 if (getCurrentTimeSecs() - startedOpeningInventory > 0.3f)	{mc.thePlayer.closeScreen();}
+					 if (getCurrentTimeSecs() - startedOpeningInventory > 0.2f)	{mc.thePlayer.closeScreen();}
 						}
 					}
 
@@ -786,9 +786,12 @@ IEventNotifier, IEventListener, IBodyAimController
 		//bottom of  l trackpad
 		if ((controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
 		(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 )) {
+			if(mc.vrPlayer.getFreeMoveMode() || mc.vrSettings.simulateFalling) {
 			keyBindJump.pressKey();
+			}
+			
 		} else {
-			keyBindJump.unpressKey();
+			keyBindJump.unpressKey(); 
 		}
 		
 		// if you start teleporting, close any UI
@@ -816,7 +819,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				startedOpeningInventory = getCurrentTimeSecs();
 				keyBindInventory.pressKey();
 			}
-			else if (getCurrentTimeSecs() - startedOpeningInventory > 0.3f)
+			else if (getCurrentTimeSecs() - startedOpeningInventory > 0.2f)
 			{
 				// if inventory button is pressed while a screen is up, dismiss it
 				if (mc.thePlayer!=null)
@@ -828,7 +831,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 		else
 		{
-			keyBindInventory.unpressKey();
+			// keyBindInventory.unpressKey(); //let this be consumed always cause the touchpad is funny sometimes
 		}
 		
 		// in restricted mode, update room origin immediately when you release trigger

@@ -135,7 +135,18 @@
  
      protected abstract void entityInit();
  
-@@ -1171,9 +1229,38 @@
+@@ -857,6 +915,10 @@
+             this.isCollided = this.isCollidedHorizontally || this.isCollidedVertically;
+             this.updateFallState(y, this.onGround);
+ 
++            if(!this.onGround && this instanceof EntityPlayer) { 
++            	int a= 9;
++            }
++            
+             if (var13 != x)
+             {
+                 this.motionX = 0.0D;
+@@ -1171,9 +1233,38 @@
  
          if (var7.getMaterial() == materialIn)
          {
@@ -177,7 +188,7 @@
          }
          else
          {
-@@ -1193,13 +1280,25 @@
+@@ -1193,13 +1284,25 @@
      {
          return this.worldObj.isMaterialInBB(this.boundingBox.expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava);
      }
@@ -205,7 +216,7 @@
  
          if (var4 >= 1.0E-4F)
          {
-@@ -1213,11 +1312,68 @@
+@@ -1213,11 +1316,68 @@
              var4 = friction / var4;
              strafe *= var4;
              forward *= var4;
@@ -279,7 +290,7 @@
      }
  
      public int getBrightnessForRender(float p_70070_1_)
-@@ -1526,6 +1682,31 @@
+@@ -1526,6 +1686,31 @@
              tagCompund.setInteger("PortalCooldown", this.timeUntilPortal);
              tagCompund.setLong("UUIDMost", this.getUniqueID().getMostSignificantBits());
              tagCompund.setLong("UUIDLeast", this.getUniqueID().getLeastSignificantBits());
@@ -311,7 +322,7 @@
              this.writeEntityToNBT(tagCompund);
  
              if (this.ridingEntity != null)
-@@ -1596,6 +1777,37 @@
+@@ -1596,6 +1781,37 @@
  
              this.setPosition(this.posX, this.posY, this.posZ);
              this.setRotation(this.rotationYaw, this.rotationPitch);
@@ -349,7 +360,7 @@
              this.readEntityFromNBT(tagCompund);
  
              if (this.shouldSetPosAfterLoading())
-@@ -1697,7 +1909,16 @@
+@@ -1697,7 +1913,16 @@
          {
              EntityItem var3 = new EntityItem(this.worldObj, this.posX, this.posY + (double)offsetY, this.posZ, itemStackIn);
              var3.delayBeforeCanPickup = 10;
@@ -367,7 +378,7 @@
              return var3;
          }
          else
-@@ -2008,7 +2229,16 @@
+@@ -2008,7 +2233,16 @@
       */
      public boolean isRiding()
      {
@@ -385,7 +396,7 @@
      }
  
      /**
-@@ -2375,7 +2605,17 @@
+@@ -2375,7 +2609,17 @@
       */
      public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
      {
@@ -404,7 +415,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2693,204 @@
+@@ -2453,6 +2697,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  

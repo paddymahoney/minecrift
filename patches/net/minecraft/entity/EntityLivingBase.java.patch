@@ -322,8 +322,8 @@
              }
  
 -            this.moveEntity(this.motionX, this.motionY, this.motionZ);
-+            /** MINECRIFT **/
-+            this.moveEntity(this.motionX / var3, this.motionY / (canAffectFlightPitch(isFlying) ? var3 : 1f), this.motionZ / var3);
++            /** MINECRIFT **/ 
++            	this.moveEntity(this.motionX / var3, this.motionY / (canAffectFlightPitch(isFlying) ? var3 : 1f), this.motionZ / var3);
 +            /** END MINECRIFT **/
  
              if (this.isCollidedHorizontally && this.isOnLadder())

@@ -457,7 +457,7 @@
 -                var4.motionX = (double)(-MathHelper.sin(this.rotationYaw / 180.0F * (float)Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float)Math.PI) * var5);
 -                var4.motionZ = (double)(MathHelper.cos(this.rotationYaw / 180.0F * (float)Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float)Math.PI) * var5);
 -                var4.motionY = (double)(-MathHelper.sin(this.rotationPitch / 180.0F * (float)Math.PI) * var5 + 0.1F);
-+                var4.motionX = (double)(-MathHelper.sin(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(pitch / 180.0F * (float)Math.PI) * var5);
++                var4.motionX = (double)(-MathHelper.sin(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(yaw / 180.0F * (float)Math.PI) * var5);
 +                var4.motionZ = (double)(MathHelper.cos(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(yaw / 180.0F * (float)Math.PI) * var5);
 +                var4.motionY = (double)(-MathHelper.sin(pitch / 180.0F * (float)Math.PI) * var5 + 0.1F);
                  var5 = 0.02F;
@@ -1351,7 +1351,7 @@
      public static enum EnumStatus
      {
          OK("OK", 0),
-@@ -2371,4 +3099,72 @@
+@@ -2371,4 +3099,74 @@
  
          private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
      }
@@ -1371,7 +1371,9 @@
 +
 +        if (allowMoveEntity)
 +        {
++        	this.onGround = true;
 +            super.moveEntity(x,y,z);
++      
 +        }
 +        else
 +        {

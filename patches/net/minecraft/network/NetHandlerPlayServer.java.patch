@@ -31,7 +31,15 @@
                      }
  
                      if (Math.abs(packetIn.getPositionX()) > 3.2E7D || Math.abs(packetIn.getPositionZ()) > 3.2E7D)
-@@ -362,7 +357,9 @@
+@@ -345,6 +340,7 @@
+ 
+                 this.playerEntity.moveEntity(var13, var15, var17);
+                 this.playerEntity.onGround = packetIn.func_149465_i();
++                
+                 this.playerEntity.addMovementStat(var13, var15, var17);
+                 double var29 = var15;
+                 var13 = var5 - this.playerEntity.posX;
+@@ -362,7 +358,9 @@
                  if (var25 > 0.0625D && !this.playerEntity.isPlayerSleeping() && !this.playerEntity.theItemInWorldManager.isCreative())
                  {
                      var31 = true;
@@ -42,7 +50,7 @@
                  }
  
                  this.playerEntity.setPositionAndRotation(var5, var7, var9, var11, var12);
-@@ -370,7 +367,9 @@
+@@ -370,7 +368,9 @@
  
                  if (var28 && (var31 || !var32) && !this.playerEntity.isPlayerSleeping())
                  {
@@ -53,7 +61,7 @@
                      return;
                  }
  
-@@ -1171,20 +1170,20 @@
+@@ -1171,20 +1171,20 @@
              {
                  var3 = var2.readItemStackFromBuffer();
  
@@ -84,7 +92,7 @@
                      if (var3.getItem() == Items.written_book && var4.getItem() == Items.writable_book)
                      {
                          var4.setTagInfo("author", new NBTTagString(this.playerEntity.getCommandSenderName()));
-@@ -1333,6 +1332,13 @@
+@@ -1333,6 +1333,13 @@
                      var41.updateItemName("");
                  }
              }

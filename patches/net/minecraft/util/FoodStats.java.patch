@@ -1,0 +1,42 @@
+--- a/net/minecraft/util/FoodStats.java
++++ b/net/minecraft/util/FoodStats.java
+@@ -39,9 +39,9 @@
+     /**
+      * Handles the food game logic.
+      */
+-    public void onUpdate(EntityPlayer p_75118_1_)
++    public void onUpdate(EntityPlayer player)
+     {
+-        EnumDifficulty var2 = p_75118_1_.worldObj.difficultySetting;
++        EnumDifficulty var2 = player.worldObj.difficultySetting;
+         this.prevFoodLevel = this.foodLevel;
+ 
+         if (this.foodExhaustionLevel > 4.0F)
+@@ -58,13 +58,13 @@
+             }
+         }
+ 
+-        if (p_75118_1_.worldObj.getGameRules().getGameRuleBooleanValue("naturalRegeneration") && this.foodLevel >= 18 && p_75118_1_.shouldHeal())
++        if (player.worldObj.getGameRules().getGameRuleBooleanValue("naturalRegeneration") && this.foodLevel >= 18 && player.shouldHeal())
+         {
+             ++this.foodTimer;
+ 
+             if (this.foodTimer >= 80)
+             {
+-                p_75118_1_.heal(1.0F);
++                player.heal(1.0F);
+                 this.addExhaustion(3.0F);
+                 this.foodTimer = 0;
+             }
+@@ -75,9 +75,9 @@
+ 
+             if (this.foodTimer >= 80)
+             {
+-                if (p_75118_1_.getHealth() > 10.0F || var2 == EnumDifficulty.HARD || p_75118_1_.getHealth() > 1.0F && var2 == EnumDifficulty.NORMAL)
++                if (player.getHealth() > 10.0F || var2 == EnumDifficulty.HARD || player.getHealth() > 1.0F && var2 == EnumDifficulty.NORMAL)
+                 {
+-                    p_75118_1_.attackEntityFrom(DamageSource.starve, 1.0F);
++                    player.attackEntityFrom(DamageSource.starve, 1.0F);
+                 }
+ 
+                 this.foodTimer = 0;

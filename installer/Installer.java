@@ -33,7 +33,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private static final long serialVersionUID = -562178983462626162L;
     private String tempDir = System.getProperty("java.io.tmpdir");
 
-    private static final boolean ALLOW_FORGE_INSTALL = false;  // VIVE: disabled, forge install isn't working currently
+    private static final boolean ALLOW_FORGE_INSTALL = true;  // VIVE: disabled, forge install isn't working currently
     private static final boolean ALLOW_HYDRA_INSTALL = false;  // TODO: Change to true once Hydra is fixed up
 
     private static final boolean NEEDS_2010_REDIST = true;
