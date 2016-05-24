@@ -21,7 +21,7 @@ public class KeyControlBinding extends ControlBinding {
 	public void setValue(float value) {
 		if( Math.abs(value) > 0.1 )
 		{
-			if(!key.pressed )
+			if(!key.getIsKeyPressed() )
 				setState( true );
 		} else {
 			setState(false);
@@ -30,14 +30,12 @@ public class KeyControlBinding extends ControlBinding {
 
 	@Override
 	public void setState(boolean state) {
-		key.pressed = state;
 		if( state ) {
+			key.pressKey();
 			if( mc.currentScreen != null && mc.gameSettings.keyBindInventory == key ) {
-				key.pressed = false;
+				key.unpressKey();
 				mc.displayGuiScreen(null);
-			} else {
-				key.pressTime++;
 			}
-		}
-	}
+		} else {key.unpressKey();
+	}}
 }

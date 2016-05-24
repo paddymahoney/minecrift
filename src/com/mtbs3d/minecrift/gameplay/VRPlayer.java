@@ -20,6 +20,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
+import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.Random;
@@ -278,6 +279,7 @@ public class VRPlayer
             }
 
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);
+          //  System.out.println("teleport " + dest.toString());
             player.fallDistance = 0.0F;
 
             if (playTeleportSound)
@@ -572,6 +574,7 @@ public class VRPlayer
                 Vec3 reverseEpsilon = Vec3.createVectorHelper(-traceDir.xCoord * 0.02, -traceDir.yCoord * 0.02, -traceDir.zCoord * 0.02);
 
                 checkAndSetTeleportDestination(mc, player, start, collision, reverseEpsilon);
+                          
                 break;
             }
 
@@ -647,7 +650,9 @@ public class VRPlayer
     {
         boolean bFoundValidSpot = false;
 
-		if (collision.sideHit > 1) { //sides
+        
+		if (collision.sideHit > 1) 
+		{ //sides
 		//jrbudda require arc hitting top of block.	unless ladder or vine.
 			Block testClimb = player.worldObj.getBlock(collision.blockX, collision.blockY, collision.blockZ);
 		//	System.out.println(testClimb.getUnlocalizedName() + " " + collision.typeOfHit + " " + collision.sideHit);
@@ -664,41 +669,70 @@ public class VRPlayer
 			}
 		}
 		
-        for ( int k = 0; k < 2 && !bFoundValidSpot; k++ )
+        for ( int k = 0; k < 1 && !bFoundValidSpot; k++ )
         {
-            Vec3 hitVec = ( k == 0 ) ? collision.hitVec.addVector(-reverseEpsilon.xCoord, -reverseEpsilon.yCoord, -reverseEpsilon.zCoord)
-                    : collision.hitVec.addVector(reverseEpsilon.xCoord, reverseEpsilon.yCoord, reverseEpsilon.zCoord);
+            Vec3 hitVec = collision.hitVec;// ( k == 1 ) ? collision.hitVec.addVector(-reverseEpsilon.xCoord, -reverseEpsilon.yCoord, -reverseEpsilon.zCoord)
+                    						//: collision.hitVec.addVector(reverseEpsilon.xCoord, reverseEpsilon.yCoord, reverseEpsilon.zCoord);
 
             Vec3 debugPos = Vec3.createVectorHelper(
                     MathHelper.floor_double(hitVec.xCoord) + 0.5,
                     MathHelper.floor_double(hitVec.yCoord),
                     MathHelper.floor_double(hitVec.zCoord) + 0.5);
 
-            int bx = (int) MathHelper.floor_double(hitVec.xCoord);
-            int bz = (int) MathHelper.floor_double(hitVec.zCoord);
+            int bx = collision.blockX;
+            int bz = collision.blockZ;
 
             // search for a solid block with two empty blocks above it
-            int startBlockY = MathHelper.floor_double(hitVec.yCoord) - 1;
+            int startBlockY = collision.blockY -1 ; 
             startBlockY = Math.max(startBlockY, 0);
             for (int by = startBlockY; by < startBlockY + 2; by++)
             {
-                Block testPos = player.worldObj.getBlock(bx, by, bz);
-                Block testPos2 = player.worldObj.getBlock(bx, by + 1, bz);
-                Block testPos3 = player.worldObj.getBlock(bx, by + 2, bz);
-
-                boolean bSolid = testPos!=null && (!testPos.isPassable(player.worldObj, bx, by, bz) || testPos.getMaterial().isLiquid());
-                boolean bSolid2 = testPos2!=null && !testPos2.isPassable(player.worldObj, bx, by + 1, bz);
-                boolean bSolid3 = testPos3!=null && !testPos3.isPassable(player.worldObj, bx, by + 2, bz);
-
-                if (bSolid && !bSolid2 && !bSolid3)
+                if (canStand(player.worldObj,bx, by, bz))
                 {
                     float maxTeleportDist = 16.0f;
 
-                    float var27 = 0.0625F;
-                    boolean emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, player.boundingBox.copy().contract((double)var27, (double)var27, (double)var27)).isEmpty();
-                    Vec3 dest = Vec3.createVectorHelper(bx+0.5, by+1, bz+0.5);
-                    if (start.distanceTo(dest) <= maxTeleportDist && emptySpot)
+                    float var27 = 0.0625F; //uhhhh?
+                    
+                    double ox = hitVec.xCoord - player.posX;
+                    double oy = by + 1 - player.posY;
+                    double oz = hitVec.zCoord - player.posZ;
+                    AxisAlignedBB bb = player.boundingBox.copy().contract((double)var27, (double)var27, (double)var27).offset(ox, oy, oz); 
+                    bb.minY = by+1f;
+                    bb.maxY = by+2.8f;
+                    boolean emptySpotReq = mc.theWorld.getCollidingBoundingBoxes(player,bb).isEmpty();
+                             
+                    double ox2 = bx + 0.5f - player.posX;
+                    double oy2 = by + 1.0f - player.posY;
+                    double oz2 = bz + 0.5f - player.posZ;
+                    AxisAlignedBB bb2 = player.boundingBox.copy().contract((double)var27, (double)var27, (double)var27).offset(ox2, oy2, oz2);
+                    bb2.minY = by+1f;
+                    bb2.maxY = by+2.8f;
+                    boolean emptySpotCenter = mc.theWorld.getCollidingBoundingBoxes(player,bb2).isEmpty();
+                    
+                    List l = mc.theWorld.getCollidingBoundingBoxes(player,bb2);
+                  
+                    Vec3 dest;
+                    
+                    //teleport to exact spot unless collision, then teleport to center.
+                    
+                    if (emptySpotReq) {           	
+                    	dest = Vec3.createVectorHelper(hitVec.xCoord, by+1,hitVec.zCoord);
+                    }
+                   else {
+                    	dest = Vec3.createVectorHelper(bx + 0.5f, by + 1f, bz + 0.5f);
+                    }
+                            
+                   //System.out.println(dest.toString() + " " + emptySpotReq + " " + emptySpotCenter);
+//                    
+//          //          System.out.println(hitVec.xCoord + " " + hitVec.yCoord + " " + hitVec.zCoord + " " +emptySpotCenter + " " + emptySpotReq + " " +bx + " " + by + " " + bz + bb.minX + " " + bb.minY + " " + bb.minZ);
+//                    for (Object li : l) {
+//                    	   System.out.println(li.toString());
+//					}
+;                    
+                    if (start.distanceTo(dest) <= maxTeleportDist && (emptySpotReq || emptySpotCenter))
                     {
+                   	
+                     	
                         movementTeleportDestination.xCoord = dest.xCoord;
                         movementTeleportDestination.yCoord = dest.yCoord;
                         movementTeleportDestination.zCoord = dest.zCoord;
@@ -709,15 +743,23 @@ public class VRPlayer
                         debugPos.zCoord = bz + 0.5;
 
                         bFoundValidSpot = true;
-                    }
-
-                    break;
+                 
+                        break;
+                        
+                      }
+                
                 }
             }
         }
         return bFoundValidSpot;
     }
 
+    private boolean canStand(World w, int bx, int by, int bz){
+    	
+    	return w.getBlock(bx,  by,  bz).isCollidable() && w.getBlock(bx,  by+1,  bz).isPassable(w, bx, by+1, bz) &&  w.getBlock(bx,  by+2,  bz).isPassable(w, bx, by+2, bz);
+ 
+    }
+    
     // rough interpolation between arc locations
     public Vec3 getInterpolatedArcPosition(float progress)
     {

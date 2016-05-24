@@ -219,7 +219,11 @@ public class PluginManager implements IEventListener
         for( IBasePlugin p : thePluginManager.allPlugins )
         {
             if( p.isInitialized() )
-                p.poll(frameIndex);
+            try{
+            	 p.poll(frameIndex);
+             } catch (Throwable e) {          	 
+             System.out.println("Plugin " + p.toString() + " poll error " + e.toString());
+             }           
         }
     }
 

@@ -2547,9 +2547,9 @@ public class VRSettings
             return null;
         }
 
-        private VrOptions(String par3Str, boolean par4, boolean par5)
+        private VrOptions(String par3Str, boolean isfloat, boolean isbool)
         {
-            this(par3Str, par4, par5, 0.0F, 1.0F, 0.0F);
+            this(par3Str, isfloat, isbool, 0.0F, 1.0F, 0.0F);
         }
 
         private VrOptions(String p_i45004_3_, boolean p_i45004_4_, boolean p_i45004_5_, float p_i45004_6_, float p_i45004_7_, float p_i45004_8_)

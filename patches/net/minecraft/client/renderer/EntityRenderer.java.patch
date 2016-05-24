@@ -349,7 +349,7 @@
  
      /**
       * Updates the entity renderer
-@@ -431,41 +550,104 @@
+@@ -431,64 +550,129 @@
       */
      public void getMouseOver(float par1)
      {
@@ -433,6 +433,7 @@
  
 -            if (this.mc.objectMouseOver != null)
 +            this.mc.objectMouseOver = this.mc.theWorld.rayTraceBlocks(pos1, endPos, false, false, true);
++         //   System.out.println(this.mc.objectMouseOver.toString());
 +            if (this.mc.objectMouseOver == null || this.mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.MISS)
 +            {
 +                // Get MISS distance
@@ -470,7 +471,11 @@
  
              for (int var14 = 0; var14 < var11.size(); ++var14)
              {
-@@ -475,20 +657,20 @@
++        
+                 Entity var15 = (Entity)var11.get(var14);
+-
++                          	
+                 if (var15.canBeCollidedWith())
                  {
                      float var16 = var15.getCollisionBorderSize();
                      AxisAlignedBB var17 = var15.boundingBox.expand((double)var16, (double)var16, (double)var16);
@@ -482,8 +487,9 @@
                      {
                          if (0.0D < var12 || var12 == 0.0D)
                          {
-                             this.pointedEntity = var15;
+-                            this.pointedEntity = var15;
 -                            var9 = var18 == null ? var6 : var18.hitVec;
++                            this.pointedEntity = var15;                     
 +                            var9 = var18 == null ? pos3 : var18.hitVec;
                              var12 = 0.0D;
                          }
@@ -495,7 +501,7 @@
  
                          if (var19 < var12 || var12 == 0.0D)
                          {
-@@ -518,15 +700,46 @@
+@@ -518,15 +702,46 @@
                  }
              }
  
@@ -539,14 +545,14 @@
 +            }
 +
 +            // VIVE START - teleport movement
-+            mc.vrPlayer.updateTeleportDestinations(this, mc, mc.renderViewEntity);
++            if (!mc.vrPlayer.getFreeMoveMode() && mc.gameSettings.keyBindForward.getIsKeyPressed()) { mc.vrPlayer.updateTeleportDestinations(this, mc, mc.renderViewEntity);}
 +            // VIVE END - teleport movement
 +
 +        /** END MINECRIFT */    
          }
      }
  
-@@ -633,6 +846,11 @@
+@@ -633,6 +848,11 @@
  
      private void hurtCameraEffect(float par1)
      {
@@ -558,7 +564,7 @@
          EntityLivingBase var2 = this.mc.renderViewEntity;
          float var3 = (float)var2.hurtTime - par1;
          float var4;
-@@ -659,13 +877,20 @@
+@@ -659,13 +879,20 @@
       */
      private void setupViewBobbing(float par1)
      {
@@ -582,7 +588,7 @@
              GL11.glTranslatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 0.5F, -Math.abs(MathHelper.cos(var4 * (float)Math.PI) * var5), 0.0F);
              GL11.glRotatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 3.0F, 0.0F, 0.0F, 1.0F);
              GL11.glRotatef(Math.abs(MathHelper.cos(var4 * (float)Math.PI - 0.2F) * var5) * 5.0F, 1.0F, 0.0F, 0.0F);
-@@ -683,9 +908,10 @@
+@@ -683,9 +910,10 @@
          double var4 = var2.prevPosX + (var2.posX - var2.prevPosX) * (double)par1;
          double var6 = var2.prevPosY + (var2.posY - var2.prevPosY) * (double)par1 - (double)var3;
          double var8 = var2.prevPosZ + (var2.posZ - var2.prevPosZ) * (double)par1;
@@ -596,7 +602,7 @@
          {
              var3 = (float)((double)var3 + 1.0D);
              GL11.glTranslatef(0.0F, 0.3F, 0.0F);
-@@ -772,20 +998,31 @@
+@@ -772,20 +1000,31 @@
          }
          else
          {
@@ -632,7 +638,7 @@
      }
  
      /**
-@@ -793,6 +1030,9 @@
+@@ -793,6 +1032,9 @@
       */
      private void setupCameraTransform(float par1, int par2)
      {
@@ -642,7 +648,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,18 +1044,21 @@
+@@ -804,18 +1046,21 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -666,7 +672,7 @@
          if (clipDistance < 128.0F)
          {
              clipDistance = 128.0F;
-@@ -825,17 +1068,26 @@
+@@ -825,17 +1070,26 @@
          {
              clipDistance = 256.0F;
          }
@@ -697,7 +703,7 @@
          {
              var4 = 0.6666667F;
              GL11.glScalef(1.0F, var4, 1.0F);
-@@ -844,21 +1096,23 @@
+@@ -844,21 +1098,23 @@
          GL11.glMatrixMode(GL11.GL_MODELVIEW);
          GL11.glLoadIdentity();
  
@@ -725,7 +731,7 @@
          {
              byte var7 = 20;
  
-@@ -876,7 +1130,7 @@
+@@ -876,7 +1132,7 @@
  
          this.orientCamera(par1);
  
@@ -734,7 +740,7 @@
          {
              int var71 = this.debugViewDirection - 1;
  
-@@ -905,33 +1159,51 @@
+@@ -905,33 +1161,51 @@
                  GL11.glRotatef(-90.0F, 1.0F, 0.0F, 0.0F);
              }
          }
@@ -793,7 +799,7 @@
              {
                  float var4 = 0.6666667F;
                  GL11.glScalef(1.0F, var4, 1.0F);
-@@ -940,39 +1212,92 @@
+@@ -940,39 +1214,92 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glLoadIdentity();
  
@@ -802,14 +808,14 @@
              {
 -                GL11.glTranslatef((float)(par2 * 2 - 1) * 0.1F, 0.0F, 0.0F);
 +                GL11.glTranslatef((float) (par2 * 2 - 1) * 0.1F, 0.0F, 0.0F);
-+            }
+             }
 +        /** MINECRIFT */
 +            /** MINECRIFT SHADERS MOD */
 +            boolean render = true;
 +            if (shadersMod) {
 +                //render = !Shaders.isHandRendered;
 +                render = (Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isHandRendered);
-             }
++            }
 +            if (render) {
 +                GL11.glPushMatrix();
 +                if (!this.mc.vrSettings.debugPos)
@@ -902,7 +908,7 @@
      }
  
      /**
-@@ -983,6 +1308,12 @@
+@@ -983,6 +1310,12 @@
          OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
          GL11.glDisable(GL11.GL_TEXTURE_2D);
          OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
@@ -915,7 +921,7 @@
      }
  
      /**
-@@ -1005,6 +1336,12 @@
+@@ -1005,6 +1338,12 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          GL11.glEnable(GL11.GL_TEXTURE_2D);
          OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
@@ -928,7 +934,7 @@
      }
  
      /**
-@@ -1200,25 +1537,35 @@
+@@ -1200,25 +1539,35 @@
          Config.checkDisplayMode();
          WorldClient world1 = this.mc.theWorld;
  
@@ -979,7 +985,7 @@
          if (this.mc.currentScreen instanceof GuiMainMenu)
          {
              this.updateMainMenu((GuiMainMenu)this.mc.currentScreen);
-@@ -1242,9 +1589,9 @@
+@@ -1242,9 +1591,9 @@
          }
  
          this.mc.mcProfiler.endSection();
@@ -991,7 +997,7 @@
          {
              if (Minecraft.getSystemTime() - this.prevFrameTime > 500L)
              {
-@@ -1255,65 +1602,95 @@
+@@ -1255,65 +1604,95 @@
          {
              this.prevFrameTime = Minecraft.getSystemTime();
          }
@@ -1133,7 +1139,7 @@
                  if (OpenGlHelper.shadersSupported)
                  {
                      if (this.theShaderGroup != null)
-@@ -1323,6 +1700,9 @@
+@@ -1323,6 +1702,9 @@
                          GL11.glLoadIdentity();
                          this.theShaderGroup.loadShaderGroup(par1);
                          GL11.glPopMatrix();
@@ -1143,7 +1149,7 @@
                      }
  
                      this.mc.getFramebuffer().bindFramebuffer(true);
-@@ -1330,9 +1710,11 @@
+@@ -1330,9 +1712,11 @@
  
                  this.renderEndNanoTime = System.nanoTime();
                  this.mc.mcProfiler.endStartSection("gui");
@@ -1158,7 +1164,7 @@
                      GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
                      var12 = this.mc.gameSettings.fancyGraphics;
  
-@@ -1341,32 +1723,85 @@
+@@ -1341,32 +1725,85 @@
                          this.mc.gameSettings.fancyGraphics = false;
                      }
  
@@ -1236,14 +1242,14 @@
 +                // VIVE END - render controllers in main menu
 +            }
 +            else if (this.mc.integratedServerLaunchInProgress)
-             {
++            {
 +                this.mc.enableGuiSizeHack();
 +                this.mc.loadingScreen.renderTarget = this.mc.getFramebuffer();
 +                this.mc.loadingScreen.render();
 +                this.mc.disableGuiSizeHack();
 +            }
 +            else if (this.mc.currentScreen != null)
-+            {
+             {
 +                this.mc.enableGuiSizeHack();
                  GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
  
@@ -1254,7 +1260,7 @@
                  try
                  {
                      var12 = false;
-@@ -1413,7 +1848,14 @@
+@@ -1413,7 +1850,14 @@
                      });
                      throw new ReportedException(var10);
                  }
@@ -1269,7 +1275,7 @@
          }
  
          this.frameFinish();
-@@ -1447,6 +1889,13 @@
+@@ -1447,6 +1891,13 @@
  
      public void renderWorld(float par1, long par2)
      {
@@ -1283,7 +1289,7 @@
          this.mc.mcProfiler.startSection("lightTex");
  
          if (this.lightmapUpdateNeeded)
-@@ -1469,9 +1918,22 @@
+@@ -1469,9 +1920,22 @@
          EntityLivingBase var4 = this.mc.renderViewEntity;
          RenderGlobal var5 = this.mc.renderGlobal;
          EffectRenderer var6 = this.mc.effectRenderer;
@@ -1309,7 +1315,7 @@
          this.mc.mcProfiler.endStartSection("center");
  
          for (int var13 = 0; var13 < 2; ++var13)
-@@ -1491,26 +1953,70 @@
+@@ -1491,26 +1955,70 @@
              }
  
              this.mc.mcProfiler.endStartSection("clear");
@@ -1386,7 +1392,7 @@
  
              GL11.glEnable(GL11.GL_FOG);
              this.setupFog(1, par1);
-@@ -1522,11 +2028,28 @@
+@@ -1522,11 +2030,28 @@
  
              this.mc.mcProfiler.endStartSection("culling");
              Frustrum var14 = new Frustrum();
@@ -1420,7 +1426,7 @@
                  this.mc.mcProfiler.endStartSection("updatechunks");
  
                  while (!this.mc.renderGlobal.updateRenderers(var4, false) && par2 != 0L)
-@@ -1538,6 +2061,11 @@
+@@ -1538,6 +2063,11 @@
                          break;
                      }
                  }
@@ -1432,7 +1438,7 @@
              }
  
              if (var4.posY < 128.0D)
-@@ -1553,12 +2081,32 @@
+@@ -1553,12 +2083,32 @@
              this.mc.mcProfiler.endStartSection("terrain");
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glPushMatrix();
@@ -1465,7 +1471,7 @@
              if (this.debugViewDirection == 0)
              {
                  GL11.glMatrixMode(GL11.GL_MODELVIEW);
-@@ -1584,14 +2132,14 @@
+@@ -1584,14 +2134,14 @@
                  GL11.glMatrixMode(GL11.GL_MODELVIEW);
                  GL11.glPopMatrix();
                  GL11.glPushMatrix();
@@ -1483,7 +1489,7 @@
                      {
                          var5.drawSelectionBox(var18, this.mc.objectMouseOver, 0, par1);
                      }
-@@ -1602,42 +2150,70 @@
+@@ -1602,42 +2152,70 @@
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glPopMatrix();
  
@@ -1557,7 +1563,7 @@
              GL11.glDisable(GL11.GL_BLEND);
              GL11.glEnable(GL11.GL_CULL_FACE);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1670,12 +2246,28 @@
+@@ -1670,12 +2248,28 @@
                      {
                          GL11.glColorMask(true, false, false, true);
                      }
@@ -1587,7 +1593,7 @@
                  }
  
                  GL11.glDisable(GL11.GL_BLEND);
-@@ -1684,9 +2276,17 @@
+@@ -1684,9 +2278,17 @@
              else
              {
                  this.mc.mcProfiler.endStartSection("water");
@@ -1606,7 +1612,7 @@
              WrUpdates.pauseBackgroundUpdates();
  
              if (hasForge && this.debugViewDirection == 0)
-@@ -1716,15 +2316,46 @@
+@@ -1716,15 +2318,46 @@
                  Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, new Object[] {var5, Float.valueOf(par1)});
              }
  
@@ -1659,7 +1665,7 @@
              if (!this.mc.gameSettings.anaglyph)
              {
                  this.mc.mcProfiler.endSection();
-@@ -1741,17 +2372,33 @@
+@@ -1741,17 +2374,33 @@
       */
      private void renderCloudsCheck(RenderGlobal par1RenderGlobal, float par2)
      {
@@ -1694,12 +1700,13 @@
      }
  
      private void addRainParticles()
-@@ -2241,8 +2888,15 @@
+@@ -2241,9 +2890,16 @@
              this.fogColorGreen = Reflector.getFieldValueFloat(event1, Reflector.EntityViewRenderEvent_FogColors_green, this.fogColorGreen);
              this.fogColorBlue = Reflector.getFieldValueFloat(event1, Reflector.EntityViewRenderEvent_FogColors_blue, this.fogColorBlue);
          }
 -
 -        GL11.glClearColor(this.fogColorRed, this.fogColorGreen, this.fogColorBlue, 0.0F);
+-    }
 +        /** MINECRIFT SHADERS MOD **/
 +        if (Reflector.shadersModExists()) {
 +            //Shaders.setClearColor(this.fogColorRed, this.fogColorGreen, this.fogColorBlue, 0.0F);
@@ -1709,10 +1716,11 @@
 +            GL11.glClearColor(this.fogColorRed, this.fogColorGreen, this.fogColorBlue, 0.0F);
 +        }
 +        /** END MINECRIFT SHADERS MOD **/
-     }
++    }
  
      /**
-@@ -2259,17 +2913,31 @@
+      * Sets up the fog to be rendered. If the arg passed in is -1 the fog starts at 0 and goes to 80% of far plane
+@@ -2259,17 +2915,31 @@
          {
              var4 = ((EntityPlayer)var3).capabilities.isCreativeMode;
          }
@@ -1747,7 +1755,7 @@
              }
  
              GL11.glFogf(GL11.GL_FOG_START, 0.0F);
-@@ -2300,8 +2968,13 @@
+@@ -2300,8 +2970,13 @@
                      {
                          var6 = 5.0F + (this.farPlaneDistance - 5.0F) * (1.0F - (float)var101 / 20.0F);
                      }
@@ -1763,7 +1771,7 @@
  
                      if (par1 < 0)
                      {
-@@ -2316,17 +2989,35 @@
+@@ -2316,17 +2991,35 @@
  
                      if (Config.isFogFancy())
                      {
@@ -1802,7 +1810,7 @@
  
                      if (var3.isPotionActive(Potion.waterBreathing))
                      {
-@@ -2334,7 +3025,7 @@
+@@ -2334,7 +3027,7 @@
                      }
                      else
                      {
@@ -1811,7 +1819,7 @@
                      }
  
                      if (Config.isClearWater())
-@@ -2344,7 +3035,13 @@
+@@ -2344,7 +3037,13 @@
                  }
                  else if (var5.getMaterial() == Material.lava)
                  {
@@ -1826,7 +1834,7 @@
                      GL11.glFogf(GL11.GL_FOG_DENSITY, 2.0F);
                  }
                  else
-@@ -2377,8 +3074,13 @@
+@@ -2377,8 +3076,13 @@
                              }
                          }
                      }
@@ -1842,7 +1850,7 @@
  
                      if (par1 < 0)
                      {
-@@ -2395,12 +3097,24 @@
+@@ -2395,12 +3099,24 @@
                      {
                          if (Config.isFogFancy())
                          {
@@ -1869,7 +1877,7 @@
                          }
                      }
  
-@@ -2418,6 +3132,7 @@
+@@ -2418,6 +3134,7 @@
              GL11.glEnable(GL11.GL_COLOR_MATERIAL);
              GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT);
          }
@@ -1877,7 +1885,7 @@
      }
  
      /**
-@@ -2425,6 +3140,12 @@
+@@ -2425,6 +3142,12 @@
       */
      private FloatBuffer setFogColorBuffer(float par1, float par2, float par3, float par4)
      {
@@ -1890,7 +1898,7 @@
          this.fogColorBuffer.clear();
          this.fogColorBuffer.put(par1).put(par2).put(par3).put(par4);
          this.fogColorBuffer.flip();
-@@ -2589,6 +3310,8 @@
+@@ -2589,6 +3312,8 @@
  
      private void frameFinish()
      {
@@ -1899,7 +1907,7 @@
          if (this.mc.theWorld != null)
          {
              long now = System.currentTimeMillis();
-@@ -2606,6 +3329,8 @@
+@@ -2606,6 +3331,8 @@
                  }
              }
          }
@@ -1908,7 +1916,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3375,1697 @@
+@@ -2650,4 +3377,1709 @@
              ;
          }
      }
@@ -3206,13 +3214,13 @@
 +                || vrPlayer.movementTeleportDestination.yCoord != 0
 +                || vrPlayer.movementTeleportDestination.zCoord != 0);
 +
-+            int validLineR = 245;
-+            int validLineG = 209;
-+            int validLineB = 245;
++            int validLineR = 205;
++            int validLineG = 169;
++            int validLineB = 205;
 +            if (!validLocation)
 +            {
 +                // invalid location
-+                tes.setColorRGBA(123, 104, 123, 255);
++                tes.setColorRGBA(83, 75, 83, 255);
 +            }
 +            else
 +            {
@@ -3253,9 +3261,9 @@
 +            tes.draw();
 +
 +            if (validLocation){
-+                Vec3 circlePos = vrPlayer.getInterpolatedArcPosition(1.0f);
++                Vec3 circlePos = Vec3.createVectorHelper(vrPlayer.movementTeleportDestination.xCoord, vrPlayer.movementTeleportDestination.yCoord, vrPlayer.movementTeleportDestination.zCoord) ;
 +
-+				int side = vrPlayer.movementTeleportDestinationSideHit;
++				int side = 1; //vrPlayer.movementTeleportDestinationSideHit;
 +				
 +				float o = 0.01f;
 +				
@@ -3549,59 +3557,71 @@
 +    private void renderCircle(Vec3 pos, float radius, int edges, int r, int g, int b, int a, int side)
 +    {
 +        Tessellator tes = Tessellator.instance;
-+        tes.startDrawing(GL11.GL_TRIANGLES);
++   
++        tes.startDrawing(GL11.GL_TRIANGLE_FAN);
 +
 +        tes.setColorRGBA(r, g, b, a);
-+        for (int i=0;i<edges;i++)
++    
++	    tes.addVertex(pos.xCoord, pos.yCoord, pos.zCoord);
++        
++        for (int i=0;i<edges + 1;i++)
 +        {
-+		
-+			float startAngle, endAngle;
-+		
-+		if (side == 1 || side == 3 || side == 5) {
-+		     endAngle = ( (float) i / (float) edges ) * (float) Math.PI * 2.0f;
-+             startAngle = ( (float) (i+1) / (float) edges ) * (float) Math.PI * 2.0f;
-+		} else {
-+			 startAngle = ( (float) i / (float) edges ) * (float) Math.PI * 2.0f;
-+             endAngle = ( (float) (i+1) / (float) edges ) * (float) Math.PI * 2.0f;
-+		}
-+		    tes.addVertex(pos.xCoord, pos.yCoord, pos.zCoord);
++			float startAngle;
++            startAngle = ( (float) (i) / (float) edges ) * (float) Math.PI * 2.0f;
 +
 +			if (side == 0 || side == 1) { //y
 +				float x = (float) pos.xCoord + (float) Math.cos(startAngle) * radius;
 +				float y = (float) pos.yCoord;
 +				float z = (float) pos.zCoord + (float) Math.sin(startAngle) * radius;
 +				tes.addVertex(x, y, z);
-+				x = (float) pos.xCoord + (float) Math.cos(endAngle) * radius;
-+				z = (float) pos.zCoord + (float) Math.sin(endAngle) * radius;
-+				tes.addVertex(x, y, z);
 +			} else if (side == 2 || side == 3) { //z
 +				float x = (float) pos.xCoord + (float) Math.cos(startAngle) * radius;
 +				float y = (float) pos.yCoord + (float) Math.sin(startAngle) * radius;
 +				float z = (float) pos.zCoord; 
-+				tes.addVertex(x, y, z);
-+				x = (float) pos.xCoord + (float) Math.cos(endAngle) * radius;
-+				y = (float) pos.yCoord + (float) Math.sin(endAngle) * radius;
 +				tes.addVertex(x, y, z);
 +			} else if (side == 4 || side == 5){ //x
 +				float x = (float) pos.xCoord ;
 +				float y = (float) pos.yCoord + (float) Math.cos(startAngle) * radius;
 +				float z = (float) pos.zCoord + (float) Math.sin(startAngle) * radius;
 +				tes.addVertex(x, y, z);
-+				y = (float) pos.yCoord + (float) Math.cos(endAngle) * radius;
-+				z = (float) pos.zCoord + (float) Math.sin(endAngle) * radius;
++			} else{}
++
++        }
++      
++        tes.draw();
++        
++        tes.startDrawing(GL11.GL_TRIANGLE_FAN);
++
++        tes.setColorRGBA(r, g, b, a);
++    
++	    tes.addVertex(pos.xCoord, pos.yCoord, pos.zCoord);
++        
++        for (int i=edges +1 ; i > 0; i--)
++        {
++			float startAngle;
++            startAngle = ( (float) (i) / (float) edges ) * (float) Math.PI * 2.0f;
++
++			if (side == 0 || side == 1) { //y
++				float x = (float) pos.xCoord + (float) Math.cos(startAngle) * radius;
++				float y = (float) pos.yCoord;
++				float z = (float) pos.zCoord + (float) Math.sin(startAngle) * radius;
 +				tes.addVertex(x, y, z);
-+			} else{	
-+			      tes.setColorRGBA(50, 50, 50, a);
-+			float x = (float) pos.xCoord ;
++			} else if (side == 2 || side == 3) { //z
++				float x = (float) pos.xCoord + (float) Math.cos(startAngle) * radius;
++				float y = (float) pos.yCoord + (float) Math.sin(startAngle) * radius;
++				float z = (float) pos.zCoord; 
++				tes.addVertex(x, y, z);
++			} else if (side == 4 || side == 5){ //x
++				float x = (float) pos.xCoord ;
 +				float y = (float) pos.yCoord + (float) Math.cos(startAngle) * radius;
 +				float z = (float) pos.zCoord + (float) Math.sin(startAngle) * radius;
 +				tes.addVertex(x, y, z);
-+				y = (float) pos.yCoord + (float) Math.cos(endAngle) * radius;
-+				z = (float) pos.zCoord + (float) Math.sin(endAngle) * radius;
-+				tes.addVertex(x, y, z);}
-+				
++			} else{}
++
 +        }
++        
 +        tes.draw();
++        
 +    }
 +	
 +    // VIVE END - render functions

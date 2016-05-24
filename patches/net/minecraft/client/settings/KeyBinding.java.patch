@@ -20,12 +20,55 @@
 +    public final String keyCategory;
 +    public int keyCode;
  
-     /** because _303 wanted me to call it that(Caironater) */
+-    /** because _303 wanted me to call it that(Caironater) */
 -    private boolean pressed;
--    private int pressTime;
-+    public boolean pressed;
-+    public int pressTime;
++//jrbudda changed all this around
+     private int pressTime;
++    
 +	/** END MINECRIFT */
      private static final String __OBFID = "CL_00000628";
  
      public static void onTick(int keyCode)
+@@ -44,7 +46,7 @@
+ 
+             if (var2 != null)
+             {
+-                var2.pressed = pressed;
++                var2.pressTime = 1;
+             }
+         }
+     }
+@@ -90,7 +92,7 @@
+ 
+     public boolean getIsKeyPressed()
+     {
+-        return this.pressed;
++        return this.pressTime > 0;
+     }
+ 
+     public String getKeyCategory()
+@@ -98,7 +100,11 @@
+         return this.keyCategory;
+     }
+ 
+-    public boolean isPressed()
++    public void pressKey(){
++    	this.pressTime = 1;	
++    }
++    
++    public boolean consumePressed()
+     {
+         if (this.pressTime == 0)
+         {
+@@ -111,10 +117,9 @@
+         }
+     }
+ 
+-    private void unpressKey()
++    public void unpressKey()
+     {
+         this.pressTime = 0;
+-        this.pressed = false;
+     }
+ 
+     public String getKeyDescription()

@@ -104,18 +104,16 @@ IEventNotifier, IEventListener, IBodyAimController
 	private static long k_buttonAppMenu = (1L << JOpenVRLibrary.EVRButtonId.EVRButtonId_k_EButton_ApplicationMenu);
 	private static long k_buttonGrip =  (1L << JOpenVRLibrary.EVRButtonId.EVRButtonId_k_EButton_Grip);
 	
-	private static float triggerThreshold = .15f;
+	private static float triggerThreshold = .25f;
 	
 	private static Vector3f guiPos = new Vector3f();
 	private static Matrix4f guiRotationPose = new Matrix4f();
 	private static float guiScale = 1.0f;
 	private double startedOpeningInventory = 0;
-	private int quickTorchPreviousSlot = -1;
 
 	// For mouse menu emulation
 	private float controllerMouseX = -1.0f;
 	private float controllerMouseY = -1.0f;
-	private boolean leftMouseClicked = false;
 	private Field keyDownField;
 	private Field buttonDownField;
 
@@ -421,15 +419,19 @@ IEventNotifier, IEventListener, IBodyAimController
 
 				if (controllerDeviceIndex[RIGHT_CONTROLLER] != -1)
 				{
-					if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold)
+					
+					
+					//LMB
+					if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold && 
+							lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x <= triggerThreshold 
+							)
 					{
 						//click left mouse button
-						if (!leftMouseClicked)
 						mc.currentScreen.mouseDown(mouseX, mouseY, 0);
-						else
-						//Already down
+					}	
+				
+					if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold) {					
 						mc.currentScreen.mouseDrag(mouseX, mouseY);//Signals mouse move
-						leftMouseClicked = true;
 						if (buttonDownField != null)
 						{
 							try
@@ -441,63 +443,80 @@ IEventNotifier, IEventListener, IBodyAimController
 							{
 							}
 						}
-					} else if (leftMouseClicked)
+					}
+				
+				
+					if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x <= triggerThreshold && 
+							lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold 
+							)
 					{
+						//click left mouse button
 						mc.currentScreen.mouseUp(mouseX, mouseY, 0);
-						leftMouseClicked = false;
-					}
+					}	
+				
+					// hack for scrollbars
+					GuiScreenNavigator.selectDepressed = (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold);
 
-					if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0)
+					
+				//end LMB
+					
+					
+					//RMB
+					if (
+					(controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+					(lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) == 0 
+					)				
 					{
-						if ((lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) == 0)
+						//click left mouse button
 						mc.currentScreen.mouseDown(mouseX, mouseY, 1);
-						else
-						mc.currentScreen.mouseDrag(mouseX, mouseY);
-						if (buttonDownField != null)
-						{
-							try
-							{
-								((ByteBuffer) buttonDownField.get(null)).put(1, (byte) 1);
-							} catch (IllegalArgumentException e)
-							{
-							} catch (IllegalAccessException e)
-							{
-							}
-						}
-					} else if ((lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0)
+					}	
+				
+					if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 )
 					{
-						mc.currentScreen.mouseUp(mouseX, mouseY, 1);
+						mc.currentScreen.mouseDrag(mouseX, mouseY);//Signals mouse move
 					}
+				
+				
+			if(		(controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) == 0 &&
+					(lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 
+							)
+					{
+						//click left mouse button
+						mc.currentScreen.mouseUp(mouseX, mouseY, 1);
+					}	
+					//end RMB
+
+
 
 					// clicking off screen?
 					if (controllerMouseX < 0 && mc.thePlayer != null)
 					{
 						boolean pressedPlaceBlock = ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0)
 						&& ((lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) == 0);
+						
 						boolean pressedAttack = (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold)
 						&& (lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x <= triggerThreshold);
+						
 						if (pressedAttack || pressedPlaceBlock)
 						{
-							mc.thePlayer.closeScreen();
+					 if (getCurrentTimeSecs() - startedOpeningInventory > 0.3f)	{mc.thePlayer.closeScreen();}
 						}
 					}
 
 				} else
 				{
 					// no controller connected, do mouse ups
-					if (leftMouseClicked)
+					if (mc.gameSettings.keyBindAttack.getIsKeyPressed())
 					{
 						mc.currentScreen.mouseUp(mouseX, mouseY, 0);
-						leftMouseClicked = false;
+						mc.gameSettings.keyBindAttack.unpressKey();
 					}
 					// TODO: rmb?
 				}
 			}
 		}
 
-		// hack for scrollbars
-		GuiScreenNavigator.selectDepressed = (mc.currentScreen != null && leftMouseClicked);
-
+	
 		updatePose();
 
 		mc.mcProfiler.endSection();
@@ -720,8 +739,9 @@ IEventNotifier, IEventListener, IBodyAimController
 
 		// right controller
 		boolean pressedRGrip = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonGrip) > 0;
-		keyPick.pressed = pressedRGrip;		
+	
 		if (pressedRGrip) {
+			keyPick.pressKey();
 			moveModeSwitchcount++;
 			if (moveModeSwitchcount >= 20 * 4) {
 				moveModeSwitchcount = 0;
@@ -730,66 +750,85 @@ IEventNotifier, IEventListener, IBodyAimController
 			}
 		} else {moveModeSwitchcount = 0;}
 
-		if (!gui && controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger]!=null)
+	if (!gui) {
+		if ( controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger]!=null)
 		{
 			if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold)
 			{
-				if (!keyBindAttack.pressed)
-				keyBindAttack.pressed = true;
-				leftMouseClicked = true;
+				keyBindAttack.pressKey();
 			} else
 			{
-				leftMouseClicked = false;
-				if (keyBindAttack.pressed)
-				keyBindAttack.pressed = false;
+				keyBindAttack.unpressKey();
 			}
 		}
+	}
+	
+	if(!gui) {
+		if( (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0) {
+			keyBindUseItem.pressKey();
+		} else {
+			keyBindUseItem.unpressKey();
+		}
 		
-		keyBindUseItem.pressed = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0;
-		keyBindDrop.pressed =  (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0;
-		 if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0 &&
-		       (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu)== 0) {
-				keyBindDrop.pressTime++; 	   		   
-			   }
+		if( (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0) {			
+			keyBindDrop.pressKey();
+		} else {
+			keyBindDrop.unpressKey();
+		}
+	}
+		
+//		 if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0 &&
+//		       (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu)== 0) {
+//				keyBindDrop.pressTime++; 	   		   
+//			   }
 			   
 		// left controller
 		//bottom of  l trackpad
-		keyBindJump.pressed = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
-		(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 );
+		if ((controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 )) {
+			keyBindJump.pressKey();
+		} else {
+			keyBindJump.unpressKey();
+		}
 		
 		// if you start teleporting, close any UI
 		if (gui && !sleeping && (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTrigger) > 0)
 		{
 			mc.thePlayer.closeScreen();
 		}
-		keyBindTeleport.pressed = !sleeping && (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTrigger) > 0;
+		
+	if( !sleeping && (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTrigger) > 0) {
+		keyBindTeleport.pressKey();
+	} else {
+		keyBindTeleport.unpressKey();
+	}
 		
 		if ( 
 				(controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
 				(lastControllerState[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) == 0 &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0) && 
-				!keyBindTeleport.pressed
+				!keyBindTeleport.getIsKeyPressed()
 				)
 		{
 			if (!gui)
 			{
 				// if no UI screen is up, show inventory when button is pressed
 				startedOpeningInventory = getCurrentTimeSecs();
-				keyBindInventory.pressed = true;
+				keyBindInventory.pressKey();
 			}
-			else
+			else if (getCurrentTimeSecs() - startedOpeningInventory > 0.3f)
 			{
 				// if inventory button is pressed while a screen is up, dismiss it
 				if (mc.thePlayer!=null)
 				{
 					mc.thePlayer.closeScreen();
 				}
-				keyBindInventory.pressed = false;
+				//keyBindInventory.pressKey();
 			}
 		}
 		else
 		{
-			keyBindInventory.pressed = false;
+			keyBindInventory.unpressKey();
 		}
 		
 		// in restricted mode, update room origin immediately when you release trigger
@@ -799,13 +838,17 @@ IEventNotifier, IEventListener, IBodyAimController
 			mc.vrPlayer.lastRoomUpdateTime = 0;
 		}
 		
-		keyBindSneak.pressed = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonGrip) > 0;
+		if ((controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonGrip) > 0) {
+			keyBindSneak.pressKey();
+		} else {
+			keyBindSneak.unpressKey();
+		}
 
 		if ( (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0 &&
 				(lastControllerState[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) == 0)
 		{
 			if(gui)
-			mc.thePlayer.closeScreen();
+		  	mc.thePlayer.closeScreen();
 			else
 			mc.displayInGameMenu();
 		}
@@ -814,7 +857,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		// NOTE: enabling this for Attack and PlaceBlock causes some actions to happen way too fast...
 		//if (keyBindAttack.pressed) KeyBinding.onTick(keyBindAttack.getKeyCode());
 		//if (keyBindUseItem.pressed) KeyBinding.onTick(keyBindUseItem.getKeyCode());
-		if (keyBindInventory.pressed) KeyBinding.onTick(keyBindInventory.getKeyCode());
+		//if (keyBindInventory.pressed) KeyBinding.onTick(keyBindInventory.getKeyCode());
 		//if (keyBindDrop.pressed) KeyBinding.onTick(keyBindDrop.getKeyCode());
 		//if (keyBindTeleport.pressed) KeyBinding.onTick(keyBindTeleport.getKeyCode());
 	}

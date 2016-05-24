@@ -290,7 +290,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 	        	if(mc.currentScreen != null)
 		        	thePlayer.closeScreen();
 	        	else
-		        	settings.keyBindInventory.pressTime=1;
+		        	settings.keyBindInventory.pressKey();
 	        }
 
 	        if((cont1.buttons & EnumButton.START.mask())>0 &&
@@ -356,13 +356,13 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        {
 		        	if( !leftMouseClicked )
 		        		mc.clickMouse();
-		        	settings.keyBindAttack.pressed = true;
+		        	settings.keyBindAttack.pressKey();
 		        	leftMouseClicked = true;
 		        }
 		        else
 		        {
 		        	leftMouseClicked = false;
-		        	settings.keyBindAttack.pressed = false;
+		        	settings.keyBindAttack.unpressKey();
 		        }
 		        	
 		        if((cont2.buttons & EnumButton.BUMPER.mask()) >0 && 
@@ -371,34 +371,38 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        	mc.rightClickMouse();
 		        }
 
-	        	settings.keyBindUseItem.pressed = (cont2.buttons & EnumButton.BUMPER.mask()) >0 ;
+	        	if ((cont2.buttons & EnumButton.BUMPER.mask()) >0) {
+	        	settings.keyBindUseItem.pressKey(); 	
+	        	} else {
+	            settings.keyBindUseItem.unpressKey(); 	       		
+	        	}
 		        
 		        if((cont2.buttons & EnumButton.JOYSTICK.mask())>0 &&
 		        	 (lastcont2Buttons & EnumButton.JOYSTICK.mask()) == 0)
 		        {
-		        	settings.keyBindSneak.pressed = true;
+		        	settings.keyBindSneak.pressKey();
 		        }
 		        if(( lastcont2Buttons   & EnumButton.JOYSTICK.mask())>0 &&
 		        	(cont2.buttons & EnumButton.JOYSTICK.mask()) == 0)
 		        {
-		        	settings.keyBindSneak.pressed = false;
+		        	settings.keyBindSneak.unpressKey();
 		        }
 	
 		        if((cont2.buttons & EnumButton.BUTTON_1.mask())>0 &&
 		        	(lastcont2Buttons & EnumButton.BUTTON_1.mask()) == 0)
 		        {
-		        	settings.keyBindDrop.pressTime++;
+		        	settings.keyBindDrop.pressKey();
 		        }
 	
 		        if((cont2.buttons & EnumButton.BUTTON_2.mask())>0 &&
 		        	(lastcont2Buttons & EnumButton.BUTTON_2.mask()) == 0)
 		        {
-		        	settings.keyBindJump.pressed = true;
+		        	settings.keyBindJump.pressKey();
 		        }
 		        if((lastcont2Buttons & EnumButton.BUTTON_2.mask())>0 &&
 		        	(cont2.buttons & EnumButton.BUTTON_2.mask()) == 0)
 		        {
-		        	settings.keyBindJump.pressed = false;
+		        	settings.keyBindJump.pressKey();
 		        }
 		        
 		        if((cont2.buttons & EnumButton.BUTTON_3.mask())>0 &&

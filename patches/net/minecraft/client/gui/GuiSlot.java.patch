@@ -94,7 +94,7 @@
          var9 = this.left + this.width / 2 - this.getListWidth() / 2 + 2;
          var10 = this.top + 4 - (int)this.amountScrolled;
  
-@@ -539,4 +551,32 @@
+@@ -539,4 +551,33 @@
      {
          return this.slotHeight;
      }
@@ -116,6 +116,7 @@
 +	/** MINECRIFT ADDITIONS BELOW */
 +	
 +    public int publicGetSize() { return getSize(); }
++    
 +    public int select( int item, boolean dblClick) {
 +        amountScrolled = item * slotHeight;
 +        bindAmountScrolled();

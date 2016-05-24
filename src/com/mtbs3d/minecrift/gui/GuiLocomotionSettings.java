@@ -16,7 +16,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.WALK_UP_BLOCKS,
             VRSettings.VrOptions.MOVEMENT_MULTIPLIER,
             //VRSettings.VrOptions.STRAFE_MULTIPLIER,
-            //VRSettings.VrOptions.INERTIA_FACTOR,
+            VRSettings.VrOptions.INERTIA_FACTOR,
             //VRSettings.VrOptions.VIEW_BOBBING,
             VRSettings.VrOptions.PITCH_AFFECTS_FLYING,
             //VRSettings.VrOptions.DUMMY_SMALL,
@@ -71,7 +71,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 if (var8 == VRSettings.VrOptions.MOVEMENT_MULTIPLIER)
                 {
                     minValue = 0.15f;
-                    maxValue = 1.0f;
+                    maxValue = 1.3f;
                     increment = 0.01f;
                 }
                 if (var8 == VRSettings.VrOptions.STRAFE_MULTIPLIER)

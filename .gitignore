@@ -21,6 +21,7 @@ bin/intelij_prod
 optionsvrprofiles.txt
 crash-reports/
 saves/
+jars/
 *.ex_
 mcppatches - Copy/
 hs_err_pid*.log
