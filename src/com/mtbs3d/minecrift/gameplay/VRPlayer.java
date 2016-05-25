@@ -32,6 +32,7 @@ public class VRPlayer
     public Vec3 movementTeleportDestination = Vec3.createVectorHelper(0.0,0.0,0.0);
     public int movementTeleportDestinationSideHit;
     public double movementTeleportProgress;
+    public double movementTeleportDistance;
     public Vec3 roomOrigin = Vec3.createVectorHelper(0,0,0);
     public Vec3 teleportSlide = Vec3.createVectorHelper(0,0,0);
     public long teleportSlideStartTime = 0;
@@ -43,6 +44,10 @@ public class VRPlayer
     public double lastTeleportArcDisplayOffset = 0;
     public double fallTime = 0;
 
+    private float teleportEnergy;
+    
+    
+    
     public static VRPlayer get()
     {
         return Minecraft.getMinecraft().vrPlayer;
@@ -100,6 +105,8 @@ public class VRPlayer
 	
         updateSwingAttack();
 		
+        
+        
         // don't do teleport movement if on a server that doesn't have this mod installed
         if (restrictedViveClient) {
 			  return; //let mc handle look direction movement
@@ -108,6 +115,8 @@ public class VRPlayer
 				
         mc.mcProfiler.startSection("VRPlayerOnLivingUpdate");
 
+        if (teleportEnergy < 100) { teleportEnergy++;}
+        
         boolean doTeleport = false;
         Vec3 dest = null;
 
@@ -261,8 +270,8 @@ public class VRPlayer
 
         if (doTeleport && dest!=null && (dest.xCoord != 0 || dest.yCoord !=0 || dest.zCoord != 0)) //execute teleport
         {
-            float teleportDistance = (float)MathHelper.sqrt_double(dest.squareDistanceTo(player.posX, player.posY, player.posZ));
-            boolean playTeleportSound = teleportDistance > 0.0f && vrMovementStyle.endTeleportingSound != null;
+            movementTeleportDistance = (float)MathHelper.sqrt_double(dest.squareDistanceTo(player.posX, player.posY, player.posZ));
+            boolean playTeleportSound = movementTeleportDistance > 0.0f && vrMovementStyle.endTeleportingSound != null;
             Block block = null;
 
             if (playTeleportSound)
@@ -278,9 +287,14 @@ public class VRPlayer
                 playFootstepSound(mc, dest.xCoord, dest.yCoord, dest.zCoord);
             }
 
-            player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);
+            //execute teleport      
+            player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
+            player.addExhaustion((float) (movementTeleportDistance / 16 * 1.5f));
+      
+            if (!mc.vrPlayer.getFreeMoveMode() && mc.playerController.isNotCreative() && mc.vrPlayer.vrMovementStyle.arcAiming){
+            	teleportEnergy -= movementTeleportDistance * 4;	
+            }
             
-            player.addExhaustion(teleportDistance / 16 * 1.5f);
             
           //  System.out.println("teleport " + dest.toString());
             player.fallDistance = 0.0F;
@@ -543,11 +557,11 @@ public class VRPlayer
 
         // if aiming too high, don't trace a full arc
         float horizontalAimDist = (float)Math.sqrt(tiltedAim.xCoord*tiltedAim.xCoord + tiltedAim.zCoord*tiltedAim.zCoord);
-        float pitch = (float)Math.atan2(tiltedAim.yCoord, horizontalAimDist);
-        if (pitch > (float)Math.PI * 0.25f)
-        {
-            maxSteps = 6;
-        }
+//        float pitch = (float)Math.atan2(tiltedAim.yCoord, horizontalAimDist);
+//        if (pitch > (float)Math.PI * 0.25f)
+//        {
+//            maxSteps = 6;
+//        }
 
         // calculate gravity vector for arc
         float gravityAcceleration = 0.098f;
@@ -574,6 +588,10 @@ public class VRPlayer
         // trace arc
         for (int i=movementTeleportArcSteps;i<maxSteps;i++)
         {
+        	if (i*4 > teleportEnergy) {
+        		break;
+        		}
+        	
             newPos.xCoord = pos.xCoord + velocity.xCoord;
             newPos.yCoord = pos.yCoord + velocity.yCoord;
             newPos.zCoord = pos.zCoord + velocity.zCoord;
@@ -746,6 +764,8 @@ public class VRPlayer
 //                    	   System.out.println(li.toString());
 //					}
 ;                    
+
+
                     if (start.distanceTo(dest) <= maxTeleportDist && (emptySpotReq || emptySpotCenter))
                     {
                    	
@@ -768,6 +788,9 @@ public class VRPlayer
                 }
             }
         }
+        
+        if(bFoundValidSpot) { movementTeleportDistance = start.distanceTo(movementTeleportDestination);}
+        
         return bFoundValidSpot;
     }
 
@@ -959,5 +982,7 @@ public class VRPlayer
 		
 		Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY, Minecraft.getMinecraft().thePlayer.posZ); //reset room origin on mode change.
 	}
+
+	public float getTeleportEnergy () {return teleportEnergy;}
 	
 }
