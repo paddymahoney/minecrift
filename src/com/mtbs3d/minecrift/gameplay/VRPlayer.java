@@ -18,6 +18,7 @@ import net.minecraft.client.particle.EntityVRTeleportFX;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
@@ -61,34 +62,38 @@ public class VRPlayer
         }
     }
 
-    public void teleportRoomOrigin(double x, double y, double z)
+    public void snapRoomOriginToPlayerEntity(EntityPlayer player)
     {
         if (Thread.currentThread().getName().equals("Server thread"))
             return;
 
+        double x = player.posX;
+        double y = player.boundingBox.minY;
+        double z = player.posZ;
+        
         Minecraft mc = Minecraft.getMinecraft();
         boolean bStartingUp = (roomOrigin.xCoord==0 && roomOrigin.yCoord==0 && roomOrigin.zCoord==0);
         boolean bRestricted = !bStartingUp && restrictedViveClient;
 
         if (mc.positionTracker == null || !mc.positionTracker.isInitialized() || bRestricted)
-        {
+        { // set room origin exactly to x,y,z since in restricted mode the room origin is always the players feet
             if (lastRoomUpdateTime==0
                     || mc.stereoProvider.getCurrentTimeSecs() - lastRoomUpdateTime >= mc.vrSettings.restrictedCameraUpdateInterval)
             {
                 roomOrigin.xCoord = x;
-                roomOrigin.yCoord = y - 1.62f;
+                roomOrigin.yCoord = y;
                 roomOrigin.zCoord = z;
                 lastRoomUpdateTime = mc.stereoProvider.getCurrentTimeSecs();
             }
         }
         else
-        {
+        { //set room origin to underneath the headset... which is where the player entity should be already? shouldnt be already anyway? maybe cause collosion?
             teleportSlide.xCoord = 0;
             teleportSlide.yCoord = 0;
             teleportSlide.zCoord = 0;
             Vec3 hmdOffset = mc.positionTracker.getCenterEyePosition();
             double newX = x + hmdOffset.xCoord;
-            double newY = y - 1.62f;
+            double newY = y;
             double newZ = z + hmdOffset.zCoord;
             teleportSlide.xCoord = roomOrigin.xCoord - newX;
             teleportSlide.yCoord = roomOrigin.yCoord - newY;
@@ -427,7 +432,7 @@ public class VRPlayer
 //                	}
                     		}
 
-                // test for climbing up a block
+    //             test for climbing up a block
                 if (mc.vrSettings.walkUpBlocks && player.fallDistance == 0)
                 {
                     if (torso == null)

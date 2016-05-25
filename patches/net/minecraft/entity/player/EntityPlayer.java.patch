@@ -785,10 +785,11 @@
              float var10 = 0.5F;
              float var7 = 0.5F;
  
-@@ -1517,24 +1918,59 @@
+@@ -1517,24 +1918,61 @@
       */
      public void wakeUpPlayer(boolean p_70999_1_, boolean updateWorldFlag, boolean setSpawn)
      {
+-        this.setSize(0.6F, 1.8F);
 +		/** MINECRIFT FORGE **/
 +        boolean Forge = Reflector.forgeExists();
 +		if (Forge)
@@ -797,7 +798,8 @@
 +            Reflector.postForgeBusEvent(Reflector.ForgePlayerWakeUpEvent_Constructor, new Object[] {this, p_70999_1_, updateWorldFlag, setSpawn});
 +		}
 +		/** END MINECRIFT FORGE **/
-         this.setSize(0.6F, 1.8F);
++        
++		this.setSize(0.6F, 1.8F);
          this.resetHeight();
 -        ChunkCoordinates var4 = this.playerLocation;
 -        ChunkCoordinates var5 = this.playerLocation;
@@ -815,6 +817,7 @@
 -            this.setPosition((double)((float)var5.posX + 0.5F), (double)((float)var5.posY + this.yOffset + 0.1F), (double)((float)var5.posZ + 0.5F));
 -        }
 -
++        
 +		/** MINECRIFT FORGE **/
 +		if (Forge)
 +		{
@@ -861,7 +864,7 @@
          this.sleeping = false;
  
          if (!this.worldObj.isRemote && updateWorldFlag)
-@@ -1562,7 +1998,17 @@
+@@ -1562,7 +2000,17 @@
       */
      private boolean isInBed()
      {
@@ -880,7 +883,7 @@
      }
  
      /**
-@@ -1571,25 +2017,54 @@
+@@ -1571,25 +2019,54 @@
       */
      public static ChunkCoordinates verifyRespawnCoordinates(World p_71056_0_, ChunkCoordinates p_71056_1_, boolean p_71056_2_)
      {
@@ -954,7 +957,7 @@
      }
  
      /**
-@@ -1601,7 +2076,16 @@
+@@ -1601,7 +2078,16 @@
          {
              int var1 = this.worldObj.getBlockMetadata(this.playerLocation.posX, this.playerLocation.posY, this.playerLocation.posZ);
              int var2 = BlockBed.getDirection(var1);
@@ -972,7 +975,7 @@
              switch (var2)
              {
                  case 0:
-@@ -1668,12 +2152,30 @@
+@@ -1668,12 +2154,30 @@
       */
      public ChunkCoordinates getBedLocation()
      {
@@ -1005,7 +1008,7 @@
      }
  
      /**
-@@ -1681,6 +2183,16 @@
+@@ -1681,6 +2185,16 @@
       */
      public void setSpawnChunk(ChunkCoordinates p_71063_1_, boolean p_71063_2_)
      {
@@ -1022,7 +1025,7 @@
          if (p_71063_1_ != null)
          {
              this.spawnChunk = new ChunkCoordinates(p_71063_1_);
-@@ -1727,7 +2239,7 @@
+@@ -1727,7 +2241,7 @@
      /**
       * Moves the entity based on the specified heading.  Args: strafe, forward
       */
@@ -1031,7 +1034,7 @@
      {
          double var3 = this.posX;
          double var5 = this.posY;
-@@ -1738,13 +2250,20 @@
+@@ -1738,13 +2252,20 @@
              double var9 = this.motionY;
              float var11 = this.jumpMovementFactor;
              this.jumpMovementFactor = this.capabilities.getFlySpeed();
@@ -1055,7 +1058,7 @@
          }
  
          this.addMovementStat(this.posX - var3, this.posY - var5, this.posZ - var7);
-@@ -1878,6 +2397,13 @@
+@@ -1878,6 +2399,13 @@
  
              super.fall(distance);
          }
@@ -1069,7 +1072,7 @@
      }
  
      protected String func_146067_o(int p_146067_1_)
-@@ -1928,11 +2454,16 @@
+@@ -1928,11 +2456,16 @@
          }
          else
          {
@@ -1091,7 +1094,7 @@
              if (this.itemInUse != null && itemStackIn.getItem() == Items.bow)
              {
                  int var4 = itemStackIn.getMaxItemUseDuration() - this.itemInUseCount;
-@@ -1952,6 +2483,13 @@
+@@ -1952,6 +2485,13 @@
                      return Items.bow.getItemIconForUseDuration(0);
                  }
              }
@@ -1105,7 +1108,7 @@
          }
  
          return var3;
-@@ -2057,6 +2595,14 @@
+@@ -2057,6 +2597,14 @@
      {
          if (p_71008_1_ != this.itemInUse)
          {
@@ -1120,7 +1123,7 @@
              this.itemInUse = p_71008_1_;
              this.itemInUseCount = p_71008_2_;
  
-@@ -2142,6 +2688,9 @@
+@@ -2142,6 +2690,9 @@
       */
      public void clonePlayer(EntityPlayer p_71049_1_, boolean p_71049_2_)
      {
@@ -1130,7 +1133,7 @@
          if (p_71049_2_)
          {
              this.inventory.copyInventory(p_71049_1_.inventory);
-@@ -2152,6 +2701,17 @@
+@@ -2152,6 +2703,17 @@
              this.experience = p_71049_1_.experience;
              this.setScore(p_71049_1_.getScore());
              this.teleportDirection = p_71049_1_.teleportDirection;
@@ -1148,7 +1151,7 @@
          }
          else if (this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory"))
          {
-@@ -2163,6 +2723,23 @@
+@@ -2163,6 +2725,23 @@
          }
  
          this.theInventoryEnderChest = p_71049_1_.theInventoryEnderChest;
@@ -1172,7 +1175,7 @@
      }
  
      /**
-@@ -2226,7 +2803,23 @@
+@@ -2226,7 +2805,23 @@
       */
      public void setCurrentItemOrArmor(int slotIn, ItemStack itemStackIn)
      {
@@ -1197,7 +1200,7 @@
      }
  
      /**
-@@ -2277,9 +2870,16 @@
+@@ -2277,9 +2872,16 @@
  
      public IChatComponent getFormattedCommandSenderName()
      {
@@ -1215,12 +1218,12 @@
      }
  
      public void setAbsorptionAmount(float p_110149_1_)
-@@ -2356,7 +2956,136 @@
+@@ -2356,7 +2958,136 @@
              }
          }
      }
 +/** MINECRIFT FORGE **/
- 
++
 +    public void openGui(Object mod, int modGuiId, World world, int x, int y, int z)
 +    {
 +		if (Reflector.forgeExists())
@@ -1309,7 +1312,7 @@
 +            spawnForcedMap.remove(dimension);
 +        }
 +    }
-+
+ 
 +    public float eyeHeight;
 +    private String displayname;
 +
@@ -1352,82 +1355,12 @@
      public static enum EnumStatus
      {
          OK("OK", 0),
-@@ -2371,4 +3100,78 @@
+@@ -2371,4 +3102,8 @@
  
          private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
      }
 +
-+    // VIVE START - prevent moving: JRBUDDA: WHY???
-+    public boolean allowMoveEntity = true;
 +
-+    public void moveEntity(double x, double y, double z)
-+    {
-+        if (VRPlayer.get().getFreeMoveMode())
-+        {
-+            super.moveEntity(x,y,z);
-+            VRPlayer.get().teleportRoomOrigin(posX, posY, posZ);
-+            return;
-+        }
 +
-+        if (allowMoveEntity)
-+        {
-+  
-+    //     this.onGround = true;
-+         if(Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder() && !this.isSneaking()) {      	 
-+             super.moveEntity(0,y,0);
-+             VRPlayer.get().roomOrigin.yCoord = posY - height;        	 
-+         }
-+
-+      
-+        }
-+        else
-+        {
-+            this.onGround = true;
-+
-+            // no movement but do block collisions still
-+            try
-+            {
-+                this.doBlockCollisions();
-+            }
-+            catch (Throwable var35)
-+            {
-+                CrashReport var41 = CrashReport.makeCrashReport(var35, "Checking entity block collision");
-+                CrashReportCategory var42 = var41.makeCategory("Entity being checked for collision");
-+                this.addEntityCrashInfo(var42);
-+                throw new ReportedException(var41);
-+            }
-+
-+            boolean var40 = this.isWet();
-+
-+            if (this.worldObj.func_147470_e(this.boundingBox.contract(0.001D, 0.001D, 0.001D)))
-+            {
-+                if (!this.isImmuneToFire())
-+                {
-+                    this.attackEntityFrom(DamageSource.inFire, 1.0f);
-+                }
-+
-+                if (!var40)
-+                {
-+                    ++this.fire;
-+
-+                    if (this.fire == 0)
-+                    {
-+                        this.setFire(8);
-+                    }
-+                }
-+            }
-+            else if (this.fire <= 0)
-+            {
-+                this.fire = -this.fireResistance;
-+            }
-+
-+            if (var40 && this.fire > 0)
-+            {
-+                this.playSound("random.fizz", 0.7F, 1.6F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
-+                this.fire = -this.fireResistance;
-+            }
-+        }
-+        return;
-+    }
 +    // VIVE END - prevent moving
  }

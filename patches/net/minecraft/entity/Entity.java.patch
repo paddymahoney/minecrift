@@ -135,18 +135,379 @@
  
      protected abstract void entityInit();
  
-@@ -857,6 +915,10 @@
-             this.isCollided = this.isCollidedHorizontally || this.isCollidedVertically;
-             this.updateFallState(y, this.onGround);
+@@ -610,11 +668,11 @@
+     /**
+      * Tries to moves the entity by the passed in displacement. Args: x, y, z
+      */
+-    public void moveEntity(double x, double y, double z)
++    public void moveEntity(double dx, double dy, double dz)
+     {
+         if (this.noClip)
+         {
+-            this.boundingBox.offset(x, y, z);
++            this.boundingBox.offset(dx, dy, dz);
+             this.posX = (this.boundingBox.minX + this.boundingBox.maxX) / 2.0D;
+             this.posY = this.boundingBox.minY + (double)this.yOffset - (double)this.yOffset2;
+             this.posZ = (this.boundingBox.minZ + this.boundingBox.maxZ) / 2.0D;
+@@ -630,218 +688,219 @@
+             if (this.isInWeb)
+             {
+                 this.isInWeb = false;
+-                x *= 0.25D;
+-                y *= 0.05000000074505806D;
+-                z *= 0.25D;
++                dx *= 0.25D;
++                dy *= 0.05000000074505806D;
++                dz *= 0.25D;
+                 this.motionX = 0.0D;
+                 this.motionY = 0.0D;
+                 this.motionZ = 0.0D;
+             }
  
+-            double var13 = x;
+-            double var15 = y;
+-            double var17 = z;
+-            AxisAlignedBB var19 = this.boundingBox.copy();
+-            boolean var20 = this.onGround && this.isSneaking() && this instanceof EntityPlayer;
++            double reqDisplacementX = dx;
++            double reqYDisplacement = dy;
++            double reqDisplacementZ = dz;
++            AxisAlignedBB bbCopy = this.boundingBox.copy();
++            boolean sneakingPlayer = this.onGround && this.isSneaking() && this instanceof EntityPlayer;
+ 
+-            if (var20)
++            if (sneakingPlayer)
+             {
+                 double var21;
+ 
+-                for (var21 = 0.05D; x != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(x, -1.0D, 0.0D)).isEmpty(); var13 = x)
++                for (var21 = 0.05D; dx != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(dx, -1.0D, 0.0D)).isEmpty(); reqDisplacementX = dx)
+                 {
+-                    if (x < var21 && x >= -var21)
++                    if (dx < var21 && dx >= -var21)
+                     {
+-                        x = 0.0D;
++                        dx = 0.0D;
+                     }
+-                    else if (x > 0.0D)
++                    else if (dx > 0.0D)
+                     {
+-                        x -= var21;
++                        dx -= var21;
+                     }
+                     else
+                     {
+-                        x += var21;
++                        dx += var21;
+                     }
+                 }
+ 
+-                for (; z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(0.0D, -1.0D, z)).isEmpty(); var17 = z)
++                for (; dz != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(0.0D, -1.0D, dz)).isEmpty(); reqDisplacementZ = dz)
+                 {
+-                    if (z < var21 && z >= -var21)
++                    if (dz < var21 && dz >= -var21)
+                     {
+-                        z = 0.0D;
++                        dz = 0.0D;
+                     }
+-                    else if (z > 0.0D)
++                    else if (dz > 0.0D)
+                     {
+-                        z -= var21;
++                        dz -= var21;
+                     }
+                     else
+                     {
+-                        z += var21;
++                        dz += var21;
+                     }
+                 }
+ 
+-                while (x != 0.0D && z != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(x, -1.0D, z)).isEmpty())
++                while (dx != 0.0D && dz != 0.0D && this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.getOffsetBoundingBox(dx, -1.0D, dz)).isEmpty())
+                 {
+-                    if (x < var21 && x >= -var21)
++                    if (dx < var21 && dx >= -var21)
+                     {
+-                        x = 0.0D;
++                        dx = 0.0D;
+                     }
+-                    else if (x > 0.0D)
++                    else if (dx > 0.0D)
+                     {
+-                        x -= var21;
++                        dx -= var21;
+                     }
+                     else
+                     {
+-                        x += var21;
++                        dx += var21;
+                     }
+ 
+-                    if (z < var21 && z >= -var21)
++                    if (dz < var21 && dz >= -var21)
+                     {
+-                        z = 0.0D;
++                        dz = 0.0D;
+                     }
+-                    else if (z > 0.0D)
++                    else if (dz > 0.0D)
+                     {
+-                        z -= var21;
++                        dz -= var21;
+                     }
+                     else
+                     {
+-                        z += var21;
++                        dz += var21;
+                     }
+ 
+-                    var13 = x;
+-                    var17 = z;
++                    reqDisplacementX = dx;
++                    reqDisplacementZ = dz;
+                 }
+             }
+ 
+-            List var36 = this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.addCoord(x, y, z));
++            List var36 = this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.addCoord(dx, dy, dz));
+ 
+             for (int var22 = 0; var22 < var36.size(); ++var22)
+             {
+-                y = ((AxisAlignedBB)var36.get(var22)).calculateYOffset(this.boundingBox, y);
++                dy = ((AxisAlignedBB)var36.get(var22)).calculateYOffset(this.boundingBox, dy);
+             }
+ 
+-            this.boundingBox.offset(0.0D, y, 0.0D);
++            this.boundingBox.offset(0.0D, dy, 0.0D);
+ 
+-            if (!this.field_70135_K && var15 != y)
++            if (!this.field_70135_K && reqYDisplacement != dy)
+             {
+-                z = 0.0D;
+-                y = 0.0D;
+-                x = 0.0D;
++                dz = 0.0D;
++                dy = 0.0D;
++                dx = 0.0D;
+             }
+ 
+-            boolean var37 = this.onGround || var15 != y && var15 < 0.0D;
++            boolean var37 = this.onGround || reqYDisplacement != dy && reqYDisplacement < 0.0D;
+             int var23;
+ 
+             for (var23 = 0; var23 < var36.size(); ++var23)
+             {
+-                x = ((AxisAlignedBB)var36.get(var23)).calculateXOffset(this.boundingBox, x);
++                dx = ((AxisAlignedBB)var36.get(var23)).calculateXOffset(this.boundingBox, dx);
+             }
+ 
+-            this.boundingBox.offset(x, 0.0D, 0.0D);
++            this.boundingBox.offset(dx, 0.0D, 0.0D);
+ 
+-            if (!this.field_70135_K && var13 != x)
++            if (!this.field_70135_K && reqDisplacementX != dx)
+             {
+-                z = 0.0D;
+-                y = 0.0D;
+-                x = 0.0D;
++                dz = 0.0D;
++                dy = 0.0D;
++                dx = 0.0D;
+             }
+ 
+             for (var23 = 0; var23 < var36.size(); ++var23)
+             {
+-                z = ((AxisAlignedBB)var36.get(var23)).calculateZOffset(this.boundingBox, z);
++                dz = ((AxisAlignedBB)var36.get(var23)).calculateZOffset(this.boundingBox, dz);
+             }
+ 
+-            this.boundingBox.offset(0.0D, 0.0D, z);
++            this.boundingBox.offset(0.0D, 0.0D, dz);
+ 
+-            if (!this.field_70135_K && var17 != z)
++            if (!this.field_70135_K && reqDisplacementZ != dz)
+             {
+-                z = 0.0D;
+-                y = 0.0D;
+-                x = 0.0D;
++                dz = 0.0D;
++                dy = 0.0D;
++                dx = 0.0D;
+             }
+ 
+             double var25;
+             double var27;
+             int var30;
+             double var38;
+-
+-            if (this.stepHeight > 0.0F && var37 && (var20 || this.yOffset2 < 0.05F) && (var13 != x || var17 != z))
+-            {
+-                var38 = x;
+-                var25 = y;
+-                var27 = z;
+-                x = var13;
+-                y = (double)this.stepHeight;
+-                z = var17;
++            
++//jrbudda: would like to use this for 'walk up blocks' in roomscale but dx and dz are always 0 since we set posX and posZ directly (unless active freemoveing) .
++            if (this.stepHeight > 0.0F && var37 && (sneakingPlayer || this.yOffset2 < 0.05F) && (reqDisplacementX != dx || reqDisplacementZ != dz))
++            { // Step up?
++                var38 = dx;
++                var25 = dy;
++                var27 = dz;
++                dx = reqDisplacementX;
++                dy = (double)this.stepHeight;
++                dz = reqDisplacementZ;
+                 AxisAlignedBB var29 = this.boundingBox.copy();
+-                this.boundingBox.setBB(var19);
+-                var36 = this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.addCoord(var13, y, var17));
++                this.boundingBox.setBB(bbCopy);
++                var36 = this.worldObj.getCollidingBoundingBoxes(this, this.boundingBox.addCoord(reqDisplacementX, dy, reqDisplacementZ));
+ 
+                 for (var30 = 0; var30 < var36.size(); ++var30)
+                 {
+-                    y = ((AxisAlignedBB)var36.get(var30)).calculateYOffset(this.boundingBox, y);
++                    dy = ((AxisAlignedBB)var36.get(var30)).calculateYOffset(this.boundingBox, dy);
+                 }
+ 
+-                this.boundingBox.offset(0.0D, y, 0.0D);
++                this.boundingBox.offset(0.0D, dy, 0.0D);
+ 
+-                if (!this.field_70135_K && var15 != y)
++                if (!this.field_70135_K && reqYDisplacement != dy)
+                 {
+-                    z = 0.0D;
+-                    y = 0.0D;
+-                    x = 0.0D;
++                    dz = 0.0D;
++                    dy = 0.0D;
++                    dx = 0.0D;
+                 }
+ 
+                 for (var30 = 0; var30 < var36.size(); ++var30)
+                 {
+-                    x = ((AxisAlignedBB)var36.get(var30)).calculateXOffset(this.boundingBox, x);
++                    dx = ((AxisAlignedBB)var36.get(var30)).calculateXOffset(this.boundingBox, dx);
+                 }
+ 
+-                this.boundingBox.offset(x, 0.0D, 0.0D);
++                this.boundingBox.offset(dx, 0.0D, 0.0D);
+ 
+-                if (!this.field_70135_K && var13 != x)
++                if (!this.field_70135_K && reqDisplacementX != dx)
+                 {
+-                    z = 0.0D;
+-                    y = 0.0D;
+-                    x = 0.0D;
++                    dz = 0.0D;
++                    dy = 0.0D;
++                    dx = 0.0D;
+                 }
+ 
+                 for (var30 = 0; var30 < var36.size(); ++var30)
+                 {
+-                    z = ((AxisAlignedBB)var36.get(var30)).calculateZOffset(this.boundingBox, z);
++                    dz = ((AxisAlignedBB)var36.get(var30)).calculateZOffset(this.boundingBox, dz);
+                 }
+ 
+-                this.boundingBox.offset(0.0D, 0.0D, z);
++                this.boundingBox.offset(0.0D, 0.0D, dz);
+ 
+-                if (!this.field_70135_K && var17 != z)
++                if (!this.field_70135_K && reqDisplacementZ != dz)
+                 {
+-                    z = 0.0D;
+-                    y = 0.0D;
+-                    x = 0.0D;
++                    dz = 0.0D;
++                    dy = 0.0D;
++                    dx = 0.0D;
+                 }
+ 
+-                if (!this.field_70135_K && var15 != y)
++                if (!this.field_70135_K && reqYDisplacement != dy)
+                 {
+-                    z = 0.0D;
+-                    y = 0.0D;
+-                    x = 0.0D;
++                    dz = 0.0D;
++                    dy = 0.0D;
++                    dx = 0.0D;
+                 }
+                 else
+                 {
+-                    y = (double)(-this.stepHeight);
++                    dy = (double)(-this.stepHeight);
+ 
+                     for (var30 = 0; var30 < var36.size(); ++var30)
+                     {
+-                        y = ((AxisAlignedBB)var36.get(var30)).calculateYOffset(this.boundingBox, y);
++                        dy = ((AxisAlignedBB)var36.get(var30)).calculateYOffset(this.boundingBox, dy);
+                     }
+ 
+-                    this.boundingBox.offset(0.0D, y, 0.0D);
++                    this.boundingBox.offset(0.0D, dy, 0.0D);
+                 }
+ 
+-                if (var38 * var38 + var27 * var27 >= x * x + z * z)
++                if (var38 * var38 + var27 * var27 >= dx * dx + dz * dz)
+                 {
+-                    x = var38;
+-                    y = var25;
+-                    z = var27;
++                    dx = var38;
++                    dy = var25;
++                    dz = var27;
+                     this.boundingBox.setBB(var29);
+                 }
+             }
+@@ -851,23 +910,27 @@
+             this.posX = (this.boundingBox.minX + this.boundingBox.maxX) / 2.0D;
+             this.posY = this.boundingBox.minY + (double)this.yOffset - (double)this.yOffset2;
+             this.posZ = (this.boundingBox.minZ + this.boundingBox.maxZ) / 2.0D;
+-            this.isCollidedHorizontally = var13 != x || var17 != z;
+-            this.isCollidedVertically = var15 != y;
+-            this.onGround = var15 != y && var15 < 0.0D;
++            this.isCollidedHorizontally = reqDisplacementX != dx || reqDisplacementZ != dz;
++            this.isCollidedVertically = reqYDisplacement != dy;
++            this.onGround = reqYDisplacement != dy && reqYDisplacement < 0.0D;
+             this.isCollided = this.isCollidedHorizontally || this.isCollidedVertically;
+-            this.updateFallState(y, this.onGround);
++            this.updateFallState(dy, this.onGround);
+ 
+-            if (var13 != x)
 +            if(!this.onGround && this instanceof EntityPlayer) { 
 +            	int a= 9;
 +            }
 +            
-             if (var13 != x)
++            if (reqDisplacementX != dx)
              {
                  this.motionX = 0.0D;
-@@ -1171,9 +1233,38 @@
+             }
+ 
+-            if (var15 != y)
++            if (reqYDisplacement != dy)
+             {
+                 this.motionY = 0.0D;
+             }
+ 
+-            if (var17 != z)
++            if (reqDisplacementZ != dz)
+             {
+                 this.motionZ = 0.0D;
+             }
+@@ -876,7 +939,7 @@
+             var25 = this.posY - var9;
+             var27 = this.posZ - var11;
+ 
+-            if (this.canTriggerWalking() && !var20 && this.ridingEntity == null)
++            if (this.canTriggerWalking() && !sneakingPlayer && this.ridingEntity == null)
+             {
+                 int var39 = MathHelper.floor_double(this.posX);
+                 var30 = MathHelper.floor_double(this.posY - 0.20000000298023224D - (double)this.yOffset);
+@@ -1171,9 +1234,38 @@
  
          if (var7.getMaterial() == materialIn)
          {
@@ -188,7 +549,7 @@
          }
          else
          {
-@@ -1193,13 +1284,25 @@
+@@ -1193,13 +1285,25 @@
      {
          return this.worldObj.isMaterialInBB(this.boundingBox.expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava);
      }
@@ -216,7 +577,7 @@
  
          if (var4 >= 1.0E-4F)
          {
-@@ -1213,11 +1316,68 @@
+@@ -1213,11 +1317,68 @@
              var4 = friction / var4;
              strafe *= var4;
              forward *= var4;
@@ -290,7 +651,7 @@
      }
  
      public int getBrightnessForRender(float p_70070_1_)
-@@ -1526,6 +1686,31 @@
+@@ -1526,6 +1687,31 @@
              tagCompund.setInteger("PortalCooldown", this.timeUntilPortal);
              tagCompund.setLong("UUIDMost", this.getUniqueID().getMostSignificantBits());
              tagCompund.setLong("UUIDLeast", this.getUniqueID().getLeastSignificantBits());
@@ -322,7 +683,7 @@
              this.writeEntityToNBT(tagCompund);
  
              if (this.ridingEntity != null)
-@@ -1596,6 +1781,37 @@
+@@ -1596,6 +1782,37 @@
  
              this.setPosition(this.posX, this.posY, this.posZ);
              this.setRotation(this.rotationYaw, this.rotationPitch);
@@ -360,7 +721,7 @@
              this.readEntityFromNBT(tagCompund);
  
              if (this.shouldSetPosAfterLoading())
-@@ -1697,7 +1913,16 @@
+@@ -1697,7 +1914,16 @@
          {
              EntityItem var3 = new EntityItem(this.worldObj, this.posX, this.posY + (double)offsetY, this.posZ, itemStackIn);
              var3.delayBeforeCanPickup = 10;
@@ -378,7 +739,7 @@
              return var3;
          }
          else
-@@ -2008,7 +2233,16 @@
+@@ -2008,7 +2234,16 @@
       */
      public boolean isRiding()
      {
@@ -396,7 +757,7 @@
      }
  
      /**
-@@ -2375,7 +2609,17 @@
+@@ -2375,7 +2610,17 @@
       */
      public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
      {
@@ -415,7 +776,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2697,204 @@
+@@ -2453,6 +2698,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  

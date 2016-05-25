@@ -195,27 +195,23 @@
 +                boolean flag3 = !isHeadspaceFree(i, j, k + 1, entHeight);
 +                byte b0 = -1;
 +                double d5 = 9999.0D;
- 
--            float var21 = 0.1F;
++
 +                if (flag && d3 < d5)
 +                {
 +                    d5 = d3;
 +                    b0 = 0;
 +                }
  
--            if (var18 == 0)
--            {
--                this.motionX = (double)(-var21);
--            }
+-            float var21 = 0.1F;
 +                if (flag1 && 1.0D - d3 < d5)
 +                {
 +                    d5 = 1.0D - d3;
 +                    b0 = 1;
 +                }
  
--            if (var18 == 1)
+-            if (var18 == 0)
 -            {
--                this.motionX = (double)var21;
+-                this.motionX = (double)(-var21);
 -            }
 +                if (flag2 && d4 < d5)
 +                {
@@ -223,15 +219,19 @@
 +                    b0 = 4;
 +                }
  
--            if (var18 == 4)
+-            if (var18 == 1)
 -            {
--                this.motionZ = (double)(-var21);
+-                this.motionX = (double)var21;
+-            }
 +                if (flag3 && 1.0D - d4 < d5)
 +                {
 +                    d5 = 1.0D - d4;
 +                    b0 = 5;
 +                }
-+
+ 
+-            if (var18 == 4)
+-            {
+-                this.motionZ = (double)(-var21);
 +                float f = 0.1F;
 +
 +                if (b0 == 0)
@@ -347,7 +347,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +801,50 @@
+@@ -662,4 +801,123 @@
      }
  
      protected void sendHorseJump() {}
@@ -382,19 +382,92 @@
 +    public void setPositionAndRotation(double x, double y, double z, float yaw, float pitch)
 +    {
 +        super.setPositionAndRotation(x, y, z, yaw, pitch);
-+        VRPlayer.get().teleportRoomOrigin(this.posX, this.posY, this.posZ);
++        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
 +
 +    public void readFromNBT(NBTTagCompound tagCompund)
 +    {
 +        super.readFromNBT(tagCompund);
-+        VRPlayer.get().teleportRoomOrigin(this.posX, this.posY, this.posZ);
++        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
 +
 +    public void setPosition(double x, double y, double z)
 +    {
 +        super.setPosition(x, y, z);
-+        VRPlayer.get().teleportRoomOrigin(this.posX, this.posY, this.posZ);
++        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
++    
++    public void moveEntity(double x, double y, double z)
++    {
++    	if (VRPlayer.get().getFreeMoveMode())
++    	{
++    		super.moveEntity(x,y,z);
++    		VRPlayer.get().snapRoomOriginToPlayerEntity(this);
++    		return;
++    	} else {
++
++
++    		//     this.onGround = true;
++    		if(Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder() && !this.isSneaking()) {      	 
++
++    			super.moveEntity(0,y,0);
++
++    			VRPlayer.get().roomOrigin.yCoord = posY - yOffset;        	 
++    		} else {
++    			//do not move player, VRPlayer.moveplayerinroom will move him around.
++    		}
++    	}
++         
++//        }
++//        else
++//        {
++//            this.onGround = true;
++//
++//            // no movement but do block collisions still
++//            try
++//            {
++//                this.doBlockCollisions();
++//            }
++//            catch (Throwable var35)
++//            {
++//                CrashReport var41 = CrashReport.makeCrashReport(var35, "Checking entity block collision");
++//                CrashReportCategory var42 = var41.makeCategory("Entity being checked for collision");
++//                this.addEntityCrashInfo(var42);
++//                throw new ReportedException(var41);
++//            }
++//
++//            boolean var40 = this.isWet();
++//
++//            if (this.worldObj.func_147470_e(this.boundingBox.contract(0.001D, 0.001D, 0.001D)))
++//            {
++//                if (!this.isImmuneToFire())
++//                {
++//                    this.attackEntityFrom(DamageSource.inFire, 1.0f);
++//                }
++//
++//                if (!var40)
++//                {
++//                    ++this.fire;
++//
++//                    if (this.fire == 0)
++//                    {
++//                        this.setFire(8);
++//                    }
++//                }
++//            }
++//            else if (this.fire <= 0)
++//            {
++//                this.fire = -this.fireResistance;
++//            }
++//
++//            if (var40 && this.fire > 0)
++//            {
++//                this.playSound("random.fizz", 0.7F, 1.6F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
++//                this.fire = -this.fireResistance;
++//            }
++//        }
++//        return;
++    }
++    
 +    // VIVE END - update room origin when player entity is moved
  }

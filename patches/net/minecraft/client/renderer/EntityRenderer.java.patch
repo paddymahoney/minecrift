@@ -589,9 +589,12 @@
              GL11.glTranslatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 0.5F, -Math.abs(MathHelper.cos(var4 * (float)Math.PI) * var5), 0.0F);
              GL11.glRotatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 3.0F, 0.0F, 0.0F, 1.0F);
              GL11.glRotatef(Math.abs(MathHelper.cos(var4 * (float)Math.PI - 0.2F) * var5) * 5.0F, 1.0F, 0.0F, 0.0F);
-@@ -683,9 +911,10 @@
+@@ -681,11 +909,12 @@
+         EntityLivingBase var2 = this.mc.renderViewEntity;
+         float var3 = var2.yOffset - 1.62F;
          double var4 = var2.prevPosX + (var2.posX - var2.prevPosX) * (double)par1;
-         double var6 = var2.prevPosY + (var2.posY - var2.prevPosY) * (double)par1 - (double)var3;
+-        double var6 = var2.prevPosY + (var2.posY - var2.prevPosY) * (double)par1 - (double)var3;
++        double var6 = var2.posY; // var2.prevPosY + (var2.posY - var2.prevPosY) * (double)par1 - (double)var3;
          double var8 = var2.prevPosZ + (var2.posZ - var2.prevPosZ) * (double)par1;
 -        GL11.glRotatef(this.prevCamRoll + (this.camRoll - this.prevCamRoll) * par1, 0.0F, 0.0F, 1.0F);
 -
@@ -1917,7 +1920,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3378,1745 @@
+@@ -2650,4 +3378,1766 @@
              ;
          }
      }
@@ -2085,7 +2088,7 @@
 +            double py = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)renderPartialTicks;
 +            double pz = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)renderPartialTicks;
 +
-+
++//				interpolate elsewhere
 +                px = entity.posX;
 +                py = entity.posY;
 +                pz = entity.posZ;
@@ -2100,10 +2103,11 @@
 + 
 +        // VIVE END - render camera from tracking origin, not player pos
 +
-+        if (this.mc.vrSettings.debugPose)
++        if (mc.vrSettings.debugPose)
 +        {
 +            System.out.println(String.format("camRelX:    %.2f, camRelY:    %.2f, camRelZ:    %.2f", new Object[] {Float.valueOf(camRelX), Float.valueOf(camRelY), Float.valueOf(camRelZ)}));
 +        }
++
 +
 +        headCollision = false;
 +        headCollisionDistance = -1;
@@ -2735,7 +2739,7 @@
 +                // View adjust (for IPD, eye relief)
 +//                if (this.mc.stereoProvider.isStereo())
 +//                {
-+//                    Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
++//                  Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
 +//                    GlStateManager.translate(viewAdjust.x,
 +//                                             viewAdjust.y,
 +//                                             viewAdjust.z);
@@ -2939,96 +2943,15 @@
 +        GL11.glEnable(GL11.GL_BLEND);
 +    }
 +    
-+    public void renderCrosshairAtDepth()
-+    {
-+ 
-+    	//debug room origin
-+ //    renderCircle(mc.vrPlayer.roomOrigin.addVector(-renderOriginX, -renderOriginY + 0.1f, -renderOriginZ), 0.2f, 32, 0, 255, 0, 255, 1);
-+            	
-+        if (this.aimStartPos != null)
-+        {
-+            Vec3 originOffset = renderOrigin.subtract(this.aimRenderOrigin);
-+            Vec3 start = this.aimStartPos.addVector(originOffset.xCoord, originOffset.yCoord, originOffset.zCoord);
-+            Vec3 end = this.aimEndPos.addVector(originOffset.xCoord, originOffset.yCoord, originOffset.zCoord);
-+            drawLine(start, end);
-+        }
-+
-+        //Draw crosshair
-+        boolean renderCrosshair = this.mc.vrSettings.renderInGameCrosshairMode == VRSettings.RENDER_CROSSHAIR_MODE_ALWAYS ||
-+                (this.mc.vrSettings.renderInGameCrosshairMode == VRSettings.RENDER_CROSSHAIR_MODE_HUD && !this.mc.vrSettings.hideGui);
-+        // VIVE start - don't render crosshair while teleporting
-+        if (mc.vrPlayer.movementTeleportProgress>0.0f)
-+        {
-+            renderCrosshair = false;
-+        }
-+        // VIVE end
-+        if( this.mc.currentScreen == null && this.mc.gameSettings.thirdPersonView == 0 && renderCrosshair)
-+        {
-+            this.mc.mcProfiler.endStartSection("crosshair");
-+            GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
-+            float crossDepth = (float)Math.sqrt((crossX*crossX + crossY*crossY + crossZ*crossZ));
-+            float scale = 0.025f*crossDepth*this.mc.vrSettings.crosshairScale;
-+
-+            GL11.glPushMatrix();
-+            GL11.glTranslatef(crossX, crossY, crossZ);
-+            GL11.glRotatef(-this.aimYaw, 0.0F, 1.0F, 0.0F);
-+            GL11.glRotatef(this.aimPitch, 1.0F, 0.0F, 0.0F);
-+            if (this.mc.vrSettings.crosshairRollsWithHead)
-+                GL11.glRotated(this.cameraRoll, 0.0F, 0.0F, 1.0F);
-+            if (this.mc.vrSettings.crosshairScalesWithDistance)
-+            {
-+                // VIVE START - adjust depth scaling to handle far crosshair positions
-+                scale = -0.05f;
-+                GL11.glScalef(scale, scale, scale); // VIVE
-+                // VIVE END - adjust depth scaling to handle far crosshair positions
-+            }
-+            else
-+                GL11.glScalef(-scale, -scale, scale);
-+            GL11.glDisable(GL11.GL_LIGHTING);
-+            if (!this.mc.vrSettings.useCrosshairOcclusion)
-+                GL11.glDisable(GL11.GL_DEPTH_TEST);
-+            GL11.glEnable(GL11.GL_BLEND);
-+            if (Reflector.forgeExists()) {
-+                GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
-+            }
-+            else {
-+                GL11.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR);
-+            }
-+            this.mc.getTextureManager().bindTexture(Gui.icons);
-+
-+            if (!generatedIconMipmaps[this.mc.currentEye.value()])
-+                this.mc.getFramebuffer().genMipMaps();
-+
-+            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
-+            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
-+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
-+            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-+
-+            float var7 = 0.00390625F;
-+            float var8 = 0.00390625F;
-+            Tessellator.instance.startDrawingQuads();
-+            Tessellator.instance.addVertexWithUV(- 1, + 1, 0,  0     , 15* var8);
-+            Tessellator.instance.addVertexWithUV(+ 1, + 1, 0, 15*var7, 15* var8);
-+            Tessellator.instance.addVertexWithUV(+ 1, - 1, 0, 15*var7, 0       );
-+            Tessellator.instance.addVertexWithUV(- 1, - 1, 0, 0      , 0       );
-+            Tessellator.instance.draw();
-+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-+            GL11.glDisable(GL11.GL_BLEND);
-+            GL11.glEnable(GL11.GL_DEPTH_TEST);
-+            GL11.glPopMatrix();
-+            //mc.checkGLError("crosshair");
-+        }
-+
++    
++    private void renderTeleportLine(VRPlayer vrPlayer){
 +        // VIVE START - render teleport line
-+        VRPlayer vrPlayer = mc.vrPlayer;
-+        
-+ 
-+        
++          
 +        boolean renderTeleportLine = vrPlayer.movementTeleportDestination.xCoord != 0
 +                || vrPlayer.movementTeleportDestination.yCoord != 0
 +                || vrPlayer.movementTeleportDestination.zCoord != 0;
 +        if (renderTeleportLine && vrPlayer.movementTeleportProgress>0.0 && vrPlayer.vrMovementStyle.showBeam
-+                && !vrPlayer.vrMovementStyle.arcAiming)
++                )
 +        {
 +            mc.mcProfiler.startSection("teleportLine");
 +
@@ -3200,11 +3123,96 @@
 +            GL11.glEnable(GL11.GL_CULL_FACE);
 +            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 +
-+            mc.mcProfiler.endSection(); // "teleportLine"
++            mc.mcProfiler.endSection(); // "teleportLine"	
++        }
++    }
++    
++    public void renderCrosshairAtDepth()
++    {
++ 
++    	//debug room origin
++ //    renderCircle(mc.vrPlayer.roomOrigin.addVector(-renderOriginX, -renderOriginY + 0.1f, -renderOriginZ), 0.2f, 32, 0, 255, 0, 255, 1);
++            	
++        if (this.aimStartPos != null)
++        {
++            Vec3 originOffset = renderOrigin.subtract(this.aimRenderOrigin);
++            Vec3 start = this.aimStartPos.addVector(originOffset.xCoord, originOffset.yCoord, originOffset.zCoord);
++            Vec3 end = this.aimEndPos.addVector(originOffset.xCoord, originOffset.yCoord, originOffset.zCoord);
++            drawLine(start, end);
 +        }
 +
-+        boolean renderTeleportArc = vrPlayer.vrMovementStyle.arcAiming;
-+        if (renderTeleportArc && vrPlayer.vrMovementStyle.showBeam && vrPlayer.movementTeleportProgress > 0.0f
++        //Draw crosshair
++        boolean renderCrosshair = this.mc.vrSettings.renderInGameCrosshairMode == VRSettings.RENDER_CROSSHAIR_MODE_ALWAYS ||
++                (this.mc.vrSettings.renderInGameCrosshairMode == VRSettings.RENDER_CROSSHAIR_MODE_HUD && !this.mc.vrSettings.hideGui);
++        // VIVE start - don't render crosshair while teleporting
++        if (mc.vrPlayer.movementTeleportProgress>0.0f)
++        {
++            renderCrosshair = false;
++        }
++        // VIVE end
++        if( this.mc.currentScreen == null && this.mc.gameSettings.thirdPersonView == 0 && renderCrosshair)
++        {
++            this.mc.mcProfiler.endStartSection("crosshair");
++            GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
++            float crossDepth = (float)Math.sqrt((crossX*crossX + crossY*crossY + crossZ*crossZ));
++            float scale = 0.025f*crossDepth*this.mc.vrSettings.crosshairScale;
++
++            GL11.glPushMatrix();
++            GL11.glTranslatef(crossX, crossY, crossZ);
++            GL11.glRotatef(-this.aimYaw, 0.0F, 1.0F, 0.0F);
++            GL11.glRotatef(this.aimPitch, 1.0F, 0.0F, 0.0F);
++            if (this.mc.vrSettings.crosshairRollsWithHead)
++                GL11.glRotated(this.cameraRoll, 0.0F, 0.0F, 1.0F);
++            if (this.mc.vrSettings.crosshairScalesWithDistance)
++            {
++                // VIVE START - adjust depth scaling to handle far crosshair positions
++                scale = -0.05f;
++                GL11.glScalef(scale, scale, scale); // VIVE
++                // VIVE END - adjust depth scaling to handle far crosshair positions
++            }
++            else
++                GL11.glScalef(-scale, -scale, scale);
++            GL11.glDisable(GL11.GL_LIGHTING);
++            if (!this.mc.vrSettings.useCrosshairOcclusion)
++                GL11.glDisable(GL11.GL_DEPTH_TEST);
++            GL11.glEnable(GL11.GL_BLEND);
++            if (Reflector.forgeExists()) {
++                GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
++            }
++            else {
++                GL11.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR);
++            }
++            this.mc.getTextureManager().bindTexture(Gui.icons);
++
++            if (!generatedIconMipmaps[this.mc.currentEye.value()])
++                this.mc.getFramebuffer().genMipMaps();
++
++            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
++            GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
++            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
++            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
++
++            float var7 = 0.00390625F;
++            float var8 = 0.00390625F;
++            Tessellator.instance.startDrawingQuads();
++            Tessellator.instance.addVertexWithUV(- 1, + 1, 0,  0     , 15* var8);
++            Tessellator.instance.addVertexWithUV(+ 1, + 1, 0, 15*var7, 15* var8);
++            Tessellator.instance.addVertexWithUV(+ 1, - 1, 0, 15*var7, 0       );
++            Tessellator.instance.addVertexWithUV(- 1, - 1, 0, 0      , 0       );
++            Tessellator.instance.draw();
++            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
++            GL11.glDisable(GL11.GL_BLEND);
++            GL11.glEnable(GL11.GL_DEPTH_TEST);
++            GL11.glPopMatrix();
++            //mc.checkGLError("crosshair");
++        }
++
++   
++      }
++
++    private void renderTeleportArc(VRPlayer vrPlayer) {
++       
++        if ( vrPlayer.vrMovementStyle.showBeam && vrPlayer.movementTeleportProgress > 0.0f
 +                && vrPlayer.movementTeleportArcSteps > 1)
 +        {
 +            mc.mcProfiler.startSection("teleportArc");
@@ -3308,15 +3316,17 @@
 +
 +            mc.mcProfiler.endSection(); // teleport arc
 +        }
-+        // VIVE END - render teleport line
 +    }
-+
++    	
++      
++    
 +
 +    public Vector3f getViewAdjust(EyeType eye)
 +    {
 +        Vector3f viewAdjust = new Vector3f();
 +        // VIVE START - had to remove negative in x viewadjust for this to be correct
 +        viewAdjust.x = this.mc.vrSettings.getHalfIPD(eye)* this.mc.vrSettings.worldScale;
++        viewAdjust.y = this.mc.vrSettings.worldScale;
 +        //viewAdjust.x = -this.mc.vrSettings.getHalfIPD(eye)* this.mc.vrSettings.worldScale;
 +        // VIVE END - had to remove negative in x viewadjust for this to be correct
 +
@@ -3454,6 +3464,20 @@
 +        }
 +        
 +        mc.mcProfiler.endSection();
++        
++        
++      
++   if(!mc.vrPlayer.getFreeMoveMode()){
++       if(mc.vrPlayer.vrMovementStyle.arcAiming) {
++    	   renderTeleportArc(mc.vrPlayer);   	
++    } else {
++    	   renderTeleportLine(mc.vrPlayer); 	
++    }	   
++   }
++
++     
++        
++        
 +    }
 +
 +    private void renderMainMenuHands()
