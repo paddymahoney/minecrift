@@ -36,7 +36,7 @@ Teleport Mode
 ==
 In teleport mode you use the left trigger and aim at your destination. There are several different teleport styles (cycle with rctrl+M) The default teleport style is the parabolic arc, similar to other VR games. The non-arc modes act more like a grapple-hooks and are only different cosmetically. 
 
-The Arc teleporter is more limited in survival mode: the beam must land on the top surface of a block or the side of a laddle to move. It also consumes Teleport Energy as indicated by the pink circle over the left hand. Teleporting also consumes food.
+The Arc teleporter is more limited in survival mode: the beam must land on the top surface of a block or the side of a ladder to move. It also consumes Teleport Energy as indicated by the pink circle over the left hand. Teleporting also consumes food.
 
 While in teleport mode your 'body' (the thing that detects collisions) will attempt to move around the play space with you. If you stick your head into a block or crawl under one you will become seperated from it. The blue circle indicates your body's position. Teleporting will center your body to your HMD if you lose it.
 
