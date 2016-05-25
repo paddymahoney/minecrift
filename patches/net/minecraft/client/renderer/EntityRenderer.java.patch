@@ -1920,7 +1920,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3378,1766 @@
+@@ -2650,4 +3378,1772 @@
              ;
          }
      }
@@ -3129,10 +3129,19 @@
 +    
 +    public void renderCrosshairAtDepth()
 +    {
-+ 
++     	   	
++        GL11.glEnable(GL11.GL_BLEND);
++        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
++        GL11.glDisable(GL11.GL_TEXTURE_2D);
++        GL11.glDisable(GL11.GL_LIGHTING);
++    	
 +    	//debug room origin
-+ //    renderCircle(mc.vrPlayer.roomOrigin.addVector(-renderOriginX, -renderOriginY + 0.1f, -renderOriginZ), 0.2f, 32, 0, 255, 0, 255, 1);
++    	renderCircle(mc.thePlayer.getPosition(1).addVector(-renderOriginX, - mc.thePlayer.yOffset -renderOriginY + 0.03f, -renderOriginZ), 0.08f, 32, 0, 255, 255, 128, 1);
 +            	
++        GL11.glDisable(GL11.GL_BLEND);
++        GL11.glEnable(GL11.GL_TEXTURE_2D);
++        GL11.glEnable(GL11.GL_LIGHTING);
++    	
 +        if (this.aimStartPos != null)
 +        {
 +            Vec3 originOffset = renderOrigin.subtract(this.aimRenderOrigin);
@@ -3442,7 +3451,7 @@
 +	        
 +		   GL11.glEnable(GL11.GL_BLEND);
 +		   GL11.glDisable(GL11.GL_TEXTURE_2D);
-+
++	        GL11.glEnable(GL11.GL_LIGHTING);
 +     
 +        Vec3 start = Vec3.createVectorHelper(handX,handY,handZ);
 +
@@ -3461,12 +3470,12 @@
 +        
 +        GL11.glEnable(GL11.GL_TEXTURE_2D);
 +        GL11.glDisable(GL11.GL_BLEND);
++        GL11.glDisable(GL11.GL_LIGHTING);
 +        }
 +        
 +        mc.mcProfiler.endSection();
 +        
-+        
-+      
++    
 +   if(!mc.vrPlayer.getFreeMoveMode()){
 +       if(mc.vrPlayer.vrMovementStyle.arcAiming) {
 +    	   renderTeleportArc(mc.vrPlayer);   	
@@ -3474,9 +3483,6 @@
 +    	   renderTeleportLine(mc.vrPlayer); 	
 +    }	   
 +   }
-+
-+     
-+        
 +        
 +    }
 +
