@@ -359,8 +359,8 @@ public class VRPlayer
                     // don't call setPosition style functions to avoid shifting room origin
                     player.lastTickPosX = player.prevPosX = player.posX = x;
                     
-                    if (mc.vrSettings.simulateFalling && !player.onGround && !player.isOnLadder())	{
-                    	player.lastTickPosY = player.prevPosY = player.posY = y;                  	
+                    if (!mc.vrSettings.simulateFalling)	{
+                    	  player.lastTickPosY = player.prevPosY = player.posY = y;                	
                     }
                                         
                     player.lastTickPosZ = player.prevPosZ = player.posZ = z;
@@ -369,13 +369,7 @@ public class VRPlayer
 
                     torso = getEstimatedTorsoPosition(x, y, z);
 
-                    // test falling
-                    if (mc.vrSettings.simulateFalling)	{
-                    	if(!this.restrictedViveClient && (!player.onGround || wasYMoving) && !player.isOnLadder()){                 		
-                           roomOrigin.yCoord = player.boundingBox.minY;     
-                            wasYMoving = !player.onGround;
-                    	}         	
-                    }
+
 //                        float fallPadding = player.width * 0.0f;
 //
 //                        double paddedFallHalfWidth = playerHalfWidth + fallPadding;

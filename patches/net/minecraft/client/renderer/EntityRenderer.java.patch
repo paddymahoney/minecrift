@@ -846,18 +846,13 @@
 +                        double px = player.prevPosX + (player.posX - player.prevPosX) * (double)par1;
 +                        double py = player.prevPosY + (player.posY - player.prevPosY) * (double)par1;
 +                        double pz = player.prevPosZ + (player.posZ - player.prevPosZ) * (double)par1;
- 
--            if (this.mc.gameSettings.thirdPersonView == 0 && !this.mc.renderViewEntity.isPlayerSleeping() && !this.mc.gameSettings.hideGUI && !this.mc.playerController.enableEverythingIsScrewedUpMode())
--            {
--                this.enableLightmap((double)par1);
--                this.itemRenderer.renderItemInFirstPerson(par1);
--                this.disableLightmap((double)par1);
-+                        if (mc.vrPlayer.getFreeMoveMode() && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
-+                        {
++
++       //             if (mc.vrPlayer.getFreeMoveMode() && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
++        //             {
 +                            px = player.posX;
 +                            py = player.posY;
 +                            pz = player.posZ;
-+                        }
++               //        }
 +
 +                        GL11.glTranslatef(
 +                                (float) (-aimSource.xCoord + px),
@@ -865,7 +860,12 @@
 +                                (float) (-aimSource.zCoord + pz));
 +                    }
 +                    // VIVE END
-+
+ 
+-            if (this.mc.gameSettings.thirdPersonView == 0 && !this.mc.renderViewEntity.isPlayerSleeping() && !this.mc.gameSettings.hideGUI && !this.mc.playerController.enableEverythingIsScrewedUpMode())
+-            {
+-                this.enableLightmap((double)par1);
+-                this.itemRenderer.renderItemInFirstPerson(par1);
+-                this.disableLightmap((double)par1);
 +                    this.enableLightmap((double) par1);
 +                    if (shadersMod) {
 +                        //ShadersRender.renderItemFP(this.itemRenderer, par1);
@@ -1701,13 +1701,12 @@
      }
  
      private void addRainParticles()
-@@ -2241,9 +2891,16 @@
+@@ -2241,8 +2891,15 @@
              this.fogColorGreen = Reflector.getFieldValueFloat(event1, Reflector.EntityViewRenderEvent_FogColors_green, this.fogColorGreen);
              this.fogColorBlue = Reflector.getFieldValueFloat(event1, Reflector.EntityViewRenderEvent_FogColors_blue, this.fogColorBlue);
          }
 -
 -        GL11.glClearColor(this.fogColorRed, this.fogColorGreen, this.fogColorBlue, 0.0F);
--    }
 +        /** MINECRIFT SHADERS MOD **/
 +        if (Reflector.shadersModExists()) {
 +            //Shaders.setClearColor(this.fogColorRed, this.fogColorGreen, this.fogColorBlue, 0.0F);
@@ -1717,10 +1716,9 @@
 +            GL11.glClearColor(this.fogColorRed, this.fogColorGreen, this.fogColorBlue, 0.0F);
 +        }
 +        /** END MINECRIFT SHADERS MOD **/
-+    }
+     }
  
      /**
-      * Sets up the fog to be rendered. If the arg passed in is -1 the fog starts at 0 and goes to 80% of far plane
 @@ -2259,17 +2916,31 @@
          {
              var4 = ((EntityPlayer)var3).capabilities.isCreativeMode;
@@ -1732,6 +1730,8 @@
          {
              GL11.glFog(GL11.GL_FOG_COLOR, this.setFogColorBuffer(0.0F, 0.0F, 0.0F, 1.0F));
 -            GL11.glFogi(GL11.GL_FOG_MODE, GL11.GL_LINEAR);
+-            GL11.glFogf(GL11.GL_FOG_START, 0.0F);
+-            GL11.glFogf(GL11.GL_FOG_END, 8.0F);
 +            if (shadersMod) {
 +                //Shaders.sglFogi(GL11.GL_FOG_MODE, GL11.GL_LINEAR);
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_sglFogi, new Object[] {GL11.GL_FOG_MODE, GL11.GL_LINEAR});
@@ -1740,8 +1740,8 @@
 +                GL11.glFogi(GL11.GL_FOG_MODE, GL11.GL_LINEAR);
 +            }
 +
-             GL11.glFogf(GL11.GL_FOG_START, 0.0F);
-             GL11.glFogf(GL11.GL_FOG_END, 8.0F);
++            GL11.glFogf(GL11.GL_FOG_START, 0.0F);
++            GL11.glFogf(GL11.GL_FOG_END, 8.0F);
  
              if (GLContext.getCapabilities().GL_NV_fog_distance)
              {
@@ -1917,7 +1917,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3378,1747 @@
+@@ -2650,4 +3378,1745 @@
              ;
          }
      }
@@ -2085,12 +2085,11 @@
 +            double py = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)renderPartialTicks;
 +            double pz = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)renderPartialTicks;
 +
-+            if (mc.vrPlayer.getFreeMoveMode() && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
-+            {
++
 +                px = entity.posX;
 +                py = entity.posY;
 +                pz = entity.posZ;
-+            }
++
 +
 +            Vec3 teleportSlide = this.mc.vrPlayer.getTeleportSlide();
 +            camRelX += (mc.vrPlayer.roomOrigin.xCoord - px + teleportSlide.xCoord);
@@ -2944,7 +2943,7 @@
 +    {
 + 
 +    	//debug room origin
-+ //       renderCircle(mc.vrPlayer.roomOrigin.addVector(-renderOriginX, -renderOriginY + 0.1f, -renderOriginZ), 0.2f, 32, 0, 255, 0, 255, 1);
++ //    renderCircle(mc.vrPlayer.roomOrigin.addVector(-renderOriginX, -renderOriginY + 0.1f, -renderOriginZ), 0.2f, 32, 0, 255, 0, 255, 1);
 +            	
 +        if (this.aimStartPos != null)
 +        {
@@ -3352,12 +3351,12 @@
 +        float handY = (float)(handPos.yCoord - renderOriginY);
 +        float handZ = (float)(handPos.zCoord - renderOriginZ);
 +
-+        if (mc.vrPlayer.getFreeMoveMode() && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
-+        {
++  //      if (mc.vrPlayer.getFreeMoveMode() && mc.vrSettings.restrictedCameraUpdateInterval==0.0f)
++  //      {
 +            handX = (float)(handPos.xCoord - mc.thePlayer.posX);
 +            handY = (float)(handPos.yCoord - mc.thePlayer.posY);
 +            handZ = (float)(handPos.zCoord - mc.thePlayer.posZ);
-+        }
++    //    }
 +
 +        Matrix4f handRotation = mc.lookaimController.getAimRotation(1);
 +        handRotation = Matrix4f.multiply(handRotation, OpenVRUtil.rotationXMatrix(-(float)Math.PI*0.5f));
@@ -3499,8 +3498,7 @@
 +                    (float)-controllerPos.xCoord,
 +                    (float)controllerPos.yCoord,
 +                    (float)-controllerPos.zCoord);
-+            GL11.glPopMatrix();
-+            
++                  
 +            
 +            Vec3 start = Vec3.createVectorHelper(0,0,0);
 +
@@ -3518,7 +3516,7 @@
 +
 +            renderBox(tes, start, end, -0.02f, 0.02f, -0.025f, 0.00f, vec3Up);
 +            tes.draw();
-+           
++            GL11.glPopMatrix();     
 +        }
 +
 +        GL11.glEnable(GL11.GL_TEXTURE_2D);

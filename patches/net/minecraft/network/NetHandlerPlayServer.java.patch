@@ -16,7 +16,14 @@
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.management.UserListBansEntry;
  import net.minecraft.stats.AchievementList;
-@@ -293,9 +286,11 @@
+@@ -287,15 +280,17 @@
+                 if (packetIn.func_149466_j())
+                 {
+                     var5 = packetIn.getPositionX();
+-                    var7 = packetIn.getPositionY();
++                    var7 = packetIn.getStance();
+                     var9 = packetIn.getPositionZ();
+                     var13 = packetIn.getStance() - packetIn.getPositionY();
  
                      if (!this.playerEntity.isPlayerSleeping() && (var13 > 1.65D || var13 < 0.1D))
                      {
