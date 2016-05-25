@@ -359,7 +359,7 @@ public class VRPlayer
                     // don't call setPosition style functions to avoid shifting room origin
                     player.lastTickPosX = player.prevPosX = player.posX = x;
                     
-                    if (mc.vrSettings.simulateFalling && !player.onGround)	{
+                    if (mc.vrSettings.simulateFalling && !player.onGround && !player.isOnLadder())	{
                     	player.lastTickPosY = player.prevPosY = player.posY = y;                  	
                     }
                                         
@@ -371,7 +371,7 @@ public class VRPlayer
 
                     // test falling
                     if (mc.vrSettings.simulateFalling)	{
-                    	if(!this.restrictedViveClient && (!player.onGround || wasYMoving)){                 		
+                    	if(!this.restrictedViveClient && (!player.onGround || wasYMoving) && !player.isOnLadder()){                 		
                            roomOrigin.yCoord = player.boundingBox.minY;     
                             wasYMoving = !player.onGround;
                     	}         	
