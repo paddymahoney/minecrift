@@ -4,7 +4,7 @@ Minecrift Vive (jrbudda revision)
 
 This is a modified version of the Minecrift VR mod that focuses on the Vive and room scale VR. It adds a teleporting method of locomotion and tracked controller support to interact with the world.
 
-This mod uses phr00t's JOpenVR wrapper from his JMonkeyVR project. Be sure to check that out! Thanks also go to StellaArtois, Mabrowning and everyone else who worked on the Minecrift mod.
+This mod uses phr00t's JOpenVR wrapper from his JMonkeyVR project. Be sure to check that out! Thanks also go to StellaArtois, Mabrowning and everyone else who worked on the Minecrift mod. Thanks to Automat for the Vive port.
 
 
 Controls
@@ -14,19 +14,48 @@ Controls
   - Trigger - Attack (equivalent of left mouse button)
   - Press touchpad - Use (equivalent of right mouse button)
   - Grip - Pick Block (middle mouse button)
+  - Hold grip - Switch control scheme from teleport to free move
   - Menu button - Drop item
 
 - Left controller:
   - Trigger - teleport or free move.
   - Swipe touchpad - switch between hotbar items
   - Press touchpad top half - toggle inventory
-  - Press touchpad bottom half - jump in free move mode
+  - Press touchpad bottom half - jump
   - Menu button - game menu (equivalent of escape key)
   - Grip - Sneak (Shift button)
 
-You can also swing your pickaxe at blocks or swing your sword at enemies to hit them.
+You can also swing your right hand at blocks or enemies to hit them.
+
+Moving around:
+===========
+2 control schemes are supported: teleport and free move.
+Teleport is the default mode unless you connect to a server that does not allow teleporting. Movement is always done with the left trigger.
+
+Teleport Mode
+==
+In teleport mode you use the left trigger and aim at your destination. There are several different teleport styles (cycle with rctrl+M) The default teleport style is the parabolic arc, similar to other VR games. The non-arc modes act more like a grapple-hooks and are only different cosmetically. 
+
+The Arc teleporter is more limited in survival mode: the beam must land on the top surface of a block or the side of a laddle to move. It also consumes Teleport Energy as indicated by the pink circle over the left hand. Teleporting also consumes food.
+
+While in teleport mode your 'body' (the thing that detects collisions) will attempt to move around the play space with you. If you stick your head into a block or crawl under one you will become seperated from it. The blue circle indicates your body's position. Teleporting will center your body to your HMD if you lose it.
+
+The 'simulate falling' in the VR settings menu will aloow you to jump and fall off blocks while moving around your room space in teleport mode. This should not be used if you are prone to motion sickness. Sneaking (left grip) will prevent your body from moving and falling while leaning over cliffs.
+
+Free Move Mode
+=
+In free move mode you hold the left teigger to move/strafe your body in the direction your left controller is pointing. Your body will always be at the center of your play space and it's recommened to stand on the blue circle that indicates this spot. This keeps your head in sync with block collisions.
+
+Free move mode is not recommended for those prone to motion sickness.
+
+Double jumping in free move will allow you to fly if allowed.
+
+Flying is extrememly not recommened for those prone to motion sickeness.
+
+rctrl+M will cycle between left controller and HMD directed movement.
 
 Keyboard Hotkeys:
+==
 
 - r_ctrl + R: switch between teleport and free movmemnt mode.
 - r_ctrl + M. cycle movement mode (teleportion style (Arc/Beam) or free move source (HMD/L_controller)
