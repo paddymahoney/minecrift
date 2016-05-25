@@ -748,7 +748,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				mc.vrPlayer.setFreeMoveMode(!mc.vrPlayer.getFreeMoveMode());
 				mc.printChatMessage("Free movement mode set to: " + mc.vrPlayer.getFreeMoveMode());
 			}
-		} else {moveModeSwitchcount = 0;}
+		} else {moveModeSwitchcount = 0; keyPick.unpressKey();}
 
 	if (!gui) {
 		if ( controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger]!=null)
