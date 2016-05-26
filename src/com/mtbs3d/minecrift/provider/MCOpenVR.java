@@ -415,11 +415,10 @@ IEventNotifier, IEventListener, IBodyAimController
 				int mouseX = Math.min(Math.max((int) controllerMouseX, 0), mc.displayWidth);
 				int mouseY = Math.min(Math.max((int) controllerMouseY, 0), mc.displayHeight);
 
-				Mouse.setCursorPosition(mouseX, mouseY);
-
 				if (controllerDeviceIndex[RIGHT_CONTROLLER] != -1)
 				{
 					
+					Mouse.setCursorPosition(mouseX, mouseY);
 					
 					//LMB
 					if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold && 
@@ -1213,7 +1212,7 @@ IEventNotifier, IEventListener, IBodyAimController
 					//Vec3 playerPos = player.getPositionVector();
 					Minecraft mc = Minecraft.getMinecraft();
 					Vec3 teleportSlide = mc.vrPlayer.getTeleportSlide();
-					Vec3 playerPos = mc.vrPlayer.roomOrigin.addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
+					Vec3 playerPos = mc.vrPlayer.getRoomOrigin().addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
 					blockTop.xCoord -= playerPos.xCoord;
 					blockTop.yCoord -= playerPos.yCoord;
 					blockTop.zCoord -= playerPos.zCoord;
@@ -1382,7 +1381,7 @@ IEventNotifier, IEventListener, IBodyAimController
 			//Vec3 playerPos = player.getPositionVector();
 			Minecraft mc = Minecraft.getMinecraft();
 			Vec3 teleportSlide = mc.vrPlayer.getTeleportSlide();
-			Vec3 playerPos = mc.vrPlayer.roomOrigin.addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
+			Vec3 playerPos = mc.vrPlayer.getRoomOrigin().addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
 			aimSource[0].xCoord += playerPos.xCoord;
 			aimSource[0].yCoord += playerPos.yCoord;
 			aimSource[0].zCoord += playerPos.zCoord;
@@ -1430,7 +1429,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		{
 			Minecraft mc = Minecraft.getMinecraft();
 			Vec3 teleportSlide = mc.vrPlayer.getTeleportSlide();
-			Vec3 playerPos = mc.vrPlayer.roomOrigin.addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
+			Vec3 playerPos = mc.vrPlayer.getRoomOrigin().addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
 			aimSource[1].xCoord += playerPos.xCoord;
 			aimSource[1].yCoord += playerPos.yCoord;
 			aimSource[1].zCoord += playerPos.zCoord;

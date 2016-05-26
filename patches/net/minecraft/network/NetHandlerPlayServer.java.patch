@@ -16,14 +16,7 @@
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.management.UserListBansEntry;
  import net.minecraft.stats.AchievementList;
-@@ -287,15 +280,17 @@
-                 if (packetIn.func_149466_j())
-                 {
-                     var5 = packetIn.getPositionX();
--                    var7 = packetIn.getPositionY();
-+                    var7 = packetIn.getStance();
-                     var9 = packetIn.getPositionZ();
-                     var13 = packetIn.getStance() - packetIn.getPositionY();
+@@ -293,9 +286,11 @@
  
                      if (!this.playerEntity.isPlayerSleeping() && (var13 > 1.65D || var13 < 0.1D))
                      {
@@ -68,7 +61,27 @@
                      return;
                  }
  
-@@ -1171,20 +1171,20 @@
+@@ -404,6 +404,11 @@
+                 this.setPlayerLocation(this.lastPosX, this.lastPosY, this.lastPosZ, this.playerEntity.rotationYaw, this.playerEntity.rotationPitch);
+             }
+         }
++        
++        if(Math.floor(playerEntity.posY) != playerEntity.posY ){
++        	int a = 9;
++        }
++        
+     }
+ 
+     public void setPlayerLocation(double x, double y, double z, float yaw, float pitch)
+@@ -414,6 +419,7 @@
+         this.lastPosZ = z;
+         this.playerEntity.setPositionAndRotation(x, y, z, yaw, pitch);
+         this.playerEntity.playerNetServerHandler.sendPacket(new S08PacketPlayerPosLook(x, y + 1.6200000047683716D, z, yaw, pitch, false));
++        //hard coded height, really?
+     }
+ 
+     /**
+@@ -1171,20 +1177,20 @@
              {
                  var3 = var2.readItemStackFromBuffer();
  
@@ -99,7 +112,7 @@
                      if (var3.getItem() == Items.written_book && var4.getItem() == Items.writable_book)
                      {
                          var4.setTagInfo("author", new NBTTagString(this.playerEntity.getCommandSenderName()));
-@@ -1333,6 +1333,13 @@
+@@ -1333,6 +1339,13 @@
                      var41.updateItemName("");
                  }
              }

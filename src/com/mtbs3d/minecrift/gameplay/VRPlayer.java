@@ -34,7 +34,7 @@ public class VRPlayer
     public int movementTeleportDestinationSideHit;
     public double movementTeleportProgress;
     public double movementTeleportDistance;
-    public Vec3 roomOrigin = Vec3.createVectorHelper(0,0,0);
+    private Vec3 roomOrigin = Vec3.createVectorHelper(0,0,0);
     public Vec3 teleportSlide = Vec3.createVectorHelper(0,0,0);
     public long teleportSlideStartTime = 0;
     public VRMovementStyle vrMovementStyle = new VRMovementStyle();
@@ -62,7 +62,17 @@ public class VRPlayer
         }
     }
 
-    public void snapRoomOriginToPlayerEntity(EntityPlayer player)
+    public Vec3 getRoomOrigin() { return this.roomOrigin;}
+    
+    public void setRoomOrigin(double x, double y, double z) { 
+    	this.roomOrigin.xCoord = x;
+    	this.roomOrigin.yCoord = y;
+    	this.roomOrigin.zCoord = z;
+        lastRoomUpdateTime = Minecraft.getMinecraft().stereoProvider.getCurrentTimeSecs();
+    }
+    
+    
+    public void snapRoomOriginToPlayerEntity(EntityPlayerSP player)
     {
         if (Thread.currentThread().getName().equals("Server thread"))
             return;
@@ -80,10 +90,7 @@ public class VRPlayer
             if (lastRoomUpdateTime==0
                     || mc.stereoProvider.getCurrentTimeSecs() - lastRoomUpdateTime >= mc.vrSettings.restrictedCameraUpdateInterval)
             {
-                roomOrigin.xCoord = x;
-                roomOrigin.yCoord = y;
-                roomOrigin.zCoord = z;
-                lastRoomUpdateTime = mc.stereoProvider.getCurrentTimeSecs();
+            	setRoomOrigin(x, y, z);
             }
         }
         else
@@ -98,20 +105,32 @@ public class VRPlayer
             teleportSlide.xCoord = roomOrigin.xCoord - newX;
             teleportSlide.yCoord = roomOrigin.yCoord - newY;
             teleportSlide.zCoord = roomOrigin.zCoord - newZ;
-            roomOrigin.xCoord = newX;
-            roomOrigin.yCoord = newY;
-            roomOrigin.zCoord = newZ;
+            
+            setRoomOrigin(newX, newY, newZ);
+
             teleportSlideStartTime = System.nanoTime();
         }
     }
-
+    
+    public  double topofhead = 1.62;
+    
+    
+    
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
 	
+        player.boundingBox.maxY = player.boundingBox.minY +  player.height;
+    	
         updateSwingAttack();
 		
+        //experimental
+        topofhead = (double) (mc.entityRenderer.getEyeCentrePosInWorldFrame().yCoord + .18) + roomOrigin.yCoord - player.boundingBox.minY;
+       
+        if(topofhead < .5) {topofhead = 0.5f;}
         
-        
+        player.height = (float) topofhead;
+     
+      
         // don't do teleport movement if on a server that doesn't have this mod installed
         if (restrictedViveClient) {
 			  return; //let mc handle look direction movement
@@ -294,7 +313,7 @@ public class VRPlayer
 
             //execute teleport      
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
-            player.addExhaustion((float) (movementTeleportDistance / 16 * 1.5f));
+            player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));
       
             if (!mc.vrPlayer.getFreeMoveMode() && mc.playerController.isNotCreative() && mc.vrPlayer.vrMovementStyle.arcAiming){
             	teleportEnergy -= movementTeleportDistance * 4;	
@@ -318,6 +337,7 @@ public class VRPlayer
             }
 
             player.movementTeleportTimer = -1;
+            
         }
         else //standing still
         {
@@ -331,6 +351,8 @@ public class VRPlayer
 	private void doPlayerMoveInRoom(EntityPlayerSP player){
 		// this needs... work...
 	
+		
+		
 				if(player.isSneaking()) {return;} //jrbudda : prevent falling off things or walking up blocks while moving in room scale.
 		
 				Minecraft mc = Minecraft.getMinecraft();
@@ -369,7 +391,7 @@ public class VRPlayer
                     }
                                         
                     player.lastTickPosZ = player.prevPosZ = player.posZ = z;
-                    player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
+                    player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY + player.height, bb.maxZ);
                     player.fallDistance = 0.0F;
 
                     torso = getEstimatedTorsoPosition(x, y, z);

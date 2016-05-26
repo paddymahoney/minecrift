@@ -2095,9 +2095,9 @@
 +
 +
 +            Vec3 teleportSlide = this.mc.vrPlayer.getTeleportSlide();
-+            camRelX += (mc.vrPlayer.roomOrigin.xCoord - px + teleportSlide.xCoord);
-+            camRelY -= (mc.vrPlayer.roomOrigin.yCoord - py + teleportSlide.yCoord);
-+            camRelZ += (mc.vrPlayer.roomOrigin.zCoord - pz + teleportSlide.zCoord);
++            camRelX += (mc.vrPlayer.getRoomOrigin().xCoord - px + teleportSlide.xCoord);
++            camRelY -= (mc.vrPlayer.getRoomOrigin().yCoord - py + teleportSlide.yCoord);
++            camRelZ += (mc.vrPlayer.getRoomOrigin().zCoord - pz + teleportSlide.zCoord);
 +        }
 +        
 + 
@@ -2130,7 +2130,7 @@
 +            eyeCentrePos.rotateAroundY(-lookYawOffset);
 +
 +            VRPlayer vrPlayer = mc.vrPlayer;
-+            Vec3 roomOriginDelta = Vec3.createVectorHelper( vrPlayer.roomOrigin.xCoord, vrPlayer.roomOrigin.yCoord, vrPlayer.roomOrigin.zCoord );
++            Vec3 roomOriginDelta = Vec3.createVectorHelper( vrPlayer.getRoomOrigin().xCoord, vrPlayer.getRoomOrigin().yCoord, vrPlayer.getRoomOrigin().zCoord );
 +            Vec3 teleportSlide = vrPlayer.getTeleportSlide();
 +            roomOriginDelta.xCoord += teleportSlide.xCoord - entity.posX;
 +            roomOriginDelta.yCoord += teleportSlide.yCoord - entity.posY;

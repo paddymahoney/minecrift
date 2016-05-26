@@ -1232,7 +1232,7 @@
 +            Reflector.callVoid(Reflector.FMLNetworkHandler_openGui, new Object[]{this, mod, modGuiId, world, x, y, z});
 +        }
 +    }
-+
+ 
 +    /* ======================================== FORGE START =====================================*/
 +    /**
 +     * interpolated position vector
@@ -1312,7 +1312,7 @@
 +            spawnForcedMap.remove(dimension);
 +        }
 +    }
- 
++
 +    public float eyeHeight;
 +    private String displayname;
 +
@@ -1355,12 +1355,52 @@
      public static enum EnumStatus
      {
          OK("OK", 0),
-@@ -2371,4 +3102,8 @@
+@@ -2371,4 +3102,48 @@
  
          private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
      }
 +
++//VIVE
++        
++    
++public void moveEntity(double x, double y, double z)
++{
++
++//	    	if(this instanceof EntityPlayerSP) { 		
++//	    		System.out.println("SP: " + x + " " + y+ " " + z);
++//	    	}
++//
++//	       	if(this instanceof EntityPlayerMP) { 		
++//	    		System.out.println("MP: " + x + " " + y+ " " + z);
++//	    	}
++
++	if (VRPlayer.get().getFreeMoveMode())
++	{
++		super.moveEntity(x,y,z);
++		if (this instanceof EntityPlayerSP){	VRPlayer.get().snapRoomOriginToPlayerEntity((EntityPlayerSP) this);}  
++		
++		
++	} else {
++		//     this.onGround = true;
++		if(Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder() && !this.isSneaking()) {      	 
++			super.moveEntity(0,y,0);
++			
++			if (this instanceof EntityPlayerSP){VRPlayer.get().setRoomOrigin(VRPlayer.get().getRoomOrigin().xCoord, this.boundingBox.minY, VRPlayer.get().getRoomOrigin().zCoord);
++			
++			}
++			
++		} else {
++			//do not move player, VRPlayer.moveplayerinroom will move him around.
++		}
++		
++
++	}
++
++  		
++	
++}
++    
 +
 +
-+    // VIVE END - prevent moving
++    // VIVE END 
  }

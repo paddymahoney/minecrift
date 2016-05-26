@@ -1,9 +1,12 @@
 --- a/net/minecraft/client/entity/EntityPlayerSP.java
 +++ b/net/minecraft/client/entity/EntityPlayerSP.java
-@@ -1,5 +1,10 @@
+@@ -1,5 +1,13 @@
  package net.minecraft.client.entity;
  
++import com.mtbs3d.minecrift.api.IBodyAimController;
 +import com.mtbs3d.minecrift.gameplay.VRPlayer;
++import com.mtbs3d.minecrift.provider.MCOpenVR;
++
 +import net.minecraft.block.Block;
 +import net.minecraft.block.BlockLiquid;
 +import net.minecraft.block.material.Material;
@@ -11,7 +14,7 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.audio.PositionedSoundRecord;
  import net.minecraft.client.gui.GuiCommandBlock;
-@@ -30,7 +35,9 @@
+@@ -30,7 +38,9 @@
  import net.minecraft.inventory.IInventory;
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
@@ -21,16 +24,16 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.tileentity.TileEntityBeacon;
  import net.minecraft.tileentity.TileEntityBrewingStand;
-@@ -52,7 +59,7 @@
+@@ -52,7 +62,7 @@
  public class EntityPlayerSP extends AbstractClientPlayer
  {
      public MovementInput movementInput;
 -    protected Minecraft mc;
-+    public Minecraft mc; //jrbudda needs this public
++    protected Minecraft mc; 
  
      /**
       * Used to tell if the player pressed forward twice. If this is at 0 and it's pressed (And they are allowed to
-@@ -61,6 +68,10 @@
+@@ -61,6 +71,10 @@
       */
      protected int sprintToggleTimer;
  
@@ -41,7 +44,7 @@
      /** Ticks left before sprinting is disabled. */
      public int sprintingTicksLeft;
      public float renderArmYaw;
-@@ -182,7 +193,9 @@
+@@ -182,7 +196,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -52,7 +55,27 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -208,7 +221,7 @@
+@@ -198,17 +214,23 @@
+                 this.yOffset2 = 0.2F;
+             }
+ 
+-            this.pushOutOfBlocks(this.posX - (double)this.width * 0.35D, this.boundingBox.minY + 0.5D, this.posZ + (double)this.width * 0.35D);
+-            this.pushOutOfBlocks(this.posX - (double)this.width * 0.35D, this.boundingBox.minY + 0.5D, this.posZ - (double)this.width * 0.35D);
+-            this.pushOutOfBlocks(this.posX + (double)this.width * 0.35D, this.boundingBox.minY + 0.5D, this.posZ - (double)this.width * 0.35D);
+-            this.pushOutOfBlocks(this.posX + (double)this.width * 0.35D, this.boundingBox.minY + 0.5D, this.posZ + (double)this.width * 0.35D);
++            //VIVE CRAWLING
++            
++            this.pushOutOfBlocks(this.posX - (double)this.width * 0.35D, this.boundingBox.minY + this.height, this.posZ + (double)this.width * 0.35D);
++            this.pushOutOfBlocks(this.posX - (double)this.width * 0.35D, this.boundingBox.minY + this.height, this.posZ - (double)this.width * 0.35D);
++            
++            this.pushOutOfBlocks(this.posX + (double)this.width * 0.35D, this.boundingBox.minY + this.height, this.posZ - (double)this.width * 0.35D);
++            this.pushOutOfBlocks(this.posX + (double)this.width * 0.35D, this.boundingBox.minY + this.height, this.posZ + (double)this.width * 0.35D);
++            
++            //CRAWLING
++            
+             boolean var4 = (float)this.getFoodStats().getFoodLevel() > 6.0F || this.capabilities.allowFlying;
+ 
+             if (this.onGround && !var3 && this.movementInput.moveForward >= var2 && !this.isSprinting() && var4 && !this.isUsingItem() && !this.isPotionActive(Potion.blindness))
              {
                  if (this.sprintToggleTimer <= 0 && !this.mc.gameSettings.keyBindSprint.getIsKeyPressed())
                  {
@@ -61,7 +84,7 @@
                  }
                  else
                  {
-@@ -240,18 +253,24 @@
+@@ -240,18 +262,24 @@
                  }
              }
  
@@ -88,7 +111,7 @@
  
              if (this.isRidingHorse())
              {
-@@ -296,6 +315,10 @@
+@@ -296,6 +324,10 @@
  
              super.onLivingUpdate();
  
@@ -99,7 +122,7 @@
              if (this.onGround && this.capabilities.isFlying)
              {
                  this.capabilities.isFlying = false;
-@@ -341,7 +364,15 @@
+@@ -341,7 +373,15 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -116,14 +139,22 @@
      }
  
      /**
-@@ -524,70 +555,164 @@
+@@ -524,70 +564,170 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
 -
--    protected boolean pushOutOfBlocks(double x, double y, double z)
 +    /** MINECRIFT FORGE **/
 +    private boolean isHeadspaceFree(int x, int y, int z, int height)
++    {
++        for (int i1 = 0; i1 < height; i1++)
++        {
++            if (isBlockNormal(x, y + i1, z + 1)) return false;
++        }
++        return true;
++    }
++    /** END MINECRIFT FORGE **/
+     protected boolean pushOutOfBlocks(double x, double y, double z)
      {
 -        int var7 = MathHelper.floor_double(x);
 -        int var8 = MathHelper.floor_double(y);
@@ -132,7 +163,7 @@
 -        double var12 = z - (double)var9;
 -
 -        if (this.isBlockNormal(var7, var8, var9) || this.isBlockNormal(var7, var8 + 1, var9))
-+        for (int i1 = 0; i1 < height; i1++)
++        if (this.noClip)
          {
 -            boolean var14 = !this.isBlockNormal(var7 - 1, var8, var9) && !this.isBlockNormal(var7 - 1, var8 + 1, var9);
 -            boolean var15 = !this.isBlockNormal(var7 + 1, var8, var9) && !this.isBlockNormal(var7 + 1, var8 + 1, var9);
@@ -140,36 +171,30 @@
 -            boolean var17 = !this.isBlockNormal(var7, var8, var9 + 1) && !this.isBlockNormal(var7, var8 + 1, var9 + 1);
 -            byte var18 = -1;
 -            double var19 = 9999.0D;
--
--            if (var14 && var10 < var19)
-+            if (isBlockNormal(x, y + i1, z + 1)) return false;
++            return false;
 +        }
-+        return true;
-+    }
-+    /** END MINECRIFT FORGE **/
-+    protected boolean pushOutOfBlocks(double x, double y, double z)
-+    {
++    	
 +        /** MINECRIFT FORGE **/
 +        if (Reflector.forgeExists()) {
-+            if (this.noClip)
-             {
--                var19 = var10;
--                var18 = 0;
-+                return false;
-             }
++     
 +            int i = MathHelper.floor_double(x);
 +            int j = MathHelper.floor_double(y);
 +            int k = MathHelper.floor_double(z);
 +            double d3 = x - (double)i;
 +            double d4 = z - (double)k;
  
+-            if (var14 && var10 < var19)
+-            {
+-                var19 = var10;
+-                var18 = 0;
+-            }
++            int entHeight = Math.max(Math.round(this.height), 1);
+ 
 -            if (var15 && 1.0D - var10 < var19)
 -            {
 -                var19 = 1.0D - var10;
 -                var18 = 1;
 -            }
-+            int entHeight = Math.max(Math.round(this.height), 1);
-+
 +            boolean inTranslucentBlock = true;
  
 -            if (var16 && var12 < var19)
@@ -195,23 +220,27 @@
 +                boolean flag3 = !isHeadspaceFree(i, j, k + 1, entHeight);
 +                byte b0 = -1;
 +                double d5 = 9999.0D;
-+
+ 
+-            float var21 = 0.1F;
 +                if (flag && d3 < d5)
 +                {
 +                    d5 = d3;
 +                    b0 = 0;
 +                }
  
--            float var21 = 0.1F;
+-            if (var18 == 0)
+-            {
+-                this.motionX = (double)(-var21);
+-            }
 +                if (flag1 && 1.0D - d3 < d5)
 +                {
 +                    d5 = 1.0D - d3;
 +                    b0 = 1;
 +                }
  
--            if (var18 == 0)
+-            if (var18 == 1)
 -            {
--                this.motionX = (double)(-var21);
+-                this.motionX = (double)var21;
 -            }
 +                if (flag2 && d4 < d5)
 +                {
@@ -219,19 +248,15 @@
 +                    b0 = 4;
 +                }
  
--            if (var18 == 1)
+-            if (var18 == 4)
 -            {
--                this.motionX = (double)var21;
--            }
+-                this.motionZ = (double)(-var21);
 +                if (flag3 && 1.0D - d4 < d5)
 +                {
 +                    d5 = 1.0D - d4;
 +                    b0 = 5;
 +                }
- 
--            if (var18 == 4)
--            {
--                this.motionZ = (double)(-var21);
++
 +                float f = 0.1F;
 +
 +                if (b0 == 0)
@@ -264,7 +289,11 @@
 +            double var12 = z - (double)var9;
  
 -            if (var18 == 5)
-+            if (this.isBlockNormal(var7, var8, var9) || this.isBlockNormal(var7, var8 + 1, var9))
++            //CRAWLING
++            boolean tall = Math.floor(this.height) > 0;
++            //
++                        
++            if ((tall && this.isBlockNormal(var7, var8 - 1 , var9)) || this.isBlockNormal(var7, var8, var9))
              {
 -                this.motionZ = (double)var21;
 +                boolean var14 = !this.isBlockNormal(var7 - 1, var8, var9) && !this.isBlockNormal(var7 - 1, var8 + 1, var9);
@@ -326,7 +355,7 @@
  
          return false;
      }
-@@ -640,6 +765,20 @@
+@@ -640,6 +780,20 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -347,13 +376,99 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +801,123 @@
+@@ -662,4 +816,137 @@
      }
  
      protected void sendHorseJump() {}
 +
 +    /**** MINECRIFT ADDITIONS BELOW ****/
++    
++    /**
++     * Used in both water and by flying objects
++     */
++    public void moveFlying(float strafe, float forward, float friction, boolean allowYAdjust)
++    {
++  //  	super.moveFlying(strafe, forward, friction, allowYAdjust);;
++    	
++        int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
++        float var4 = strafe * strafe + forward * forward;
 +
++        double mX = 0d;
++        double mZ = 0d;
++        double mY = 0d;
++        double addFactor = 1f;
++        double yAddFactor = 0f;
++
++        if (var4 >= 1.0E-4F)
++        {
++            var4 = MathHelper.sqrt_float(var4);
++
++            if (var4 < 1.0F)
++            {
++                var4 = 1.0F;
++            }
++
++            var4 = friction / var4;
++            strafe *= var4;
++            forward *= var4;
++
++            directionVec.xCoord = strafe;
++            directionVec.yCoord = 0;
++            directionVec.zCoord = forward;
++	  						
++         	//VIVE DO PITCH FLYING		
++        	VRPlayer vr = mc.vrPlayer;			
++    		IBodyAimController con = mc.lookaimController;
++    		
++    		if (!vr.getFreeMoveMode()) {return;}
++
++    	   // Modify acceleration sequence (each tick)
++            addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
++    				
++            // Account for pitch if required
++            if (allowYAdjust & Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
++                yAddFactor = addFactor;
++    			if (vr.useLControllerForRestricedMovement) {
++    	
++    				if (con instanceof MCOpenVR) {
++    				  directionVec.rotateAroundX(-(((MCOpenVR)con).laimPitch) * PIOVER180);		   
++    				}
++    					 
++    			} else {
++    		       directionVec.rotateAroundX(-this.headPitch * PIOVER180);	
++    			}		
++            }
++    		
++    		// Account for yaw
++    		if (vr.useLControllerForRestricedMovement) {
++    				if (con instanceof MCOpenVR) {
++    				  directionVec.rotateAroundY(-(((MCOpenVR)con).laimYaw) * PIOVER180);		   
++    				}
++    		} else {
++    			directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
++    		}
++    	
++		
++            mX = directionVec.xCoord;
++            mY = directionVec.yCoord;
++            mZ = directionVec.zCoord;
++
++            this.motionX = this.motionX + (mX * addFactor);
++            this.motionZ = this.motionZ + (mZ * addFactor);
++            this.motionY = this.motionY + (mY * yAddFactor);
++      
++        }
++        //if (this instanceof EntityPlayerSP) {
++        //    System.out.println(String.format("FLYING: %B, forward: %.4f, strafe: %.4f, pitch: %.4f, yaw: %.4f, mx: %.4f, mz: %.4f, my: %.4f", allowYAdjust, forward, strafe, this.headPitch, this.rotationYaw, mX, mZ, mY));
++        //}
++
++        this.additionX = mX;
++        this.additionZ = mZ;
++        this.additionY = mY;
++/** END MINECRIFT **/
++   
++    }
++    
 +    /**
 +     * Checks if the current block the entity is within of the specified material type
 +     */
@@ -397,77 +512,5 @@
 +        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
 +    
-+    public void moveEntity(double x, double y, double z)
-+    {
-+    	if (VRPlayer.get().getFreeMoveMode())
-+    	{
-+    		super.moveEntity(x,y,z);
-+    		VRPlayer.get().snapRoomOriginToPlayerEntity(this);
-+    		return;
-+    	} else {
-+
-+
-+    		//     this.onGround = true;
-+    		if(Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder() && !this.isSneaking()) {      	 
-+
-+    			super.moveEntity(0,y,0);
-+
-+    			VRPlayer.get().roomOrigin.yCoord = posY - yOffset;        	 
-+    		} else {
-+    			//do not move player, VRPlayer.moveplayerinroom will move him around.
-+    		}
-+    	}
-+         
-+//        }
-+//        else
-+//        {
-+//            this.onGround = true;
-+//
-+//            // no movement but do block collisions still
-+//            try
-+//            {
-+//                this.doBlockCollisions();
-+//            }
-+//            catch (Throwable var35)
-+//            {
-+//                CrashReport var41 = CrashReport.makeCrashReport(var35, "Checking entity block collision");
-+//                CrashReportCategory var42 = var41.makeCategory("Entity being checked for collision");
-+//                this.addEntityCrashInfo(var42);
-+//                throw new ReportedException(var41);
-+//            }
-+//
-+//            boolean var40 = this.isWet();
-+//
-+//            if (this.worldObj.func_147470_e(this.boundingBox.contract(0.001D, 0.001D, 0.001D)))
-+//            {
-+//                if (!this.isImmuneToFire())
-+//                {
-+//                    this.attackEntityFrom(DamageSource.inFire, 1.0f);
-+//                }
-+//
-+//                if (!var40)
-+//                {
-+//                    ++this.fire;
-+//
-+//                    if (this.fire == 0)
-+//                    {
-+//                        this.setFire(8);
-+//                    }
-+//                }
-+//            }
-+//            else if (this.fire <= 0)
-+//            {
-+//                this.fire = -this.fireResistance;
-+//            }
-+//
-+//            if (var40 && this.fire > 0)
-+//            {
-+//                this.playSound("random.fizz", 0.7F, 1.6F + (this.rand.nextFloat() - this.rand.nextFloat()) * 0.4F);
-+//                this.fire = -this.fireResistance;
-+//            }
-+//        }
-+//        return;
-+    }
 +    
-+    // VIVE END - update room origin when player entity is moved
  }

@@ -1,5 +1,16 @@
 --- a/net/minecraft/client/entity/EntityClientPlayerMP.java
 +++ b/net/minecraft/client/entity/EntityClientPlayerMP.java
+@@ -96,8 +96,8 @@
+     /**
+      * Called to update the entity's position/logic.
+      */
+-    public void onUpdate()
+-    {
++    public void onUpdate(){
++   
+         if (this.worldObj.blockExists(MathHelper.floor_double(this.posX), 0, MathHelper.floor_double(this.posZ)))
+         {
+             super.onUpdate();
 @@ -156,23 +156,28 @@
          double var7 = this.posZ - this.oldPosZ;
          double var9 = (double)(this.rotationYaw - this.oldRotationYaw);

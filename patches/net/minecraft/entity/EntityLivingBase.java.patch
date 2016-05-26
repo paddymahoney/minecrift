@@ -362,7 +362,7 @@
 +        double zFactor = var3;
 +        double yFactor = 0.9800000190734863D;
 +
-+        if (this instanceof EntityPlayerSP)
++        if (this instanceof EntityPlayer)
 +        {
 +            int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
 +            double addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
@@ -452,6 +452,15 @@
  
          this.worldObj.theProfiler.startSection("ai");
  
+@@ -2071,7 +2286,7 @@
+      */
+     public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int rotationIncrements)
+     {
+-        this.yOffset = 0.0F;
++        //this.yOffset = 0.0F; oh man this is gonna bit me - jrbudda
+         this.newPosX = x;
+         this.newPosY = y;
+         this.newPosZ = z;
 @@ -2149,16 +2364,24 @@
  
          if (p_70676_1_ == 1.0F)
