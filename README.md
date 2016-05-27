@@ -25,7 +25,7 @@ Controls
   - Menu button - game menu (equivalent of escape key)
   - Grip - Sneak (Shift button)
 
-You can also swing your right hand at blocks or enemies to hit them.
+
 
 Moving around:
 ===========
@@ -53,6 +53,11 @@ Double jumping in free move will allow you to fly if allowed.
 Flying is extrememly not recommened for those prone to motion sickeness.
 
 rctrl+M will cycle between left controller and HMD directed movement.
+
+Other changes
+==
+ - You can hit blocks or mobs with your right controller to break or attack them. Multiple swings are needed to break a block.
+ - You can 'crawl' under blocks or duck arrows.
 
 Keyboard Hotkeys:
 ==
