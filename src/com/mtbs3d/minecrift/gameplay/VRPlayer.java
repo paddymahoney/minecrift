@@ -124,9 +124,10 @@ public class VRPlayer
         updateSwingAttack();
 		
         //experimental
-        topofhead = (double) (mc.entityRenderer.getEyeCentrePosInWorldFrame().yCoord + .18) + roomOrigin.yCoord - player.boundingBox.minY;
+        topofhead = (double) (mc.entityRenderer.getEyeCentrePosInWorldFrame().yCoord + .05) + roomOrigin.yCoord - player.boundingBox.minY;
        
         if(topofhead < .5) {topofhead = 0.5f;}
+        if(topofhead > 1.8) {topofhead = 1.8f;}
         
         player.height = (float) topofhead;
      
@@ -707,7 +708,7 @@ public class VRPlayer
         boolean bFoundValidSpot = false;
 
         
-		if (collision.sideHit > 1) 
+		if (collision.sideHit != 1) 
 		{ //sides
 		//jrbudda require arc hitting top of block.	unless ladder or vine.
 			Block testClimb = player.worldObj.getBlock(collision.blockX, collision.blockY, collision.blockZ);
