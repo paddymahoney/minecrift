@@ -13,7 +13,7 @@
          this.gameController.gameSettings.sendSettingsToServer();
          this.netManager.scheduleOutboundPacket(new C17PacketCustomPayload("MC|Brand", ClientBrandRetriever.getClientModName().getBytes(Charsets.UTF_8)), new GenericFutureListener[0]);
 +        // VIVE START - ask server if it's running this mod
-+        this.gameController.vrPlayer.setFreeMoveMode(true);
++        this.gameController.vrPlayer.setFreeMoveMode(Minecraft.getMinecraft().vrSettings.vrFreeMove);
 +        String please = "please";
 +        this.netManager.scheduleOutboundPacket(new C17PacketCustomPayload("MC|Vive", please.getBytes(Charsets.UTF_8)), new GenericFutureListener[0]);
 +        // VIVE END - ask server if it's running this mod

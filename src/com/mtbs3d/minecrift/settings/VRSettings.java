@@ -232,6 +232,13 @@ public class VRSettings
     public boolean hideGui = false;     // VIVE show gui
     public boolean useKeyBindingForComfortYaw = false;
 
+    //Jrbudda's Options
+    public boolean vrFreeMove = false;
+    public boolean vrAllowLocoModeSwotch = true;
+    public boolean vrLimitedSurvivalTeleport = true;
+    public boolean vrAllowCrawling = true;
+    
+    
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -949,6 +956,29 @@ public class VRSettings
                         this.weaponCollision = optionTokens[1].equals("true");
                     }
                     // VIVE END - new options
+                    //JRBUDDA
+                    if (optionTokens[0].equals("allowCrawling"))
+                    {
+                        this.vrAllowCrawling = optionTokens[1].equals("true");
+                    }
+                    if (optionTokens[0].equals("allowModeSwitch"))
+                    {
+                        this.vrAllowLocoModeSwotch = optionTokens[1].equals("true");
+                    }
+                    if (optionTokens[0].equals("freeMoveDefault"))
+                    {
+                        this.vrFreeMove = optionTokens[1].equals("true");
+                    }
+                    if (optionTokens[0].equals("limitedTeleport"))
+                    {
+                        this.vrLimitedSurvivalTeleport = optionTokens[1].equals("true");
+                    }
+
+                    
+                    
+                    //END JRBUDDA
+                    
+                    
                 }
                 catch (Exception var7)
                 {
@@ -1363,6 +1393,18 @@ public class VRSettings
             case WEAPON_COLLISION:
                 return this.weaponCollision ? var4 + "ON" : var4 + "OFF";
                 // VIVE END - new options
+                //JRBUDDA
+            case ALLOW_MODE_SWITCH:
+                return this.vrAllowLocoModeSwotch ? var4 + "ON" : var4 + "OFF";     
+            case FREE_MOVE_DEFAULT:
+                return this.vrFreeMove ? var4 + "ON" : var4 + "OFF";       
+            case ALLOW_CRAWLING:
+                return this.vrAllowCrawling ? var4 + "ON" : var4 + "OFF"; 
+            case LIMIT_TELEPORT:
+                return this.vrLimitedSurvivalTeleport ? var4 + "ON" : var4 + "OFF";
+     
+
+                //END JRBUDDA
  	        default:
 	        	return "";
         }
@@ -1736,6 +1778,23 @@ public class VRSettings
                 this.weaponCollision = !this.weaponCollision;
                 break;
             // VIVE END - new options
+                //JRBUDDA
+            case ALLOW_MODE_SWITCH:
+                this.vrAllowLocoModeSwotch = !this.vrAllowLocoModeSwotch;
+                break;
+            case FREE_MOVE_DEFAULT:
+                this.vrFreeMove = !this.vrFreeMove;
+                Minecraft.getMinecraft().vrPlayer.setFreeMoveMode(vrFreeMove);
+                break;
+            case ALLOW_CRAWLING:
+                this.vrAllowCrawling = !this.vrAllowCrawling;
+                break;
+            case LIMIT_TELEPORT:
+                this.vrLimitedSurvivalTeleport = !this.vrLimitedSurvivalTeleport;
+                break;
+                
+                //JRBUDDA
+                
             default:
                     break;
     	}
@@ -2174,10 +2233,19 @@ public class VRSettings
             var5.println("allowAvatarIK:" + this.allowAvatarIK);
             var5.println("hideGui:" + this.hideGui);
             var5.println("movementQuantisation:" + this.movementQuantisation);
-            var5.println("restrictedCameraUpdateInterval" + this.restrictedCameraUpdateInterval);
-            var5.println("simulateFalling" + this.simulateFalling);
-            var5.println("weaponCollision" + this.weaponCollision);
-
+            var5.println("restrictedCameraUpdateInterval:" + this.restrictedCameraUpdateInterval);
+        //VIVE
+            var5.println("simulateFalling:" + this.simulateFalling);
+            var5.println("weaponCollision:" + this.weaponCollision);
+//END VIVE
+            
+            //JRBUDDA
+            var5.println("allowCrawling:" + this.vrAllowCrawling);
+            var5.println("allowModeSwitch:" + this.vrAllowLocoModeSwotch);   
+            var5.println("freeMoveDefault:" + this.vrFreeMove);
+            var5.println("limitedTeleport:" + this.vrLimitedSurvivalTeleport);
+           
+            //END JRBUDDA
             var5.close();
         }
         catch (Exception var3)
@@ -2503,6 +2571,15 @@ public class VRSettings
         WEAPON_COLLISION("Weapon collision", false, true),
         // VIVE END - new options
 
+        //JRBUDDA VIVE
+        ALLOW_CRAWLING("Allow crawling",false, true),
+        ALLOW_MODE_SWITCH("Allow Mode Switch",false, true),
+        FREE_MOVE_DEFAULT("Default to Free Move",false, true),
+        LIMIT_TELEPORT("Limit TP in Survival",false, true),
+        
+        //END JRBUDDA
+        
+        
         // Calibration
         CALIBRATION_STRATEGY("Initial Calibration", false, false),
 

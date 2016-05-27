@@ -3522,7 +3522,7 @@
 +        GL11.glPopMatrix();
 +                  
 +        
-+     if (!mc.vrPlayer.getFreeMoveMode() && mc.playerController.isNotCreative() && mc.vrPlayer.vrMovementStyle.arcAiming){
++     if (mc.vrSettings.vrLimitedSurvivalTeleport && !mc.vrPlayer.getFreeMoveMode() && mc.playerController.isNotCreative() && mc.vrPlayer.vrMovementStyle.arcAiming){
 +	        
 +		   GL11.glEnable(GL11.GL_BLEND);
 +		   GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -3540,8 +3540,8 @@
 +        
 +        if(r<0){r=0;}
 +        
-+        renderCircle(start.addVector(0, .1, 0), r, 32, 255, 163, 255, 200, 1);
-+        renderCircle(start.addVector(0, .1, 0), .05f, 32, 255, 163, 255, 100, 1);    
++        renderCircle(start.addVector(0, .06, 0), r, 32, 255, 163, 255, 200, 1);
++        renderCircle(start.addVector(0, .06, 0), .05f, 32, 255, 163, 255, 100, 1);    
 +        
 +        GL11.glEnable(GL11.GL_TEXTURE_2D);
 +        GL11.glDisable(GL11.GL_BLEND);

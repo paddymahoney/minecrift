@@ -741,12 +741,17 @@ IEventNotifier, IEventListener, IBodyAimController
 	
 		if (pressedRGrip) {
 			keyPick.pressKey();
-			moveModeSwitchcount++;
-			if (moveModeSwitchcount >= 20 * 4) {
-				moveModeSwitchcount = 0;
-				mc.vrPlayer.setFreeMoveMode(!mc.vrPlayer.getFreeMoveMode());
-				mc.printChatMessage("Free movement mode set to: " + mc.vrPlayer.getFreeMoveMode());
-			}
+			
+			if(mc.vrSettings.vrAllowLocoModeSwotch){
+				
+				moveModeSwitchcount++;
+				if (moveModeSwitchcount >= 20 * 4) {
+					moveModeSwitchcount = 0;
+					mc.vrPlayer.setFreeMoveMode(!mc.vrPlayer.getFreeMoveMode());
+					mc.printChatMessage("Free movement mode set to: " + mc.vrPlayer.getFreeMoveMode());
+				}	
+				
+			}			
 		} else {moveModeSwitchcount = 0; keyPick.unpressKey();}
 
 	if (!gui) {

@@ -119,18 +119,20 @@ public class VRPlayer
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
 	
-        player.boundingBox.maxY = player.boundingBox.minY +  player.height;
     	
         updateSwingAttack();
 		
-        //experimental
-        topofhead = (double) (mc.entityRenderer.getEyeCentrePosInWorldFrame().yCoord + .05) + roomOrigin.yCoord - player.boundingBox.minY;
-       
-        if(topofhead < .5) {topofhead = 0.5f;}
-        if(topofhead > 1.8) {topofhead = 1.8f;}
-        
-        player.height = (float) topofhead;
-     
+       if(mc.vrSettings.vrAllowCrawling){         //experimental
+           topofhead = (double) (mc.entityRenderer.getEyeCentrePosInWorldFrame().yCoord + .05) + roomOrigin.yCoord - player.boundingBox.minY;
+           
+           if(topofhead < .5) {topofhead = 0.5f;}
+           if(topofhead > 1.8) {topofhead = 1.8f;}
+           
+           player.height = (float) topofhead;
+
+           player.boundingBox.maxY = player.boundingBox.minY +  player.height;    	   
+       }
+
       
         // don't do teleport movement if on a server that doesn't have this mod installed
         if (restrictedViveClient) {
@@ -314,12 +316,15 @@ public class VRPlayer
 
             //execute teleport      
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
-            player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));
-      
-            if (!mc.vrPlayer.getFreeMoveMode() && mc.playerController.isNotCreative() && mc.vrPlayer.vrMovementStyle.arcAiming){
-            	teleportEnergy -= movementTeleportDistance * 4;	
+          
+            if(mc.vrSettings.vrLimitedSurvivalTeleport){
+              player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));    
+              
+              if (!mc.vrPlayer.getFreeMoveMode() && mc.playerController.isNotCreative() && mc.vrPlayer.vrMovementStyle.arcAiming){
+              	teleportEnergy -= movementTeleportDistance * 4;	
+              }              
             }
-            
+               
             
           //  System.out.println("teleport " + dest.toString());
             player.fallDistance = 0.0F;
@@ -722,7 +727,7 @@ public class VRPlayer
                         movementTeleportDestinationSideHit = collision.sideHit;
 						return true; //really should check if the block above is passable. Maybe later.
 			} else {
-					if (!mc.thePlayer.capabilities.allowFlying ) {return false;} //if creative, check if can hop on top.
+					if (!mc.thePlayer.capabilities.allowFlying && mc.vrSettings.vrLimitedSurvivalTeleport) {return false;} //if creative, check if can hop on top.
 			}
 		}
 		
@@ -976,7 +981,7 @@ public class VRPlayer
                     {
                         //player.worldObj.spawnParticle("reddust", weaponEnd.xCoord, weaponEnd.yCoord, weaponEnd.zCoord, 0, 0.1, 0);
 
-                        System.out.println("Sword hit entity " + hitEntity);
+  //                      System.out.println("Sword hit entity " + hitEntity);
                         mc.playerController.attackEntity(player, hitEntity);
                         mc.lookaimController.triggerHapticPulse(0, 1000);
                         lastWeaponSolid = true;
@@ -1001,9 +1006,11 @@ public class VRPlayer
 	
 	public void setFreeMoveMode(boolean free) { 
 		restrictedViveClient = free;
-		
-		Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY, Minecraft.getMinecraft().thePlayer.posZ); //reset room origin on mode change.
-	}
+		if(Minecraft.getMinecraft().thePlayer != null) {
+			Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY, Minecraft.getMinecraft().thePlayer.posZ); //reset room origin on mode change.
+		}		
+		}
+	
 
 	public float getTeleportEnergy () {return teleportEnergy;}
 	

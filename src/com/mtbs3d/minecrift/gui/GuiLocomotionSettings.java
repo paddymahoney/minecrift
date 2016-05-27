@@ -30,6 +30,16 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.SIMULATE_FALLING,              // VIVE new option
             VRSettings.VrOptions.WEAPON_COLLISION,              // VIVE new option
             // VIVE END - hide options not relevant for standing
+            //JRBUDDA
+            VRSettings.VrOptions.ALLOW_CRAWLING,
+            VRSettings.VrOptions.FREE_MOVE_DEFAULT,
+            VRSettings.VrOptions.LIMIT_TELEPORT,
+            VRSettings.VrOptions.ALLOW_MODE_SWITCH,
+            
+            //END JRBUDDA
+            
+            
+            
     };
 
     public GuiLocomotionSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
@@ -183,6 +193,13 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 vr.useKeyBindingForComfortYaw = false;
                 vr.movementSpeedMultiplier = 0.75f;
                 vr.strafeSpeedMultiplier = 0.33f;
+                //jrbudda//
+                vr.vrAllowCrawling = true;
+                vr.vrAllowLocoModeSwotch = true;
+                vr.vrFreeMove = true;
+                vr.vrLimitedSurvivalTeleport = true;
+                //end jrbudda
+                
                 Minecraft.getMinecraft().gameSettings.viewBobbing = true;
 
                 Minecraft.getMinecraft().gameSettings.saveOptions();
@@ -357,8 +374,8 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                     } ;
                 case SIMULATE_FALLING:
                     return new String[] {
-                            "If enabled the player will teleport to the ground",
-                            "when standing above empty space."
+                            "If enabled the player will falls to the ground in TP mode",
+                            "when standing above empty space. Also allows jumping"
                     } ;
                 case WEAPON_COLLISION:
                     return new String[] {
@@ -366,6 +383,27 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "mine them, or your sword at enemies to hit them."
                     } ;
                 // VIVE END - new options
+                    //JRBUDDA
+                case ALLOW_MODE_SWITCH:
+                    return new String[] {
+                            "Allows the use of the Right Grip button to switch between",
+                            "Teleport and Free Move mode."
+                    } ;
+                case ALLOW_CRAWLING:
+                    return new String[] {
+                            "If enabled the player will be able to duck under block"
+                    } ;
+                case FREE_MOVE_DEFAULT:
+                    return new String[] {
+                            "Defaults to free move mode instead of teleport mode."
+                    } ;
+                case LIMIT_TELEPORT:
+                    return new String[] {
+                            "If enabled the arc teleporter will be have restrictions",
+                            "in survival mode. It will not be able to jump up the side", 
+                            "of blocks, it will consume food, and it will have an energy",
+                            "bar that refills over time."
+                    } ;
                 default:
                     return null;
             }
