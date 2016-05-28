@@ -718,190 +718,15 @@
      }
  
      /**
-@@ -2131,93 +2306,95 @@
+@@ -2131,6 +2306,7 @@
  
      protected boolean pushOutOfBlocks(double x, double y, double z)
      {
--        int var7 = MathHelper.floor_double(x);
--        int var8 = MathHelper.floor_double(y);
--        int var9 = MathHelper.floor_double(z);
--        double var10 = x - (double)var7;
--        double var12 = y - (double)var8;
--        double var14 = z - (double)var9;
--        List var16 = this.worldObj.func_147461_a(this.boundingBox);
--
--        if (var16.isEmpty() && !this.worldObj.isBlockFullCube(var7, var8, var9))
--        {
--            return false;
--        }
--        else
--        {
--            boolean var17 = !this.worldObj.isBlockFullCube(var7 - 1, var8, var9);
--            boolean var18 = !this.worldObj.isBlockFullCube(var7 + 1, var8, var9);
--            boolean var19 = !this.worldObj.isBlockFullCube(var7, var8 - 1, var9);
--            boolean var20 = !this.worldObj.isBlockFullCube(var7, var8 + 1, var9);
--            boolean var21 = !this.worldObj.isBlockFullCube(var7, var8, var9 - 1);
--            boolean var22 = !this.worldObj.isBlockFullCube(var7, var8, var9 + 1);
--            byte var23 = 3;
--            double var24 = 9999.0D;
--
--            if (var17 && var10 < var24)
--            {
--                var24 = var10;
--                var23 = 0;
--            }
--
--            if (var18 && 1.0D - var10 < var24)
--            {
--                var24 = 1.0D - var10;
--                var23 = 1;
--            }
--
--            if (var20 && 1.0D - var12 < var24)
--            {
--                var24 = 1.0D - var12;
--                var23 = 3;
--            }
--
--            if (var21 && var14 < var24)
--            {
--                var24 = var14;
--                var23 = 4;
--            }
--
--            if (var22 && 1.0D - var14 < var24)
--            {
--                var24 = 1.0D - var14;
--                var23 = 5;
--            }
--
--            float var26 = this.rand.nextFloat() * 0.2F + 0.1F;
--
--            if (var23 == 0)
--            {
--                this.motionX = (double)(-var26);
--            }
--
--            if (var23 == 1)
--            {
--                this.motionX = (double)var26;
--            }
--
--            if (var23 == 2)
--            {
--                this.motionY = (double)(-var26);
--            }
--
--            if (var23 == 3)
--            {
--                this.motionY = (double)var26;
--            }
--
--            if (var23 == 4)
--            {
--                this.motionZ = (double)(-var26);
--            }
--
--            if (var23 == 5)
--            {
--                this.motionZ = (double)var26;
--            }
--
--            return true;
--        }
-+    	return false;
 +    	
-+//        int var7 = MathHelper.floor_double(x);
-+//        int var8 = MathHelper.floor_double(y);
-+//        int var9 = MathHelper.floor_double(z);
-+//        double var10 = x - (double)var7;
-+//        double var12 = y - (double)var8;
-+//        double var14 = z - (double)var9;
-+//        List var16 = this.worldObj.func_147461_a(this.boundingBox);
-+//
-+//        if (var16.isEmpty() && !this.worldObj.isBlockFullCube(var7, var8, var9))
-+//        {
-+//            return false;
-+//        }
-+//        else
-+//        {
-+//            boolean var17 = !this.worldObj.isBlockFullCube(var7 - 1, var8, var9);
-+//            boolean var18 = !this.worldObj.isBlockFullCube(var7 + 1, var8, var9);
-+//            boolean var19 = !this.worldObj.isBlockFullCube(var7, var8 - 1, var9);
-+//            boolean var20 = !this.worldObj.isBlockFullCube(var7, var8 + 1, var9);
-+//            boolean var21 = !this.worldObj.isBlockFullCube(var7, var8, var9 - 1);
-+//            boolean var22 = !this.worldObj.isBlockFullCube(var7, var8, var9 + 1);
-+//            byte var23 = 3;
-+//            double var24 = 9999.0D;
-+//
-+//            if (var17 && var10 < var24)
-+//            {
-+//                var24 = var10;
-+//                var23 = 0;
-+//            }
-+//
-+//            if (var18 && 1.0D - var10 < var24)
-+//            {
-+//                var24 = 1.0D - var10;
-+//                var23 = 1;
-+//            }
-+//
-+//            if (var20 && 1.0D - var12 < var24)
-+//            {
-+//                var24 = 1.0D - var12;
-+//                var23 = 3;
-+//            }
-+//
-+//            if (var21 && var14 < var24)
-+//            {
-+//                var24 = var14;
-+//                var23 = 4;
-+//            }
-+//
-+//            if (var22 && 1.0D - var14 < var24)
-+//            {
-+//                var24 = 1.0D - var14;
-+//                var23 = 5;
-+//            }
-+//
-+//            float var26 = this.rand.nextFloat() * 0.2F + 0.1F;
-+//
-+//            if (var23 == 0)
-+//            {
-+//                this.motionX = (double)(-var26);
-+//            }
-+//
-+//            if (var23 == 1)
-+//            {
-+//                this.motionX = (double)var26;
-+//            }
-+//
-+//            if (var23 == 2)
-+//            {
-+//                this.motionY = (double)(-var26);
-+//            }
-+//
-+//            if (var23 == 3)
-+//            {
-+//                this.motionY = (double)var26;
-+//            }
-+//
-+//            if (var23 == 4)
-+//            {
-+//                this.motionZ = (double)(-var26);
-+//            }
-+//
-+//            if (var23 == 5)
-+//            {
-+//                this.motionZ = (double)var26;
-+//            }
-+//
-+//            return true;
-+//        }
-     }
- 
-     /**
-@@ -2375,7 +2552,17 @@
+         int var7 = MathHelper.floor_double(x);
+         int var8 = MathHelper.floor_double(y);
+         int var9 = MathHelper.floor_double(z);
+@@ -2375,7 +2551,17 @@
       */
      public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
      {
@@ -920,7 +745,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2640,204 @@
+@@ -2453,6 +2639,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  

@@ -14,7 +14,7 @@
      }
  
      /**
-@@ -301,12 +308,22 @@
+@@ -301,12 +308,23 @@
          }
      }
  
@@ -28,10 +28,11 @@
      public float getBlockReachDistance()
      {
 +        // VIVE START - more reach in VR to reduce movement
-+        if (!mc.vrPlayer.getFreeMoveMode())
-+        {
-+            return 6.0F;
-+        }
++//        if (!mc.vrPlayer.getFreeMoveMode())
++//        {
++//            return 6.0F;
++//        }
++//       
          return this.currentGameType.isCreative() ? 5.0F : 4.5F;
 +        // VIVE END - more reach in VR to reduce movement
      }

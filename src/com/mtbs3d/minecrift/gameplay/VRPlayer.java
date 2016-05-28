@@ -123,7 +123,7 @@ public class VRPlayer
         updateSwingAttack();
 		
        if(mc.vrSettings.vrAllowCrawling){         //experimental
-           topofhead = (double) (mc.entityRenderer.getEyeCentrePosInWorldFrame().yCoord + .05) + roomOrigin.yCoord - player.boundingBox.minY;
+           topofhead = (double) (mc.entityRenderer.getCameraLocation().yCoord + .05) - player.boundingBox.minY;
            
            if(topofhead < .5) {topofhead = 0.5f;}
            if(topofhead > 1.8) {topofhead = 1.8f;}
