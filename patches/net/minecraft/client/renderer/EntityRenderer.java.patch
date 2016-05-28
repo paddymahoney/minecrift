@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/EntityRenderer.java
-@@ -4,19 +4,41 @@
+@@ -4,19 +4,42 @@
  import java.io.IOException;
  import java.lang.reflect.Field;
  import java.nio.FloatBuffer;
@@ -28,6 +28,7 @@
 +import de.fruitfly.ovr.util.BufferUtil;
 +import jopenvr.OpenVRUtil;
  import net.minecraft.block.Block;
++import net.minecraft.block.BlockLiquid;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.Minecraft;
 +import net.minecraft.client.audio.SoundManager;
@@ -42,7 +43,7 @@
  import net.minecraft.client.multiplayer.WorldClient;
  import net.minecraft.client.particle.EffectRenderer;
  import net.minecraft.client.particle.EntityRainFX;
-@@ -24,11 +46,13 @@
+@@ -24,11 +47,13 @@
  import net.minecraft.client.renderer.culling.ClippingHelperImpl;
  import net.minecraft.client.renderer.culling.Frustrum;
  import net.minecraft.client.renderer.entity.RenderManager;
@@ -56,7 +57,7 @@
  import net.minecraft.client.shader.ShaderGroup;
  import net.minecraft.client.shader.ShaderLinkHelper;
  import net.minecraft.crash.CrashReport;
-@@ -42,14 +66,7 @@
+@@ -42,14 +67,7 @@
  import net.minecraft.init.Blocks;
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
@@ -72,7 +73,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -66,10 +83,18 @@
+@@ -66,10 +84,18 @@
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
  import org.lwjgl.opengl.Display;
@@ -92,7 +93,7 @@
  
  public class EntityRenderer implements IResourceManagerReloadListener
  {
-@@ -83,7 +108,10 @@
+@@ -83,7 +109,10 @@
  
      /** A reference to the Minecraft object. */
      private Minecraft mc;
@@ -104,7 +105,7 @@
      public ItemRenderer itemRenderer;
      private final MapItemRenderer theMapItemRenderer;
  
-@@ -160,12 +188,14 @@
+@@ -160,12 +189,14 @@
      private boolean cloudFog;
      private final IResourceManager resourceManager;
      public ShaderGroup theShaderGroup;
@@ -124,7 +125,7 @@
  
      /** Previous frame time in milliseconds */
      private long prevFrameTime;
-@@ -243,9 +273,67 @@
+@@ -243,9 +274,67 @@
      private boolean showExtendedDebugInfo = false;
      private long lastErrorCheckTimeMs = 0L;
  
@@ -193,7 +194,7 @@
          this.cameraZoom = 1.0D;
          this.prevFrameTime = Minecraft.getSystemTime();
          this.random = new Random();
-@@ -258,6 +346,14 @@
+@@ -258,6 +347,14 @@
          this.locationLightMap = p_i45076_1_.getTextureManager().getDynamicTextureLocation("lightMap", this.lightmapTexture);
          this.lightmapColors = this.lightmapTexture.getTextureData();
          this.theShaderGroup = null;
@@ -208,7 +209,7 @@
      }
  
      public boolean isShaderActive()
-@@ -273,7 +369,10 @@
+@@ -273,7 +370,10 @@
          }
  
          this.theShaderGroup = null;
@@ -220,7 +221,7 @@
      }
  
      public void deactivateShader()
-@@ -284,71 +383,94 @@
+@@ -284,71 +384,94 @@
          }
  
          this.theShaderGroup = null;
@@ -352,7 +353,7 @@
  
      /**
       * Updates the entity renderer
-@@ -431,64 +553,207 @@
+@@ -431,64 +554,211 @@
       */
      public void getMouseOver(float par1)
      {
@@ -374,16 +375,20 @@
 +    	return mc.vrPlayer.getRoomOrigin().addVector(cam.xCoord, cam.yCoord, cam.zCoord); 	
 +    }
 +    
++    //checks around the eye position for an opaque block or water block so we can render fog and overlays for that eye
 +    public Block getEyeCollisionBlock(EyeType eye){
 +    	Vec3 exact = getEyePosition(eye);
 +    	int var2 = (int) Math.floor(exact.xCoord);
 +    	int var3 = (int) Math.floor(exact.yCoord);
 +    	int var4 = (int) Math.floor(exact.zCoord);
 +   	   	
-+    	if (this.mc.theWorld.getBlock(var2, var3, var4).isNormalCube() ||
-+    			(this.mc.theWorld.getBlock(var2, var3, var4).getMaterial() == Material.water && 
-+    				(this.mc.theWorld.getBlock(var2, var3+1, var4).getMaterial() == Material.water  ||
-+    					exact.yCoord - var3 < .85) 
++    float l =	BlockLiquid.getLiquidHeightPercent(mc.theWorld.getBlockMetadata(var2, var3, var4));
++    Block b = 	this.mc.theWorld.getBlock(var2, var3, var4);
++    
++    	if (b.isNormalCube() ||
++    			(b.getMaterial() == Material.water && 
++    				(this.mc.theWorld.getBlock(var2, var3 +1 , var4).getMaterial() == Material.water  ||
++    					exact.yCoord - var3 < (1- l )) 
 +    					)  
 +    			) //head in block
 +    	{          	
@@ -591,7 +596,7 @@
  
                          if (var19 < var12 || var12 == 0.0D)
                          {
-@@ -518,15 +783,46 @@
+@@ -518,15 +788,46 @@
                  }
              }
  
@@ -642,19 +647,43 @@
          }
      }
  
-@@ -633,6 +929,11 @@
+@@ -633,14 +934,24 @@
  
      private void hurtCameraEffect(float par1)
      {
-+        // VIVE START - don't tilt camera to avoid motion sickeness
-+        if (this.mc.stereoProvider.isStereo())
-+            return;
-+        // VIVE END - don't tilt camera to avoid motion sickeness
 +
          EntityLivingBase var2 = this.mc.renderViewEntity;
          float var3 = (float)var2.hurtTime - par1;
          float var4;
-@@ -659,13 +960,20 @@
++    	
++        // VIVE START - don't tilt camera to avoid motion sickeness
++        if (this.mc.stereoProvider.isStereo())
++            return;
++        // VIVE END - don't tilt camera to avoid motion sickeness
++//
++
+ 
+         if (var2.getHealth() <= 0.0F)
+         {
+             var4 = (float)var2.deathTime + par1;
+             GL11.glRotatef(40.0F - 8000.0F / (var4 + 200.0F), 0.0F, 0.0F, 1.0F);
++            
++            
+         }
+ 
+         if (var3 >= 0.0F)
+@@ -651,6 +962,10 @@
+             GL11.glRotatef(-var4, 0.0F, 1.0F, 0.0F);
+             GL11.glRotatef(-var3 * 14.0F, 0.0F, 0.0F, 1.0F);
+             GL11.glRotatef(var4, 0.0F, 1.0F, 0.0F);
++            
++            mc.lookaimController.triggerHapticPulse(0, 2000);
++            mc.lookaimController.triggerHapticPulse(1, 2000);
++            
+         }
+     }
+ 
+@@ -659,13 +974,20 @@
       */
      private void setupViewBobbing(float par1)
      {
@@ -678,7 +707,7 @@
              GL11.glTranslatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 0.5F, -Math.abs(MathHelper.cos(var4 * (float)Math.PI) * var5), 0.0F);
              GL11.glRotatef(MathHelper.sin(var4 * (float)Math.PI) * var5 * 3.0F, 0.0F, 0.0F, 1.0F);
              GL11.glRotatef(Math.abs(MathHelper.cos(var4 * (float)Math.PI - 0.2F) * var5) * 5.0F, 1.0F, 0.0F, 0.0F);
-@@ -681,11 +989,12 @@
+@@ -681,11 +1003,12 @@
          EntityLivingBase var2 = this.mc.renderViewEntity;
          float var3 = var2.yOffset - 1.62F;
          double var4 = var2.prevPosX + (var2.posX - var2.prevPosX) * (double)par1;
@@ -695,7 +724,7 @@
          {
              var3 = (float)((double)var3 + 1.0D);
              GL11.glTranslatef(0.0F, 0.3F, 0.0F);
-@@ -772,20 +1081,31 @@
+@@ -772,20 +1095,31 @@
          }
          else
          {
@@ -731,7 +760,7 @@
      }
  
      /**
-@@ -793,6 +1113,9 @@
+@@ -793,6 +1127,9 @@
       */
      private void setupCameraTransform(float par1, int par2)
      {
@@ -741,7 +770,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,18 +1127,21 @@
+@@ -804,18 +1141,21 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -765,7 +794,7 @@
          if (clipDistance < 128.0F)
          {
              clipDistance = 128.0F;
-@@ -825,17 +1151,26 @@
+@@ -825,17 +1165,26 @@
          {
              clipDistance = 256.0F;
          }
@@ -796,7 +825,7 @@
          {
              var4 = 0.6666667F;
              GL11.glScalef(1.0F, var4, 1.0F);
-@@ -844,21 +1179,23 @@
+@@ -844,21 +1193,23 @@
          GL11.glMatrixMode(GL11.GL_MODELVIEW);
          GL11.glLoadIdentity();
  
@@ -824,7 +853,7 @@
          {
              byte var7 = 20;
  
-@@ -876,7 +1213,7 @@
+@@ -876,7 +1227,7 @@
  
          this.orientCamera(par1);
  
@@ -833,7 +862,7 @@
          {
              int var71 = this.debugViewDirection - 1;
  
-@@ -905,74 +1242,170 @@
+@@ -905,74 +1256,170 @@
                  GL11.glRotatef(-90.0F, 1.0F, 0.0F, 0.0F);
              }
          }
@@ -905,14 +934,14 @@
              {
 -                GL11.glTranslatef((float)(par2 * 2 - 1) * 0.1F, 0.0F, 0.0F);
 +                GL11.glTranslatef((float) (analglyphpass * 2 - 1) * 0.1F, 0.0F, 0.0F);
-             }
++            }
 +        /** MINECRIFT */
 +            /** MINECRIFT SHADERS MOD */
 +            boolean render = true;
 +            if (shadersMod) {
 +                //render = !Shaders.isHandRendered;
 +                render = (Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isHandRendered);
-+            }
+             }
 +            if (render) {
 +                GL11.glPushMatrix();
 +                if (!this.mc.vrSettings.debugPos)
@@ -1028,7 +1057,7 @@
      }
  
      /**
-@@ -983,6 +1416,12 @@
+@@ -983,6 +1430,12 @@
          OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
          GL11.glDisable(GL11.GL_TEXTURE_2D);
          OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
@@ -1041,7 +1070,7 @@
      }
  
      /**
-@@ -1005,6 +1444,12 @@
+@@ -1005,6 +1458,12 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          GL11.glEnable(GL11.GL_TEXTURE_2D);
          OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
@@ -1054,7 +1083,7 @@
      }
  
      /**
-@@ -1200,25 +1645,35 @@
+@@ -1200,25 +1659,35 @@
          Config.checkDisplayMode();
          WorldClient world1 = this.mc.theWorld;
  
@@ -1105,7 +1134,7 @@
          if (this.mc.currentScreen instanceof GuiMainMenu)
          {
              this.updateMainMenu((GuiMainMenu)this.mc.currentScreen);
-@@ -1242,9 +1697,9 @@
+@@ -1242,9 +1711,9 @@
          }
  
          this.mc.mcProfiler.endSection();
@@ -1117,7 +1146,7 @@
          {
              if (Minecraft.getSystemTime() - this.prevFrameTime > 500L)
              {
-@@ -1255,65 +1710,94 @@
+@@ -1255,65 +1724,94 @@
          {
              this.prevFrameTime = Minecraft.getSystemTime();
          }
@@ -1257,7 +1286,7 @@
                  if (OpenGlHelper.shadersSupported)
                  {
                      if (this.theShaderGroup != null)
-@@ -1323,6 +1807,9 @@
+@@ -1323,6 +1821,9 @@
                          GL11.glLoadIdentity();
                          this.theShaderGroup.loadShaderGroup(par1);
                          GL11.glPopMatrix();
@@ -1267,7 +1296,7 @@
                      }
  
                      this.mc.getFramebuffer().bindFramebuffer(true);
-@@ -1330,9 +1817,11 @@
+@@ -1330,9 +1831,11 @@
  
                  this.renderEndNanoTime = System.nanoTime();
                  this.mc.mcProfiler.endStartSection("gui");
@@ -1282,7 +1311,7 @@
                      GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
                      var12 = this.mc.gameSettings.fancyGraphics;
  
-@@ -1341,32 +1830,84 @@
+@@ -1341,32 +1844,84 @@
                          this.mc.gameSettings.fancyGraphics = false;
                      }
  
@@ -1346,7 +1375,7 @@
 +            renderFadeEffects();
 +
 +            if (!this.mc.stereoProvider.isGuiOrtho())
-+            {
+             {
 +                GL11.glDisable(GL11.GL_ALPHA_TEST);
 +                GL11.glEnable(GL11.GL_DEPTH_TEST);
 +
@@ -1367,7 +1396,7 @@
 +                this.mc.disableGuiSizeHack();
 +            }
 +            else if (this.mc.currentScreen != null)
-             {
++            {
 +                this.mc.enableGuiSizeHack();
                  GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
  
@@ -1378,7 +1407,7 @@
                  try
                  {
                      var12 = false;
-@@ -1413,7 +1954,14 @@
+@@ -1413,7 +1968,14 @@
                      });
                      throw new ReportedException(var10);
                  }
@@ -1393,7 +1422,7 @@
          }
  
          this.frameFinish();
-@@ -1447,38 +1995,69 @@
+@@ -1447,38 +2009,69 @@
  
      public void renderWorld(float par1, long par2)
      {
@@ -1473,7 +1502,7 @@
  
                  if (anaglyphField == 0)
                  {
-@@ -1491,27 +2070,75 @@
+@@ -1491,27 +2084,75 @@
              }
  
              this.mc.mcProfiler.endStartSection("clear");
@@ -1557,7 +1586,7 @@
              GL11.glEnable(GL11.GL_FOG);
              this.setupFog(1, par1);
  
-@@ -1519,17 +2146,35 @@
+@@ -1519,17 +2160,35 @@
              {
                  GL11.glShadeModel(GL11.GL_SMOOTH);
              }
@@ -1600,7 +1629,7 @@
                  {
                      long var17 = par2 - System.nanoTime();
  
-@@ -1538,106 +2183,141 @@
+@@ -1538,106 +2197,141 @@
                          break;
                      }
                  }
@@ -1797,7 +1826,7 @@
              GL11.glDisable(GL11.GL_BLEND);
              GL11.glEnable(GL11.GL_CULL_FACE);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1646,8 +2326,8 @@
+@@ -1646,8 +2340,8 @@
              GL11.glEnable(GL11.GL_BLEND);
              GL11.glDepthMask(false);
              this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
@@ -1808,7 +1837,7 @@
              if (Config.isWaterFancy())
              {
                  this.mc.mcProfiler.endStartSection("water");
-@@ -1670,12 +2350,28 @@
+@@ -1670,12 +2364,28 @@
                      {
                          GL11.glColorMask(true, false, false, true);
                      }
@@ -1840,7 +1869,7 @@
                  }
  
                  GL11.glDisable(GL11.GL_BLEND);
-@@ -1684,9 +2380,18 @@
+@@ -1684,9 +2394,18 @@
              else
              {
                  this.mc.mcProfiler.endStartSection("water");
@@ -1861,7 +1890,7 @@
              WrUpdates.pauseBackgroundUpdates();
  
              if (hasForge && this.debugViewDirection == 0)
-@@ -1694,9 +2399,10 @@
+@@ -1694,9 +2413,10 @@
                  RenderHelper.enableStandardItemLighting();
                  this.mc.mcProfiler.endStartSection("entities");
                  Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(1)});
@@ -1873,7 +1902,7 @@
              }
  
              GL11.glDepthMask(true);
-@@ -1704,27 +2410,77 @@
+@@ -1704,27 +2424,77 @@
              GL11.glDisable(GL11.GL_BLEND);
              GL11.glDisable(GL11.GL_FOG);
  
@@ -1961,7 +1990,7 @@
              if (!this.mc.gameSettings.anaglyph)
              {
                  this.mc.mcProfiler.endSection();
-@@ -1734,24 +2490,82 @@
+@@ -1734,24 +2504,82 @@
  
          GL11.glColorMask(true, true, true, false);
          this.mc.mcProfiler.endSection();
@@ -2045,7 +2074,7 @@
      }
  
      private void addRainParticles()
-@@ -2241,8 +3055,15 @@
+@@ -2241,8 +3069,15 @@
              this.fogColorGreen = Reflector.getFieldValueFloat(event1, Reflector.EntityViewRenderEvent_FogColors_green, this.fogColorGreen);
              this.fogColorBlue = Reflector.getFieldValueFloat(event1, Reflector.EntityViewRenderEvent_FogColors_blue, this.fogColorBlue);
          }
@@ -2063,7 +2092,7 @@
      }
  
      /**
-@@ -2259,17 +3080,31 @@
+@@ -2259,17 +3094,31 @@
          {
              var4 = ((EntityPlayer)var3).capabilities.isCreativeMode;
          }
@@ -2098,7 +2127,7 @@
              }
  
              GL11.glFogf(GL11.GL_FOG_START, 0.0F);
-@@ -2279,7 +3114,17 @@
+@@ -2279,7 +3128,18 @@
              GL11.glFog(GL11.GL_FOG_COLOR, this.setFogColorBuffer(this.fogColorRed, this.fogColorGreen, this.fogColorBlue, 1.0F));
              GL11.glNormal3f(0.0F, -1.0F, 0.0F);
              GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -2111,13 +2140,14 @@
 +            if(var5==null) {
 +            	Vec3 L = this.getEyeBlock(this.mc.currentEye);
 +            	var5 = var3.worldObj.getBlock((int) L.xCoord, (int) L.yCoord, (int) L.zCoord);
++            	if (var5.getMaterial() == Material.water) { var5 = Blocks.air;} //if we were in water it wouldnt be null to begin with.
 +            }
 +            //end jrbudda
 +            
              Object event = Reflector.newInstance(Reflector.EntityViewRenderEvent_FogDensity_Constructor, new Object[] {this, var3, var5, Float.valueOf(par2), Float.valueOf(0.1F)});
  
              if (Reflector.postForgeBusEvent(event))
-@@ -2300,8 +3145,13 @@
+@@ -2300,8 +3160,13 @@
                      {
                          var6 = 5.0F + (this.farPlaneDistance - 5.0F) * (1.0F - (float)var101 / 20.0F);
                      }
@@ -2133,7 +2163,7 @@
  
                      if (par1 < 0)
                      {
-@@ -2316,17 +3166,35 @@
+@@ -2316,17 +3181,35 @@
  
                      if (Config.isFogFancy())
                      {
@@ -2172,7 +2202,7 @@
  
                      if (var3.isPotionActive(Potion.waterBreathing))
                      {
-@@ -2334,7 +3202,7 @@
+@@ -2334,7 +3217,7 @@
                      }
                      else
                      {
@@ -2181,7 +2211,7 @@
                      }
  
                      if (Config.isClearWater())
-@@ -2344,7 +3212,13 @@
+@@ -2344,7 +3227,13 @@
                  }
                  else if (var5.getMaterial() == Material.lava)
                  {
@@ -2196,7 +2226,7 @@
                      GL11.glFogf(GL11.GL_FOG_DENSITY, 2.0F);
                  }
                  else
-@@ -2377,8 +3251,13 @@
+@@ -2377,8 +3266,13 @@
                              }
                          }
                      }
@@ -2212,7 +2242,7 @@
  
                      if (par1 < 0)
                      {
-@@ -2395,12 +3274,24 @@
+@@ -2395,12 +3289,24 @@
                      {
                          if (Config.isFogFancy())
                          {
@@ -2239,7 +2269,7 @@
                          }
                      }
  
-@@ -2418,6 +3309,7 @@
+@@ -2418,6 +3324,7 @@
              GL11.glEnable(GL11.GL_COLOR_MATERIAL);
              GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT);
          }
@@ -2247,7 +2277,7 @@
      }
  
      /**
-@@ -2425,6 +3317,12 @@
+@@ -2425,6 +3332,12 @@
       */
      private FloatBuffer setFogColorBuffer(float par1, float par2, float par3, float par4)
      {
@@ -2260,7 +2290,7 @@
          this.fogColorBuffer.clear();
          this.fogColorBuffer.put(par1).put(par2).put(par3).put(par4);
          this.fogColorBuffer.flip();
-@@ -2589,6 +3487,8 @@
+@@ -2589,6 +3502,8 @@
  
      private void frameFinish()
      {
@@ -2269,7 +2299,7 @@
          if (this.mc.theWorld != null)
          {
              long now = System.currentTimeMillis();
-@@ -2606,6 +3506,8 @@
+@@ -2606,6 +3521,8 @@
                  }
              }
          }
@@ -2278,7 +2308,7 @@
      }
  
      private void updateMainMenu(GuiMainMenu mainGui)
-@@ -2650,4 +3552,1654 @@
+@@ -2650,4 +3567,1654 @@
              ;
          }
      }

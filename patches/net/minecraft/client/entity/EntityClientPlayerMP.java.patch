@@ -75,3 +75,29 @@
  
      /**
       * Sends a chat message from the player. Args: chatMessage
+@@ -272,12 +279,25 @@
+      */
+     public void setPlayerSPHealth(float p_71150_1_)
+     {
++    	
++     	
++    	if (p_71150_1_ <= 0 ){
++            mc.lookaimController.triggerHapticPulse(0, 3000);
++            mc.lookaimController.triggerHapticPulse(1, 3000);
++    		
++    	} else if ( p_71150_1_ < this.getHealth()) {
++            mc.lookaimController.triggerHapticPulse(0, 1000);
++            mc.lookaimController.triggerHapticPulse(1, 1000);	    		
++    	}
++    	      
++    	
+         if (this.hasSetHealth)
+         {
+             super.setPlayerSPHealth(p_71150_1_);
+         }
+         else
+         {
++        	    
+             this.setHealth(p_71150_1_);
+             this.hasSetHealth = true;
+         }
