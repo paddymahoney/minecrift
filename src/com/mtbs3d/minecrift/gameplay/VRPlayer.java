@@ -14,7 +14,6 @@ import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.particle.EntityFX;
-import net.minecraft.client.particle.EntityVRTeleportFX;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.EntityMob;

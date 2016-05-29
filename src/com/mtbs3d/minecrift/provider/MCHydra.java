@@ -382,6 +382,7 @@ public class MCHydra extends BasePlugin implements IEyePositionProvider, IOrient
 		        {
 		        	settings.keyBindSneak.pressKey();
 		        }
+		        
 		        if(( lastcont2Buttons   & EnumButton.JOYSTICK.mask())>0 &&
 		        	(cont2.buttons & EnumButton.JOYSTICK.mask()) == 0)
 		        {

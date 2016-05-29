@@ -523,7 +523,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         // Extract new lib
                         File lib_dir = new File(targetDir,"libraries/com/mtbs3d/minecrift/"+version);
                         lib_dir.mkdirs();
-                        File ver_file = new File (lib_dir, "minecrift-"+version+".jar");
+                        File ver_file = new File (lib_dir, "Vivecraft-"+version+".jar");
                         FileOutputStream ver_jar = new FileOutputStream(ver_file);
                         while ((d = version_jar.read(data)) != -1) {
                             ver_jar.write(data,0,d);
@@ -610,7 +610,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         public Void doInBackground()
         {
             StringBuilder sbErrors = new StringBuilder();
-            String minecriftVersionName = "minecrift-" + version + mod;
+            String minecriftVersionName = "Vivecraft-" + version + mod;
             boolean checkedRedists = false;
             boolean redistSuccess = true;
             boolean downloadedForge = false;
@@ -797,8 +797,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 }
             }
             monitor.setProgress(50);
-            monitor.setNote("Setting up Minecrift as a library...");
-            finalMessage = "Failed: Couldn't setup Minecrift "+MC_VERSION+" as library. Have you run "+MINECRAFT_VERSION+" at least once yet?";
+            monitor.setNote("Setting up Vivecraft as a library...");
+			
+            finalMessage = "Failed: Couldn't setup Vivecraft "+MC_VERSION+" as library. Have you run "+MINECRAFT_VERSION+" at least once yet?";
             if(!SetupMinecraftAsLibrary())
             {
                 monitor.close();
@@ -840,19 +841,20 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 monitor.setNote("Configuring HRTF audio...");
                 if(!EnableHRTF())
                 {
-                    sbErrors.append("Failed to set up HRTF! Minecrift will still work but audio won't be binaural.\n");
+                    sbErrors.append("Failed to set up HRTF! Vivecraft will still work but audio won't be binaural.\n");
                 }
             }
             boolean profileCreated = false;
             if (createProfile.isSelected())
             {
                 monitor.setProgress(95);
-                monitor.setNote("Creating Minecrift profile...");
+                monitor.setNote("Creating Vivecraft profile...");
                 if (!updateLauncherJson(targetDir, minecriftVersionName))
-                    sbErrors.append("Failed to set up 'Minecrift' profile (you can still manually select Edit Profile->Use Version " + minecriftVersionName + " in the Minecraft launcher)\n");
+                    sbErrors.append("Failed to set up 'Vivecraft' profile (you can still manually select Edit Profile->Use Version " + minecriftVersionName + " in the Minecraft launcher)\n");
                 else
                     profileCreated = true;
             }
+			
             if (!downloadedOptifine) {
                 finalMessage = "Installed (but failed to download OptiFine). Restart Minecraft" +
                         (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName(useForge.isSelected()) + "' profile.") +
@@ -862,6 +864,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 finalMessage = "Installed successfully! Restart Minecraft" +
                         (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName(useForge.isSelected()) + "' profile.");
             }
+			
             monitor.setProgress(100);
             monitor.close();
             return null;
@@ -909,7 +912,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                                          JOptionPane.WARNING_MESSAGE, null, null, null);
             
             if (option == JOptionPane.OK_OPTION) {
-                monitor = new ProgressMonitor(null, "Installing Minecrift...", "", 0, 100);
+                monitor = new ProgressMonitor(null, "Installing Vivecraft...", "", 0, 100);
                 monitor.setMillisToDecideToPopup(0);
                 monitor.setMillisToPopup(0);
 
@@ -974,7 +977,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             if (prof == null) {
                 prof = new JSONObject();
                 prof.put("name", profileName);
-                prof.put("javaArgs", "-Xmx1G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:-UseAdaptiveSizePolicy -Xmn128M -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true");
+                prof.put("javaArgs", "-Xmx2G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:-UseAdaptiveSizePolicy -Xmn256M -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true");
                 prof.put("useHopperCrashService", false);
                 prof.put("launcherVisibilityOnGameClose", "keep the launcher open");
                 profiles.put(profileName, prof);
@@ -1066,7 +1069,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         } catch (IOException e) { }
 
         // Read release notes, save to file
-        String tmpFileName = System.getProperty("java.io.tmpdir") + releaseNotePathAddition + "Minecrift_" + version.toLowerCase() + "_release_notes.txt";
+        String tmpFileName = System.getProperty("java.io.tmpdir") + releaseNotePathAddition + "Vivecraft" + version.toLowerCase() + "_release_notes.txt";
         releaseNotes = new File(tmpFileName);
         InputStream is = Installer.class.getResourceAsStream("release_notes.txt");
         if (!copyInputStreamToFile(is, releaseNotes)) {
@@ -1148,7 +1151,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             useForge.setEnabled(false);
         useForge.setToolTipText(
                 "<html>" +
-                "If checked, installs Minecrift with Forge support. The correct version of Forge<br>" +
+                "If checked, installs Vivecraft with Forge support. The correct version of Forge<br>" +
                 "(as displayed) must already be installed.<br>" +
                 "</html>");
 
@@ -1159,13 +1162,13 @@ public class Installer extends JPanel  implements PropertyChangeListener
         //forgePanel.add(forgeVersion);
 
         // Profile creation / update support
-        createProfile = new JCheckBox("Add/update Minecrift launcher profile", false);
+        createProfile = new JCheckBox("Add/update Vivecraft launcher profile", false);
         createProfile.setAlignmentX(LEFT_ALIGNMENT);
         createProfile.setSelected(true);
         createProfile.setToolTipText(
                 "<html>" +
-                "If checked, if a Minecrift profile doesn't already exist within the Minecraft launcher<br>" +
-                "one is added. Then the profile is selected, and this Minecrift version is set as the<br>" +
+                "If checked, if a Vivecraft profile doesn't already exist within the Minecraft launcher<br>" +
+                "one is added. Then the profile is selected, and this Vivecraft version is set as the<br>" +
                 "current version.<br>" +
                 "</html>");
 
@@ -1333,10 +1336,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private String getMinecraftProfileName(boolean usingForge)
     {
         if(!usingForge) {
-            return "Minecrift-Vive " + MINECRAFT_VERSION;
+            return "Vivecraft " + MINECRAFT_VERSION;
         }
         else {
-            return "Minecrift-Vive " + MINECRAFT_VERSION + " Forge";
+            return "ViveForgeCraft " + MINECRAFT_VERSION;
         }
     }
 

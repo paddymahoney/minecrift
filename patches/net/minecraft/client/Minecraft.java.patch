@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,640 +167,930 @@
+@@ -150,640 +167,934 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -122,6 +122,7 @@
 -import org.lwjgl.opengl.GLContext;
 -import org.lwjgl.opengl.OpenGLException;
 -import org.lwjgl.opengl.PixelFormat;
++import org.lwjgl.input.Controllers;
 +import org.lwjgl.opengl.*;
  import org.lwjgl.util.glu.GLU;
 +import org.lwjgl.util.vector.Quaternion;
@@ -803,6 +804,9 @@
 +
 +	/** Mouse left click counter */
 +	private int leftClickCounter;
++	
++	/** Drop click counter */
++	private int dropCounter;
 +
 +	/** Display width */
 +	private int tempDisplayWidth;
@@ -907,7 +911,7 @@
 +	public  SoundHandler mcSoundHandler; 
 +	/** END MINECRIFT */
 +	private MusicTicker mcMusicTicker;
-+	private ResourceLocation mojangLogo;
++	public ResourceLocation mojangLogo;
 +	private final MinecraftSessionService sessionService;
 +	private SkinManager skinManager;
 +	private final Queue scheduledTasks = Queues.newArrayDeque();
@@ -1018,7 +1022,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "Minecrift 1.7.10 R2b-Vive-jrbudda9";
++    public final String minecriftVerString = "Minecrift 1.7.10 Vivecraft-jrbudda10";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -1653,7 +1657,7 @@
          {
              this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
              this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,2348 +1098,3829 @@
+@@ -791,2348 +1102,3858 @@
          catch (IOException var7)
          {
              logger.error("Unable to load logo: " + locationMojangPng, var7);
@@ -2630,6 +2634,8 @@
 +		}
 +		// VIVE END - notify stereo provider that we're about to change screen
 +
++		Object test = currentScreen;
++		
 +		this.currentScreen = (GuiScreen)guiScreenIn;
 +
 +		if (guiScreenIn != null)
@@ -2863,7 +2869,8 @@
 +
 +			// Render GUI to FBO if necessary
 +			this.entityRenderer.renderVrGui(this.timer.renderPartialTicks, var6);   // VIVE - added param for debug info
-+
++		
++			
 +			// TODO: PollAll can call controller code that updates the GUI.
 +			// All controller code should be moved to UpdateTick really. For
 +			// now, hack the displaySize so that any gui screens changed use
@@ -5230,320 +5237,10 @@
 +
 +		if (this.currentScreen == null || this.currentScreen.allowUserInput)
 +		{
-+			this.mcProfiler.endStartSection("mouse");
 +			int var9;
++			doMouseInput(fmlCommonHandler);
 +
-+			while (Mouse.next())
-+			{
-+				/** MINECRIFT FORGE **/
-+				if (Reflector.ForgeHooksClient_postMouseEvent.exists()) {
-+					if (Reflector.callBoolean(Reflector.ForgeHooksClient_postMouseEvent, new Object[0])) continue;
-+				}
-+				/** END MINECRIFT FORGE **/
-+
-+				var9 = Mouse.getEventButton();
-+				KeyBinding.setKeyBindState(var9 - 100, Mouse.getEventButtonState());
-+
-+				if (Mouse.getEventButtonState())
-+				{
-+					KeyBinding.onTick(var9 - 100);
-+				}
-+
-+				long var11 = getSystemTime() - this.systemTime;
-+
-+				if (var11 <= 200L)
-+				{
-+					int var4 = Mouse.getEventDWheel();
-+
-+					if (var4 != 0)
-+					{
-+						/** MINECRIFT **/
-+						if (Minecraft.getMinecraft().vrSettings.isComfortYawTransitionKeyAllowed()) {
-+							this.triggerYawTransition(var4 > 0 ? false : true);
-+						}
-+						else {
-+							this.thePlayer.inventory.changeCurrentItem(var4);
-+
-+							if (this.gameSettings.noclip)
-+							{
-+								if (var4 > 0)
-+								{
-+									var4 = 1;
-+								}
-+
-+								if (var4 < 0)
-+								{
-+									var4 = -1;
-+								}
-+
-+								this.gameSettings.noclipRate += (float)var4 * 0.25F;
-+							}
-+						}
-+						/** END MINECRIFT **/
-+					}
-+
-+					if (this.currentScreen == null)
-+					{
-+						if (!this.inGameHasFocus && Mouse.getEventButtonState())
-+						{
-+							this.setIngameFocus();
-+						}
-+					}
-+					else if (this.currentScreen != null)
-+					{
-+						this.currentScreen.handleMouseInput();
-+					}
-+				}
-+				/** MINECRIFT FORGE **/
-+				if( fmlCommonHandler != null) {
-+					Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_fireMouseInput, new Object[0]);
-+				}
-+				/** END MINECRIFT FORGE **/
-+			}
-+
-+			if (this.leftClickCounter > 0)
-+			{
-+				--this.leftClickCounter;
-+			}
-+
-+			this.mcProfiler.endStartSection("keyboard");
-+			boolean var10;
-+
-+			while (Keyboard.next())
-+			{
-+				KeyBinding.setKeyBindState(Keyboard.getEventKey(), Keyboard.getEventKeyState());
-+
-+				if (Keyboard.getEventKeyState())
-+				{
-+					KeyBinding.onTick(Keyboard.getEventKey());
-+				}
-+
-+				if (this.debugCrashKeyPressTime > 0L)
-+				{
-+					if (getSystemTime() - this.debugCrashKeyPressTime >= 6000L)
-+					{
-+						throw new ReportedException(new CrashReport("Manually triggered debug crash", new Throwable()));
-+					}
-+
-+					if (!Keyboard.isKeyDown(46) || !Keyboard.isKeyDown(61))
-+					{
-+						this.debugCrashKeyPressTime = -1L;
-+					}
-+				}
-+				else if (Keyboard.isKeyDown(46) && Keyboard.isKeyDown(61))
-+				{
-+					this.debugCrashKeyPressTime = getSystemTime();
-+				}
-+
-+				this.dispatchKeypresses();
-+
-+				if (Keyboard.getEventKeyState())
-+				{
-+					if (Keyboard.getEventKey() == 62 && this.entityRenderer != null)
-+					{
-+						this.entityRenderer.deactivateShader();
-+					}
-+
-+					if (this.currentScreen != null)
-+					{
-+						this.currentScreen.handleKeyboardInput();
-+					}
-+					else
-+					{
-+						/** MINECRIFT */
-+						VRHotkeys.handleKeyboardInputs(this);
-+						/** END MINECRIFT */
-+
-+						if (Keyboard.getEventKey() == 1)
-+						{
-+							this.displayInGameMenu();
-+						}
-+
-+						if (Keyboard.getEventKey() == 31 && Keyboard.isKeyDown(61))
-+						{
-+							this.refreshResources();
-+						}
-+
-+						if (Keyboard.getEventKey() == 20 && Keyboard.isKeyDown(61))
-+						{
-+							this.refreshResources();
-+						}
-+
-+						if (Keyboard.getEventKey() == 33 && Keyboard.isKeyDown(61))
-+						{
-+							var10 = Keyboard.isKeyDown(42) | Keyboard.isKeyDown(54);
-+							this.gameSettings.setOptionValue(GameSettings.Options.RENDER_DISTANCE, var10 ? -1 : 1);
-+						}
-+
-+						if (Keyboard.getEventKey() == 30 && Keyboard.isKeyDown(61))
-+						{
-+							this.renderGlobal.loadRenderers();
-+						}
-+
-+						if (Keyboard.getEventKey() == 35 && Keyboard.isKeyDown(61))
-+						{
-+							this.gameSettings.advancedItemTooltips = !this.gameSettings.advancedItemTooltips;
-+							this.gameSettings.saveOptions();
-+						}
-+
-+						if (Keyboard.getEventKey() == 48 && Keyboard.isKeyDown(61))
-+						{
-+							RenderManager.debugBoundingBox = !RenderManager.debugBoundingBox;
-+						}
-+
-+						if (Keyboard.getEventKey() == 25 && Keyboard.isKeyDown(61))
-+						{
-+							this.gameSettings.pauseOnLostFocus = !this.gameSettings.pauseOnLostFocus;
-+							this.gameSettings.saveOptions();
-+						}
-+
-+						/** MINECRIFT **/
-+						if (Keyboard.getEventKey() == 59)
-+						{
-+							this.vrSettings.hideGui = !this.vrSettings.hideGui;
-+						}
-+						/** END MINECRIFT **/
-+
-+						if (Keyboard.getEventKey() == 61)
-+						{
-+							this.gameSettings.showDebugInfo = !this.gameSettings.showDebugInfo;
-+							this.gameSettings.showDebugProfilerChart = GuiScreen.isShiftKeyDown();
-+						}
-+
-+						if (this.gameSettings.keyBindTogglePerspective.consumePressed())
-+						{
-+							++this.gameSettings.thirdPersonView;
-+
-+							if (this.gameSettings.thirdPersonView > 2)
-+							{
-+								this.gameSettings.thirdPersonView = 0;
-+							}
-+						}
-+
-+						if (this.gameSettings.keyBindSmoothCamera.consumePressed())
-+						{
-+							this.gameSettings.smoothCamera = !this.gameSettings.smoothCamera;
-+						}
-+					}
-+
-+					if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)
-+					{
-+						if (Keyboard.getEventKey() == 11)
-+						{
-+							this.updateDebugProfilerName(0);
-+						}
-+
-+						for (var9 = 0; var9 < 9; ++var9)
-+						{
-+							if (Keyboard.getEventKey() == 2 + var9)
-+							{
-+								this.updateDebugProfilerName(var9 + 1);
-+							}
-+						}
-+					}
-+				}
-+				/** MINECRIFT FORGE **/
-+				if( fmlCommonHandler != null) {
-+					Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_fireKeyInput, new Object[0]);
-+				}
-+				/** END MINECRIFT FORGE **/
-+			}
-+
-+			for (var9 = 0; var9 < 9; ++var9)
-+			{
-+				if (this.gameSettings.keyBindsHotbar[var9].consumePressed())
-+				{
-+					this.thePlayer.inventory.currentItem = var9;
-+				}
-+			}
-+
-+			var10 = this.gameSettings.chatVisibility != EntityPlayer.EnumChatVisibility.HIDDEN;
-+
-+			while (this.gameSettings.keyBindInventory.consumePressed())
-+			{
-+				if (this.playerController.isRidingHorse())
-+				{
-+					this.thePlayer.sendHorseInteraction();
-+				}
-+				else
-+				{
-+					this.getNetHandler().addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.OPEN_INVENTORY_ACHIEVEMENT));
-+					this.displayGuiScreen(new GuiInventory(this.thePlayer));
-+				}
-+			}
-+
-+			while (this.gameSettings.keyBindDrop.consumePressed())
-+			{
-+				this.thePlayer.dropOneItem(GuiScreen.isCtrlKeyDown());
-+			}
-+
-+			while (this.gameSettings.keyBindChat.consumePressed() && var10)
-+			{
-+				this.displayGuiScreen(new GuiChat());
-+			}
-+
-+			if (this.currentScreen == null && this.gameSettings.keyBindCommand.consumePressed() && var10)
-+			{
-+				this.displayGuiScreen(new GuiChat("/"));
-+			}
-+
-+			if (this.thePlayer.isUsingItem())
-+			{
-+				if (!this.gameSettings.keyBindUseItem.getIsKeyPressed())
-+				{
-+					this.playerController.onStoppedUsingItem(this.thePlayer);
-+				}
-+
-+				label391:
-+
-+					while (true)
-+					{
-+						if (!this.gameSettings.keyBindAttack.consumePressed())
-+						{
-+							while (this.gameSettings.keyBindUseItem.consumePressed())
-+							{
-+								;
-+							}
-+
-+							while (true)
-+							{
-+								if (this.gameSettings.keyBindPickBlock.consumePressed())
-+								{
-+									continue;
-+								}
-+
-+								break label391;
-+							}
-+						}
-+					}
-+			}
-+			else
-+			{
-+				if (this.gameSettings.keyBindAttack.getIsKeyPressed())
-+				{
-+					this.clickMouse();
-+					lastClick = true;
-+
-+				} else {
-+					this.leftClickCounter = 0;
-+					if (lastClick)
-+					{
-+						this.playerController.resetBlockRemoving();
-+					}
-+					lastClick = false;
-+				}
-+
-+				if (this.gameSettings.keyBindUseItem.getIsKeyPressed())
-+				{
-+					this.rightClickMouse();
-+				} else {this.rightClickDelayTimer = 0;}
-+
-+				if (this.gameSettings.keyBindPickBlock.getIsKeyPressed())
-+				{
-+					this.middleClickMouse();
-+				}
-+			}
-+
++			doKeyboardInput(fmlCommonHandler);
 +
 +		}
 +		/** MINECRIFT */
@@ -5653,6 +5350,339 @@
 +		/** END MINECRIFT FORGE **/
 +		this.mcProfiler.endSection();
 +		this.systemTime = getSystemTime();
++	}
++
++	private void doKeyboardInput(Object fmlCommonHandler) {
++		int var9;
++		this.mcProfiler.endStartSection("keyboard");
++		boolean var10;
++
++		while (Keyboard.next())
++		{
++			KeyBinding.setKeyBindState(Keyboard.getEventKey(), Keyboard.getEventKeyState());
++			
++			if (Keyboard.getEventKeyState())
++			{
++				dropCounter++;
++				KeyBinding.onTick(Keyboard.getEventKey());
++			}
++
++			if (this.debugCrashKeyPressTime > 0L)
++			{
++				if (getSystemTime() - this.debugCrashKeyPressTime >= 6000L)
++				{
++					throw new ReportedException(new CrashReport("Manually triggered debug crash", new Throwable()));
++				}
++
++				if (!Keyboard.isKeyDown(46) || !Keyboard.isKeyDown(61))
++				{
++					this.debugCrashKeyPressTime = -1L;
++				}
++			}
++			else if (Keyboard.isKeyDown(46) && Keyboard.isKeyDown(61))
++			{
++				this.debugCrashKeyPressTime = getSystemTime();
++			}
++
++			this.dispatchKeypresses();
++
++			if (Keyboard.getEventKeyState())
++			{
++				if (Keyboard.getEventKey() == 62 && this.entityRenderer != null)
++				{
++					this.entityRenderer.deactivateShader();
++				}
++
++				if (this.currentScreen != null)
++				{
++					this.currentScreen.handleKeyboardInput();
++				}
++				else
++				{
++					/** MINECRIFT */
++					VRHotkeys.handleKeyboardInputs(this);
++					/** END MINECRIFT */
++
++					if (Keyboard.getEventKey() == 1)
++					{
++						this.displayInGameMenu();
++					}
++
++					if (Keyboard.getEventKey() == 31 && Keyboard.isKeyDown(61))
++					{
++						this.refreshResources();
++					}
++
++					if (Keyboard.getEventKey() == 20 && Keyboard.isKeyDown(61))
++					{
++						this.refreshResources();
++					}
++
++					if (Keyboard.getEventKey() == 33 && Keyboard.isKeyDown(61))
++					{
++						var10 = Keyboard.isKeyDown(42) | Keyboard.isKeyDown(54);
++						this.gameSettings.setOptionValue(GameSettings.Options.RENDER_DISTANCE, var10 ? -1 : 1);
++					}
++
++					if (Keyboard.getEventKey() == 30 && Keyboard.isKeyDown(61))
++					{
++						this.renderGlobal.loadRenderers();
++					}
++
++					if (Keyboard.getEventKey() == 35 && Keyboard.isKeyDown(61))
++					{
++						this.gameSettings.advancedItemTooltips = !this.gameSettings.advancedItemTooltips;
++						this.gameSettings.saveOptions();
++					}
++
++					if (Keyboard.getEventKey() == 48 && Keyboard.isKeyDown(61))
++					{
++						RenderManager.debugBoundingBox = !RenderManager.debugBoundingBox;
++					}
++
++					if (Keyboard.getEventKey() == 25 && Keyboard.isKeyDown(61))
++					{
++						this.gameSettings.pauseOnLostFocus = !this.gameSettings.pauseOnLostFocus;
++						this.gameSettings.saveOptions();
++					}
++
++					/** MINECRIFT **/
++					if (Keyboard.getEventKey() == 59)
++					{
++						this.vrSettings.hideGui = !this.vrSettings.hideGui;
++					}
++					/** END MINECRIFT **/
++
++					if (Keyboard.getEventKey() == 61)
++					{
++						this.gameSettings.showDebugInfo = !this.gameSettings.showDebugInfo;
++						this.gameSettings.showDebugProfilerChart = GuiScreen.isShiftKeyDown();
++					}
++
++					if (this.gameSettings.keyBindTogglePerspective.isPressed())
++					{
++						++this.gameSettings.thirdPersonView;
++
++						if (this.gameSettings.thirdPersonView > 2)
++						{
++							this.gameSettings.thirdPersonView = 0;
++						}
++					}
++
++					if (this.gameSettings.keyBindSmoothCamera.isPressed())
++					{
++						this.gameSettings.smoothCamera = !this.gameSettings.smoothCamera;
++					}
++				}
++
++				if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)
++				{
++					if (Keyboard.getEventKey() == 11)
++					{
++						this.updateDebugProfilerName(0);
++					}
++
++					for (var9 = 0; var9 < 9; ++var9)
++					{
++						if (Keyboard.getEventKey() == 2 + var9)
++						{
++							this.updateDebugProfilerName(var9 + 1);
++						}
++					}
++				}
++			}
++			/** MINECRIFT FORGE **/
++			if( fmlCommonHandler != null) {
++				Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_fireKeyInput, new Object[0]);
++			}
++			/** END MINECRIFT FORGE **/
++		}
++
++		for (var9 = 0; var9 < 9; ++var9)
++		{
++			if (this.gameSettings.keyBindsHotbar[var9].isPressed())
++			{
++				this.thePlayer.inventory.currentItem = var9;
++			}
++		}
++
++		var10 = this.gameSettings.chatVisibility != EntityPlayer.EnumChatVisibility.HIDDEN;
++
++		while (this.gameSettings.keyBindInventory.isPressed())
++		{
++			if (this.playerController.isRidingHorse())
++			{
++				this.thePlayer.sendHorseInteraction();
++			}
++			else
++			{
++				this.getNetHandler().addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.OPEN_INVENTORY_ACHIEVEMENT));
++				
++				if(this.lookaimController instanceof MCOpenVR){
++					((MCOpenVR) this.lookaimController).startedOpeningInventory = getCurrentTimeSecs();	//prevent immediately closing it
++				}
++				
++				this.displayGuiScreen(new GuiInventory(this.thePlayer));
++			}
++		}
++
++		while (this.gameSettings.keyBindDrop.isPressed())
++		{
++			this.thePlayer.dropOneItem(GuiScreen.isCtrlKeyDown());		
++		}
++
++		while (this.gameSettings.keyBindChat.isPressed() && var10)
++		{
++			this.displayGuiScreen(new GuiChat());
++		}
++
++		if (this.currentScreen == null && this.gameSettings.keyBindCommand.isPressed() && var10)
++		{
++			this.displayGuiScreen(new GuiChat("/"));
++		}
++
++		if (this.thePlayer.isUsingItem())
++		{
++			if (!this.gameSettings.keyBindUseItem.getIsKeyPressed())
++			{
++				this.playerController.onStoppedUsingItem(this.thePlayer);
++			}
++
++			label391:
++
++				while (true)
++				{
++					if (!this.gameSettings.keyBindAttack.isPressed())
++					{
++						while (this.gameSettings.keyBindUseItem.isPressed())
++						{
++							;
++						}
++
++						while (true)
++						{
++							if (this.gameSettings.keyBindPickBlock.isPressed())
++							{
++								continue;
++							}
++
++							break label391;
++						}
++					}
++				}
++		}
++		else
++		{
++			if (this.gameSettings.keyBindAttack.getIsKeyPressed())
++			{
++				this.clickMouse();
++				lastClick = true;
++
++			} else {
++				this.leftClickCounter = 0;
++				if (lastClick)
++				{
++					this.playerController.resetBlockRemoving();
++				}
++				lastClick = false;
++			}
++
++			if (this.gameSettings.keyBindUseItem.getIsKeyPressed())
++			{
++				this.rightClickMouse();
++			} else {this.rightClickDelayTimer = 0;}
++
++			if (this.gameSettings.keyBindPickBlock.getIsKeyPressed())
++			{
++				this.middleClickMouse();
++			}
++		}
++	}
++
++	private void doMouseInput(Object fmlCommonHandler) {
++		this.mcProfiler.endStartSection("mouse");
++		int var9;
++
++		while (Mouse.next())
++		{
++			/** MINECRIFT FORGE **/
++			if (Reflector.ForgeHooksClient_postMouseEvent.exists()) {
++				if (Reflector.callBoolean(Reflector.ForgeHooksClient_postMouseEvent, new Object[0])) continue;
++			}
++			/** END MINECRIFT FORGE **/
++
++			var9 = Mouse.getEventButton();
++			KeyBinding.setKeyBindState(var9 - 100, Mouse.getEventButtonState());
++
++			if (Mouse.getEventButtonState())
++			{
++				dropCounter++;
++				KeyBinding.onTick(var9 - 100);
++			}
++			
++			if (lookaimController instanceof MCOpenVR){
++				if(!((MCOpenVR)lookaimController).controllerMouseValid){
++					if (mouseHelper.deltaX > 0 || mouseHelper.deltaY> 0 )
++						((MCOpenVR) lookaimController).controllerMouseValid = true;
++					}
++				}
++				
++			long var11 = getSystemTime() - this.systemTime;
++
++			if (var11 <= 200L)
++			{
++				int var4 = Mouse.getEventDWheel();
++
++				if (var4 != 0)
++				{
++					/** MINECRIFT **/
++					if (Minecraft.getMinecraft().vrSettings.isComfortYawTransitionKeyAllowed()) {
++						this.triggerYawTransition(var4 > 0 ? false : true);
++					}
++					else {
++						this.thePlayer.inventory.changeCurrentItem(var4);
++
++						if (this.gameSettings.noclip)
++						{
++							if (var4 > 0)
++							{
++								var4 = 1;
++							}
++
++							if (var4 < 0)
++							{
++								var4 = -1;
++							}
++
++							this.gameSettings.noclipRate += (float)var4 * 0.25F;
++						}
++					}
++					/** END MINECRIFT **/
++				}
++
++				if (this.currentScreen == null)
++				{
++					if (!this.inGameHasFocus && Mouse.getEventButtonState())
++					{
++						this.setIngameFocus();
++					}
++				}
++				else if (this.currentScreen != null)
++				{
++					this.currentScreen.handleMouseInput();
++				}
++			}
++			/** MINECRIFT FORGE **/
++			if( fmlCommonHandler != null) {
++				Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_fireMouseInput, new Object[0]);
++			}
++			/** END MINECRIFT FORGE **/
++		}
++
++		if (this.leftClickCounter > 0)
++		{
++			--this.leftClickCounter;
++		}
 +	}
 +
 +	/**
@@ -7353,7 +7383,7 @@
 +		new NullPositionAndOrientation();
 +		new MCController();
 +		new MCMouse();
-+		ControlBinding.CreateBindingList(this.gameSettings); // Create control binding list
++//		ControlBinding.CreateBindingList(this.gameSettings); // Create control binding list
 +		new NeckModelEyePosition();                          // Create and register "None" head position plugin
 +		new NullStereoRenderer();                            // Create and register "None" stereo renderer plugin
 +
@@ -7474,7 +7504,7 @@
 +		if (showSplashScreen && splashFadeAlpha > 0)
 +		{
 +			final Color3f rgb = new Color3f(0f, 0f, 0f);
-+			this.entityRenderer.renderFadeBlend(rgb, splashFadeAlpha);
++		//	this.entityRenderer.renderFadeBlend(rgb, splashFadeAlpha);
 +		}
 +
 +		if (this.vrSettings.useFsaa)
@@ -7498,7 +7528,7 @@
 +
 +			GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
 +			GL11.glClearDepth(1.0D);
-+			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer
++		    GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer
 +
 +			// Render onto the entire screen framebuffer
 +			GL11.glViewport(0, 0, this.distortionRenderTargetSize[eye.value()].w, this.EyeTextureSize[eye.value()].h);
@@ -7577,6 +7607,7 @@
 +
 +	public void showSplash(Framebuffer rendertarget)
 +	{
++
 +		final int SPLASH_TIMEOUT_MS = this.stereoProvider.isStereo() ? 2000 : 1500;
 +		final int SPLASH_FADE_TIMEOUT_MS = this.stereoProvider.isStereo() ? 1000 : 0;
 +		splashFadeAlpha = 0f;
@@ -7616,12 +7647,13 @@
 +		int existingScale = gameSettings.guiScale;
 +		gameSettings.guiScale = 0;
 +		ScaledResolution var1 = new ScaledResolution(this, this.displayWidth, this.displayHeight);
-+		int var2 = var1.getScaleFactor();
++				int var2 = var1.getScaleFactor();
 +		if (splash == null)
 +			splash = new Framebuffer(var1.getScaledWidth() * var2, var1.getScaledHeight() * var2, true);
 +		splash.bindFramebuffer(true);
 +		GL11.glMatrixMode(GL11.GL_PROJECTION);
 +		GL11.glLoadIdentity();
++	
 +		GL11.glOrtho(0.0D, (double) var1.getScaledWidth(), (double) var1.getScaledHeight(), 0.0D, 1000.0D, 3000.0D);
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glLoadIdentity();
@@ -7630,7 +7662,7 @@
 +		GL11.glDisable(GL11.GL_FOG);
 +		GL11.glDisable(GL11.GL_DEPTH_TEST);
 +		GL11.glEnable(GL11.GL_TEXTURE_2D);
-+
++			
 +		try
 +		{
 +			if (this.mojangLogo == null)
@@ -7665,6 +7697,7 @@
 +		//Display.update();
 +		gameSettings.guiScale = existingScale;
 +		//this.func_147120_f();
++		
 +	}
 +
 +	private static void sleepNanos (long nanoDelay)

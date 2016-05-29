@@ -41,11 +41,11 @@ def zipmerge( target_file, source_file ):
     source.close()
     target.close()
     out.close()
-    os.remove( target_file )
+    #os.remove( target_file )
     shutil.copy( out_filename, target_file )
 
 def process_json( addon, version ):
-    json_id = "minecrift-"+version+addon
+    json_id = "vivecraft-"+version+addon
     lib_id = "com.mtbs3d:minecrift:"+version
     time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S-05:00")
     with  open(os.path.join("installer",mc_version+addon+".json"),"rb") as f:
@@ -70,6 +70,8 @@ def create_install(mcp_dir):
         for abs_path, _, filelist in os.walk(reobf, followlinks=True):
             arc_path = os.path.relpath( abs_path, reobf ).replace('\\','/').replace('.','')+'/'
             for cur_file in fnmatch.filter(filelist, '*.class'):
+                if cur_file in {'abt.class','abu.class','abv.class', 'abw.class', 'abx.class', 'aby.class', 'abz.class', 'aca.class', 'acb.class', 'acc.class', 'acd.class', 'ace.class', 'acf.class'}: #skip CreativeTabs
+					continue
                 in_file= os.path.join(abs_path,cur_file) 
                 arcname =  arc_path + cur_file
                 zipout.write(in_file, arcname)
@@ -106,7 +108,7 @@ def create_install(mcp_dir):
             cwd=os.path.join(base_dir,"installer"),
             bufsize=-1).communicate()
 	
-    artifact_id = "minecrift-"+version
+    artifact_id = "vivecraft-"+version
     installer_id = artifact_id+"-installer"
     installer = os.path.join( installer_id+".jar" ) 
     shutil.copy( os.path.join("installer","installer.jar"), installer )
@@ -188,8 +190,8 @@ def main(mcp_dir):
     # Update Minecrift version
     minecraft_java_file = os.path.join(mcp_dir,'src','minecraft','net','minecraft','client','Minecraft.java')
     if os.path.exists(minecraft_java_file):
-        print "Updating Minecraft.java with Minecrift version: [Minecrift %s %s] %s" % ( minecrift_version_num, minecrift_build, minecraft_java_file ) 
-        replacelineinfile( minecraft_java_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Minecrift %s %s\";\n" % (minecrift_version_num, minecrift_build) );        
+        print "Updating Minecraft.java with Vivecraft version: [Vivecraft %s %s] %s" % ( minecrift_version_num, minecrift_build, minecraft_java_file ) 
+        replacelineinfile( minecraft_java_file, "public final String minecriftVerString",     "    public final String minecriftVerString = \"Vivecraft %s %s\";\n" % (minecrift_version_num, minecrift_build) );        
 
     print("Recompiling...")
     from runtime.mcp import recompile_side, reobfuscate_side

@@ -81,7 +81,16 @@
      }
  
      /**
-@@ -1171,20 +1177,20 @@
+@@ -421,6 +427,8 @@
+      * initiated, 1: reinitiated, 2? , 3-4 drop item (respectively without or with player control), 5: stopped; x,y,z,
+      * side clicked on;)
+      */
++    
++    //VIVE TODO: Investigate if this is where phantom blocks come from.
+     public void processPlayerDigging(C07PacketPlayerDigging packetIn)
+     {
+         WorldServer var2 = this.serverController.worldServerForDimension(this.playerEntity.dimension);
+@@ -1171,20 +1179,20 @@
              {
                  var3 = var2.readItemStackFromBuffer();
  
@@ -112,7 +121,7 @@
                      if (var3.getItem() == Items.written_book && var4.getItem() == Items.writable_book)
                      {
                          var4.setTagInfo("author", new NBTTagString(this.playerEntity.getCommandSenderName()));
-@@ -1333,6 +1339,13 @@
+@@ -1333,6 +1341,13 @@
                      var41.updateItemName("");
                  }
              }

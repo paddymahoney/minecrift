@@ -425,7 +425,7 @@
      }
  
      public EntityItem func_146097_a(ItemStack p_146097_1_, boolean p_146097_2_, boolean p_146097_3_)
-@@ -797,7 +994,24 @@
+@@ -797,7 +994,25 @@
          }
          else
          {
@@ -433,7 +433,7 @@
 +        	
 +        	Vec3 spawnPosition =this.getPosition(1);
 +        	float yaw, pitch;
-+        	
++        	    	
 +            Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
 +        	Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
 +            //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
@@ -442,29 +442,32 @@
 +            Vector3f controllerDirection = aimRotation.transform(forward);
 +            spawnPosition.xCoord = aimSource.xCoord + controllerDirection.x * 0.28f;
 +            spawnPosition.yCoord = aimSource.yCoord - controllerDirection.y * 0.28f;
-+            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.z * 0.28f;
-+      	
-+            yaw = Minecraft.getMinecraft().lookaimController.getAimYaw();
-+            pitch = Minecraft.getMinecraft().lookaimController.getAimPitch();
++            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.z * 0.28f;   	
 +        	       	
 +            EntityItem var4 = new EntityItem(this.worldObj, spawnPosition.xCoord, spawnPosition.yCoord, spawnPosition.zCoord, p_146097_1_);
++            
++            var4.rotationYaw = Minecraft.getMinecraft().lookaimController.getAimYaw();
++            var4.rotationPitch = Minecraft.getMinecraft().lookaimController.getAimPitch();
++            
              var4.delayBeforeCanPickup = 40;
  
              if (p_146097_3_)
-@@ -819,9 +1033,9 @@
+@@ -818,10 +1033,10 @@
+             }
              else
              {
-                 var5 = 0.3F;
+-                var5 = 0.3F;
 -                var4.motionX = (double)(-MathHelper.sin(this.rotationYaw / 180.0F * (float)Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float)Math.PI) * var5);
 -                var4.motionZ = (double)(MathHelper.cos(this.rotationYaw / 180.0F * (float)Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float)Math.PI) * var5);
 -                var4.motionY = (double)(-MathHelper.sin(this.rotationPitch / 180.0F * (float)Math.PI) * var5 + 0.1F);
-+                var4.motionX = (double)(-MathHelper.sin(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(yaw / 180.0F * (float)Math.PI) * var5);
-+                var4.motionZ = (double)(MathHelper.cos(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(yaw / 180.0F * (float)Math.PI) * var5);
-+                var4.motionY = (double)(-MathHelper.sin(pitch / 180.0F * (float)Math.PI) * var5 + 0.1F);
++                var5 = 0.4F;
++                var4.motionX = var5 * (double)(-MathHelper.sin(var4.rotationYaw / 180.0F * (float)Math.PI) * MathHelper.cos(var4.rotationPitch / 180.0F * (float)Math.PI));
++                var4.motionZ = var5 * (double)(MathHelper.cos(var4.rotationYaw / 180.0F * (float)Math.PI) * MathHelper.cos(var4.rotationPitch / 180.0F * (float)Math.PI));
++                var4.motionY = var5 * (double)(-MathHelper.sin(var4.rotationPitch / 180.0F * (float)Math.PI));
                  var5 = 0.02F;
                  var6 = this.rand.nextFloat() * (float)Math.PI * 2.0F;
                  var5 *= this.rand.nextFloat();
-@@ -839,28 +1053,67 @@
+@@ -839,28 +1054,67 @@
      /**
       * Joins the passed in entity item with the world. Args: entityItem
       */
@@ -535,7 +538,7 @@
                  {
                      var3 += var6 * 0.08F;
                  }
-@@ -891,7 +1144,13 @@
+@@ -891,7 +1145,13 @@
              var3 /= 5.0F;
          }
  
@@ -549,7 +552,7 @@
      }
  
      /**
-@@ -899,7 +1158,17 @@
+@@ -899,7 +1159,17 @@
       */
      public boolean canHarvestBlock(Block p_146099_1_)
      {
@@ -568,7 +571,7 @@
      }
  
      /**
-@@ -930,7 +1199,20 @@
+@@ -930,7 +1200,20 @@
              this.spawnChunk = new ChunkCoordinates(tagCompund.getInteger("SpawnX"), tagCompund.getInteger("SpawnY"), tagCompund.getInteger("SpawnZ"));
              this.spawnForced = tagCompund.getBoolean("SpawnForced");
          }
@@ -590,7 +593,7 @@
          this.foodStats.readNBT(tagCompund);
          this.capabilities.readCapabilitiesFromNBT(tagCompund);
  
-@@ -964,6 +1246,28 @@
+@@ -964,6 +1247,28 @@
              tagCompound.setBoolean("SpawnForced", this.spawnForced);
          }
  
@@ -619,7 +622,7 @@
          this.foodStats.writeNBT(tagCompound);
          this.capabilities.writeCapabilitiesToNBT(tagCompound);
          tagCompound.setTag("EnderItems", this.theInventoryEnderChest.saveInventoryToNBT());
-@@ -994,7 +1298,16 @@
+@@ -994,7 +1299,16 @@
  
      public float getEyeHeight()
      {
@@ -637,7 +640,7 @@
      }
  
      /**
-@@ -1010,6 +1323,13 @@
+@@ -1010,6 +1324,13 @@
       */
      public boolean attackEntityFrom(DamageSource source, float amount)
      {
@@ -651,7 +654,7 @@
          if (this.isEntityInvulnerable())
          {
              return false;
-@@ -1122,12 +1442,31 @@
+@@ -1122,12 +1443,31 @@
      {
          if (!this.isEntityInvulnerable())
          {
@@ -685,7 +688,7 @@
              p_70665_2_ = this.applyPotionDamageCalculations(p_70665_1_, p_70665_2_);
              float var3 = p_70665_2_;
              p_70665_2_ = Math.max(p_70665_2_ - this.getAbsorptionAmount(), 0.0F);
-@@ -1167,6 +1506,13 @@
+@@ -1167,6 +1507,13 @@
  
      public boolean interactWith(Entity p_70998_1_)
      {
@@ -699,7 +702,7 @@
          ItemStack var2 = this.getCurrentEquippedItem();
          ItemStack var3 = var2 != null ? var2.copy() : null;
  
-@@ -1223,7 +1569,20 @@
+@@ -1223,7 +1570,20 @@
       */
      public void destroyCurrentEquippedItem()
      {
@@ -720,7 +723,7 @@
      }
  
      /**
-@@ -1240,6 +1599,22 @@
+@@ -1240,6 +1600,22 @@
       */
      public void attackTargetEntityWithCurrentItem(Entity targetEntity)
      {
@@ -743,7 +746,7 @@
          if (targetEntity.canAttackWithItem())
          {
              if (!targetEntity.hitByEntity(this))
-@@ -1401,6 +1776,25 @@
+@@ -1401,6 +1777,25 @@
       */
      public EntityPlayer.EnumStatus sleepInBedAt(int x, int y, int z)
      {
@@ -769,7 +772,7 @@
          if (!this.worldObj.isRemote)
          {
              if (this.isPlayerSleeping() || !this.isEntityAlive())
-@@ -1444,7 +1838,14 @@
+@@ -1444,7 +1839,14 @@
          if (this.worldObj.blockExists(x, y, z))
          {
              int var9 = this.worldObj.getBlockMetadata(x, y, z);
@@ -785,7 +788,7 @@
              float var10 = 0.5F;
              float var7 = 0.5F;
  
-@@ -1517,24 +1918,61 @@
+@@ -1517,24 +1919,61 @@
       */
      public void wakeUpPlayer(boolean p_70999_1_, boolean updateWorldFlag, boolean setSpawn)
      {
@@ -864,7 +867,7 @@
          this.sleeping = false;
  
          if (!this.worldObj.isRemote && updateWorldFlag)
-@@ -1562,7 +2000,17 @@
+@@ -1562,7 +2001,17 @@
       */
      private boolean isInBed()
      {
@@ -883,7 +886,7 @@
      }
  
      /**
-@@ -1571,25 +2019,54 @@
+@@ -1571,25 +2020,54 @@
       */
      public static ChunkCoordinates verifyRespawnCoordinates(World p_71056_0_, ChunkCoordinates p_71056_1_, boolean p_71056_2_)
      {
@@ -957,7 +960,7 @@
      }
  
      /**
-@@ -1601,7 +2078,16 @@
+@@ -1601,7 +2079,16 @@
          {
              int var1 = this.worldObj.getBlockMetadata(this.playerLocation.posX, this.playerLocation.posY, this.playerLocation.posZ);
              int var2 = BlockBed.getDirection(var1);
@@ -975,7 +978,7 @@
              switch (var2)
              {
                  case 0:
-@@ -1668,12 +2154,30 @@
+@@ -1668,12 +2155,30 @@
       */
      public ChunkCoordinates getBedLocation()
      {
@@ -1008,7 +1011,7 @@
      }
  
      /**
-@@ -1681,6 +2185,16 @@
+@@ -1681,6 +2186,16 @@
       */
      public void setSpawnChunk(ChunkCoordinates p_71063_1_, boolean p_71063_2_)
      {
@@ -1025,7 +1028,7 @@
          if (p_71063_1_ != null)
          {
              this.spawnChunk = new ChunkCoordinates(p_71063_1_);
-@@ -1727,7 +2241,7 @@
+@@ -1727,7 +2242,7 @@
      /**
       * Moves the entity based on the specified heading.  Args: strafe, forward
       */
@@ -1034,7 +1037,7 @@
      {
          double var3 = this.posX;
          double var5 = this.posY;
-@@ -1738,13 +2252,20 @@
+@@ -1738,13 +2253,20 @@
              double var9 = this.motionY;
              float var11 = this.jumpMovementFactor;
              this.jumpMovementFactor = this.capabilities.getFlySpeed();
@@ -1058,7 +1061,7 @@
          }
  
          this.addMovementStat(this.posX - var3, this.posY - var5, this.posZ - var7);
-@@ -1878,6 +2399,13 @@
+@@ -1878,6 +2400,13 @@
  
              super.fall(distance);
          }
@@ -1072,7 +1075,7 @@
      }
  
      protected String func_146067_o(int p_146067_1_)
-@@ -1928,11 +2456,16 @@
+@@ -1928,11 +2457,16 @@
          }
          else
          {
@@ -1094,7 +1097,7 @@
              if (this.itemInUse != null && itemStackIn.getItem() == Items.bow)
              {
                  int var4 = itemStackIn.getMaxItemUseDuration() - this.itemInUseCount;
-@@ -1952,6 +2485,13 @@
+@@ -1952,6 +2486,13 @@
                      return Items.bow.getItemIconForUseDuration(0);
                  }
              }
@@ -1108,7 +1111,7 @@
          }
  
          return var3;
-@@ -2057,6 +2597,14 @@
+@@ -2057,6 +2598,14 @@
      {
          if (p_71008_1_ != this.itemInUse)
          {
@@ -1123,7 +1126,7 @@
              this.itemInUse = p_71008_1_;
              this.itemInUseCount = p_71008_2_;
  
-@@ -2142,6 +2690,9 @@
+@@ -2142,6 +2691,9 @@
       */
      public void clonePlayer(EntityPlayer p_71049_1_, boolean p_71049_2_)
      {
@@ -1133,7 +1136,7 @@
          if (p_71049_2_)
          {
              this.inventory.copyInventory(p_71049_1_.inventory);
-@@ -2152,6 +2703,17 @@
+@@ -2152,6 +2704,17 @@
              this.experience = p_71049_1_.experience;
              this.setScore(p_71049_1_.getScore());
              this.teleportDirection = p_71049_1_.teleportDirection;
@@ -1151,7 +1154,7 @@
          }
          else if (this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory"))
          {
-@@ -2163,6 +2725,23 @@
+@@ -2163,6 +2726,23 @@
          }
  
          this.theInventoryEnderChest = p_71049_1_.theInventoryEnderChest;
@@ -1175,7 +1178,7 @@
      }
  
      /**
-@@ -2226,7 +2805,23 @@
+@@ -2226,7 +2806,23 @@
       */
      public void setCurrentItemOrArmor(int slotIn, ItemStack itemStackIn)
      {
@@ -1200,7 +1203,7 @@
      }
  
      /**
-@@ -2277,9 +2872,16 @@
+@@ -2277,9 +2873,16 @@
  
      public IChatComponent getFormattedCommandSenderName()
      {
@@ -1218,7 +1221,7 @@
      }
  
      public void setAbsorptionAmount(float p_110149_1_)
-@@ -2356,7 +2958,136 @@
+@@ -2356,7 +2959,136 @@
              }
          }
      }
@@ -1355,7 +1358,7 @@
      public static enum EnumStatus
      {
          OK("OK", 0),
-@@ -2371,4 +3102,48 @@
+@@ -2371,4 +3103,48 @@
  
          private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
      }

@@ -1,10 +1,11 @@
 --- a/net/minecraft/client/gui/GuiScreen.java
 +++ b/net/minecraft/client/gui/GuiScreen.java
-@@ -9,11 +9,15 @@
+@@ -9,11 +9,16 @@
  import java.util.Arrays;
  import java.util.Iterator;
  import java.util.List;
 +
++import com.mtbs3d.minecrift.provider.MCOpenVR;
 +import com.mtbs3d.minecrift.settings.VRSettings;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.renderer.RenderHelper;
@@ -16,7 +17,7 @@
  import net.minecraft.util.EnumChatFormatting;
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
-@@ -51,6 +55,11 @@
+@@ -51,6 +56,11 @@
      private int eventButton;
      private long lastMouseEvent;
  
@@ -28,7 +29,7 @@
      /**
       * Incremented when the game is in touchscreen mode and the screen is tapped, decremented if the screen isn't
       * tapped. Does not appear to be used.
-@@ -84,6 +93,10 @@
+@@ -84,6 +94,10 @@
      {
          if (keyCode == 1)
          {
@@ -39,7 +40,7 @@
              this.mc.displayGuiScreen((GuiScreen)null);
              this.mc.setIngameFocus();
          }
-@@ -142,21 +155,37 @@
+@@ -142,21 +156,37 @@
                  var4.set(var5, EnumChatFormatting.GRAY + (String)var4.get(var5));
              }
          }
@@ -81,7 +82,7 @@
          if (!textLines.isEmpty())
          {
              GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-@@ -169,7 +198,9 @@
+@@ -169,7 +199,9 @@
              while (var5.hasNext())
              {
                  String var6 = (String)var5.next();
@@ -92,7 +93,7 @@
  
                  if (var7 > var4)
                  {
-@@ -214,7 +245,9 @@
+@@ -214,7 +246,9 @@
              for (int var12 = 0; var12 < textLines.size(); ++var12)
              {
                  String var13 = (String)textLines.get(var12);
@@ -103,7 +104,7 @@
  
                  if (var12 == 0)
                  {
-@@ -246,10 +279,26 @@
+@@ -246,10 +280,26 @@
  
                  if (var5.mousePressed(this.mc, mouseX, mouseY))
                  {
@@ -134,7 +135,7 @@
              }
          }
      }
-@@ -285,8 +334,22 @@
+@@ -285,8 +335,22 @@
          this.fontRendererObj = mc.fontRendererObj;
          this.width = width;
          this.height = height;
@@ -159,7 +160,23 @@
      }
  
      /**
-@@ -321,9 +384,16 @@
+@@ -302,7 +366,14 @@
+         if (Mouse.isCreated())
+         {
+             while (Mouse.next())
+-            {
++            {		
++            	
++            	if (mc.lookaimController instanceof MCOpenVR){
++            		if(!((MCOpenVR)mc.lookaimController).controllerMouseValid){
++						((MCOpenVR) mc.lookaimController).controllerMouseValid = true;
++						((MCOpenVR) mc.lookaimController).controllerMouseTicks = 20;
++				}}
++            	
+                 this.handleMouseInput();
+             }
+         }
+@@ -321,9 +392,23 @@
       */
      public void handleMouseInput()
      {
@@ -167,6 +184,13 @@
 -        int var2 = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
 +		/** MINECRIFT */
 +
++		if (mc.lookaimController instanceof MCOpenVR){
++			if(!((MCOpenVR)mc.lookaimController).controllerMouseValid){
++				if (mc.mouseHelper.deltaX > 0 || mc.mouseHelper.deltaY> 0 )
++					((MCOpenVR) mc.lookaimController).controllerMouseValid = true;
++				}
++			}
++    	
 +        // Reset mouse offset
 +        mouseOffsetX = -1;
 +        mouseOffsetY = -1;
@@ -178,7 +202,7 @@
  
          if (Mouse.getEventButtonState())
          {
-@@ -388,8 +458,17 @@
+@@ -388,8 +473,17 @@
      {
          if (this.mc.theWorld != null)
          {
@@ -196,7 +220,7 @@
          else
          {
              this.drawBackground(tint);
-@@ -441,4 +520,79 @@
+@@ -441,4 +535,79 @@
      {
          return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
      }

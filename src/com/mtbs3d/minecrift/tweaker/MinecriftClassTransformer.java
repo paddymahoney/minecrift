@@ -81,10 +81,10 @@ public class MinecriftClassTransformer implements IClassTransformer
     {
         byte[] minecriftClass = this.getMinecriftClass(name);
         if (minecriftClass == null) {
-            //debug(String.format("Minecrift: Passthrough '%s' -> '%s'", name, transformedName));
+      //      debug(String.format("Minecrift: Passthrough '%s' -> '%s'", name, transformedName));
         }
         else {
-            debug(String.format("Transformed class " + transformedName));
+            debug(String.format("Transformed class " + name +" "+ transformedName + " " +bytes.length));
 
             // Perform any additional mods using ASM
             minecriftClass = performAsmModification(minecriftClass, transformedName);

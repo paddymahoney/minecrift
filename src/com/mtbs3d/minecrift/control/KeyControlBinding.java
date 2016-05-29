@@ -12,7 +12,7 @@ public class KeyControlBinding extends ControlBinding {
 	KeyBinding key;
 	Minecraft mc;
 	public KeyControlBinding(KeyBinding binding ) {
-		super(binding.keyDescription,binding.keyDescription);
+		super(binding.getKeyDescription(),binding.getKeyDescription());
 		key = binding;
 		mc = Minecraft.getMinecraft();
 	}
@@ -31,11 +31,11 @@ public class KeyControlBinding extends ControlBinding {
 	@Override
 	public void setState(boolean state) {
 		if( state ) {
-			key.pressKey();
-			if( mc.currentScreen != null && mc.gameSettings.keyBindInventory == key ) {
-				key.unpressKey();
-				mc.displayGuiScreen(null);
-			}
-		} else {key.unpressKey();
+			key.setKeyBindState(key, state);
+//			if( mc.currentScreen != null && mc.gameSettings.keyBindInventory == key ) {
+//				key.unpressKey();
+//				mc.displayGuiScreen(null);
+//			}
+//		} else {key.unpressKey();
 	}}
 }
