@@ -1339,7 +1339,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
             return "Vivecraft " + MINECRAFT_VERSION;
         }
         else {
-            return "ViveForgeCraft " + MINECRAFT_VERSION;
+            return "ViveCraft-Forge " + MINECRAFT_VERSION;
         }
     }
 
