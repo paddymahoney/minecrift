@@ -1,5 +1,5 @@
 
-Minecrift Vive (jrbudda revision)
+Vivecrafit (jrbudda's revision of Minecrift-Vive)
 ==============
 
 This is a modified version of the Minecrift VR mod that focuses on the Vive and room scale VR. It adds a teleporting method of locomotion and tracked controller support to interact with the world.
