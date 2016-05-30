@@ -24,6 +24,7 @@ Controls
   - Press touchpad bottom half - jump
   - Menu button - game menu (equivalent of escape key)
   - Grip - Sneak (Shift button)
+  - Grip + Menu - Open SteamVR keyboard
 
 
 
