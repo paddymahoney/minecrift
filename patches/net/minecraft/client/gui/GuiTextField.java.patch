@@ -1,0 +1,40 @@
+--- a/net/minecraft/client/gui/GuiTextField.java
++++ b/net/minecraft/client/gui/GuiTextField.java
+@@ -1,9 +1,12 @@
+ package net.minecraft.client.gui;
+ 
++import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.Tessellator;
+ import net.minecraft.util.ChatAllowedCharacters;
+ import org.lwjgl.opengl.GL11;
+ 
++import com.mtbs3d.minecrift.provider.MCOpenVR;
++
+ public class GuiTextField extends Gui
+ {
+     private final FontRenderer fontRendererInstance;
+@@ -486,6 +489,11 @@
+ 
+             String var6 = this.fontRendererInstance.trimStringToWidth(this.text.substring(this.lineScrollOffset), this.getWidth());
+             this.setCursorPosition(this.fontRendererInstance.trimStringToWidth(var6, var5).length() + this.lineScrollOffset);
++            
++            // VIVE START - show keyboard
++              ((MCOpenVR) Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, this);
++            // VIVE END - show keyboard
++            
+         }
+     }
+ 
+@@ -673,6 +681,12 @@
+         }
+ 
+         this.isFocused = p_146195_1_;
++        
++        // VIVE START - show keyboard
++        System.out.println("Text element focused " + p_146195_1_);
++       if(p_146195_1_) ((MCOpenVR) Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(p_146195_1_, this);
++        // VIVE END - show keyboard
++        
+     }
+ 
+     /**

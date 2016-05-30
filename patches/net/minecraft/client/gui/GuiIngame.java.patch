@@ -71,7 +71,7 @@
      private static final String __OBFID = "CL_00000661";
  
      public GuiIngame(Minecraft p_i46379_1_)
-@@ -78,10 +85,34 @@
+@@ -78,6 +85,30 @@
          this.streamIndicator = new GuiStreamIndicator(this.mc);
      }
  
@@ -85,7 +85,7 @@
 +	
 +		GL11.glColorMask(true,  true,  true,  false); // DISBALE CHANIGNG UNDERLYING ALPHA VALUE
 +		
-+		GL11.glColor3f(1, 1, 1);
++		//GL11.glColor4f(.8f, .8f, .8f, 1f);
 +		this.mc.mcProfiler.endStartSection("mouse pointer");
 +		this.mc.getTextureManager().bindTexture(Gui.icons);
 +		float menuMousePointerSize = 16f * this.mc.vrSettings.menuCrosshairScale;
@@ -102,11 +102,6 @@
      /**
       * Render the ingame overlay with quick icon bar, ...
       */
--    public void renderGameOverlay(float p_73830_1_, boolean p_73830_2_, int p_73830_3_, int p_73830_4_)
-+    public void drawHUDelements(float p_73830_1_, boolean p_73830_2_, int p_73830_3_, int p_73830_4_)
-     {
-         ScaledResolution var5 = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
-         int var6 = var5.getScaledWidth();
 @@ -122,16 +153,32 @@
  
          if (!this.mc.playerController.enableEverythingIsScrewedUpMode())
@@ -162,10 +157,11 @@
              var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 12, 16777215);
              var8.drawStringWithShadow(this.mc.getEntityDebug(), 2, 22, 16777215);
              var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 32, 16777215);
-@@ -326,6 +376,19 @@
+@@ -326,6 +376,21 @@
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 2, 14737632);
              var20 = "Allocated memory: " + var41 * 100L / var36 + "% (" + var41 / 1024L / 1024L + "MB)";
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 12, 14737632);
++        
 +            /** MINECRIFT FORGE **/
 +			Object fmlCommonHandler = null;
 +            if( Reflector.FMLCommonHandler_instance.exists()) {
@@ -179,10 +175,11 @@
 +                }
 +            }
 +			/** END MINECRIFT FORGE **/
++            
              var22 = MathHelper.floor_double(this.mc.thePlayer.posX);
              var23 = MathHelper.floor_double(this.mc.thePlayer.posY);
              int var24 = MathHelper.floor_double(this.mc.thePlayer.posZ);
-@@ -501,9 +564,10 @@
+@@ -501,9 +566,10 @@
      {
          this.streamIndicator.render((int)(p_152126_1_ - 10.0F), 10);
      }
@@ -196,7 +193,7 @@
          Scoreboard var5 = p_96136_1_.getScoreboard();
          Collection var6 = var5.getSortedScores(p_96136_1_);
  
-@@ -549,9 +613,10 @@
+@@ -549,9 +615,10 @@
              }
          }
      }
@@ -210,7 +207,7 @@
          boolean var3 = this.mc.thePlayer.hurtResistantTime / 3 % 2 == 1;
  
          if (this.mc.thePlayer.hurtResistantTime < 10)
-@@ -830,7 +895,9 @@
+@@ -830,7 +897,9 @@
      /**
       * Renders dragon's (boss) health on the HUD
       */
@@ -221,7 +218,7 @@
      {
          if (BossStatus.bossName != null && BossStatus.statusBarTime > 0)
          {
-@@ -856,9 +923,15 @@
+@@ -856,9 +925,15 @@
              this.mc.getTextureManager().bindTexture(icons);
          }
      }
@@ -239,7 +236,7 @@
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glDepthMask(false);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -881,8 +954,15 @@
+@@ -881,8 +956,15 @@
      /**
       * Renders the vignette. Args: vignetteBrightness, width, height
       */
@@ -256,7 +253,7 @@
          p_73829_1_ = 1.0F - p_73829_1_;
  
          if (p_73829_1_ < 0.0F)
-@@ -913,8 +993,9 @@
+@@ -913,8 +995,9 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
      }
@@ -268,7 +265,7 @@
      {
          if (p_130015_1_ < 1.0F)
          {
-@@ -950,7 +1031,9 @@
+@@ -950,7 +1033,9 @@
      /**
       * Renders the specified item of the inventory slot at the specified location. Args: slot, x, y, partialTick
       */
@@ -279,7 +276,7 @@
      {
          ItemStack var5 = this.mc.thePlayer.inventory.mainInventory[p_73832_1_];
  
-@@ -1039,4 +1122,22 @@
+@@ -1039,4 +1124,22 @@
      {
          return this.updateCounter;
      }

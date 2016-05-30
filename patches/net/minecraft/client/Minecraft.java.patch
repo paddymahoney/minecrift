@@ -5363,7 +5363,7 @@
 +
 +		while (Keyboard.next())
 +		{
-+			KeyBinding.setKeyBindState(Keyboard.getEventKey(), Keyboard.getEventKeyState());
++   			KeyBinding.setKeyBindState(Keyboard.getEventKey(), Keyboard.getEventKeyState());
 +			
 +			if (Keyboard.getEventKeyState())
 +			{

@@ -4,8 +4,11 @@ import com.mtbs3d.minecrift.api.*;
 import com.mtbs3d.minecrift.control.ControlBinding;
 import com.mtbs3d.minecrift.control.GuiScreenNavigator;
 import com.mtbs3d.minecrift.render.QuaternionHelper;
+import com.mtbs3d.minecrift.utils.KeyboardSimulator;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
+import com.sun.jna.ptr.ByteByReference;
+
 import de.fruitfly.ovr.UserProfileData;
 import de.fruitfly.ovr.enums.*;
 import de.fruitfly.ovr.structs.*;
@@ -16,26 +19,38 @@ import de.fruitfly.ovr.util.BufferUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiEnchantment;
 import net.minecraft.client.gui.GuiHopper;
+import net.minecraft.client.gui.GuiKeyBindingList;
 import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.*;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Vec3;
 import optifine.Utils;
+
+import org.apache.http.util.ByteArrayBuffer;
+import org.lwjgl.LWJGLUtil;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.*;
 import jopenvr.*;
+import jopenvr.JOpenVRLibrary.IVRCompositor;
+import jopenvr.JOpenVRLibrary.IVROverlay;
+import jopenvr.JOpenVRLibrary.IVRSettings;
+import jopenvr.JOpenVRLibrary.IVRSystem;
 
+import java.awt.AWTException;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.charset.Charset;
 
 public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBasePlugin, IHMDInfo, IStereoProvider,
 IEventNotifier, IEventListener, IBodyAimController
@@ -48,7 +63,8 @@ IEventNotifier, IEventListener, IBodyAimController
 	private static Pointer vrCompositor;
 	private static Pointer vrControlPanel;
 	private static IntBuffer hmdErrorStore;
-
+	private static Pointer vrOverlay;
+	
 	private static TrackedDevicePose_t.ByReference hmdTrackedDevicePoseReference;
 	private static TrackedDevicePose_t[] hmdTrackedDevicePoses;
 	private static TrackedDevicePose_t.ByReference hmdGamePoseReference;
@@ -119,8 +135,15 @@ IEventNotifier, IEventListener, IBodyAimController
 	private Field buttonDownField;
     public boolean controllerMouseValid;
     public int controllerMouseTicks;
-	
-	
+
+    //keyboard
+    private static boolean keyboardShowing = false;
+    byte[] lastTyped = new byte[256];
+    byte[] typed = new byte[256];
+    static int pollsSinceLastChange = 0;
+    KeyboardSimulator keyboard;
+    
+    
 	// Touchpad samples
     private Vector2f[][] touchpadSamples = new Vector2f[2][5];
     private int[] touchpadSampleCount = new int[2];
@@ -211,7 +234,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		JOpenVRLibrary.VR_InitInternal(hmdErrorStore, JOpenVRLibrary.EVRApplicationType.EVRApplicationType_VRApplication_Scene);
 		if ( hmdErrorStore.get(0) == 0 )
 		{
-			vrsystem = JOpenVRLibrary.VR_GetGenericInterface( JOpenVRLibrary.IVRSystem_Version, hmdErrorStore );
+			vrsystem =  JOpenVRLibrary.VR_GetGenericInterface( JOpenVRLibrary.IVRSystem_Version, hmdErrorStore );
 		}
 
 		if( vrsystem == null || hmdErrorStore.get(0) != 0 )
@@ -245,7 +268,16 @@ IEventNotifier, IEventListener, IBodyAimController
 			return false;
 
 		if ( !initOpenVRControlPanel() )
+			return false;	
+      
+		if ( !initOpenVROverlay() )
 			return false;
+
+		try {
+			keyboard = new KeyboardSimulator();
+		} catch (AWTException e) {
+			System.out.println("Error Initializing Keyboard Simulator");
+		}
 
 		try {
 			keyDownField = Keyboard.class.getDeclaredField("keyDownBuffer");
@@ -266,6 +298,21 @@ IEventNotifier, IEventListener, IBodyAimController
 		return true;
 	}
 
+	     // needed for in-game keyboard
+	     public boolean initOpenVROverlay()
+	     {
+	     	vrOverlay = JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVROverlay_Version, hmdErrorStore);
+	     	if (vrOverlay != null & hmdErrorStore.get(0) == 0) {
+	     		
+	     		System.out.println("OpenVR Overlay initialized OK");
+	     		return true;
+	     	} else {
+	     		initStatus = "OpenVR Overlay error: " + JOpenVRLibrary.VR_GetStringForHmdError(hmdErrorStore.get(0)).getString(0);
+	     		return false;
+	     	}
+	     }
+	     
+	
 	public boolean initOpenVRCompositor()
 	{
 		vrCompositor = JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRCompositor_Version, hmdErrorStore);
@@ -312,7 +359,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	public boolean initOpenVRControlPanel()
 	{
-		vrControlPanel = JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRCompositor_Version, hmdErrorStore);
+		vrControlPanel = JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRControlPanel_Version, hmdErrorStore);
 		if(vrControlPanel != null && hmdErrorStore.get(0) == 0){
 			System.out.println("OpenVR Control Panel initialized OK.");
 			return true;
@@ -322,6 +369,8 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 	}
 
+	private String lasttyped = "";
+	
 	@Override
 	public void poll(long frameIndex)
 	{
@@ -330,7 +379,81 @@ IEventNotifier, IEventListener, IBodyAimController
 		updateControllerButtonState();
 		updateTouchpadSampleBuffer();
 		updateSmoothedVelocity();
+				
+		if (frameIndex % 20 == 0) { //cant check keyboard cause it can be closed without us knowing
+			
+		//Jankasaurous Rex
+			
+			ByteBuffer buf = ByteBuffer.allocate(256);
+			JOpenVRLibrary.VR_IVROverlay_GetKeyboardText(vrOverlay, buf, 256);
+			
+			StringBuilder s = new StringBuilder();
+			char c = 0;
+			while (buf.hasRemaining()){
+				byte b = buf.get();
+				if(b>0 ){
+					c = (char)b;
+					if( b!=44)s.append(c) ; 
+				}					
+			}		
+			
+			if(keyboardGui != null) {
+				 keyboardGui.setText(s.toString());
+				 if(c == ','){
+					 keyboard.type('\r');
+					 setKeyboardOverlayShowing(false, null);
+				 }
+			 } else {
+				 if (c!=0){
+					 char bigc = s.toString().toUpperCase().charAt(0);
+					 if ((bigc) == Keyboard.getKeyName(mc.gameSettings.keyBindChat.getKeyCode()).charAt(0)) {
+						 mc.gameSettings.keyBindChat.pressKey(); //eat the T
+					 } else {
+						 if(c != ',' &&
+								 s.length() > lasttyped.length() )
+						 			{ keyboard.type(c);}					 
+					 }
 
+				 }
+			 }
+
+			lasttyped = s.toString();
+			
+			//System.out.println(new String(buf.array()));
+			//System.out.println(buf.array()[0]);
+
+			//			int lastIndex = 0;
+			//			for (int i = 0; i < lastTyped.length; i++) {
+			//				if (lastTyped[i] == 0) {
+			//					lastIndex = i;
+			//					break;
+			//				}
+			//			}
+			//			if (lastIndex > 0 && typed[lastIndex - 1] == 0 && lastTyped[lastIndex - 1] != 0) { // Backspaced
+			//				System.out.println("Backspaced");
+			//				pollsSinceLastChange = 0;
+			//				keyboard.type('\b');
+			//			} else if (typed[lastIndex] != 0 && lastTyped[lastIndex] == 0) { // Added new char
+			//				System.out.println("Typed: " + (char)typed[lastIndex]);
+			//				pollsSinceLastChange = 0;
+			//				if ((char)typed[lastIndex] == ',') { // Because I can't listen for events and apparently the steam keyboard doesn't input a character when the user hits return
+			//					keyboard.type('\r'); // Comma simulates enter. Need something better for this. Need events.
+			//					setKeyboardOverlayShowing(false); // This is the only way to close the keyboard and have the code know about it. Again, events would remove this jankiness
+			//				} else { // Otherwise treat it like a normal character
+			//					keyboard.type((char)typed[lastIndex]);
+			//				}
+			//			}
+			//
+			//			lastTyped = typed.clone();
+			//		}
+			//		if (keyboardShowing) pollsSinceLastChange++;
+			//		if (pollsSinceLastChange > 900) { // TODO: Make this time-based to account for different framerates
+			//			keyboardShowing = false;
+			//			pollsSinceLastChange = 0;
+			//			setKeyboardOverlayShowing(false); // Just to be sure
+		}
+		        
+		
 		processControllerButtons();
 		processTouchpadSampleBuffer();
 
@@ -347,6 +470,24 @@ IEventNotifier, IEventListener, IBodyAimController
 		mc.mcProfiler.endSection();
 	}
 
+	GuiTextField keyboardGui;
+	
+	     public int setKeyboardOverlayShowing(boolean showingState, GuiTextField gui) {
+	    	 keyboardGui = gui;
+	    	 keyboardShowing = showingState;
+	     	if (showingState) {
+	     		pollsSinceLastChange = 0; // User deliberately tried to show keyboard, shouldn't have chance of immediately resetting   
+	     		if (gui != null){
+		     		return JOpenVRLibrary.VR_IVROverlay_ShowKeyboard(vrOverlay, 0, 0, "Minecrift Typing", 256, "", (byte)0, 0L);	     			
+	     		}else {// 'minimal'
+		     		return JOpenVRLibrary.VR_IVROverlay_ShowKeyboard(vrOverlay, 0, 0, "Minecrift Typing", 256, "", (byte)0, 0L);
+	     		}
+	     	} else {
+	  		JOpenVRLibrary.VR_IVROverlay_HideKeyboard(vrOverlay);
+	     		return 0;
+	     	}
+	     }
+	
 	private void processGui() {
 		Vector3f controllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
 		Vector3f forward = new Vector3f(0,0,1);
@@ -531,7 +672,6 @@ IEventNotifier, IEventListener, IBodyAimController
 
 				if (pressedAttack || pressedPlaceBlock)
 				{
-
 						{mc.thePlayer.closeScreen();}
 
 				}
@@ -995,10 +1135,19 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 		
 		if(pressedLAppMenu  && !lastpressedLAppMenu) { //handle menu directly
-			if(gui)
+			
+			if(mc.gameSettings.keyBindSneak.getIsKeyPressed()){				
+					setKeyboardOverlayShowing(true, null);			
+			} else{
+				if(gui || keyboardShowing){
 				mc.thePlayer.closeScreen();
-			else
-				mc.displayInGameMenu();			
+				setKeyboardOverlayShowing(false, null);	
+			}else
+					mc.displayInGameMenu();				
+				
+			}
+		
+			
 		}
 
 	}
