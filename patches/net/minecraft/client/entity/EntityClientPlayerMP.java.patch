@@ -1,6 +1,47 @@
 --- a/net/minecraft/client/entity/EntityClientPlayerMP.java
 +++ b/net/minecraft/client/entity/EntityClientPlayerMP.java
-@@ -96,8 +96,8 @@
+@@ -6,6 +6,7 @@
+ import net.minecraft.entity.Entity;
+ import net.minecraft.entity.item.EntityItem;
+ import net.minecraft.entity.item.EntityMinecart;
++import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.network.play.client.C01PacketChatMessage;
+ import net.minecraft.network.play.client.C03PacketPlayer;
+@@ -67,11 +68,32 @@
+         this.field_146108_bO = p_i45064_5_;
+     }
+ 
++    
++    /**
++     * Called when the mob's health reaches 0.
++     */
++    @Override
++    public void onDeath(DamageSource p_70645_1_){
++    	
++    	super.onDeath(p_70645_1_);
++        Minecraft.getMinecraft().lookaimController.triggerHapticPulse(0, 2000);
++        Minecraft.getMinecraft().lookaimController.triggerHapticPulse(1, 2000);    	
++    	
++    }
++    
+     /**
+      * Called when the entity is attacked.
+      */
+     public boolean attackEntityFrom(DamageSource source, float amount)
+     {
++    	int dur = 1000;
++    	if(source.isExplosion())dur = 2000;
++    	if(source.damageType == "cactuc")dur = 200;
++    	
++        	//Vivecraft trigger haptics
++            Minecraft.getMinecraft().lookaimController.triggerHapticPulse(0, dur);
++            Minecraft.getMinecraft().lookaimController.triggerHapticPulse(1, dur);    		
++
+         return false;
+     }
+ 
+@@ -96,8 +118,8 @@
      /**
       * Called to update the entity's position/logic.
       */
@@ -11,7 +52,7 @@
          if (this.worldObj.blockExists(MathHelper.floor_double(this.posX), 0, MathHelper.floor_double(this.posZ)))
          {
              super.onUpdate();
-@@ -156,23 +156,28 @@
+@@ -156,23 +178,28 @@
          double var7 = this.posZ - this.oldPosZ;
          double var9 = (double)(this.rotationYaw - this.oldRotationYaw);
          double var11 = (double)(this.rotationPitch - this.oldRotationPitch);
@@ -46,7 +87,7 @@
          {
              this.sendQueue.addToSendQueue(new C03PacketPlayer.C05PacketPlayerLook(this.rotationYaw, this.rotationPitch, this.onGround));
          }
-@@ -184,7 +189,7 @@
+@@ -184,7 +211,7 @@
          ++this.ticksSinceMovePacket;
          this.wasOnGround = this.onGround;
  
@@ -55,7 +96,7 @@
          {
              this.oldPosX = this.posX;
              this.oldMinY = this.boundingBox.minY;
-@@ -193,7 +198,7 @@
+@@ -193,7 +220,7 @@
              this.ticksSinceMovePacket = 0;
          }
  
@@ -64,7 +105,7 @@
          {
              this.oldRotationYaw = this.rotationYaw;
              this.oldRotationPitch = this.rotationPitch;
-@@ -213,7 +218,9 @@
+@@ -213,7 +240,9 @@
      /**
       * Joins the passed in entity item with the world. Args: entityItem
       */
@@ -75,29 +116,19 @@
  
      /**
       * Sends a chat message from the player. Args: chatMessage
-@@ -272,12 +279,25 @@
+@@ -272,12 +301,14 @@
       */
      public void setPlayerSPHealth(float p_71150_1_)
      {
-+    	
-+     	
-+    	if (p_71150_1_ <= 0 ){
-+            mc.lookaimController.triggerHapticPulse(0, 3000);
-+            mc.lookaimController.triggerHapticPulse(1, 3000);
-+    		
-+    	} else if ( p_71150_1_ < this.getHealth()) {
-+            mc.lookaimController.triggerHapticPulse(0, 1000);
-+            mc.lookaimController.triggerHapticPulse(1, 1000);	    		
-+    	}
-+    	      
++  	    	   
 +    	
          if (this.hasSetHealth)
          {
              super.setPlayerSPHealth(p_71150_1_);
          }
          else
-         {
-+        	    
+-        {
++        {     	  	    
              this.setHealth(p_71150_1_);
              this.hasSetHealth = true;
          }

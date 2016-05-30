@@ -1022,7 +1022,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "Minecrift 1.7.10 Vivecraft-jrbudda10";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda11";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -1657,7 +1657,7 @@
          {
              this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
              this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,2348 +1102,3858 @@
+@@ -791,2348 +1102,3875 @@
          catch (IOException var7)
          {
              logger.error("Unable to load logo: " + locationMojangPng, var7);
@@ -2868,9 +2868,8 @@
 +			this.mcProfiler.startSection("render");
 +
 +			// Render GUI to FBO if necessary
-+			this.entityRenderer.renderVrGui(this.timer.renderPartialTicks, var6);   // VIVE - added param for debug info
-+		
-+			
++			this.entityRenderer.drawFramebuffer(this.timer.renderPartialTicks, var6);   // VIVE - added param for debug info
++				
 +			// TODO: PollAll can call controller code that updates the GUI.
 +			// All controller code should be moved to UpdateTick really. For
 +			// now, hack the displaySize so that any gui screens changed use
@@ -2941,7 +2940,7 @@
 +				//this.mcProfiler.endSection();
 +
 +				// Update our orientation and position variables from the sensor polled data
-+				this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
++			this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
 +
 +				if (!this.skipRenderWorld)
 +				{
@@ -2954,7 +2953,11 @@
 +						Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
 +					}
 +					this.mcProfiler.endStartSection("gameRenderer");
++					
++				///THIS IS WHERE EVERYTHING IS RENDERED
 +					this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
++				
++					
 +					this.mcProfiler.endSection();
 +					if (fmlCommonHandler != null) {
 +						Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
@@ -3396,6 +3399,7 @@
 +	// VIVE START - only clear block counter on un-press, to support real life swinging attacks
 +	private boolean lastClick = false;
 +	// VIVE END - only clear block counter on un-press, to support real life swinging attacks
++	private int moveModeSwitchcount;
 +
 +	private void sendClickBlockToController(boolean leftClick)
 +	{
@@ -5592,10 +5596,22 @@
 +				this.rightClickMouse();
 +			} else {this.rightClickDelayTimer = 0;}
 +
++			
++			//JRBUDDA MODE SWITCH CODE
 +			if (this.gameSettings.keyBindPickBlock.getIsKeyPressed())
 +			{
 +				this.middleClickMouse();
++				
++				moveModeSwitchcount++;
++				if (moveModeSwitchcount >= 40 * 4) {
++					moveModeSwitchcount = 0;
++					vrPlayer.setFreeMoveMode(!vrPlayer.getFreeMoveMode());
++					printChatMessage("Free movement mode set to: " + vrPlayer.getFreeMoveMode());
++				
++			} else  moveModeSwitchcount = 0;
++				
 +			}
++			/////		
 +		}
 +	}
 +
@@ -7486,6 +7502,7 @@
 +
 +	private void doPostProcessing(long frameIndex, EyeType eye)
 +	{
++			
 +		// VIVE start - screen flash when hurt instead of view tilt
 +		EntityLivingBase player = renderViewEntity;
 +		if (player!=null && player.getHealth() > 0.0f)

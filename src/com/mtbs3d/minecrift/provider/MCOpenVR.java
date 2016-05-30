@@ -957,15 +957,6 @@ IEventNotifier, IEventListener, IBodyAimController
 		//VIVE SPECIFIC FUNCTIONALITY
 		//TODO: Find a better home for these in Minecraft.java		
 
-		if(mc.gameSettings.keyBindPickBlock.getIsKeyPressed()){		
-			moveModeSwitchcount++;
-			if (moveModeSwitchcount >= 20 * 4) {
-				moveModeSwitchcount = 0;
-				mc.vrPlayer.setFreeMoveMode(!mc.vrPlayer.getFreeMoveMode());
-				mc.printChatMessage("Free movement mode set to: " + mc.vrPlayer.getFreeMoveMode());
-			}	
-		} else { moveModeSwitchcount = 0;}
-
 		//no jump key if cant.Not a good place for this check.
 		if(mc.gameSettings.keyBindJump.isPressed()) {
 			if(!mc.vrPlayer.getFreeMoveMode() && !mc.vrSettings.simulateFalling) {

@@ -523,7 +523,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                         // Extract new lib
                         File lib_dir = new File(targetDir,"libraries/com/mtbs3d/minecrift/"+version);
                         lib_dir.mkdirs();
-                        File ver_file = new File (lib_dir, "Vivecraft-"+version+".jar");
+                        File ver_file = new File (lib_dir, "minecrift-"+version+".jar");
                         FileOutputStream ver_jar = new FileOutputStream(ver_file);
                         while ((d = version_jar.read(data)) != -1) {
                             ver_jar.write(data,0,d);
@@ -1182,7 +1182,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 "support." +
                 "</html>");
 
-        useHrtf = new JCheckBox("Setup binaural audio", false);
+        useHrtf = new JCheckBox("Enable binaural audio (Only needed once per PC)", false);
         useHrtf.setToolTipText(
                 "<html>" +
                         "If checked, the installer will create the configuration file needed for OpenAL HRTF<br>" +
@@ -1336,7 +1336,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private String getMinecraftProfileName(boolean usingForge)
     {
         if(!usingForge) {
-            return "Vivecraft " + MINECRAFT_VERSION;
+            return "ViveCraft " + MINECRAFT_VERSION;
         }
         else {
             return "ViveCraft-Forge " + MINECRAFT_VERSION;

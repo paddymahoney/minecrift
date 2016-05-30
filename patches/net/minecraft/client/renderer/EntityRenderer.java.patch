@@ -74,7 +74,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -66,733 +85,1052 @@
+@@ -66,733 +85,1048 @@
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
  import org.lwjgl.opengl.Display;
@@ -1677,10 +1677,6 @@
 +			GL11.glRotatef(-var4, 0.0F, 1.0F, 0.0F);
 +			GL11.glRotatef(-var3 * 14.0F, 0.0F, 0.0F, 1.0F);
 +			GL11.glRotatef(var4, 0.0F, 1.0F, 0.0F);
-+
-+			mc.lookaimController.triggerHapticPulse(0, 2000);
-+			mc.lookaimController.triggerHapticPulse(1, 2000);
-+
 +		}
 +	}
 +
@@ -1848,7 +1844,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +1142,19 @@
+@@ -804,16 +1138,19 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1876,7 +1872,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1166,4149 @@
+@@ -825,1829 +1162,4166 @@
          {
              clipDistance = 256.0F;
          }
@@ -2654,7 +2650,11 @@
 +						}
 +						/** END MINECRIFT FORGE **/
 +						this.mc.enableGuiSizeHack();
-+						this.mc.ingameGUI.renderGameOverlay(par1, this.mc.currentScreen != null, var161, var171);
++					
++						
++						//why was this called twice per loop??
++					//	this.mc.ingameGUI.renderGameOverlay(par1, this.mc.currentScreen != null, var161, var171);
++						
 +						this.mc.gameSettings.fancyGraphics = var12;
 +
 +						if (this.mc.gameSettings.ofShowFps && !this.mc.gameSettings.showDebugInfo)
@@ -2699,12 +2699,11 @@
 +
 +
 +				GL11.glDisable(GL11.GL_BLEND);
-+
 +				GL11.glDisable(GL11.GL_ALPHA_TEST);
 +				GL11.glEnable(GL11.GL_DEPTH_TEST);
 +
 +
-+				renderGuiLayer(par1);
++				renderFramebufferIntoWorld(par1);
 +
 +				// VIVE START - render controllers in main menu
 +				if (this.mc.theWorld==null)
@@ -2745,6 +2744,7 @@
 +							this.mc.currentScreen.drawScreen(var161, var171, par1);
 +						}
 +
++						
 +						Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Post_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(var161), Integer.valueOf(var171), Float.valueOf(par1)});
 +					}
 +					catch (Throwable var131)
@@ -5138,7 +5138,10 @@
 +			GL11.glTranslatef(0f, -(Minecraft.getMinecraft().vrSettings.getPlayerEyeHeight() - 1.62f), 0f);
 +	}
 +
-+	public void renderGuiLayer(float par1)
++	/** Renders the pre-generated 2-d framebuffer into the world at the appropriate location..
++	 * @param par1
++	 */
++	private void renderFramebufferIntoWorld(float par1)
 +	{
 +		if (this.guiScreenShowingThisFrame || this.inWorldGuiScreenShowingThisFrame || this.mc.showSplashScreen)
 +		{
@@ -5215,70 +5218,8 @@
 +
 +
 +			///JRBUDDA MAIN MENU ROOM            
-+			if(mc.theWorld == null){
-+				
-+				GL11.glClearColor(.1f, .1f, .1f, 0.1f);       
-+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);        
-+				GL11.glDisable(GL11.GL_BLEND);   
-+				GL11.glEnable(GL11.GL_TEXTURE_2D);
-+				GL11.glEnable(GL11.GL_LIGHTING);
-+				GL11.glEnable(GL11.GL_LIGHT0);
-+				GL11.glEnable(GL11.GL_CULL_FACE);
-+
-+				Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("textures/gui/options_background.png"));
-+
-+				float yo = -camRelY;
-+				float s = 3f;
-+				int repeat = 30; 
-+				int w = 5;
-+				
-+				GL11.glPushMatrix();
-+
-+					GL11.glTranslatef(0f, 0, 1.3f);
-+	
-+					GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, RenderHelper.setColorBuffer(0D,0d,-0.2D,1D));           
-+					GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, RenderHelper.setColorBuffer(1f, 1f, 1f, 1.0F));
-+					GL11.glLight(GL11.GL_LIGHT0, GL11.GL_AMBIENT, RenderHelper.setColorBuffer(0.0F, 0.0F, 0.0F, 1.0F));
-+					GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, RenderHelper.setColorBuffer(0, 0, 0, 1.0F));
-+					GL11.glShadeModel(GL11.GL_SMOOTH);
-+	
-+					for (int i = 0; i <= 6; i++) {
-+						GL11.glPushMatrix();
-+							float t = -1.3f;
-+		
-+							if (i == 1) GL11.glRotatef(90f, 0,1, 0);
-+							if (i == 2) GL11.glRotatef(-90f, 0,1, 0);
-+							if (i == 3) GL11.glRotatef(180f, 0,1, 0);
-+							if (i == 4) GL11.glRotatef(-180f, 0,1, 0);
-+							if (i == 5){
-+								t= -.6f;
-+								GL11.glRotatef(90, 1,0, 0);
-+							}
-+							if (i == 6) {
-+								t= (float) -1.3f/2f;
-+								GL11.glRotatef(-90, 1,0, 0);
-+							}
-+		
-+							GL11.glTranslatef(0f, 0, t);			        	
-+							GL11.glBegin(GL11.GL_QUADS);	  	
-+								GL11.glTexCoord2f(0.0f, 0.0f);
-+								GL11.glVertex3f(-(s / 2f), -(s * 1) / 2f, 0.0f);  // Bottom Left Of The Texture and Quad
-+								GL11.glTexCoord2f(repeat, 0.0f);
-+								GL11.glVertex3f(s / 2f, -(s * 1) / 2f, 0.0f);  // Bottom Right Of The Texture and Quad
-+								GL11.glTexCoord2f(repeat, repeat);
-+								GL11.glVertex3f(s / 2f, (s * 1) / 2f, 0.0f);  // Top Right Of The Texture and Quad
-+								GL11.glTexCoord2f(0.0f, repeat);
-+								GL11.glVertex3f(-(s / 2f), (s * 1) / 2f, 0.0f);  // Top Left  Of The Texture and Quad
-+							GL11.glEnd();       
-+						GL11.glPopMatrix();   	   
-+	
-+					}         
-+		
-+					GL11.glTranslatef(0f, 0, -1.3f);
-+
-+				GL11.glPopMatrix();   
-+
-+				RenderHelper.disableStandardItemLighting();
++			if(mc.theWorld == null){		
++				rendserJrbuddasAwesomeMainMenuRoom();
 +			}
 +			//END JRBUDDA'S AWESOME MAIN MENU ROOM       
 +
@@ -5297,23 +5238,27 @@
 +			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
 +			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
 +
-+
-+
 +			if (this.mc.theWorld != null)
 +			{
-+				GL11.glEnable(GL11.GL_BLEND);
-+				GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 +				GL11.glColor4f(1, 1, 1, this.mc.vrSettings.hudOpacity);
 +			}
 +			else{
 +				GL11.glColor4f(1, 1, 1, 1);
-+				GL11.glDisable(GL11.GL_BLEND);
 +			}
 +
-+			if (this.mc.vrSettings.hudOcclusion == false || this.mc.currentScreen != null)  // Never use depth test for in game menu - so you can always see it!
-+				GL11.glDisable(GL11.GL_DEPTH_TEST);
++			if (this.mc.vrSettings.hudOcclusion == false || this.mc.currentScreen != null){
++				// Never use depth test for in game menu - so you can always see it!
++				GL11.glDisable(GL11.GL_DEPTH_TEST);			
++			}
++
++			//the framebuffer has to be drawn with color blending transparency to support non-alpha cursors. Always has a black background.	
++			GL11.glEnable(GL11.GL_BLEND);		
++	//		OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0); //color blend for corsshair transparency
 +		
++			//Render framebuffer onto world projection
 +			drawSizedQuad(this.mc.displayFBWidth, this.mc.displayFBHeight, 1.5f); //this.mc.vrSettings.hudScale);
++			
++	//		OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0); 
 +
 +			GL11.glDisable(GL11.GL_BLEND);
 +			GL11.glEnable(GL11.GL_DEPTH_TEST);
@@ -5330,7 +5275,79 @@
 +		}
 +	}
 +
-+	public void renderVrGui(float renderPartialTicks, long tickDuration)    // VIVE - added parameter for debug info
++	//awesome.
++	private void rendserJrbuddasAwesomeMainMenuRoom() {
++		GL11.glClearColor(.1f, .1f, .1f, 0.1f);       
++		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);        
++		GL11.glDisable(GL11.GL_BLEND);   
++		GL11.glEnable(GL11.GL_TEXTURE_2D);
++		GL11.glEnable(GL11.GL_LIGHTING);
++		GL11.glEnable(GL11.GL_LIGHT0);
++		GL11.glEnable(GL11.GL_CULL_FACE);
++
++		Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("textures/gui/options_background.png"));
++
++		float yo = -camRelY;
++		float s = 3f;
++		int repeat = 30; 
++		int w = 5;
++		
++		GL11.glPushMatrix();
++
++			GL11.glTranslatef(0f, 0, 1.3f);
++
++			GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, RenderHelper.setColorBuffer(0D,0d,-0.2D,1D));           
++			GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, RenderHelper.setColorBuffer(1f, 1f, 1f, 1.0F));
++			GL11.glLight(GL11.GL_LIGHT0, GL11.GL_AMBIENT, RenderHelper.setColorBuffer(0.0F, 0.0F, 0.0F, 1.0F));
++			GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, RenderHelper.setColorBuffer(0, 0, 0, 1.0F));
++			GL11.glShadeModel(GL11.GL_SMOOTH);
++
++			for (int i = 0; i <= 6; i++) {
++				GL11.glPushMatrix();
++					float t = -1.3f;
++
++					if (i == 1) GL11.glRotatef(90f, 0,1, 0);
++					if (i == 2) GL11.glRotatef(-90f, 0,1, 0);
++					if (i == 3) GL11.glRotatef(180f, 0,1, 0);
++					if (i == 4) GL11.glRotatef(-180f, 0,1, 0);
++					if (i == 5){
++						t= -.6f;
++						GL11.glRotatef(90, 1,0, 0);
++					}
++					if (i == 6) {
++						t= (float) -1.3f/2f;
++						GL11.glRotatef(-90, 1,0, 0);
++					}
++
++					GL11.glTranslatef(0f, 0, t);			        	
++					GL11.glBegin(GL11.GL_QUADS);	  	
++						GL11.glTexCoord2f(0.0f, 0.0f);
++						GL11.glVertex3f(-(s / 2f), -(s * 1) / 2f, 0.0f);  // Bottom Left Of The Texture and Quad
++						GL11.glTexCoord2f(repeat, 0.0f);
++						GL11.glVertex3f(s / 2f, -(s * 1) / 2f, 0.0f);  // Bottom Right Of The Texture and Quad
++						GL11.glTexCoord2f(repeat, repeat);
++						GL11.glVertex3f(s / 2f, (s * 1) / 2f, 0.0f);  // Top Right Of The Texture and Quad
++						GL11.glTexCoord2f(0.0f, repeat);
++						GL11.glVertex3f(-(s / 2f), (s * 1) / 2f, 0.0f);  // Top Left  Of The Texture and Quad
++					GL11.glEnd();       
++				GL11.glPopMatrix();   	   
++
++			}         
++
++			GL11.glTranslatef(0f, 0, -1.3f);
++
++		GL11.glPopMatrix();   
++
++		RenderHelper.disableStandardItemLighting();
++	}
++
++	
++	//TODO: move this into Guiingame where it belongs.
++	/** This draws the normal 2d menu/GUI elements to the framebuffer, to be rendered into the world projection later (in renderFramebufferIntoWorld)
++	 * @param renderPartialTicks
++	 * @param tickDuration
++	 */
++	public void drawFramebuffer(float renderPartialTicks, long tickDuration)    // VIVE - added parameter for debug info
 +	{
 +
 +		this.guiScreenShowingThisFrame = false;
@@ -5360,7 +5377,7 @@
 +					|| this.mc.currentScreen != null)
 +			{
 +				//Render all UI elements into guiFBO
-+				GL11.glClearColor(this.mc.RED_COLOUR_COMPONENT, this.mc.GREEN_COLOUR_COMPONENT, this.mc.BLUE_COLOUR_COMPONENT, 0);
++				GL11.glClearColor(0, 0, 0, 0);
 +				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 +				GL11.glMatrixMode(GL11.GL_PROJECTION);
 +				GL11.glLoadIdentity();
@@ -5369,6 +5386,7 @@
 +				GL11.glLoadIdentity();
 +				GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
 +
++				
 +				if (this.mc.theWorld != null && this.mc.currentScreen != null)
 +					this.inWorldGuiScreenShowingThisFrame = true; // In game menus will open at look forward orient, with no depth check applied
 +				else
@@ -5389,8 +5407,9 @@
 +					/** END MINECRIFT FORGE **/
 +					//Draw in game HUD overlay
 +					GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-+					
-+					this.mc.ingameGUI.renderGameOverlay(renderPartialTicks, this.mc.currentScreen != null, 0, 0);
++								
++					//Render HUD elements
++					this.mc.ingameGUI.drawHUDelements(renderPartialTicks, this.mc.currentScreen != null, 0, 0);
 +					
 +					mc.guiAchievement.updateAchievementWindow();
 +					GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
@@ -5407,6 +5426,8 @@
 +					final int mouseX1 = mouseX = this.mc.currentScreen.getMouseX();
 +					final int mouseY1 = mouseY = this.mc.currentScreen.getMouseY();
 +
++
++						 
 +					try
 +					{
 +						boolean drawScreenHandled = false;
@@ -5418,8 +5439,17 @@
 +						if (!drawScreenHandled)
 +						{
 +							this.mc.currentScreen.drawScreen(mouseX, mouseY, renderPartialTicks);
++							
++					//	Draw GUI crosshair
++								 if (mc.lookaimController instanceof MCOpenVR){					
++									 if(((MCOpenVR)mc.lookaimController).controllerMouseValid){
++										 mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())		;				
++									}
++									
++								 	} else  mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())	;
++							
 +						}
-+
++				        
 +						Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Post_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(mouseX), Integer.valueOf(mouseY), Float.valueOf(renderPartialTicks)});
 +					}
 +					catch (Throwable throwable)
@@ -5453,15 +5483,7 @@
 +					GL11.glDisable(GL11.GL_LIGHTING); //inventory messes up fog color sometimes... This fixes
 +					GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 +				
-+					
-+					 if (mc.lookaimController instanceof MCOpenVR){
-+						
-+						 if(((MCOpenVR)mc.lookaimController).controllerMouseValid){
-+							 drawMouseMenuQuad(mouseX, mouseY);							
-+						}
-+						
-+					} else drawMouseMenuQuad(mouseX, mouseY);	
-+					
++								
 +				}
 +			}
 +		}
@@ -5479,18 +5501,6 @@
 +		this.mc.disableGuiSizeHack();
 +	}
 +
-+	public void drawMouseMenuQuad(int mouseX, int mouseY)
-+	{
-+		GL11.glDisable(GL11.GL_BLEND);
-+		GL11.glDisable(GL11.GL_DEPTH_TEST);
-+		GL11.glColor3f(1, 1, 1);
-+		this.mc.mcProfiler.endStartSection("mouse pointer");
-+		this.mc.getTextureManager().bindTexture(Gui.icons);
-+		float menuMousePointerSize = 16f * this.mc.vrSettings.menuCrosshairScale;
-+		this.mc.ingameGUI.drawCentredTexturedModalRect(mouseX, mouseY, menuMousePointerSize, menuMousePointerSize, 0, 0, 15, 15);
-+
-+		GL11.glEnable(GL11.GL_BLEND);
-+	}
 +
 +	private void renderTeleportLine(VRPlayer vrPlayer){
 +		// VIVE START - render teleport line
@@ -5719,15 +5729,18 @@
 +			else
 +				GL11.glScalef(-scale, -scale, scale);
 +			GL11.glDisable(GL11.GL_LIGHTING);
++			
 +			if (!this.mc.vrSettings.useCrosshairOcclusion)
 +				GL11.glDisable(GL11.GL_DEPTH_TEST);
 +			GL11.glEnable(GL11.GL_BLEND);
++			
 +			if (Reflector.forgeExists()) {
 +				GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE);
 +			}
 +			else {
 +				GL11.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR);
 +			}
++			
 +			this.mc.getTextureManager().bindTexture(Gui.icons);
 +
 +			if (!generatedIconMipmaps[this.mc.currentEye.value()])

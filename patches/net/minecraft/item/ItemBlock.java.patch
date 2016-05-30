@@ -1,0 +1,18 @@
+--- a/net/minecraft/item/ItemBlock.java
++++ b/net/minecraft/item/ItemBlock.java
+@@ -2,6 +2,7 @@
+ 
+ import java.util.List;
+ import net.minecraft.block.Block;
++import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.texture.IIconRegister;
+ import net.minecraft.creativetab.CreativeTabs;
+ import net.minecraft.entity.Entity;
+@@ -118,6 +119,7 @@
+                 }
+ 
+                 p_77648_3_.playSoundEffect((double)((float)p_77648_4_ + 0.5F), (double)((float)p_77648_5_ + 0.5F), (double)((float)p_77648_6_ + 0.5F), this.blockInstance.stepSound.getPlaceSound(), (this.blockInstance.stepSound.getVolume() + 1.0F) / 2.0F, this.blockInstance.stepSound.getFrequency() * 0.8F);
++                Minecraft.getMinecraft().lookaimController.triggerHapticPulse(0,250);    
+                 --p_77648_1_.stackSize;
+             }
+ 

@@ -694,21 +694,23 @@
      }
  
      /**
-@@ -622,12 +767,12 @@
+@@ -621,13 +766,13 @@
+         GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();
-         float var4 = 4.0F;
+-        float var4 = 4.0F;
 -        float var5 = -1.0F;
 -        float var6 = 1.0F;
 -        float var7 = -1.0F;
 -        float var8 = 1.0F;
 -        float var9 = -0.5F;
 -        float var10 = -this.mc.thePlayer.rotationYaw / 64.0F;
-+        float var5 = -0.5f;
-+        float var6 = 0.5f;
-+        float var7 = -0.5f;
-+        float var8 = 0.5F;
-+        float var9 = -0.3F;
++        float var4 = 16.0F;
++        float var5 = -12.5f;
++        float var6 = 12.5f;
++        float var7 = -12.5f;
++        float var8 = 12.5F;
++        float var9 = -6.3F;
 +        float var10 = this.mc.thePlayer.rotationYaw / 64.0F;
          float var11 = this.mc.thePlayer.rotationPitch / 64.0F;
          var2.startDrawingQuads();

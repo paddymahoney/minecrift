@@ -456,3 +456,39 @@
      }
  
      /**
+@@ -2933,6 +3131,9 @@
+                     this.theWorld.playSound((double)par3 + 0.5D, (double)par4 + 0.5D, (double)par5 + 0.5D, "random.door_close", 1.0F, this.theWorld.rand.nextFloat() * 0.1F + 0.9F, false);
+                 }
+ 
++            	this.mc.lookaimController.triggerHapticPulse(0,1000);    
++                this.mc.lookaimController.triggerHapticPulse(1,1000);   
++                
+                 break;
+ 
+             case 1004:
+@@ -3026,12 +3227,13 @@
+ 
+             case 2001:
+                 var8 = Block.getBlockById(par6 & 4095);
+-
++//					break blcok
+                 if (var8.getMaterial() != Material.air)
+                 {
+                     this.mc.getSoundHandler().playSound(new PositionedSoundRecord(new ResourceLocation(var8.stepSound.getDigResourcePath()), (var8.stepSound.getVolume() + 1.0F) / 2.0F, var8.stepSound.getFrequency() * 0.8F, (float)par3 + 0.5F, (float)par4 + 0.5F, (float)par5 + 0.5F));
++                	this.mc.lookaimController.triggerHapticPulse(0,250);    
+                 }
+-
++      
+                 this.mc.effectRenderer.addBlockDestroyEffects(par3, par4, par5, var8, par6 >> 12 & 255);
+                 break;
+ 
+@@ -3128,6 +3330,9 @@
+ 
+                     for (int var24 = 0; var24 < var23; ++var24)
+                     {
++                  //landing
++                    	this.mc.lookaimController.triggerHapticPulse(0,2500);    
++                        this.mc.lookaimController.triggerHapticPulse(1,2500);                  
+                         float var25 = MathHelper.randomFloatClamp(var7, 0.0F, ((float)Math.PI * 2F));
+                         var26 = (double)MathHelper.randomFloatClamp(var7, 0.75F, 1.0F);
+                         var28 = 0.20000000298023224D + var21 / 100.0D;
