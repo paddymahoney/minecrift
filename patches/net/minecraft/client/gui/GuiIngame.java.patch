@@ -152,7 +152,7 @@
              GL11.glPushMatrix();
 -            var8.drawStringWithShadow("Minecraft 1.7.10 (" + this.mc.debug + ")", 2, 2, 16777215);
 +			/** MINECRIFT **/
-+            var8.drawStringWithShadow(this.mc.minecriftVerString + ", " + OculusRift.getVersionString() + " (" + this.mc.debug + ")", 2, 2, 16777215);
++            var8.drawStringWithShadow(this.mc.minecriftVerString + ", " + "J/OpenVR 1.0.0" + " (" + this.mc.debug + ")", 2, 2, 16777215);
 +			/** END MINECRIFT **/
              var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 12, 16777215);
              var8.drawStringWithShadow(this.mc.getEntityDebug(), 2, 22, 16777215);
@@ -276,7 +276,7 @@
      {
          ItemStack var5 = this.mc.thePlayer.inventory.mainInventory[p_73832_1_];
  
-@@ -1039,4 +1124,22 @@
+@@ -1039,4 +1124,23 @@
      {
          return this.updateCounter;
      }
@@ -287,7 +287,7 @@
 +     * Draws a centred textured rectangle at the stored z-value. Args: x, y, width, height, u, v, texwidth, texheight
 +     */
 +    public void drawCentredTexturedModalRect(int centreX, int centreY, float width, float height, int u, int v, int texWidth, int texHeight)
-+    {
++    {   	
 +        float f = 0.00390625F;
 +        float f1 = 0.00390625F;
 +        Tessellator tessellator = Tessellator.instance;
@@ -299,3 +299,4 @@
 +        tessellator.draw();
 +    }
  }
++

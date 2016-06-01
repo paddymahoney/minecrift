@@ -55,8 +55,12 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -198,17 +214,23 @@
-                 this.yOffset2 = 0.2F;
+@@ -195,20 +211,26 @@
+ 
+             if (this.movementInput.sneak && this.yOffset2 < 0.2F)
+             {
+-                this.yOffset2 = 0.2F;
++            // VIVE NON NON SVP     this.yOffset2 = 0.2F;
              }
  
 -            this.pushOutOfBlocks(this.posX - (double)this.width * 0.35D, this.boundingBox.minY + 0.5D, this.posZ + (double)this.width * 0.35D);
@@ -376,7 +380,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +816,137 @@
+@@ -662,4 +816,138 @@
      }
  
      protected void sendHorseJump() {}
@@ -389,7 +393,9 @@
 +    public void moveFlying(float strafe, float forward, float friction, boolean allowYAdjust)
 +    {
 +  //  	super.moveFlying(strafe, forward, friction, allowYAdjust);;
-+    	
++    	VRPlayer vr = mc.vrPlayer;		
++    	if (!vr.getFreeMoveMode()) {return;}
++		
 +        int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
 +        float var4 = strafe * strafe + forward * forward;
 +
@@ -417,10 +423,9 @@
 +            directionVec.zCoord = forward;
 +	  						
 +         	//VIVE DO PITCH FLYING		
-+        	VRPlayer vr = mc.vrPlayer;			
++
 +    		IBodyAimController con = mc.lookaimController;
 +    		
-+    		if (!vr.getFreeMoveMode()) {return;}
 +
 +    	   // Modify acceleration sequence (each tick)
 +            addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);

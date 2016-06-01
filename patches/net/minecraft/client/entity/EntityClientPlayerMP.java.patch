@@ -75,12 +75,14 @@
 -        else if (var13 && var14)
 +        else if (didMove && didLook)
          {
-             this.sendQueue.addToSendQueue(new C03PacketPlayer.C06PacketPlayerPosLook(this.posX, this.boundingBox.minY, this.posY, this.posZ, this.rotationYaw, this.rotationPitch, this.onGround));
+-            this.sendQueue.addToSendQueue(new C03PacketPlayer.C06PacketPlayerPosLook(this.posX, this.boundingBox.minY, this.posY, this.posZ, this.rotationYaw, this.rotationPitch, this.onGround));
++            this.sendQueue.addToSendQueue(new C03PacketPlayer.C06PacketPlayerPosLook(this.posX, this.posY - this.yOffset, this.posY, this.posZ, this.rotationYaw, this.rotationPitch, this.onGround));
          }
 -        else if (var13)
 +        else if (didMove)
          {
-             this.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.posX, this.boundingBox.minY, this.posY, this.posZ, this.onGround));
+-            this.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.posX, this.boundingBox.minY, this.posY, this.posZ, this.onGround));
++            this.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.posX, this.posY - this.yOffset + this.yOffset2, this.posY, this.posZ, this.onGround));
          }
 -        else if (var14)
 +        else if (didLook)

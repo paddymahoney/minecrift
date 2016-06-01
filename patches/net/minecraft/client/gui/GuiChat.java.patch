@@ -1,0 +1,28 @@
+--- a/net/minecraft/client/gui/GuiChat.java
++++ b/net/minecraft/client/gui/GuiChat.java
+@@ -118,9 +118,9 @@
+             this.playerNamesFound = false;
+         }
+ 
+-        if (keyCode == 1)
++        if (keyCode == 1) //esc
+         {
+-            this.mc.displayGuiScreen((GuiScreen)null);
++           this.mc.displayGuiScreen((GuiScreen)null);
+         }
+         else if (keyCode != 28 && keyCode != 156)
+         {
+@@ -153,8 +153,11 @@
+             {
+                 this.submitChatMessage(var3);
+             }
+-
+-            this.mc.displayGuiScreen((GuiScreen)null);
++        
++            //VIVE DONT CLOSE ON RETURN
++            // this.mc.displayGuiScreen((GuiScreen)null);
++            this.inputField.setText("");
++            
+         }
+     }
+ 

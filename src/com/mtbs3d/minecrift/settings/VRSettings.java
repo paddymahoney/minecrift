@@ -151,6 +151,7 @@ public class VRSettings
     public float hudPitchOffset = -2f;
     public float hudYawOffset = 0.0f;
     public boolean hudLockToHead = false;
+    public boolean floatInventory = true; //false not working yet, have to account for rotation and tilt in MCOpenVR>processGui()
     public float fovChange = 0f;
     public float lensSeparationScaleFactor = 1.0f;
     private IOculusRift.AspectCorrectionType aspectRatioCorrectionMode = IOculusRift.AspectCorrectionType.CORRECTION_AUTO;

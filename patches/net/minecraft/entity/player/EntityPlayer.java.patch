@@ -1235,7 +1235,7 @@
 +            Reflector.callVoid(Reflector.FMLNetworkHandler_openGui, new Object[]{this, mod, modGuiId, world, x, y, z});
 +        }
 +    }
- 
++
 +    /* ======================================== FORGE START =====================================*/
 +    /**
 +     * interpolated position vector
@@ -1341,7 +1341,7 @@
 +        }
 +        return this.displayname;
 +    }
-+
+ 
 +    /**
 +     * Force the displayed name to refresh
 +     */
@@ -1358,24 +1358,16 @@
      public static enum EnumStatus
      {
          OK("OK", 0),
-@@ -2371,4 +3103,48 @@
+@@ -2371,4 +3103,40 @@
  
          private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
      }
 +
 +//VIVE
 +        
-+    
++
 +public void moveEntity(double x, double y, double z)
 +{
-+
-+//	    	if(this instanceof EntityPlayerSP) { 		
-+//	    		System.out.println("SP: " + x + " " + y+ " " + z);
-+//	    	}
-+//
-+//	       	if(this instanceof EntityPlayerMP) { 		
-+//	    		System.out.println("MP: " + x + " " + y+ " " + z);
-+//	    	}
 +
 +	if (VRPlayer.get().getFreeMoveMode())
 +	{

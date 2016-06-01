@@ -5,9 +5,11 @@ import com.mtbs3d.minecrift.control.ControlBinding;
 import com.mtbs3d.minecrift.control.GuiScreenNavigator;
 import com.mtbs3d.minecrift.render.QuaternionHelper;
 import com.mtbs3d.minecrift.utils.KeyboardSimulator;
+import com.sun.jna.Memory;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.ByteByReference;
+import com.sun.jna.ptr.LongByReference;
 
 import de.fruitfly.ovr.UserProfileData;
 import de.fruitfly.ovr.enums.*;
@@ -17,6 +19,7 @@ import de.fruitfly.ovr.structs.Vector2f;
 import de.fruitfly.ovr.structs.Vector3f;
 import de.fruitfly.ovr.util.BufferUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiEnchantment;
 import net.minecraft.client.gui.GuiHopper;
 import net.minecraft.client.gui.GuiKeyBindingList;
@@ -38,10 +41,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.*;
 import jopenvr.*;
-import jopenvr.JOpenVRLibrary.IVRCompositor;
-import jopenvr.JOpenVRLibrary.IVROverlay;
-import jopenvr.JOpenVRLibrary.IVRSettings;
-import jopenvr.JOpenVRLibrary.IVRSystem;
+import jopenvr.JOpenVRLibrary.EVREventType;
 
 import java.awt.AWTException;
 import java.awt.event.KeyEvent;
@@ -50,7 +50,9 @@ import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.LongBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBasePlugin, IHMDInfo, IStereoProvider,
 IEventNotifier, IEventListener, IBodyAimController
@@ -59,12 +61,11 @@ IEventNotifier, IEventListener, IBodyAimController
 	public boolean initialized;
 	private Minecraft mc;
 
-	private static Pointer vrsystem;
-	private static Pointer vrCompositor;
-	private static Pointer vrControlPanel;
-	private static IntBuffer hmdErrorStore;
-	private static Pointer vrOverlay;
+	private static VR_IVRSystem_FnTable vrsystem;
+	private static VR_IVRCompositor_FnTable vrCompositor;
+	private static VR_IVROverlay_FnTable vrOverlay;
 	
+	private static IntBuffer hmdErrorStore;
 	private static TrackedDevicePose_t.ByReference hmdTrackedDevicePoseReference;
 	private static TrackedDevicePose_t[] hmdTrackedDevicePoses;
 	private static TrackedDevicePose_t.ByReference hmdGamePoseReference;
@@ -73,12 +74,24 @@ IEventNotifier, IEventListener, IBodyAimController
 	private static Matrix4f[] poseMatrices;
 	private static Vec3[] deviceVelocity;
 
+	private LongByReference oHandle = new LongByReference();
+	
 	// position/orientation of headset and eye offsets
 	private static final Matrix4f hmdPose = new Matrix4f();
 	private static Matrix4f hmdProjectionLeftEye;
 	private static Matrix4f hmdProjectionRightEye;
 	private static Matrix4f hmdPoseLeftEye = new Matrix4f();
 	private static Matrix4f hmdPoseRightEye = new Matrix4f();
+	private static boolean initSuccess = false, flipEyes = false;
+
+	private static IntBuffer hmdDisplayFrequency;
+
+	private static FloatBuffer tlastVsync;
+	public static LongBuffer _tframeCount;
+
+	private static float vsyncToPhotons;
+	private static double timePerFrame, frameCountRun;
+	private static long frameCount;
 
 	// TextureIDs of framebuffers for each eye
 	private int LeftEyeTextureId;
@@ -125,7 +138,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	private static Vector3f guiPos = new Vector3f();
 	private static Matrix4f guiRotationPose = new Matrix4f();
-	private static float guiScale = 1.0f;
+	public static float guiScale = 1.0f;
 	public double startedOpeningInventory = 0;
 
 	// For mouse menu emulation
@@ -133,22 +146,22 @@ IEventNotifier, IEventListener, IBodyAimController
 	private float controllerMouseY = -1.0f;
 	private Field keyDownField;
 	private Field buttonDownField;
-    public boolean controllerMouseValid;
-    public int controllerMouseTicks;
+	public boolean controllerMouseValid;
+	public int controllerMouseTicks;
 
-    //keyboard
-    private static boolean keyboardShowing = false;
-    byte[] lastTyped = new byte[256];
-    byte[] typed = new byte[256];
-    static int pollsSinceLastChange = 0;
-    KeyboardSimulator keyboard;
-    
-    
+	//keyboard
+	public static boolean keyboardShowing = false;
+	byte[] lastTyped = new byte[256];
+	byte[] typed = new byte[256];
+	static int pollsSinceLastChange = 0;
+	KeyboardSimulator keyboard;
+
+
 	// Touchpad samples
-    private Vector2f[][] touchpadSamples = new Vector2f[2][5];
-    private int[] touchpadSampleCount = new int[2];
+	private Vector2f[][] touchpadSamples = new Vector2f[2][5];
+	private int[] touchpadSampleCount = new int[2];
 
-    private float[] inventory_swipe = new float[2];
+	private float[] inventory_swipe = new float[2];
 
 	private int moveModeSwitchcount = 0;
 
@@ -210,14 +223,22 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 	}
 
+	private boolean tried;
+	
 	@Override
 	public boolean init()  throws Exception
 	{
+			
 		if ( this.initialized )
 			return true;
 
+		if ( tried )
+			return initialized;
+		
+		
+		tried = true;
+		
 		mc = Minecraft.getMinecraft();
-		hmdErrorStore = IntBuffer.allocate(1);
 		// look in .minecraft first for openvr_api.dll
 		File minecraftDir = Utils.getWorkingDirectory();
 		String osFolder = "win32";
@@ -227,30 +248,29 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 		File openVRDir = new File( minecraftDir, osFolder );
 		String openVRPath = openVRDir.getPath();
-
 		System.out.println( "Adding OpenVR search path: "+openVRPath);
 
-		NativeLibrary.addSearchPath("openvr_api", openVRPath);
-		JOpenVRLibrary.VR_InitInternal(hmdErrorStore, JOpenVRLibrary.EVRApplicationType.EVRApplicationType_VRApplication_Scene);
-		if ( hmdErrorStore.get(0) == 0 )
-		{
-			vrsystem =  JOpenVRLibrary.VR_GetGenericInterface( JOpenVRLibrary.IVRSystem_Version, hmdErrorStore );
-		}
+		NativeLibrary.addSearchPath("openvr_api", openVRPath);		
 
-		if( vrsystem == null || hmdErrorStore.get(0) != 0 )
-		{
-			Pointer errstr = JOpenVRLibrary.VR_GetStringForHmdError( hmdErrorStore.get(0) );
-			initStatus = "OpenVR Initialize Result: " + errstr.getString(0);
+		if(jopenvr.JOpenVRLibrary.VR_IsHmdPresent() == 0){
+			System.out.println( "VR Headset not detected.");
+			return false;
+		}
+	
+		
+		try {
+			initializeJOpenVR();
+			initOpenVRCompositor(true) ;
+			initOpenVROverlay() ;			
+		} catch (Exception e) {
+			initSuccess = false;
+			initStatus = e.getLocalizedMessage();
 			return false;
 		}
 
 		System.out.println( "OpenVR initialized & VR connected." );
 
-		hmdTrackedDevicePoseReference = new TrackedDevicePose_t.ByReference();
-		hmdTrackedDevicePoses = (TrackedDevicePose_t[])hmdTrackedDevicePoseReference.toArray(JOpenVRLibrary.k_unMaxTrackedDeviceCount);
-		hmdGamePoseReference = new TrackedDevicePose_t.ByReference();
-		hmdGamePoses = (TrackedDevicePose_t[])hmdTrackedDevicePoseReference.toArray(1);
-		poseMatrices = new Matrix4f[JOpenVRLibrary.k_unMaxTrackedDeviceCount];
+
 		deviceVelocity = new Vec3[JOpenVRLibrary.k_unMaxTrackedDeviceCount];
 
 		for(int i=0;i<poseMatrices.length;i++)
@@ -259,19 +279,6 @@ IEventNotifier, IEventListener, IBodyAimController
 			deviceVelocity[i] = Vec3.createVectorHelper(0,0,0);
 		}
 
-		// disable all this stuff which kills performance
-		hmdTrackedDevicePoseReference.setAutoRead(false);
-		hmdTrackedDevicePoseReference.setAutoWrite(false);
-		hmdTrackedDevicePoseReference.setAutoSynch(false);
-
-		if ( !initOpenVRCompositor() )
-			return false;
-
-		if ( !initOpenVRControlPanel() )
-			return false;	
-      
-		if ( !initOpenVROverlay() )
-			return false;
 
 		try {
 			keyboard = new KeyboardSimulator();
@@ -288,39 +295,113 @@ IEventNotifier, IEventListener, IBodyAimController
 		} catch (NoSuchFieldException e) {
 		}
 
-		HmdMatrix34_t matL = JOpenVRLibrary.VR_IVRSystem_GetEyeToHeadTransform(vrsystem, JOpenVRLibrary.EVREye.EVREye_Eye_Left);
-		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matL, hmdPoseLeftEye);
-
-		HmdMatrix34_t matR = JOpenVRLibrary.VR_IVRSystem_GetEyeToHeadTransform(vrsystem, JOpenVRLibrary.EVREye.EVREye_Eye_Right);
-		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matR, hmdPoseRightEye);
-
+			
+				HmdMatrix34_t matL = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Left);
+				OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matL, hmdPoseLeftEye);
+		
+				HmdMatrix34_t matR = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Right);
+				OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matR, hmdPoseRightEye);
+		
+		
 		this.initialized = true;
 		return true;
 	}
 
-	     // needed for in-game keyboard
-	     public boolean initOpenVROverlay()
-	     {
-	     	vrOverlay = JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVROverlay_Version, hmdErrorStore);
-	     	if (vrOverlay != null & hmdErrorStore.get(0) == 0) {
-	     		
-	     		System.out.println("OpenVR Overlay initialized OK");
-	     		return true;
-	     	} else {
-	     		initStatus = "OpenVR Overlay error: " + JOpenVRLibrary.VR_GetStringForHmdError(hmdErrorStore.get(0)).getString(0);
-	     		return false;
-	     	}
-	     }
-	     
-	
-	public boolean initOpenVRCompositor()
-	{
-		vrCompositor = JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRCompositor_Version, hmdErrorStore);
-		if(vrCompositor == null || hmdErrorStore.get(0) != 0)
-		{
-			initStatus = "OpenVR Compositor error: " + JOpenVRLibrary.VR_GetStringForHmdError(hmdErrorStore.get(0)).getString(0);
-			return false;
+
+	private void initializeJOpenVR() throws Exception { 
+		hmdErrorStore = IntBuffer.allocate(1);
+		vrsystem = null;
+		JOpenVRLibrary.VR_InitInternal(hmdErrorStore, JOpenVRLibrary.EVRApplicationType.EVRApplicationType_VRApplication_Scene);
+		if( hmdErrorStore.get(0) == 0 ) {
+			// ok, try and get the vrsystem pointer..
+			vrsystem = new VR_IVRSystem_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRSystem_Version, hmdErrorStore));
 		}
+		if( vrsystem == null || hmdErrorStore.get(0) != 0 ) {
+			throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));		
+		} else {
+			System.out.println("OpenVR initialized & VR connected.");
+
+			vrsystem.setAutoSynch(false);
+			vrsystem.read();
+
+			tlastVsync = FloatBuffer.allocate(1);
+			_tframeCount = LongBuffer.allocate(1);
+
+			hmdDisplayFrequency = IntBuffer.allocate(1);
+			hmdDisplayFrequency.put( (int) JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_DisplayFrequency_Float);
+			hmdTrackedDevicePoseReference = new TrackedDevicePose_t.ByReference();
+			hmdTrackedDevicePoses = (TrackedDevicePose_t[])hmdTrackedDevicePoseReference.toArray(JOpenVRLibrary.k_unMaxTrackedDeviceCount);
+			poseMatrices = new Matrix4f[JOpenVRLibrary.k_unMaxTrackedDeviceCount];
+			for(int i=0;i<poseMatrices.length;i++) poseMatrices[i] = new Matrix4f();
+
+			timePerFrame = 1.0 / hmdDisplayFrequency.get(0);
+
+			// disable all this stuff which kills performance
+			hmdTrackedDevicePoseReference.setAutoRead(false);
+			hmdTrackedDevicePoseReference.setAutoWrite(false);
+			hmdTrackedDevicePoseReference.setAutoSynch(false);
+			for(int i=0;i<JOpenVRLibrary.k_unMaxTrackedDeviceCount;i++) {
+				hmdTrackedDevicePoses[i].setAutoRead(false);
+				hmdTrackedDevicePoses[i].setAutoWrite(false);
+				hmdTrackedDevicePoses[i].setAutoSynch(false);
+			}
+
+			//            // init controllers for the first time
+			//            VRInput._updateConnectedControllers();
+			//            
+			//            // init bounds & chaperone info
+			//            VRBounds.init();
+			//            
+			initSuccess = true;
+		}
+	}
+
+	private Pointer ptrFomrString(String in){
+	    Pointer p = new Memory(in.length()+1);
+		p.setString(0, in);
+		return p;
+		
+	}
+	
+
+	// needed for in-game keyboard
+	public void initOpenVROverlay() throws Exception
+	{
+		vrOverlay =   new VR_IVROverlay_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVROverlay_Version, hmdErrorStore));
+		if (vrOverlay != null &&  hmdErrorStore.get(0) == 0) {     		
+			vrOverlay.setAutoSynch(false);
+			vrOverlay.read();					
+	//	    vrOverlay.CreateOverlay.apply(ptrFomrString(""), ptrFomrString(""), oHandle);
+			System.out.println("OpenVR Overlay initialized OK");
+		} else {
+			throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));		
+		}
+	}
+
+
+	public void initOpenVRCompositor(boolean set) throws Exception
+	{
+		if( set && vrsystem != null ) {
+			vrCompositor = new VR_IVRCompositor_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRCompositor_Version, hmdErrorStore));
+			if(vrCompositor != null && hmdErrorStore.get(0) == 0){                
+				System.out.println("OpenVR Compositor initialized OK.");
+				vrCompositor.setAutoSynch(false);
+				vrCompositor.read();
+				vrCompositor.SetTrackingSpace.apply(JOpenVRLibrary.ETrackingUniverseOrigin.ETrackingUniverseOrigin_TrackingUniverseStanding);                
+
+			} else {
+				throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));			 
+			}
+		}
+		if( vrCompositor == null ) {
+			System.out.println("Skipping VR Compositor...");
+			if( vrsystem != null ) {
+				vsyncToPhotons = vrsystem.GetFloatTrackedDeviceProperty.apply(JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_SecondsFromVsyncToPhotons_Float, hmdErrorStore);
+			} else {
+				vsyncToPhotons = 0f;
+			}
+		}
+
 		// left eye
 		texBoundsLeft.uMax = 1f;
 		texBoundsLeft.uMin = 0f;
@@ -354,110 +435,38 @@ IEventNotifier, IEventListener, IBodyAimController
 		texTypeRight.handle = -1;
 
 		System.out.println("OpenVR Compositor initialized OK.");
-		return true;
+
 	}
 
 	public boolean initOpenVRControlPanel()
 	{
-		vrControlPanel = JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRControlPanel_Version, hmdErrorStore);
-		if(vrControlPanel != null && hmdErrorStore.get(0) == 0){
-			System.out.println("OpenVR Control Panel initialized OK.");
-			return true;
-		} else {
-			initStatus = "OpenVR Control Panel error: " + JOpenVRLibrary.VR_GetStringForHmdError(hmdErrorStore.get(0)).getString(0);
-			return false;
-		}
+		return true;
+		//		vrControlPanel = new VR_IVRSettings_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRControlPanel_Version, hmdErrorStore));
+		//		if(vrControlPanel != null && hmdErrorStore.get(0) == 0){
+		//			System.out.println("OpenVR Control Panel initialized OK.");
+		//			return true;
+		//		} else {
+		//			initStatus = "OpenVR Control Panel error: " + JOpenVRLibrary.VR_GetStringForHmdError(hmdErrorStore.get(0)).getString(0);
+		//			return false;
+		//		}
 	}
 
 	private String lasttyped = "";
-	
+
 	@Override
 	public void poll(long frameIndex)
 	{
 		mc.mcProfiler.startSection("poll");
 
+	
+		pollInputEvents();
+
 		updateControllerButtonState();
 		updateTouchpadSampleBuffer();
 		updateSmoothedVelocity();
-				
-		if (frameIndex % 20 == 0) { //cant check keyboard cause it can be closed without us knowing
-			
-		//Jankasaurous Rex
-			
-			ByteBuffer buf = ByteBuffer.allocate(256);
-			JOpenVRLibrary.VR_IVROverlay_GetKeyboardText(vrOverlay, buf, 256);
-			
-			StringBuilder s = new StringBuilder();
-			char c = 0;
-			while (buf.hasRemaining()){
-				byte b = buf.get();
-				if(b>0 ){
-					c = (char)b;
-					if( b!=44)s.append(c) ; 
-				}					
-			}		
-			
-			if(keyboardGui != null) {
-				 keyboardGui.setText(s.toString());
-				 if(c == ','){
-					 keyboard.type('\r');
-					 setKeyboardOverlayShowing(false, null);
-				 }
-			 } else {
-				 if (c!=0){
-					 char bigc = s.toString().toUpperCase().charAt(0);
-					 if ((bigc) == Keyboard.getKeyName(mc.gameSettings.keyBindChat.getKeyCode()).charAt(0)) {
-						 mc.gameSettings.keyBindChat.pressKey(); //eat the T
-					 } else {
-						 if(c != ',' &&
-								 s.length() > lasttyped.length() )
-						 			{ keyboard.type(c);}					 
-					 }
 
-				 }
-			 }
-
-			lasttyped = s.toString();
-			
-			//System.out.println(new String(buf.array()));
-			//System.out.println(buf.array()[0]);
-
-			//			int lastIndex = 0;
-			//			for (int i = 0; i < lastTyped.length; i++) {
-			//				if (lastTyped[i] == 0) {
-			//					lastIndex = i;
-			//					break;
-			//				}
-			//			}
-			//			if (lastIndex > 0 && typed[lastIndex - 1] == 0 && lastTyped[lastIndex - 1] != 0) { // Backspaced
-			//				System.out.println("Backspaced");
-			//				pollsSinceLastChange = 0;
-			//				keyboard.type('\b');
-			//			} else if (typed[lastIndex] != 0 && lastTyped[lastIndex] == 0) { // Added new char
-			//				System.out.println("Typed: " + (char)typed[lastIndex]);
-			//				pollsSinceLastChange = 0;
-			//				if ((char)typed[lastIndex] == ',') { // Because I can't listen for events and apparently the steam keyboard doesn't input a character when the user hits return
-			//					keyboard.type('\r'); // Comma simulates enter. Need something better for this. Need events.
-			//					setKeyboardOverlayShowing(false); // This is the only way to close the keyboard and have the code know about it. Again, events would remove this jankiness
-			//				} else { // Otherwise treat it like a normal character
-			//					keyboard.type((char)typed[lastIndex]);
-			//				}
-			//			}
-			//
-			//			lastTyped = typed.clone();
-			//		}
-			//		if (keyboardShowing) pollsSinceLastChange++;
-			//		if (pollsSinceLastChange > 900) { // TODO: Make this time-based to account for different framerates
-			//			keyboardShowing = false;
-			//			pollsSinceLastChange = 0;
-			//			setKeyboardOverlayShowing(false); // Just to be sure
-		}
-		        
-		
 		processControllerButtons();
 		processTouchpadSampleBuffer();
-
-		pollInputEvents();
 
 		// GUI controls
 		if( mc.currentScreen != null )
@@ -471,33 +480,51 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 	GuiTextField keyboardGui;
-	
-	     public int setKeyboardOverlayShowing(boolean showingState, GuiTextField gui) {
-	    	 keyboardGui = gui;
-	    	 keyboardShowing = showingState;
-	     	if (showingState) {
-	     		pollsSinceLastChange = 0; // User deliberately tried to show keyboard, shouldn't have chance of immediately resetting   
-	     		if (gui != null){
-		     		return JOpenVRLibrary.VR_IVROverlay_ShowKeyboard(vrOverlay, 0, 0, "Minecrift Typing", 256, "", (byte)0, 0L);	     			
-	     		}else {// 'minimal'
-		     		return JOpenVRLibrary.VR_IVROverlay_ShowKeyboard(vrOverlay, 0, 0, "Minecrift Typing", 256, "", (byte)0, 0L);
-	     		}
-	     	} else {
-	  		JOpenVRLibrary.VR_IVROverlay_HideKeyboard(vrOverlay);
-	     		return 0;
-	     	}
-	     }
-	
+
+	public boolean setKeyboardOverlayShowing(boolean showingState, GuiTextField gui) {
+		keyboardGui = gui;
+		int ret = 1;
+		if (showingState) {
+			pollsSinceLastChange = 0; // User deliberately tried to show keyboard, shouldn't have chance of immediately resetting   
+			Pointer pointer = new Memory(3);
+			pointer.setString(0, "mc");
+			Pointer empty = new Memory(1);
+			empty.setString(0, "");
+			
+
+			ret = vrOverlay.ShowKeyboard.apply(0, 0, pointer, 256, empty, (byte)1, 0L);						
+			
+			keyboardShowing = 0 == ret; //0 = no error, > 0 see EVROverlayError
+			
+			if (ret != 0) {
+				System.out.println("VR Overlay Error: " + vrOverlay.GetOverlayErrorNameFromEnum.apply(ret).getString(0));
+			}
+			
+		} else {
+			try {
+			if (keyboardShowing) {
+				 vrOverlay.HideKeyboard.apply();				
+			}
+			} catch (Error e) {
+				// TODO: handle exception
+			}
+			keyboardShowing = false;
+		}
+		
+		return keyboardShowing;
+	}
+
+	//sets mouse position for currentscreen
 	private void processGui() {
 		Vector3f controllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
-		Vector3f forward = new Vector3f(0,0,1);
 
+		Vector3f forward = new Vector3f(0,0,1);
 		Vector3f controllerDirection = controllerRotation[0].transform(forward);
 
 		Vector3f guiNormal = guiRotationPose.transform(forward);
 		Vector3f guiRight = guiRotationPose.transform(new Vector3f(1,0,0));
 		Vector3f guiUp = guiRotationPose.transform(new Vector3f(0,1,0));
-			
+
 		float guiWidth = 1.0f;		
 		float guiHalfWidth = guiWidth * 0.5f;		
 		float guiHeight = 1.0f;	
@@ -505,13 +532,13 @@ IEventNotifier, IEventListener, IBodyAimController
 
 		Vector3f guiTopLeft = guiPos.subtract(guiUp.divide(1.0f / guiHalfHeight)).subtract(guiRight.divide(1.0f/guiHalfWidth));
 		Vector3f guiTopRight = guiPos.subtract(guiUp.divide(1.0f / guiHalfHeight)).add(guiRight.divide(1.0f / guiHalfWidth));
-	
+
 		//Vector3f guiBottomLeft = guiPos.add(guiUp.divide(1.0f / guiHalfHeight)).subtract(guiRight.divide(1.0f/guiHalfWidth));
 		//Vector3f guiBottomRight = guiPos.add(guiUp.divide(1.0f / guiHalfHeight)).add(guiRight.divide(1.0f/guiHalfWidth));
 
 		float guiNormalDotControllerDirection = guiNormal.dot(controllerDirection);
 		if (Math.abs(guiNormalDotControllerDirection) > 0.00001f)
-		{//pointed gernally normal to the GUI
+		{//pointed normal to the GUI
 			float intersectDist = -guiNormal.dot(controllerPos.subtract(guiTopLeft)) / guiNormalDotControllerDirection;
 			Vector3f pointOnPlane = controllerPos.add(controllerDirection.divide(1.0f/intersectDist));
 
@@ -523,8 +550,8 @@ IEventNotifier, IEventListener, IBodyAimController
 			v = ( (v - 0.5f) * ((float)mc.displayWidth / (float)mc.displayHeight) ) + 0.5f;
 
 			// TODO: Figure out where this magic 0.68f comes from. Probably related to Minecraft window size.
-			//JRBUDDA: It's probbably 1/default hud scale (1.5)
-			
+			//JRBUDDA: It's probbably 1/defaulthudscale (1.5)
+
 			u = ( u - 0.5f ) * 0.68f / guiScale + 0.5f;
 			v = ( v - 0.5f ) * 0.68f / guiScale + 0.5f;
 
@@ -569,8 +596,8 @@ IEventNotifier, IEventListener, IBodyAimController
 		mc.currentScreen.mouseOffsetX = -1;
 		mc.currentScreen.mouseOffsetY = -1;
 
-		if (controllerMouseX>=0 && controllerMouseX<mc.displayWidth
-				&& controllerMouseY>=0 && controllerMouseY<mc.displayHeight)
+		if (controllerMouseX >= 0 && controllerMouseX < mc.displayWidth
+				&& controllerMouseY >=0 && controllerMouseY < mc.displayHeight)
 		{
 			// clamp to screen
 			int mouseX = Math.min(Math.max((int) controllerMouseX, 0), mc.displayWidth);
@@ -580,7 +607,7 @@ IEventNotifier, IEventListener, IBodyAimController
 			{
 				Mouse.setCursorPosition(mouseX, mouseY);
 				controllerMouseValid = true;
-			//LMB
+				//LMB
 				if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold && 
 						lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x <= triggerThreshold 
 						)
@@ -615,68 +642,68 @@ IEventNotifier, IEventListener, IBodyAimController
 
 				// hack for scrollbars
 				GuiScreenNavigator.selectDepressed = (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold);
-			//end LMB
+				//end LMB
 
 
-			//RMB
+				//RMB
 				if (
-						(controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
-						(lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) == 0 
+						(controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
+						(lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) == 0 
 						)				
 				{
 					//click left mouse button
 					mc.currentScreen.mouseDown(mouseX, mouseY, 1);
 				}	
 
-				if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 )
+				if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 )
 				{
 					mc.currentScreen.mouseDrag(mouseX, mouseY);//Signals mouse move
 				}
 
 
-				if(		(controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) == 0 &&
-						(lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 
+				if(		(controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) == 0 &&
+						(lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 
 						)
 				{
 					//click left mouse button
 					mc.currentScreen.mouseUp(mouseX, mouseY, 1);
 				}	
-			//end RMB
+				//end RMB
 
 
 
 			} else // right controller not found
 			{
 				//jrbudda: someday it might not be attack
-//				// no controller connected, do mouse ups
-//				if (mc.gameSettings.keyBindAttack.getIsKeyPressed())
-//				{
-//					mc.currentScreen.mouseUp(mouseX, mouseY, 0);
-//					mc.gameSettings.keyBindAttack.unpressKey();
-//				}
-//				// TODO: rmb?
+				//				// no controller connected, do mouse ups
+				//				if (mc.gameSettings.keyBindAttack.getIsKeyPressed())
+				//				{
+				//					mc.currentScreen.mouseUp(mouseX, mouseY, 0);
+				//					mc.gameSettings.keyBindAttack.unpressKey();
+				//				}
+				//				// TODO: rmb?
 			}
 		} else {
 			if(controllerMouseTicks == 0)
-			controllerMouseValid = false;
-		
+				controllerMouseValid = false;
+
 			if(controllerMouseTicks>0)controllerMouseTicks--;
-			
+
 			if (mc.thePlayer != null)
 			{
-				boolean pressedPlaceBlock = ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0)
-						&& ((lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) == 0);
+				boolean pressedPlaceBlock = ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0)
+						&& ((lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) == 0);
 
 				boolean pressedAttack = (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold)
 						&& (lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x <= triggerThreshold);
 
 				if (pressedAttack || pressedPlaceBlock)
 				{
-						{mc.thePlayer.closeScreen();}
+					{mc.thePlayer.closeScreen();}
 
 				}
 			}
-			
+
 		}
 	}
 
@@ -723,14 +750,12 @@ IEventNotifier, IEventListener, IBodyAimController
 		//GL11.glFlush();
 		GL11.glFinish();
 
-		JOpenVRLibrary.VR_IVRCompositor_Submit(
-				vrCompositor,
+		vrCompositor.Submit.apply(
 				JOpenVRLibrary.EVREye.EVREye_Eye_Left,
 				texTypeLeft, texBoundsLeft,
 				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
 
-		JOpenVRLibrary.VR_IVRCompositor_Submit(
-				vrCompositor,
+		vrCompositor.Submit.apply(
 				JOpenVRLibrary.EVREye.EVREye_Eye_Right,
 				texTypeRight, texBoundsRight,
 				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
@@ -752,7 +777,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		{
 			IntBuffer rtx = IntBuffer.allocate(1);
 			IntBuffer rty = IntBuffer.allocate(1);
-			JOpenVRLibrary.VR_IVRSystem_GetRecommendedRenderTargetSize(vrsystem, rtx, rty);
+			vrsystem.GetRecommendedRenderTargetSize.apply(rtx, rty);
 
 			hmd.Type = HmdType.ovrHmd_Other;
 			hmd.ProductName = "OpenVR";
@@ -763,10 +788,10 @@ IEventNotifier, IEventListener, IBodyAimController
 			hmd.DefaultTrackingCaps = HmdParameters.ovrTrackingCap_Orientation | HmdParameters.ovrTrackingCap_Position;
 			hmd.Resolution = new Sizei( rtx.get(0) * 2, rty.get(0) );
 
-			float topFOV = JOpenVRLibrary.VR_IVRSystem_GetFloatTrackedDeviceProperty(vrsystem, JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_FieldOfViewTopDegrees_Float, hmdErrorStore);
-			float bottomFOV = JOpenVRLibrary.VR_IVRSystem_GetFloatTrackedDeviceProperty(vrsystem, JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_FieldOfViewBottomDegrees_Float, hmdErrorStore);
-			float leftFOV = JOpenVRLibrary.VR_IVRSystem_GetFloatTrackedDeviceProperty(vrsystem, JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_FieldOfViewLeftDegrees_Float, hmdErrorStore);
-			float rightFOV = JOpenVRLibrary.VR_IVRSystem_GetFloatTrackedDeviceProperty(vrsystem, JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_FieldOfViewRightDegrees_Float, hmdErrorStore);
+			float topFOV = vrsystem.GetFloatTrackedDeviceProperty.apply(JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_FieldOfViewTopDegrees_Float, hmdErrorStore);
+			float bottomFOV = vrsystem.GetFloatTrackedDeviceProperty.apply(JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_FieldOfViewBottomDegrees_Float, hmdErrorStore);
+			float leftFOV = vrsystem.GetFloatTrackedDeviceProperty.apply(JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_FieldOfViewLeftDegrees_Float, hmdErrorStore);
+			float rightFOV = vrsystem.GetFloatTrackedDeviceProperty.apply(JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_FieldOfViewRightDegrees_Float, hmdErrorStore);
 
 			hmd.DefaultEyeFov[0] = new FovPort((float)Math.tan(topFOV),(float)Math.tan(bottomFOV),(float)Math.tan(leftFOV),(float)Math.tan(rightFOV));
 			hmd.DefaultEyeFov[1] = new FovPort((float)Math.tan(topFOV),(float)Math.tan(bottomFOV),(float)Math.tan(leftFOV),(float)Math.tan(rightFOV));
@@ -789,7 +814,7 @@ IEventNotifier, IEventListener, IBodyAimController
 			userProfile._gender = UserProfileData.GenderType.Gender_Unspecified;    // n/a
 			userProfile._playerHeight = 0;                                          // n/a
 			userProfile._eyeHeight = 0;                                             // n/a
-			userProfile._ipd = JOpenVRLibrary.VR_IVRSystem_GetFloatTrackedDeviceProperty(vrsystem, JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_UserIpdMeters_Float, hmdErrorStore);
+			userProfile._ipd = vrsystem.GetFloatTrackedDeviceProperty.apply(JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd, JOpenVRLibrary.ETrackedDeviceProperty.ETrackedDeviceProperty_Prop_UserIpdMeters_Float, hmdErrorStore);
 			userProfile._name = "Someone";                                          // n/a
 			userProfile._isDefault = true;                                          // n/a
 		}
@@ -819,8 +844,8 @@ IEventNotifier, IEventListener, IBodyAimController
 		controllerDeviceIndex[RIGHT_CONTROLLER] = -1;
 		controllerDeviceIndex[LEFT_CONTROLLER] = -1;
 		for (int nDevice = 0; nDevice < JOpenVRLibrary.k_unMaxTrackedDeviceCount; ++nDevice ) {
-			int deviceClass = JOpenVRLibrary.VR_IVRSystem_GetTrackedDeviceClass(vrsystem,nDevice);
-			int connected = JOpenVRLibrary.VR_IVRSystem_IsTrackedDeviceConnected(vrsystem,nDevice);
+			int deviceClass = vrsystem.GetTrackedDeviceClass.apply(nDevice);
+			int connected = vrsystem.IsTrackedDeviceConnected.apply(nDevice);
 			if ( deviceClass == JOpenVRLibrary.ETrackedDeviceClass.ETrackedDeviceClass_TrackedDeviceClass_Controller
 					&& connected != 0
 					&& hmdTrackedDevicePoses[nDevice].bPoseIsValid != 0) {
@@ -857,14 +882,14 @@ IEventNotifier, IEventListener, IBodyAimController
 			// read new state
 			if (controllerDeviceIndex[c] != -1)
 			{			
-				JOpenVRLibrary.VR_IVRSystem_GetControllerState(vrsystem, controllerDeviceIndex[c], inputStateRefernceArray[c]);
+				vrsystem.GetControllerState.apply(controllerDeviceIndex[c], inputStateRefernceArray[c]);
 				inputStateRefernceArray[c].read();
 				controllerStateReference[c] = inputStateRefernceArray[c];			
 			} else
 			{
 				// controller not connected, clear state
-				lastControllerState[c].ulButtonPressed.setValue(0L);
-				lastControllerState[c].ulButtonTouched.setValue(0L);
+				lastControllerState[c].ulButtonPressed = 0;
+				lastControllerState[c].ulButtonPressed = 0;
 
 				for (int i = 0; i < 5; i++)
 				{
@@ -877,7 +902,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				try{
 					controllerStateReference[c] = lastControllerState[c];					
 				} catch (Throwable e){
-					int a = 9;	
+
 				}
 
 
@@ -887,17 +912,17 @@ IEventNotifier, IEventListener, IBodyAimController
 
 
 	//OK the fundamental problem with this is Minecraft uses a LWJGL event buffer for keyboard and mouse inputs. It polls those devices faster
-	//and presents the game with a nice queue of things that happened. With OpenVR we're polling the controllers directly on the game loop.
+	//and presents the game with a nice queue of things that happened. With OpenVR we're polling the controllers directly on the -game- (edit render?) loop.
 	//This means we should only set keys as pressed when they change state, or they will repeat.
 	//And we should still unpress the key when released.
-	//TODO: make a new class that polls more quickly and provides Minecraft.jar with a HTCController.next() event queue. (unless openVR has one?)
+	//TODO: make a new class that polls more quickly and provides Minecraft.java with a HTCController.next() event queue. (unless openVR has one?)
 	private void processControllerButtons()
 	{
 		if (mc.theWorld == null)
 			return;
 
 		// map functionality to keybinds
-		
+
 		KeyBinding keyBindR_Trigger = mc.gameSettings.keyBindAttack;
 		KeyBinding keyBindR_TouchpadBL = mc.gameSettings.keyBindUseItem;
 		KeyBinding keyBindR_TouchpadBR = mc.gameSettings.keyBindUseItem;
@@ -905,7 +930,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		KeyBinding keyBindR_TouchpadUR = mc.gameSettings.keyBindUseItem;
 		KeyBinding keyBindR_Appmenu = mc.gameSettings.keyBindDrop;
 		KeyBinding keyBindR_Grip = mc.gameSettings.keyBindPickBlock;
-		
+
 		KeyBinding keyBindL_Appmenu = null;
 		KeyBinding keyBindL_Trigger = mc.gameSettings.keyBindForward;
 		KeyBinding keyBindL_TouchpadBL = mc.gameSettings.keyBindJump;
@@ -918,35 +943,35 @@ IEventNotifier, IEventListener, IBodyAimController
 		boolean sleeping = (mc.thePlayer != null && mc.thePlayer.isPlayerSleeping());
 
 		// right controller
-		boolean lastpressedRGrip = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonGrip) > 0;		
-		boolean lastpressedRtouchpadBottomLeft = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean lastpressedRGrip = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonGrip) > 0;		
+		boolean lastpressedRtouchpadBottomLeft = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x <= 0 ) ;	
-		boolean lastpressedRtouchpadBottomRight = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean lastpressedRtouchpadBottomRight = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;		
-		boolean lastpressedRtouchpadTopLeft = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean lastpressedRtouchpadTopLeft = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0 ) &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x <= 0 ) ;	
-		boolean lastpressedRtouchpadTopRight = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean lastpressedRtouchpadTopRight = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0 ) &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;		
-		boolean lastpressedRAppMenu = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0;
+		boolean lastpressedRAppMenu = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonAppMenu) > 0;
 		boolean lastpressedRTrigger = lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;		
-		boolean pressedRGrip = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonGrip) > 0;
-		boolean pressedRtouchpadBottomLeft = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean pressedRGrip = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonGrip) > 0;
+		boolean pressedRtouchpadBottomLeft = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x <= 0 ) ;	
-		boolean pressedRtouchpadBottomRight = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean pressedRtouchpadBottomRight = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;		
-		boolean pressedRtouchpadTopLeft = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean pressedRtouchpadTopLeft = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0 ) &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x <= 0 ) ;	
-		boolean pressedRtouchpadTopRight = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean pressedRtouchpadTopRight = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0 ) &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;	
-		boolean pressedRAppMenu = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0;
+		boolean pressedRAppMenu = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonAppMenu) > 0;
 		boolean pressedRTrigger = controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;
 
 		//		if(!gui) {//simulated mouse UI input is done elsewhere I think. 
@@ -955,7 +980,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		//R GRIP
 		if (pressedRGrip && !lastpressedRGrip) {
 			keyBindR_Grip.pressKey();
-			}	
+		}	
 		if(!pressedRGrip && lastpressedRGrip) {
 			keyBindR_Grip.unpressKey();
 		}
@@ -1005,35 +1030,35 @@ IEventNotifier, IEventListener, IBodyAimController
 		//		}
 
 		// left controller
-		boolean lastpressedLGrip = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonGrip) > 0;		
-		boolean lastpressedLtouchpadBottomLeft = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean lastpressedLGrip = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonGrip) > 0;		
+		boolean lastpressedLtouchpadBottomLeft = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x <= 0 ) ;	
-		boolean lastpressedLtouchpadBottomRight = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean lastpressedLtouchpadBottomRight = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;		
-		boolean lastpressedLtouchpadTopLeft = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean lastpressedLtouchpadTopLeft = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0 ) &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x <= 0 ) ;	
-		boolean lastpressedLtouchpadTopRight = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean lastpressedLtouchpadTopRight = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0 ) &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;		
-		boolean lastpressedLAppMenu = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0;
+		boolean lastpressedLAppMenu = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonAppMenu) > 0;
 		boolean lastpressedLTrigger = lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;		
-		boolean pressedLGrip = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonGrip) > 0;
-		boolean pressedLtouchpadBottomLeft = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean pressedLGrip = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonGrip) > 0;
+		boolean pressedLtouchpadBottomLeft = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x <= 0 ) ;	
-		boolean pressedLtouchpadBottomRight = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean pressedLtouchpadBottomRight = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;		
-		boolean pressedLtouchpadTopLeft = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean pressedLtouchpadTopLeft = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0 ) &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x <= 0 ) ;	
-		boolean pressedLtouchpadTopRight = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonTouchpad) > 0 &&
+		boolean pressedLtouchpadTopRight = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y > 0 ) &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;	
-		boolean pressedLAppMenu = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed.longValue() & k_buttonAppMenu) > 0;
+		boolean pressedLAppMenu = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonAppMenu) > 0;
 		boolean pressedLTrigger = controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;
 
 		//		if(!gui) {//simulated mouse UI input is done elsewhere I think. 
@@ -1123,60 +1148,66 @@ IEventNotifier, IEventListener, IBodyAimController
 		}else {
 			moveModeSwitchcount = 0;
 		}
-		
+
 		if(!mc.gameSettings.keyBindInventory.getIsKeyPressed()){
 			startedOpeningInventory = 0;
 		}
-		
+
 		//GuiContainer.java only listens directly to the keyboard to close.
 		if(gui && mc.gameSettings.keyBindInventory.getIsKeyPressed()){ //inventory will repeat open/close while button is held down. TODO: fix.
 			if((getCurrentTimeSecs() - startedOpeningInventory) > 0.5) mc.thePlayer.closeScreen();
 			mc.gameSettings.keyBindInventory.unpressKey(); //minecraft.java will open a new window otherwise.
 		}
-		
+
 		if(pressedLAppMenu  && !lastpressedLAppMenu) { //handle menu directly
-			
+
 			if(mc.gameSettings.keyBindSneak.getIsKeyPressed()){				
-					setKeyboardOverlayShowing(true, null);			
+				setKeyboardOverlayShowing(!keyboardShowing, null);			
 			} else{
 				if(gui || keyboardShowing){
-				mc.thePlayer.closeScreen();
-				setKeyboardOverlayShowing(false, null);	
-			}else
+					mc.thePlayer.closeScreen();
+					setKeyboardOverlayShowing(false, null);	
+				}else
 					mc.displayInGameMenu();				
-				
 			}
-		
-			
 		}
-
 	}
 
-
-	
 	//jrbuda:: oh hello there you are.
 	private void pollInputEvents()
 	{
-		// not using these yet
-		/*
-		JOpenVRLibrary.VREvent_t event = new JOpenVRLibrary.VREvent_t();
-		while (VR_IVRSystem_PollNextEvent(vrsystem, event) > 0)
-		{
-			if (event.trackedDeviceIndex == controllerDeviceIndex[0])
-			{
+		//TODO: use this for everything, maybe.
+		jopenvr.VREvent_t event = new jopenvr.VREvent_t();
 
+		while (vrsystem.PollNextEvent.apply(event, event.size() ) > 0)
+		{
+		
+			switch (event.eventType) {
+			case EVREventType.EVREventType_VREvent_KeyboardClosed:
+		      //'huzzah'
+				keyboardShowing = false;
+				break;
+			case EVREventType.EVREventType_VREvent_KeyboardCharInput:
+				byte[] inbytes = event.data.getPointer().getByteArray(0, 8);	
+				int len = 0;			
+					for (byte b : inbytes) {
+						if(b>0)len++;
+					}
+					String str = new String(inbytes,0,len, StandardCharsets.UTF_8);
+				keyboard.type(str); //holy shit it works.
+				break;
+			default:
+				break;
 			}
 		}
-		 */
 	}
 
 	private void updateTouchpadSampleBuffer()
 	{
-
 		for (int c=0;c<2;c++)
 		{
 			if (controllerStateReference[c].rAxis[k_EAxis_TouchPad]!=null &&
-					(controllerStateReference[c].ulButtonTouched.longValue() & k_buttonTouchpad) > 0)
+					(controllerStateReference[c].ulButtonTouched & k_buttonTouchpad) > 0)
 			{
 				int sample = touchpadSampleCount[c] % 5;
 				touchpadSamples[c][sample].x = controllerStateReference[c].rAxis[k_EAxis_TouchPad].x;
@@ -1208,7 +1239,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		// left touchpad controls inventory
 		for (int c=1;c<2;c++)
 		{
-			boolean touchpadPressed = (controllerStateReference[c].ulButtonPressed.longValue() & k_buttonTouchpad) > 0;
+			boolean touchpadPressed = (controllerStateReference[c].ulButtonPressed & k_buttonTouchpad) > 0;
 
 			if (touchpadSampleCount[c] > 3 && !touchpadPressed)
 			{
@@ -1226,7 +1257,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				{
 					mc.thePlayer.inventory.changeCurrentItem(-1);
 					short duration = 250;
-					JOpenVRLibrary.VR_IVRSystem_TriggerHapticPulse(vrsystem, controllerDeviceIndex[c], 0, duration);
+					vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[c], 0, duration);
 
 					inventory_swipe[c] -= swipeDistancePerInventorySlot;
 				} else if (inventory_swipe[c] < -swipeDistancePerInventorySlot)
@@ -1234,11 +1265,13 @@ IEventNotifier, IEventListener, IBodyAimController
 					mc.thePlayer.inventory.changeCurrentItem(1);
 
 					short duration = 250;
-					JOpenVRLibrary.VR_IVRSystem_TriggerHapticPulse(vrsystem, controllerDeviceIndex[c], 0, duration);
+					vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[c], 0, duration);
 					inventory_swipe[c] += swipeDistancePerInventorySlot;
 				}
 			}
 		}
+		//TODO: R touchpad up/down scrolls containers
+
 	}
 
 	public void updatePose()
@@ -1248,7 +1281,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 		mc.mcProfiler.startSection("updatePose");
 
-		JOpenVRLibrary.VR_IVRCompositor_WaitGetPoses(vrCompositor, hmdTrackedDevicePoseReference, hmdTrackedDevicePoses.length, hmdGamePoseReference, hmdGamePoses.length);
+		vrCompositor.WaitGetPoses.apply(hmdTrackedDevicePoseReference, JOpenVRLibrary.k_unMaxTrackedDeviceCount, null, 0);
 
 		for (int nDevice = 0; nDevice < JOpenVRLibrary.k_unMaxTrackedDeviceCount; ++nDevice )
 		{
@@ -1410,7 +1443,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	{
 		IntBuffer rtx = IntBuffer.allocate(1);
 		IntBuffer rty = IntBuffer.allocate(1);
-		JOpenVRLibrary.VR_IVRSystem_GetRecommendedRenderTargetSize(vrsystem, rtx, rty);
+		vrsystem.GetRecommendedRenderTargetSize.apply(rtx, rty);
 
 		RenderTextureInfo info = new RenderTextureInfo();
 		info.HmdNativeResolution.w = rtx.get(0);
@@ -1456,7 +1489,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen)
 	{
 		if (previousScreen==null && newScreen != null
-				|| (newScreen != null && newScreen instanceof GuiContainerCreative)) {
+				|| (newScreen != null && newScreen instanceof GuiContainerCreative) || newScreen instanceof GuiChat) {			
 
 			Quatf controllerOrientationQuat;
 			boolean appearOverBlock = (newScreen instanceof GuiCrafting)
@@ -1470,24 +1503,35 @@ IEventNotifier, IEventListener, IBodyAimController
 					|| (newScreen instanceof GuiRepair)
 					;
 
-			if (appearOverBlock)
-			{
-				// right controller is used to click a block, so use its orientation
+
+			//set default position for inventory and chat screens.
+			guiPos = OpenVRUtil.convertMatrix4ftoTranslationVector(hmdPose);
+
+			if(!appearOverBlock){
+				controllerOrientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
+				EulerOrient controllerOrientationEuler = OpenVRUtil.getEulerAnglesDegYXZ(controllerOrientationQuat);
+				guiRotationPose = Matrix4f.rotationY((float)-Math.toRadians(controllerOrientationEuler.yaw));
+				Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)-Math.toRadians(controllerOrientationEuler.pitch));	
+				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);					
+			}				else{
 				controllerOrientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(controllerPose[0]);
-			}
-			else
-			{
-				controllerOrientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(controllerPose[1]);
+				EulerOrient controllerOrientationEuler = OpenVRUtil.getEulerAnglesDegYXZ(controllerOrientationQuat);
+				guiRotationPose = Matrix4f.rotationY((float)-Math.toRadians(controllerOrientationEuler.yaw));
+
 			}
 
-			guiPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[1]);
-			EulerOrient controllerOrientationEuler = OpenVRUtil.getEulerAnglesDegYXZ(controllerOrientationQuat);
-			guiRotationPose = Matrix4f.rotationY((float)-Math.toRadians(controllerOrientationEuler.yaw));
 			guiScale = 1.0f;
 
-			Vector3f forward = new Vector3f(0,-0.5f,1).normalised();
-			Vector3f controllerForward = controllerPose[1].transform(forward).subtract(guiPos);
-			guiPos = guiPos.subtract(controllerForward.divide(1.0f/0.5f));
+			if (newScreen instanceof GuiChat){
+				Vector3f forward = new Vector3f(-0.3f,-.4f,1f);
+				Vector3f controllerForward = hmdPose.transform(forward).subtract(guiPos);
+				guiPos = guiPos.subtract(controllerForward.divide(0.8f));
+			}
+			else {
+				Vector3f forward = new Vector3f(0,0,1f).normalised();
+				Vector3f controllerForward = hmdPose.transform(forward).subtract(guiPos);
+				guiPos = guiPos.subtract(controllerForward.divide(1f));
+			}
 
 			if (appearOverBlock && this.mc.objectMouseOver != null) {
 				Vec3 blockTop = Vec3.createVectorHelper(
@@ -1514,9 +1558,10 @@ IEventNotifier, IEventListener, IBodyAimController
 
 				guiScale = 2.0f;
 			}
-			
+
+
 			if(mc.theWorld == null) guiScale = 2.0f;
-			
+
 		}
 	}
 
@@ -1528,12 +1573,12 @@ IEventNotifier, IEventListener, IBodyAimController
 	{
 		if ( eyeType == EyeType.ovrEye_Left )
 		{
-			HmdMatrix44_t mat = JOpenVRLibrary.VR_IVRSystem_GetProjectionMatrix(vrsystem, JOpenVRLibrary.EVREye.EVREye_Eye_Left, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
+			HmdMatrix44_t mat = vrsystem.GetProjectionMatrix.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Left, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
 			hmdProjectionLeftEye = new Matrix4f();
 			return OpenVRUtil.convertSteamVRMatrix4ToMatrix4f(mat, hmdProjectionLeftEye);
 		}
 
-		HmdMatrix44_t mat = JOpenVRLibrary.VR_IVRSystem_GetProjectionMatrix(vrsystem, JOpenVRLibrary.EVREye.EVREye_Eye_Right, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
+		HmdMatrix44_t mat = vrsystem.GetProjectionMatrix.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Right, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
 		hmdProjectionRightEye = new Matrix4f();
 		return OpenVRUtil.convertSteamVRMatrix4ToMatrix4f(mat, hmdProjectionRightEye);
 	}
@@ -1646,10 +1691,10 @@ IEventNotifier, IEventListener, IBodyAimController
 		return Vec3.createVectorHelper(aimSource[controller].xCoord, aimSource[controller].yCoord, aimSource[controller].zCoord);
 	}
 	@Override
-	public void triggerHapticPulse(int controller, int duration) {
+	public void triggerHapticPulse(int controller, int strength) {
 		if (controllerDeviceIndex[controller]==-1)
 			return;
-		JOpenVRLibrary.VR_IVRSystem_TriggerHapticPulse(vrsystem, controllerDeviceIndex[controller], 0, (short)duration);
+		vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[controller], 0, (short)strength);
 	}
 
 	private void updateAim() {
@@ -1747,11 +1792,12 @@ IEventNotifier, IEventListener, IBodyAimController
 		mc.mcProfiler.endSection();
 	}
 
+	
 	public boolean applyGUIModelView(EyeType eyeType)
 	{
 		mc.mcProfiler.startSection("applyGUIModelView");
 
-		float scale = guiScale;	
+		float scale = guiScale; 
 
 		// main menu view
 		if (this.mc.theWorld==null) {
@@ -1764,7 +1810,7 @@ IEventNotifier, IEventListener, IBodyAimController
 			guiRotationPose.M[0][3] = guiRotationPose.M[1][3] = guiRotationPose.M[2][1] = guiRotationPose.M[3][0] = 0.0F;
 		}
 
-		// dead view
+		// i am dead view
 		if (this.mc.thePlayer!=null && !this.mc.thePlayer.isEntityAlive())
 		{
 			Vector3f headPos = OpenVRUtil.convertMatrix4ftoTranslationVector(hmdPose);
@@ -1784,8 +1830,9 @@ IEventNotifier, IEventListener, IBodyAimController
 
 			guiPos = headPos.subtract(headDirection);
 		}
-		// HUD view - attach to head/controller
-		else if (this.mc.theWorld!=null && this.mc.currentScreen==null)
+		
+		// HUD view - attach to head or controller
+		else if (this.mc.theWorld!=null && (this.mc.currentScreen==null || mc.vrSettings.floatInventory == false))
 		{
 			if (mc.vrSettings.hudLockToHead)
 			{
@@ -1807,7 +1854,6 @@ IEventNotifier, IEventListener, IBodyAimController
 			else
 			{
 				guiPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[1]);
-				scale = 1.0f; // don't apply hud scale
 				Quatf controllerOrientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(controllerPose[1]);
 				guiRotationPose = new Matrix4f(controllerOrientationQuat);
 				guiRotationPose = Matrix4f.multiply(guiRotationPose, OpenVRUtil.rotationXMatrix((float) Math.PI * -0.2F));
@@ -1818,13 +1864,24 @@ IEventNotifier, IEventListener, IBodyAimController
 				Vector3f controllerForward = controllerPose[1].transform(forward).subtract(guiPos);
 				guiPos = guiPos.subtract(controllerForward.divide(1.0f / 0.5f));
 			}
+		} else {
+			
+			
 		}
-
+		
 		// otherwise, looking at inventory screen. use pose calculated when screen was opened
-
+		   //where is this set up... should be here....
+		
+		if(this.mc.currentScreen instanceof GuiChat){
+			
+			
+		}
+		
+	
 		// Show inventory at the guiRotationPose
 		FloatBuffer guiRotationBuf = guiRotationPose.transposed().toFloatBuffer();
 
+				
 		// counter head rotation
 		Quaternion q = getOrientationQuaternion(eyeType);
 		org.lwjgl.util.vector.Matrix4f head = QuaternionHelper.quatToMatrix4f(q);
@@ -1838,37 +1895,32 @@ IEventNotifier, IEventListener, IBodyAimController
 		GL11.glTranslatef((float) (guiPos.x - eye.xCoord), (float) (guiPos.y + eye.yCoord), (float) (guiPos.z - eye.zCoord));
 
 		GL11.glPushMatrix();
-		GL11.glMultMatrix(guiRotationBuf);
-
-		Quaternion tiltBack = new Quaternion();
-		float tiltAngle = 0.0f; //15.0f;
-		tiltBack.setFromAxisAngle(new Vector4f(1.0f, 0.0f, 0.0f,  tiltAngle * PIOVER180));
-		org.lwjgl.util.vector.Matrix4f tiltBackMatrix = QuaternionHelper.quatToMatrix4f(tiltBack);
-		FloatBuffer tiltBackBuf = BufferUtil.createFloatBuffer(16);
-		tiltBackMatrix.storeTranspose(tiltBackBuf);
-		tiltBackBuf.flip();
-		GL11.glMultMatrix(tiltBackBuf);
-
-		double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
-
-			
-//		if (this.mc.theWorld == null || (this.mc.currentScreen!=null && this.mc.currentScreen instanceof GuiContainer
-//				&& !(this.mc.currentScreen instanceof GuiInventory || this.mc.currentScreen instanceof GuiContainerCreative)))
-//		{
-//			guiScale = 2.0f; 		
-//		 }else guiScale = 1.0f;//mc.vrSettings.hudScale;
-//	
-
-		
-		if (timeOpen < 1.5) {
-			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
-		}
-		//GlStateManager.translate(0.0f, 0.3f*scale, -0.2*scale);
-		GL11.glScalef(scale, scale, scale);
-
-		mc.mcProfiler.endSection();
-
-		return true;
+			GL11.glMultMatrix(guiRotationBuf);
+	
+			Quaternion tiltBack = new Quaternion();
+			float tiltAngle = 0.0f; //15.0f;
+			tiltBack.setFromAxisAngle(new Vector4f(1.0f, 0.0f, 0.0f,  tiltAngle * PIOVER180));
+			org.lwjgl.util.vector.Matrix4f tiltBackMatrix = QuaternionHelper.quatToMatrix4f(tiltBack);
+			FloatBuffer tiltBackBuf = BufferUtil.createFloatBuffer(16);
+			tiltBackMatrix.storeTranspose(tiltBackBuf);
+			tiltBackBuf.flip();
+			GL11.glMultMatrix(tiltBackBuf);
+	
+			double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
+	
+					if (this.mc.theWorld == null || (this.mc.currentScreen!=null && this.mc.currentScreen instanceof GuiContainer
+							&& !(this.mc.currentScreen instanceof GuiInventory || this.mc.currentScreen instanceof GuiContainerCreative)))
+					{
+						guiScale = 2.0f; 		
+					 }else guiScale = 1.0f;//mc.vrSettings.hudScale;
+	
+	//		if (timeOpen < 1.5) {
+	//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
+	//		}
+	
+			mc.mcProfiler.endSection();
+	
+			return true;
 	}
 
 	//-------------------------------------------------------

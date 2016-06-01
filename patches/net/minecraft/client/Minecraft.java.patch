@@ -1022,7 +1022,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda11";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda13";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -1657,7 +1657,7 @@
          {
              this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
              this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,2348 +1102,3875 @@
+@@ -791,2348 +1102,3870 @@
          catch (IOException var7)
          {
              logger.error("Unable to load logo: " + locationMojangPng, var7);
@@ -5171,6 +5171,7 @@
 +		{
 +			/** MINECRIFT */
 +			this.thePlayer.stepHeight = this.vrSettings.walkUpBlocks ? 1f : 0.5f;
++			if (!vrPlayer.getFreeMoveMode()) this.thePlayer.stepHeight = 0.0f;
 +			/** END MINECRIFT */
 +
 +			if (this.thePlayer.getHealth() <= 0.0F)
@@ -7386,12 +7387,6 @@
 +		this.EyeTextureSize[0] = new Sizei();
 +		this.EyeTextureSize[1] = new Sizei();
 +
-+		// Initialise Oculus library
-+
-+		// VIVE START - don't init Oculus SDK
-+		//OculusRift.LoadLibrary();      // TODO: We need to load this currently to support Quat->Euler, move this to some common area at some point
-+		//new MCOculus(); // create and register new plugin
-+		// VIVE END - don't init Oculus SDK
 +		new MCOpenVR();
 +		//hmdInfo = PluginManager.configureHMD("oculus");
 +

@@ -67,7 +67,7 @@
          }
 +        
 +        if(Math.floor(playerEntity.posY) != playerEntity.posY ){
-+        	int a = 9;
++
 +        }
 +        
      }

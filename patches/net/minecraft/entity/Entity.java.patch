@@ -353,7 +353,7 @@
 -                z = var17;
 +            
 +//jrbudda: would like to use this for 'walk up blocks' in roomscale but dx and dz are always 0 since we set posX and posZ directly (unless active freemoveing) .
-+            if (this.stepHeight > 0.0F && var37 && (sneakingPlayer || this.yOffset2 < 0.05F) && (reqDisplacementX != dx || reqDisplacementZ != dz))
++            if ( this.stepHeight > 0.0F && var37 && (sneakingPlayer || this.yOffset2 < 0.05F) && (reqDisplacementX != dx || reqDisplacementZ != dz))
 +            { // Step up?
 +                var38 = dx;
 +                var25 = dy;

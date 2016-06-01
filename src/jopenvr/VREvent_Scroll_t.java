@@ -8,27 +8,29 @@ import java.util.List;
  * a tool written by <a href="http://ochafik.com/">Olivier Chafik</a> that <a href="http://code.google.com/p/jnaerator/wiki/CreditsAndLicense">uses a few opensource projects.</a>.<br>
  * For help, please visit <a href="http://nativelibs4java.googlecode.com/">NativeLibs4Java</a> , <a href="http://rococoa.dev.java.net/">Rococoa</a>, or <a href="http://jna.dev.java.net/">JNA</a>.
  */
-public class VREvent_Reserved_t extends Structure {
-	public long reserved0;
-	public long reserved1;
-	public VREvent_Reserved_t() {
+public class VREvent_Scroll_t extends Structure {
+	public float xdelta;
+	public float ydelta;
+	public int repeatCount;
+	public VREvent_Scroll_t() {
 		super();
 	}
 	protected List<? > getFieldOrder() {
-		return Arrays.asList("reserved0", "reserved1");
+		return Arrays.asList("xdelta", "ydelta", "repeatCount");
 	}
-	public VREvent_Reserved_t(long reserved0, long reserved1) {
+	public VREvent_Scroll_t(float xdelta, float ydelta, int repeatCount) {
 		super();
-		this.reserved0 = reserved0;
-		this.reserved1 = reserved1;
+		this.xdelta = xdelta;
+		this.ydelta = ydelta;
+		this.repeatCount = repeatCount;
 	}
-	public VREvent_Reserved_t(Pointer peer) {
+	public VREvent_Scroll_t(Pointer peer) {
 		super(peer);
 	}
-	public static class ByReference extends VREvent_Reserved_t implements Structure.ByReference {
+	public static class ByReference extends VREvent_Scroll_t implements Structure.ByReference {
 		
 	};
-	public static class ByValue extends VREvent_Reserved_t implements Structure.ByValue {
+	public static class ByValue extends VREvent_Scroll_t implements Structure.ByValue {
 		
 	};
 }

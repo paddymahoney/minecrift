@@ -1872,7 +1872,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1162,4174 @@
+@@ -825,1829 +1162,4178 @@
          {
              clipDistance = 256.0F;
          }
@@ -2198,11 +2198,11 @@
 +				if(eyeCollision ){
 +					int was = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
 +					GL11.glDepthFunc(GL11.GL_ALWAYS);
-+					renderCircle(mc.thePlayer.getPosition(par1).addVector(-renderOriginX, - mc.thePlayer.yOffset -renderOriginY + 0.02f, -renderOriginZ), 0.08f, 32, 0, 255, 255, 64, 1);
++					renderCircle(mc.thePlayer.getPosition(par1).addVector(-renderOriginX, - mc.thePlayer.yOffset+ mc.thePlayer.yOffset2 -renderOriginY + 0.02f, -renderOriginZ), 0.08f, 32, 0, 255, 255, 64, 1);
 +					GL11.glDepthFunc(was);
 +
 +				}  else {
-+					renderCircle(mc.thePlayer.getPosition(par1).addVector(-renderOriginX, - mc.thePlayer.yOffset -renderOriginY + 0.02f, -renderOriginZ), 0.08f, 32, 0, 255, 255, 64, 1);            		
++					renderCircle(mc.thePlayer.getPosition(par1).addVector(-renderOriginX, - mc.thePlayer.yOffset + mc.thePlayer.yOffset2 -renderOriginY + 0.02f, -renderOriginZ), 0.08f, 32, 0, 255, 255, 64, 1);            		
 +				}
 +
 +				if (!this.mc.vrSettings.debugPos) {
@@ -2673,7 +2673,7 @@
 +				GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer to black
 +				GL11.glDisable(GL11.GL_BLEND);
 +
-+				if (this.mc.stereoProvider.isGuiOrtho())
++				if (this.mc.stereoProvider.isGuiOrtho())//never for vive
 +				{
 +					this.mc.enableGuiSizeHack();
 +					GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
@@ -2692,7 +2692,7 @@
 +			/** MINECRIFT */ // Minecrift - render fade
 +			renderFadeEffects();
 +
-+			if (!this.mc.stereoProvider.isGuiOrtho())
++			if (!this.mc.stereoProvider.isGuiOrtho())//always for vive
 +			{
 +
 +
@@ -2873,7 +2873,7 @@
 +		for (int analglyphpass = 0; analglyphpass < 2; ++analglyphpass)
 +		{
 +			if(analglyphpass ==1){
-+				int a = 9;
++
 +			}
 +
 +			if (this.mc.gameSettings.anaglyph)
@@ -5163,12 +5163,13 @@
 +			GL11.glLoadIdentity();
 +
 +			// VIVE START - custom GUI position
-+			if (this.mc.lookaimController.applyGUIModelView(this.mc.currentEye))
++			if (this.mc.lookaimController.applyGUIModelView(this.mc.currentEye)) //MCOpenVR.java
 +			{
 +				// gui pose setup by aim controller
 +			}
 +			// VIVE END - custom GUI position
-+			else
++			
++			else //dead code for Vive
 +			{
 +				float guiYaw = 0f;
 +				if (this.mc.theWorld != null && this.mc.currentScreen != null)
@@ -5217,7 +5218,7 @@
 +
 +			///JRBUDDA MAIN MENU ROOM            
 +			if(mc.theWorld == null){		
-+				rendserJrbuddasAwesomeMainMenuRoom();
++				rendserJrbuddasAwesomeMainMenuRoom();			
 +			}
 +			//END JRBUDDA'S AWESOME MAIN MENU ROOM       
 +
@@ -5253,6 +5254,10 @@
 +			GL11.glEnable(GL11.GL_BLEND);		
 +	//		OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0); //color blend for corsshair transparency
 +		
++			float scale = MCOpenVR.guiScale; // * this.mc.vroptions.hudscale
++			
++			GL11.glScalef(scale, scale, scale);
++				
 +			//Render framebuffer onto world projection
 +			drawSizedQuad(this.mc.displayFBWidth, this.mc.displayFBHeight, 1.5f); //this.mc.vrSettings.hudScale);
 +			
@@ -5268,6 +5273,8 @@
 +			GL11.glPopMatrix();
 +			GL11.glPopMatrix(); // vive temp to undo extra push in (gui?) camera setup
 +
++			
++			
 +			this.mc.guiFramebuffer.unbindFramebufferTexture();
 +			//mc.checkGLError("GUI");
 +		}
@@ -5294,8 +5301,8 @@
 +		int w = 5;
 +		
 +		GL11.glPushMatrix();
-+
-+			GL11.glTranslatef(0f, 0, 1.3f);
++		GL11.glScalef(2f, 2f, 2f);
++		GL11.glTranslatef(0f, 0, 1.3f);
 +
 +			GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, RenderHelper.setColorBuffer(0D,0d,-0.2D,1D));           
 +			GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, RenderHelper.setColorBuffer(1f, 1f, 1f, 1.0F));
@@ -5370,7 +5377,7 @@
 +			this.mc.loadingScreen.renderTarget = this.mc.guiFramebuffer;
 +			this.mc.loadingScreen.render();
 +		}
-+		else if (!this.mc.stereoProvider.isGuiOrtho())
++		else if (!this.mc.stereoProvider.isGuiOrtho()) //always for vive
 +		{
 +			this.mc.guiFramebuffer.bindFramebuffer(true);
 +
@@ -5483,8 +5490,7 @@
 +
 +					GL11.glDisable(GL11.GL_LIGHTING); //inventory messes up fog color sometimes... This fixes
 +					GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-+				
-+								
++											
 +				}
 +			}
 +		}
@@ -5688,8 +5694,6 @@
 +
 +	public void renderCrosshairAtDepth()
 +	{
-+
-+
 +		if (this.aimStartPos != null)
 +		{
 +			Vec3 originOffset = renderOrigin.subtract(this.aimRenderOrigin);
@@ -5707,7 +5711,7 @@
 +			renderCrosshair = false;
 +		}
 +		// VIVE end
-+		if( this.mc.currentScreen == null && this.mc.gameSettings.thirdPersonView == 0 && renderCrosshair)
++		if( this.mc.currentScreen == null && this.mc.gameSettings.thirdPersonView == 0 && renderCrosshair && !MCOpenVR.keyboardShowing)
 +		{
 +			this.mc.mcProfiler.endStartSection("crosshair");
 +			GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
