@@ -146,7 +146,7 @@ public class VRPlayer
         boolean doTeleport = false;
         Vec3 dest = null;
 
-        if (player.movementInput.moveForward != 0) //holding down Ltrigger
+        if (player.movementInput.moveForward != 0 && !player.isRiding()) //holding down Ltrigger
         {
             dest = movementTeleportDestination;
 
@@ -360,6 +360,8 @@ public class VRPlayer
 		
 				if(player.isSneaking()) {return;} //jrbudda : prevent falling off things or walking up blocks while moving in room scale.
 		
+				if(player.isRiding()) return;
+				
 				Minecraft mc = Minecraft.getMinecraft();
 	            float playerHalfWidth = player.width / 2.0F;
 

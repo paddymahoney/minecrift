@@ -1,0 +1,43 @@
+--- a/net/minecraft/src/ItemRendererOF.java
++++ b/net/minecraft/src/ItemRendererOF.java
+@@ -3,6 +3,7 @@
+ import java.lang.reflect.Field;
+ import net.minecraft.block.Block;
+ import net.minecraft.client.Minecraft;
++import net.minecraft.client.entity.EntityPlayerSP;
+ import net.minecraft.client.renderer.ItemRenderer;
+ import net.minecraft.client.renderer.OpenGlHelper;
+ import net.minecraft.client.renderer.RenderBlocks;
+@@ -12,9 +13,12 @@
+ import net.minecraft.entity.EntityLivingBase;
+ import net.minecraft.item.Item;
+ import net.minecraft.item.ItemBlock;
++import net.minecraft.item.ItemBow;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.util.IIcon;
+ import net.minecraft.util.ResourceLocation;
++import net.minecraft.util.Vec3;
++
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL12;
+ 
+@@ -111,12 +115,14 @@
+             float var13 = 0.0F;
+             float var14 = 0.3F;
+             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+-            GL11.glTranslatef(-var13, -var14, 0.0F);
+             float var15 = 1.5F;
+-            GL11.glScalef(var15, var15, var15);
+-            GL11.glRotatef(50.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
+-            GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
++            GL11.glScalef(var15, var15, var15);                 
++//            //TODO: put back?
++//            if(!(par1EntityLivingBase instanceof EntityPlayerSP) || !(par2ItemStack.getItem() instanceof ItemBow)){
++//                GL11.glRotatef(0.0F, 0.0F, 1.0F, 0.0F);
++//                GL11.glRotatef(0F, 0.0F, 0.0F, 1.0F);
++//                GL11.glTranslatef(-0.8375F, -0.0625F, 0.0F);            	       	
++//            }                
+             renderItemIn2D(var8, var10, var11, var9, var12, var7.getIconWidth(), var7.getIconHeight(), 0.0625F);
+             boolean renderEffect = false;
+ 

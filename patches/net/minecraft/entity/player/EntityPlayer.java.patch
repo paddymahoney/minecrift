@@ -64,7 +64,26 @@
      /** Inventory of the player */
      public InventoryPlayer inventory = new InventoryPlayer(this);
      private InventoryEnderChest theInventoryEnderChest = new InventoryEnderChest();
-@@ -180,6 +185,12 @@
+@@ -149,12 +154,15 @@
+     /**
+      * This is the item that is in use when the player is holding down the useItemButton (e.g., bow, food, sword)
+      */
+-    private ItemStack itemInUse;
+-
++    public ItemStack itemInUse;
++   
++    
+     /**
+      * This field starts off equal to getMaxItemUseDuration and is decremented on each tick
+      */
+-    private int itemInUseCount;
++    public int itemInUseCount;
++//	JRBUDDA FOR BOW THING no [ublic
++    
+     protected float speedOnGround = 0.1F;
+     protected float speedInAir = 0.02F;
+     private int field_82249_h;
+@@ -180,6 +188,12 @@
          this.setLocationAndAngles((double)var3.posX + 0.5D, (double)(var3.posY + 1), (double)var3.posZ + 0.5D, 0.0F, 0.0F);
          this.field_70741_aB = 180.0F;
          this.fireResistance = 20;
@@ -77,7 +96,7 @@
      }
  
      protected void applyEntityAttributes()
-@@ -232,7 +243,18 @@
+@@ -232,7 +246,18 @@
      {
          if (this.itemInUse != null)
          {
@@ -97,7 +116,7 @@
          }
  
          this.clearItemInUse();
-@@ -259,21 +281,63 @@
+@@ -259,21 +284,63 @@
       */
      public void onUpdate()
      {
@@ -170,7 +189,7 @@
              }
              else
              {
-@@ -318,12 +382,25 @@
+@@ -318,12 +385,25 @@
          }
  
          super.onUpdate();
@@ -202,7 +221,7 @@
  
          if (this.isBurning() && this.capabilities.disableDamage)
          {
-@@ -382,6 +459,15 @@
+@@ -382,6 +462,15 @@
              this.foodStats.onUpdate(this);
              this.addStat(StatList.minutesPlayedStat, 1);
          }
@@ -218,7 +237,7 @@
      }
  
      /**
-@@ -460,12 +546,19 @@
+@@ -460,12 +549,19 @@
              this.updateItemUse(this.itemInUse, 16);
              int var1 = this.itemInUse.stackSize;
              ItemStack var2 = this.itemInUse.onItemUseFinish(this.worldObj, this);
@@ -239,7 +258,7 @@
                  {
                      this.inventory.mainInventory[this.inventory.currentItem] = null;
                  }
-@@ -498,7 +591,9 @@
+@@ -498,7 +594,9 @@
      /**
       * set current crafting inventory back to the 2x2 square
       */
@@ -250,7 +269,7 @@
      {
          this.openContainer = this.inventoryContainer;
      }
-@@ -549,13 +644,27 @@
+@@ -549,13 +647,27 @@
              this.prevCameraYaw = this.cameraYaw;
              this.cameraYaw = 0.0F;
              this.addMountedMovementStat(this.posX - var1, this.posY - var3, this.posZ - var5);
@@ -285,7 +304,7 @@
          }
      }
  
-@@ -654,12 +763,32 @@
+@@ -654,12 +766,32 @@
                  {
                      Entity var7 = (Entity)var5.get(var6);
  
@@ -318,7 +337,7 @@
          }
      }
  
-@@ -695,11 +824,25 @@
+@@ -695,11 +827,25 @@
       */
      public void onDeath(DamageSource p_70645_1_)
      {
@@ -345,7 +364,7 @@
          if (this.getCommandSenderName().equals("Notch"))
          {
              this.func_146097_a(new ItemStack(Items.apple, 1), true, false);
-@@ -708,7 +851,27 @@
+@@ -708,7 +854,27 @@
          if (!this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory"))
          {
              this.inventory.dropAllItems();
@@ -373,7 +392,7 @@
  
          if (p_70645_1_ != null)
          {
-@@ -774,7 +937,31 @@
+@@ -774,7 +940,31 @@
       */
      public EntityItem dropOneItem(boolean p_71040_1_)
      {
@@ -406,7 +425,7 @@
      }
  
      /**
-@@ -782,7 +969,17 @@
+@@ -782,7 +972,17 @@
       */
      public EntityItem dropPlayerItemWithRandomChoice(ItemStack itemStackIn, boolean p_71019_2_)
      {
@@ -425,7 +444,7 @@
      }
  
      public EntityItem func_146097_a(ItemStack p_146097_1_, boolean p_146097_2_, boolean p_146097_3_)
-@@ -797,7 +994,25 @@
+@@ -797,7 +997,25 @@
          }
          else
          {
@@ -452,7 +471,7 @@
              var4.delayBeforeCanPickup = 40;
  
              if (p_146097_3_)
-@@ -818,10 +1033,10 @@
+@@ -818,10 +1036,10 @@
              }
              else
              {
@@ -467,7 +486,7 @@
                  var5 = 0.02F;
                  var6 = this.rand.nextFloat() * (float)Math.PI * 2.0F;
                  var5 *= this.rand.nextFloat();
-@@ -839,28 +1054,67 @@
+@@ -839,28 +1057,67 @@
      /**
       * Joins the passed in entity item with the world. Args: entityItem
       */
@@ -538,7 +557,7 @@
                  {
                      var3 += var6 * 0.08F;
                  }
-@@ -891,7 +1145,13 @@
+@@ -891,7 +1148,13 @@
              var3 /= 5.0F;
          }
  
@@ -552,7 +571,7 @@
      }
  
      /**
-@@ -899,7 +1159,17 @@
+@@ -899,7 +1162,17 @@
       */
      public boolean canHarvestBlock(Block p_146099_1_)
      {
@@ -571,7 +590,7 @@
      }
  
      /**
-@@ -930,7 +1200,20 @@
+@@ -930,7 +1203,20 @@
              this.spawnChunk = new ChunkCoordinates(tagCompund.getInteger("SpawnX"), tagCompund.getInteger("SpawnY"), tagCompund.getInteger("SpawnZ"));
              this.spawnForced = tagCompund.getBoolean("SpawnForced");
          }
@@ -593,7 +612,7 @@
          this.foodStats.readNBT(tagCompund);
          this.capabilities.readCapabilitiesFromNBT(tagCompund);
  
-@@ -964,6 +1247,28 @@
+@@ -964,6 +1250,28 @@
              tagCompound.setBoolean("SpawnForced", this.spawnForced);
          }
  
@@ -622,7 +641,7 @@
          this.foodStats.writeNBT(tagCompound);
          this.capabilities.writeCapabilitiesToNBT(tagCompound);
          tagCompound.setTag("EnderItems", this.theInventoryEnderChest.saveInventoryToNBT());
-@@ -994,7 +1299,16 @@
+@@ -994,7 +1302,16 @@
  
      public float getEyeHeight()
      {
@@ -640,7 +659,7 @@
      }
  
      /**
-@@ -1010,6 +1324,13 @@
+@@ -1010,6 +1327,13 @@
       */
      public boolean attackEntityFrom(DamageSource source, float amount)
      {
@@ -654,7 +673,7 @@
          if (this.isEntityInvulnerable())
          {
              return false;
-@@ -1122,12 +1443,31 @@
+@@ -1122,12 +1446,31 @@
      {
          if (!this.isEntityInvulnerable())
          {
@@ -688,7 +707,7 @@
              p_70665_2_ = this.applyPotionDamageCalculations(p_70665_1_, p_70665_2_);
              float var3 = p_70665_2_;
              p_70665_2_ = Math.max(p_70665_2_ - this.getAbsorptionAmount(), 0.0F);
-@@ -1167,6 +1507,13 @@
+@@ -1167,6 +1510,13 @@
  
      public boolean interactWith(Entity p_70998_1_)
      {
@@ -702,7 +721,7 @@
          ItemStack var2 = this.getCurrentEquippedItem();
          ItemStack var3 = var2 != null ? var2.copy() : null;
  
-@@ -1223,7 +1570,20 @@
+@@ -1223,7 +1573,20 @@
       */
      public void destroyCurrentEquippedItem()
      {
@@ -723,7 +742,7 @@
      }
  
      /**
-@@ -1240,6 +1600,22 @@
+@@ -1240,6 +1603,22 @@
       */
      public void attackTargetEntityWithCurrentItem(Entity targetEntity)
      {
@@ -746,7 +765,7 @@
          if (targetEntity.canAttackWithItem())
          {
              if (!targetEntity.hitByEntity(this))
-@@ -1401,6 +1777,25 @@
+@@ -1401,6 +1780,25 @@
       */
      public EntityPlayer.EnumStatus sleepInBedAt(int x, int y, int z)
      {
@@ -772,7 +791,7 @@
          if (!this.worldObj.isRemote)
          {
              if (this.isPlayerSleeping() || !this.isEntityAlive())
-@@ -1444,7 +1839,14 @@
+@@ -1444,7 +1842,14 @@
          if (this.worldObj.blockExists(x, y, z))
          {
              int var9 = this.worldObj.getBlockMetadata(x, y, z);
@@ -788,7 +807,7 @@
              float var10 = 0.5F;
              float var7 = 0.5F;
  
-@@ -1517,24 +1919,61 @@
+@@ -1517,24 +1922,61 @@
       */
      public void wakeUpPlayer(boolean p_70999_1_, boolean updateWorldFlag, boolean setSpawn)
      {
@@ -867,7 +886,7 @@
          this.sleeping = false;
  
          if (!this.worldObj.isRemote && updateWorldFlag)
-@@ -1562,7 +2001,17 @@
+@@ -1562,7 +2004,17 @@
       */
      private boolean isInBed()
      {
@@ -886,7 +905,7 @@
      }
  
      /**
-@@ -1571,25 +2020,54 @@
+@@ -1571,25 +2023,54 @@
       */
      public static ChunkCoordinates verifyRespawnCoordinates(World p_71056_0_, ChunkCoordinates p_71056_1_, boolean p_71056_2_)
      {
@@ -960,7 +979,7 @@
      }
  
      /**
-@@ -1601,7 +2079,16 @@
+@@ -1601,7 +2082,16 @@
          {
              int var1 = this.worldObj.getBlockMetadata(this.playerLocation.posX, this.playerLocation.posY, this.playerLocation.posZ);
              int var2 = BlockBed.getDirection(var1);
@@ -978,7 +997,7 @@
              switch (var2)
              {
                  case 0:
-@@ -1668,12 +2155,30 @@
+@@ -1668,12 +2158,30 @@
       */
      public ChunkCoordinates getBedLocation()
      {
@@ -1011,7 +1030,7 @@
      }
  
      /**
-@@ -1681,6 +2186,16 @@
+@@ -1681,6 +2189,16 @@
       */
      public void setSpawnChunk(ChunkCoordinates p_71063_1_, boolean p_71063_2_)
      {
@@ -1028,7 +1047,7 @@
          if (p_71063_1_ != null)
          {
              this.spawnChunk = new ChunkCoordinates(p_71063_1_);
-@@ -1727,7 +2242,7 @@
+@@ -1727,7 +2245,7 @@
      /**
       * Moves the entity based on the specified heading.  Args: strafe, forward
       */
@@ -1037,7 +1056,7 @@
      {
          double var3 = this.posX;
          double var5 = this.posY;
-@@ -1738,13 +2253,20 @@
+@@ -1738,13 +2256,20 @@
              double var9 = this.motionY;
              float var11 = this.jumpMovementFactor;
              this.jumpMovementFactor = this.capabilities.getFlySpeed();
@@ -1061,7 +1080,7 @@
          }
  
          this.addMovementStat(this.posX - var3, this.posY - var5, this.posZ - var7);
-@@ -1878,6 +2400,13 @@
+@@ -1878,6 +2403,13 @@
  
              super.fall(distance);
          }
@@ -1075,7 +1094,7 @@
      }
  
      protected String func_146067_o(int p_146067_1_)
-@@ -1928,11 +2457,16 @@
+@@ -1928,11 +2460,16 @@
          }
          else
          {
@@ -1097,7 +1116,7 @@
              if (this.itemInUse != null && itemStackIn.getItem() == Items.bow)
              {
                  int var4 = itemStackIn.getMaxItemUseDuration() - this.itemInUseCount;
-@@ -1952,6 +2486,13 @@
+@@ -1952,6 +2489,13 @@
                      return Items.bow.getItemIconForUseDuration(0);
                  }
              }
@@ -1111,7 +1130,7 @@
          }
  
          return var3;
-@@ -2057,6 +2598,14 @@
+@@ -2057,6 +2601,14 @@
      {
          if (p_71008_1_ != this.itemInUse)
          {
@@ -1126,7 +1145,7 @@
              this.itemInUse = p_71008_1_;
              this.itemInUseCount = p_71008_2_;
  
-@@ -2142,6 +2691,9 @@
+@@ -2142,6 +2694,9 @@
       */
      public void clonePlayer(EntityPlayer p_71049_1_, boolean p_71049_2_)
      {
@@ -1136,7 +1155,7 @@
          if (p_71049_2_)
          {
              this.inventory.copyInventory(p_71049_1_.inventory);
-@@ -2152,6 +2704,17 @@
+@@ -2152,6 +2707,17 @@
              this.experience = p_71049_1_.experience;
              this.setScore(p_71049_1_.getScore());
              this.teleportDirection = p_71049_1_.teleportDirection;
@@ -1154,7 +1173,7 @@
          }
          else if (this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory"))
          {
-@@ -2163,6 +2726,23 @@
+@@ -2163,6 +2729,23 @@
          }
  
          this.theInventoryEnderChest = p_71049_1_.theInventoryEnderChest;
@@ -1178,7 +1197,7 @@
      }
  
      /**
-@@ -2226,7 +2806,23 @@
+@@ -2226,7 +2809,23 @@
       */
      public void setCurrentItemOrArmor(int slotIn, ItemStack itemStackIn)
      {
@@ -1203,7 +1222,7 @@
      }
  
      /**
-@@ -2277,9 +2873,16 @@
+@@ -2277,9 +2876,16 @@
  
      public IChatComponent getFormattedCommandSenderName()
      {
@@ -1221,7 +1240,7 @@
      }
  
      public void setAbsorptionAmount(float p_110149_1_)
-@@ -2356,7 +2959,136 @@
+@@ -2356,7 +2962,136 @@
              }
          }
      }
@@ -1235,7 +1254,7 @@
 +            Reflector.callVoid(Reflector.FMLNetworkHandler_openGui, new Object[]{this, mod, modGuiId, world, x, y, z});
 +        }
 +    }
-+
+ 
 +    /* ======================================== FORGE START =====================================*/
 +    /**
 +     * interpolated position vector
@@ -1341,7 +1360,7 @@
 +        }
 +        return this.displayname;
 +    }
- 
++
 +    /**
 +     * Force the displayed name to refresh
 +     */
@@ -1358,7 +1377,7 @@
      public static enum EnumStatus
      {
          OK("OK", 0),
-@@ -2371,4 +3103,40 @@
+@@ -2371,4 +3106,40 @@
  
          private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
      }

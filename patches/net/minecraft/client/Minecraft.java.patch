@@ -1,11 +1,12 @@
 --- a/net/minecraft/client/Minecraft.java
 +++ b/net/minecraft/client/Minecraft.java
-@@ -9,19 +9,40 @@
+@@ -9,19 +9,41 @@
  import com.google.common.util.concurrent.ListenableFutureTask;
  import com.mojang.authlib.minecraft.MinecraftSessionService;
  import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 +import com.mtbs3d.minecrift.api.*;
 +import com.mtbs3d.minecrift.control.GuiScreenNavigator;
++import com.mtbs3d.minecrift.gameplay.BowTracker;
 +import com.mtbs3d.minecrift.gameplay.VRPlayer;
 +import com.mtbs3d.minecrift.provider.*;
 +import com.mtbs3d.minecrift.render.FBOParams;
@@ -41,7 +42,7 @@
  import java.util.HashSet;
  import java.util.Iterator;
  import java.util.List;
-@@ -30,26 +51,18 @@
+@@ -30,26 +52,18 @@
  import java.util.concurrent.Callable;
  import java.util.concurrent.Executors;
  import java.util.concurrent.FutureTask;
@@ -74,7 +75,7 @@
  import net.minecraft.client.gui.achievement.GuiAchievement;
  import net.minecraft.client.gui.inventory.GuiInventory;
  import net.minecraft.client.gui.stream.GuiStreamUnavailable;
-@@ -97,6 +110,7 @@
+@@ -97,6 +111,7 @@
  import net.minecraft.client.settings.GameSettings;
  import net.minecraft.client.settings.KeyBinding;
  import net.minecraft.client.shader.Framebuffer;
@@ -82,7 +83,7 @@
  import net.minecraft.client.stream.IStream;
  import net.minecraft.client.stream.NullStream;
  import net.minecraft.client.stream.TwitchStream;
-@@ -127,6 +141,8 @@
+@@ -127,6 +142,8 @@
  import net.minecraft.profiler.Profiler;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.integrated.IntegratedServer;
@@ -91,7 +92,7 @@
  import net.minecraft.stats.AchievementList;
  import net.minecraft.stats.IStatStringFormat;
  import net.minecraft.stats.StatFileWriter;
-@@ -142,6 +158,7 @@
+@@ -142,6 +159,7 @@
  import net.minecraft.util.Session;
  import net.minecraft.util.Timer;
  import net.minecraft.util.Util;
@@ -99,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,640 +167,934 @@
+@@ -150,640 +168,936 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -860,6 +861,8 @@
 +	private final Proxy proxy;
 +	private ISaveFormat saveLoader;
 +
++	public BowTracker bowTracker = new BowTracker(); 
++	
 +	/**
 +	 * This is set to fpsCounter every debug screen update, and is shown on the debug screen. It's also sent as part of
 +	 * the usage snooping.
@@ -1022,7 +1025,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda13";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda14";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -1657,7 +1660,7 @@
          {
              this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
              this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,2348 +1102,3870 @@
+@@ -791,2348 +1105,3878 @@
          catch (IOException var7)
          {
              logger.error("Unable to load logo: " + locationMojangPng, var7);
@@ -2886,6 +2889,12 @@
 +				PredictedDisplayTimeSeconds = this.stereoProvider.getFrameTiming();
 +			}
 +
++			//I dunno where to put this.
++			if(lookaimController instanceof MCOpenVR){
++					bowTracker.doProcess((MCOpenVR) this.lookaimController, thePlayer);
++			}
++
++		
 +			// End display size hack
 +			disableGuiSizeHack();
 +
@@ -2898,6 +2907,8 @@
 +			int currentDisplayWidth = this.displayWidth;
 +			int currentDisplayHeight = this.displayHeight;
 +
++			
++			
 +			/** Minecrift - main stereo render loop **/
 +			for (int i = 0; this.visible && i < viewPortCount; i++)
 +			{
@@ -2940,7 +2951,7 @@
 +				//this.mcProfiler.endSection();
 +
 +				// Update our orientation and position variables from the sensor polled data
-+			this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
++				this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
 +
 +				if (!this.skipRenderWorld)
 +				{
@@ -2953,11 +2964,11 @@
 +						Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
 +					}
 +					this.mcProfiler.endStartSection("gameRenderer");
-+					
-+				///THIS IS WHERE EVERYTHING IS RENDERED
++
++					///THIS IS WHERE EVERYTHING IS RENDERED
 +					this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
-+				
-+					
++
++
 +					this.mcProfiler.endSection();
 +					if (fmlCommonHandler != null) {
 +						Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
@@ -5548,7 +5559,7 @@
 +
 +		if (this.thePlayer.isUsingItem())
 +		{
-+			if (!this.gameSettings.keyBindUseItem.getIsKeyPressed())
++			if (!this.gameSettings.keyBindUseItem.getIsKeyPressed() && bowTracker.isActive(thePlayer) == false)
 +			{
 +				this.playerController.onStoppedUsingItem(this.thePlayer);
 +			}

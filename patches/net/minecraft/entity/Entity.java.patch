@@ -700,7 +700,23 @@
              int var7 = MathHelper.floor_double(this.posZ + (double)var4);
  
              if (this.worldObj.getBlock(var5, var6, var7).isNormalCube())
-@@ -2008,7 +2174,16 @@
+@@ -1828,8 +1994,13 @@
+     public void updateRiderPosition()
+     {
+         if (this.riddenByEntity != null)
+-        {
+-            this.riddenByEntity.setPosition(this.posX, this.posY + this.getMountedYOffset() + this.riddenByEntity.getYOffset(), this.posZ);
++        {       	
++        	if (this.riddenByEntity instanceof EntityPlayerSP){
++        	     this.riddenByEntity.setPosition(this.posX, this.posY + riddenByEntity.getYOffset(), this.posZ);        		
++        	}	else {
++        	     this.riddenByEntity.setPosition(this.posX, this.posY + this.getMountedYOffset() + this.riddenByEntity.getYOffset(), this.posZ);
++        	}
++       
+         }
+     }
+ 
+@@ -2008,7 +2179,16 @@
       */
      public boolean isRiding()
      {
@@ -718,7 +734,7 @@
      }
  
      /**
-@@ -2131,6 +2306,7 @@
+@@ -2131,6 +2311,7 @@
  
      protected boolean pushOutOfBlocks(double x, double y, double z)
      {
@@ -726,7 +742,7 @@
          int var7 = MathHelper.floor_double(x);
          int var8 = MathHelper.floor_double(y);
          int var9 = MathHelper.floor_double(z);
-@@ -2375,7 +2551,17 @@
+@@ -2375,7 +2556,17 @@
       */
      public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
      {
@@ -745,7 +761,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2639,204 @@
+@@ -2453,6 +2644,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  

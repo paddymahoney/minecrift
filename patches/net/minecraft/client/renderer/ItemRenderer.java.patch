@@ -1,14 +1,25 @@
 --- a/net/minecraft/client/renderer/ItemRenderer.java
 +++ b/net/minecraft/client/renderer/ItemRenderer.java
-@@ -1,5 +1,7 @@
+@@ -1,31 +1,39 @@
  package net.minecraft.client.renderer;
  
 +import com.mtbs3d.minecrift.render.OpenGLdebugging;
 +import de.fruitfly.ovr.structs.Matrix4f;
++import de.fruitfly.ovr.structs.Vector3f;
  import net.minecraft.block.Block;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.Minecraft;
-@@ -14,18 +16,18 @@
+ import net.minecraft.client.entity.EntityClientPlayerMP;
+ import net.minecraft.client.entity.EntityPlayerSP;
++import net.minecraft.client.model.ModelRenderer;
+ import net.minecraft.client.renderer.entity.Render;
+ import net.minecraft.client.renderer.entity.RenderManager;
+ import net.minecraft.client.renderer.entity.RenderPlayer;
+ import net.minecraft.client.renderer.texture.TextureManager;
+ import net.minecraft.client.renderer.texture.TextureMap;
+ import net.minecraft.client.renderer.texture.TextureUtil;
++import net.minecraft.enchantment.Enchantment;
++import net.minecraft.enchantment.EnchantmentHelper;
  import net.minecraft.entity.EntityLivingBase;
  import net.minecraft.init.Blocks;
  import net.minecraft.init.Items;
@@ -24,6 +35,8 @@
 +import net.minecraft.util.Vec3;
 +import net.minecraft.world.gen.structure.StructureVillagePieces;
  import net.minecraft.world.storage.MapData;
++
++import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter.Cyan;
  import org.lwjgl.opengl.GL11;
  import org.lwjgl.opengl.GL12;
  
@@ -32,7 +45,19 @@
  public class ItemRenderer
  {
      private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
-@@ -55,38 +57,38 @@
+@@ -34,8 +42,9 @@
+ 
+     /** A reference to the Minecraft object. */
+     private Minecraft mc;
+-    private ItemStack itemToRender;
+-
++    ItemStack itemToRender;
++    int controller = 0; 
++    
+     /**
+      * How far the current item has been equipped (0 disequipped and 1 fully up)
+      */
+@@ -55,103 +64,103 @@
      /**
       * Renders the item stack for being in an entity's hand Args: itemStack
       */
@@ -40,84 +65,208 @@
 +    public void renderItem(EntityLivingBase entity_, ItemStack itemstack_, int p_78443_3_)
      {
          GL11.glPushMatrix();
-         TextureManager var4 = this.mc.getTextureManager();
+-        TextureManager var4 = this.mc.getTextureManager();
 -        Item var5 = p_78443_2_.getItem();
 -        Block var6 = Block.getBlockFromItem(var5);
-+        Item handitem = itemstack_.getItem();
-+        Block block = Block.getBlockFromItem(handitem);
- 
+-
 -        if (p_78443_2_ != null && var6 != null && var6.getRenderBlockPass() != 0)
-+        if (itemstack_ != null && block != null && block.getRenderBlockPass() != 0)
-         {
-             GL11.glEnable(GL11.GL_BLEND);
-             GL11.glEnable(GL11.GL_CULL_FACE);
-             OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-         }
- 
+-        {
+-            GL11.glEnable(GL11.GL_BLEND);
+-            GL11.glEnable(GL11.GL_CULL_FACE);
+-            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+-        }
+-
 -        if (p_78443_2_.getItemSpriteNumber() == 0 && var5 instanceof ItemBlock && RenderBlocks.renderItemIn3d(var6.getRenderType()))
-+        if (itemstack_.getItemSpriteNumber() == 0 && handitem instanceof ItemBlock && RenderBlocks.renderItemIn3d(block.getRenderType()))
-         {
-             var4.bindTexture(var4.getResourceLocation(0));
- 
+-        {
+-            var4.bindTexture(var4.getResourceLocation(0));
+-
 -            if (p_78443_2_ != null && var6 != null && var6.getRenderBlockPass() != 0)
-+            if (itemstack_ != null && block != null && block.getRenderBlockPass() != 0)
-             {
-                 GL11.glDepthMask(false);
+-            {
+-                GL11.glDepthMask(false);
 -                this.renderBlocksIr.renderBlockAsItem(var6, p_78443_2_.getMetadata(), 1.0F);
-+                this.renderBlocksIr.renderBlockAsItem(block, itemstack_.getMetadata(), 1.0F);
-                 GL11.glDepthMask(true);
-             }
-             else
-             {
+-                GL11.glDepthMask(true);
+-            }
+-            else
+-            {
 -                this.renderBlocksIr.renderBlockAsItem(var6, p_78443_2_.getMetadata(), 1.0F);
-+                this.renderBlocksIr.renderBlockAsItem(block, itemstack_.getMetadata(), 1.0F);
-             }
-         }
-         else
-         {
+-            }
+-        }
+-        else
+-        {
 -            IIcon var7 = p_78443_1_.getItemIcon(p_78443_2_, p_78443_3_);
-+            IIcon var7 = entity_.getItemIcon(itemstack_, p_78443_3_);
- 
-             if (var7 == null)
-             {
-@@ -94,7 +96,7 @@
-                 return;
-             }
- 
+-
+-            if (var7 == null)
+-            {
+-                GL11.glPopMatrix();
+-                return;
+-            }
+-
 -            var4.bindTexture(var4.getResourceLocation(p_78443_2_.getItemSpriteNumber()));
-+            var4.bindTexture(var4.getResourceLocation(itemstack_.getItemSpriteNumber()));
-             TextureUtil.func_152777_a(false, false, 1.0F);
-             Tessellator var8 = Tessellator.instance;
-             float var9 = var7.getMinU();
-@@ -112,7 +114,7 @@
-             GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
-             renderItemIn2D(var8, var10, var11, var9, var12, var7.getIconWidth(), var7.getIconHeight(), 0.0625F);
- 
+-            TextureUtil.func_152777_a(false, false, 1.0F);
+-            Tessellator var8 = Tessellator.instance;
+-            float var9 = var7.getMinU();
+-            float var10 = var7.getMaxU();
+-            float var11 = var7.getMinV();
+-            float var12 = var7.getMaxV();
+-            float var13 = 0.0F;
+-            float var14 = 0.3F;
+-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+-            GL11.glTranslatef(-var13, -var14, 0.0F);
+-            float var15 = 1.5F;
+-            GL11.glScalef(var15, var15, var15);
+-            GL11.glRotatef(50.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
+-            GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
+-            renderItemIn2D(var8, var10, var11, var9, var12, var7.getIconWidth(), var7.getIconHeight(), 0.0625F);
+-
 -            if (p_78443_2_.hasEffect() && p_78443_3_ == 0)
-+            if (itemstack_.hasEffect() && p_78443_3_ == 0)
-             {
-                 GL11.glDepthFunc(GL11.GL_EQUAL);
-                 GL11.glDisable(GL11.GL_LIGHTING);
-@@ -144,11 +146,11 @@
-             }
- 
-             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+-            {
+-                GL11.glDepthFunc(GL11.GL_EQUAL);
+-                GL11.glDisable(GL11.GL_LIGHTING);
+-                var4.bindTexture(RES_ITEM_GLINT);
+-                GL11.glEnable(GL11.GL_BLEND);
+-                OpenGlHelper.glBlendFunc(768, 1, 1, 0);
+-                float var16 = 0.76F;
+-                GL11.glColor4f(0.5F * var16, 0.25F * var16, 0.8F * var16, 1.0F);
+-                GL11.glMatrixMode(GL11.GL_TEXTURE);
+-                GL11.glPushMatrix();
+-                float var17 = 0.125F;
+-                GL11.glScalef(var17, var17, var17);
+-                float var18 = (float)(Minecraft.getSystemTime() % 3000L) / 3000.0F * 8.0F;
+-                GL11.glTranslatef(var18, 0.0F, 0.0F);
+-                GL11.glRotatef(-50.0F, 0.0F, 0.0F, 1.0F);
+-                renderItemIn2D(var8, 0.0F, 0.0F, 1.0F, 1.0F, 256, 256, 0.0625F);
+-                GL11.glPopMatrix();
+-                GL11.glPushMatrix();
+-                GL11.glScalef(var17, var17, var17);
+-                var18 = (float)(Minecraft.getSystemTime() % 4873L) / 4873.0F * 8.0F;
+-                GL11.glTranslatef(-var18, 0.0F, 0.0F);
+-                GL11.glRotatef(10.0F, 0.0F, 0.0F, 1.0F);
+-                renderItemIn2D(var8, 0.0F, 0.0F, 1.0F, 1.0F, 256, 256, 0.0625F);
+-                GL11.glPopMatrix();
+-                GL11.glMatrixMode(GL11.GL_MODELVIEW);
+-                GL11.glDisable(GL11.GL_BLEND);
+-                GL11.glEnable(GL11.GL_LIGHTING);
+-                GL11.glDepthFunc(GL11.GL_LEQUAL);
+-            }
+-
+-            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 -            var4.bindTexture(var4.getResourceLocation(p_78443_2_.getItemSpriteNumber()));
-+            var4.bindTexture(var4.getResourceLocation(itemstack_.getItemSpriteNumber()));
-             TextureUtil.func_147945_b();
-         }
- 
+-            TextureUtil.func_147945_b();
+-        }
+-
 -        if (p_78443_2_ != null && var6 != null && var6.getRenderBlockPass() != 0)
-+        if (itemstack_ != null && block != null && block.getRenderBlockPass() != 0)
-         {
-             GL11.glDisable(GL11.GL_BLEND);
-         }
-@@ -244,30 +246,59 @@
+-        {
+-            GL11.glDisable(GL11.GL_BLEND);
+-        }
++	        TextureManager var4 = this.mc.getTextureManager();
++	        Item handitem = itemstack_.getItem();
++	        Block block = Block.getBlockFromItem(handitem);
++	
++	        if (itemstack_ != null && block != null && block.getRenderBlockPass() != 0)
++	        {
++	            GL11.glEnable(GL11.GL_BLEND);
++	            GL11.glEnable(GL11.GL_CULL_FACE);
++	            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
++	        }
++	
++	        if (itemstack_.getItemSpriteNumber() == 0 && handitem instanceof ItemBlock && RenderBlocks.renderItemIn3d(block.getRenderType()))
++	        {
++	            var4.bindTexture(var4.getResourceLocation(0));
++	
++	            if (itemstack_ != null && block != null && block.getRenderBlockPass() != 0)
++	            {
++	                GL11.glDepthMask(false);
++	                this.renderBlocksIr.renderBlockAsItem(block, itemstack_.getMetadata(), 1.0F);
++	                GL11.glDepthMask(true);
++	            }
++	            else
++	            {
++	                this.renderBlocksIr.renderBlockAsItem(block, itemstack_.getMetadata(), 1.0F);
++	            }
++	        }
++	        else
++	        {
++	            IIcon var7 = entity_.getItemIcon(itemstack_, p_78443_3_);
++	
++	            if (var7 == null)
++	            {
++	                GL11.glPopMatrix();
++	                return;
++	            }
++	
++	            var4.bindTexture(var4.getResourceLocation(itemstack_.getItemSpriteNumber()));
++	            TextureUtil.func_152777_a(false, false, 1.0F);
++	            Tessellator var8 = Tessellator.instance;
++	            float var9 = var7.getMinU();
++	            float var10 = var7.getMaxU();
++	            float var11 = var7.getMinV();
++	            float var12 = var7.getMaxV();
++	            float var13 = 0.0F;
++	            float var14 = 0.3F;
++	            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
++	            GL11.glTranslatef(-var13, -var14, 0.0F);
++	            float var15 = 1.5F;
++	            GL11.glScalef(var15, var15, var15);
++	            GL11.glRotatef(50.0F, 0.0F, 1.0F, 0.0F);
++	            GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
++	            GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
++	            renderItemIn2D(var8, var10, var11, var9, var12, var7.getIconWidth(), var7.getIconHeight(), 0.0625F);
++	
++	            if (itemstack_.hasEffect() && p_78443_3_ == 0)
++	            {
++	                GL11.glDepthFunc(GL11.GL_EQUAL);
++	                GL11.glDisable(GL11.GL_LIGHTING);
++	                var4.bindTexture(RES_ITEM_GLINT);
++	                GL11.glEnable(GL11.GL_BLEND);
++	                OpenGlHelper.glBlendFunc(768, 1, 1, 0);
++	                float var16 = 0.76F;
++	                GL11.glColor4f(0.5F * var16, 0.25F * var16, 0.8F * var16, 1.0F);
++	                GL11.glMatrixMode(GL11.GL_TEXTURE);
++	                GL11.glPushMatrix();
++	                float var17 = 0.125F;
++	                GL11.glScalef(var17, var17, var17);
++	                float var18 = (float)(Minecraft.getSystemTime() % 3000L) / 3000.0F * 8.0F;
++	                GL11.glTranslatef(var18, 0.0F, 0.0F);
++	                GL11.glRotatef(-50.0F, 0.0F, 0.0F, 1.0F);
++	                renderItemIn2D(var8, 0.0F, 0.0F, 1.0F, 1.0F, 256, 256, 0.0625F);
++	                GL11.glPopMatrix();
++	                GL11.glPushMatrix();
++	                GL11.glScalef(var17, var17, var17);
++	                var18 = (float)(Minecraft.getSystemTime() % 4873L) / 4873.0F * 8.0F;
++	                GL11.glTranslatef(-var18, 0.0F, 0.0F);
++	                GL11.glRotatef(10.0F, 0.0F, 0.0F, 1.0F);
++	                renderItemIn2D(var8, 0.0F, 0.0F, 1.0F, 1.0F, 256, 256, 0.0625F);
++	                GL11.glPopMatrix();
++	                GL11.glMatrixMode(GL11.GL_MODELVIEW);
++	                GL11.glDisable(GL11.GL_BLEND);
++	                GL11.glEnable(GL11.GL_LIGHTING);
++	                GL11.glDepthFunc(GL11.GL_LEQUAL);
++	            }
++	
++	            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
++	            var4.bindTexture(var4.getResourceLocation(itemstack_.getItemSpriteNumber()));
++	            TextureUtil.func_147945_b();
++	        }
++	
++	        if (itemstack_ != null && block != null && block.getRenderBlockPass() != 0)
++	        {
++	            GL11.glDisable(GL11.GL_BLEND);
++	        }
+ 
+         GL11.glPopMatrix();
+     }
+@@ -240,364 +249,558 @@
+ 
+         p_78439_0_.draw();
+     }
+-
++           
      /**
       * Renders the active item in the player's hand when in first person mode. Args: partialTickTime
       */
 -    public void renderItemInFirstPerson(float p_78440_1_)
-+    public void renderItemInFirstPerson(float nano)
++    public void renderItemInFirstPerson(float nano) //controller relative
      {
 -        float var2 = this.prevEquippedProgress + (this.equippedProgress - this.prevEquippedProgress) * p_78440_1_;
 -        EntityClientPlayerMP var3 = this.mc.thePlayer;
@@ -125,373 +274,245 @@
 -        GL11.glPushMatrix();
 -        GL11.glRotatef(var4, 1.0F, 0.0F, 0.0F);
 -        GL11.glRotatef(var3.prevRotationYaw + (var3.rotationYaw - var3.prevRotationYaw) * p_78440_1_, 0.0F, 1.0F, 0.0F);
-+        float equippingprogress = this.prevEquippedProgress + (this.equippedProgress - this.prevEquippedProgress) * nano;
-+        EntityClientPlayerMP player = this.mc.thePlayer;
-+        float rotationprogress = player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * nano;
-+
-+        // VIVE START - rotate item by aim direction
-+        if (this.mc.lookaimController.getAimSource(0)!=null)
-+        {
-+            rotationprogress = this.mc.lookaimController.getAimPitch();
-+
-+            GL11.glPushMatrix();
-+            GL11.glRotatef(rotationprogress, 1.0F, 0.0F, 0.0F);
-+            GL11.glRotatef(this.mc.lookaimController.getAimYaw(), 0.0F, 1.0F, 0.0F);
-+        }
-+        else
-+        {
-+            GL11.glPushMatrix();
-+            GL11.glRotatef(rotationprogress, 1.0F, 0.0F, 0.0F);
-+            GL11.glRotatef(player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * nano, 0.0F, 1.0F, 0.0F);
-+        }
-+        // VIVE END
-+
-         RenderHelper.enableStandardItemLighting();
-         GL11.glPopMatrix();
+-        RenderHelper.enableStandardItemLighting();
+-        GL11.glPopMatrix();
 -        EntityPlayerSP var5 = (EntityPlayerSP)var3;
 -        float var6 = var5.prevRenderArmPitch + (var5.renderArmPitch - var5.prevRenderArmPitch) * p_78440_1_;
 -        float var7 = var5.prevRenderArmYaw + (var5.renderArmYaw - var5.prevRenderArmYaw) * p_78440_1_;
 -        GL11.glRotatef((var3.rotationPitch - var6) * 0.1F, 1.0F, 0.0F, 0.0F);
 -        GL11.glRotatef((var3.rotationYaw - var7) * 0.1F, 0.0F, 1.0F, 0.0F);
 -        ItemStack var8 = this.itemToRender;
-+        EntityPlayerSP var5 = (EntityPlayerSP)player;
-+        float var6 = var5.prevRenderArmPitch + (var5.renderArmPitch - var5.prevRenderArmPitch) * nano;
-+        float var7 = var5.prevRenderArmYaw + (var5.renderArmYaw - var5.prevRenderArmYaw) * nano;
-+
-+        // VIVE START - rotate item by aim direction
-+        Matrix4f rotation = this.mc.lookaimController.getAimRotation(0);
-+        if (rotation!=null)
-+        {
-+            GL11.glMultMatrix(rotation.transposed().toFloatBuffer());
-+            GL11.glRotatef(-110.0F, 1.0F, 0.0F, 0.0F);
-+            GL11.glTranslatef(-0.046f, -0.02f, -0.008f);
-+        }
-+        else
-+        {
-+            GL11.glRotatef((player.rotationPitch - var6) * 0.1F, 1.0F, 0.0F, 0.0F);
-+            GL11.glRotatef((player.rotationYaw - var7) * 0.1F, 0.0F, 1.0F, 0.0F);
-+        }
-+        // VIVE END - rotate item by aim direction
- 
+-
 -        if (var8 != null && var8.getItem() instanceof ItemCloth)
-+        ItemStack renderitem8 = this.itemToRender;
-+
-+        if (renderitem8 != null && renderitem8.getItem() instanceof ItemCloth)
-         {
-             GL11.glEnable(GL11.GL_BLEND);
-             OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-         }
- 
+-        {
+-            GL11.glEnable(GL11.GL_BLEND);
+-            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+-        }
+-
 -        int var9 = this.mc.theWorld.getLightBrightnessForSkyBlocks(MathHelper.floor_double(var3.posX), MathHelper.floor_double(var3.posY), MathHelper.floor_double(var3.posZ), 0);
-+        int var9 = this.mc.theWorld.getLightBrightnessForSkyBlocks(MathHelper.floor_double(player.posX), MathHelper.floor_double(player.posY), MathHelper.floor_double(player.posZ), 0);
-         int var10 = var9 % 65536;
-         int var11 = var9 / 65536;
-         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)var10 / 1.0F, (float)var11 / 1.0F);
-@@ -276,9 +307,9 @@
-         float var14;
-         float var15;
- 
+-        int var10 = var9 % 65536;
+-        int var11 = var9 / 65536;
+-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)var10 / 1.0F, (float)var11 / 1.0F);
+-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+-        float var13;
+-        float var14;
+-        float var15;
+-
 -        if (var8 != null)
-+        if (renderitem8 != null)
-         {
+-        {
 -            int var12 = var8.getItem().getColorFromItemStack(var8, 0);
-+            int var12 = renderitem8.getItem().getColorFromItemStack(renderitem8, 0);
-             var13 = (float)(var12 >> 16 & 255) / 255.0F;
-             var14 = (float)(var12 >> 8 & 255) / 255.0F;
-             var15 = (float)(var12 & 255) / 255.0F;
-@@ -296,15 +327,15 @@
-         Render var26;
-         RenderPlayer var29;
- 
+-            var13 = (float)(var12 >> 16 & 255) / 255.0F;
+-            var14 = (float)(var12 >> 8 & 255) / 255.0F;
+-            var15 = (float)(var12 & 255) / 255.0F;
+-            GL11.glColor4f(var13, var14, var15, 1.0F);
+-        }
+-        else
+-        {
+-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+-        }
+-
+-        float var16;
+-        float var17;
+-        float var18;
+-        float var22;
+-        Render var26;
+-        RenderPlayer var29;
+-
 -        if (var8 != null && var8.getItem() == Items.filled_map)
-+        if (renderitem8 != null && renderitem8.getItem() == Items.filled_map) //game map
-         {
-             GL11.glPushMatrix();
-             var22 = 0.8F;
+-        {
+-            GL11.glPushMatrix();
+-            var22 = 0.8F;
 -            var13 = var3.getSwingProgress(p_78440_1_);
-+            var13 = player.getSwingProgress(nano);
-             var14 = MathHelper.sin(var13 * (float)Math.PI);
-             var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
-             GL11.glTranslatef(-var15 * 0.4F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI * 2.0F) * 0.2F, -var14 * 0.2F);
+-            var14 = MathHelper.sin(var13 * (float)Math.PI);
+-            var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
+-            GL11.glTranslatef(-var15 * 0.4F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI * 2.0F) * 0.2F, -var14 * 0.2F);
 -            var13 = 1.0F - var4 / 45.0F + 0.1F;
-+            var13 = 1.0F - rotationprogress / 45.0F + 0.1F;
- 
-             if (var13 < 0.0F)
-             {
-@@ -316,31 +347,39 @@
-                 var13 = 1.0F;
-             }
- 
-+            // VIVE START - adjust overall map position
-+            GL11.glRotatef(150.0f, 1.0F, 0.0F, 0.0F);
-+            GL11.glTranslatef(-0.1F, 0.3F, 0.2f);
-+            GL11.glScalef(0.6f, 0.6f, 0.6f);
-+            // VIVE END - adjust overall map position
-+
-             var13 = -MathHelper.cos(var13 * (float)Math.PI) * 0.5F + 0.5F;
+-
+-            if (var13 < 0.0F)
+-            {
+-                var13 = 0.0F;
+-            }
+-
+-            if (var13 > 1.0F)
+-            {
+-                var13 = 1.0F;
+-            }
+-
+-            var13 = -MathHelper.cos(var13 * (float)Math.PI) * 0.5F + 0.5F;
 -            GL11.glTranslatef(0.0F, 0.0F * var22 - (1.0F - var2) * 1.2F - var13 * 0.5F + 0.04F, -0.9F * var22);
-+            GL11.glTranslatef(0.0F, 0.0F * var22 - (1.0F - equippingprogress) * 1.2F - var13 * 0.5F + 0.04F, -0.9F * var22);
-             GL11.glRotatef(90.0F, 0.0F, 1.0F, 0.0F);
-             GL11.glRotatef(var13 * -85.0F, 0.0F, 0.0F, 1.0F);
-             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+-            GL11.glRotatef(90.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glRotatef(var13 * -85.0F, 0.0F, 0.0F, 1.0F);
+-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 -            this.mc.getTextureManager().bindTexture(var3.getLocationSkin());
-+            this.mc.getTextureManager().bindTexture(player.getLocationSkin());
- 
+-
 -            for (int var24 = 0; var24 < 2; ++var24)
-+            for (int var24 = 1; var24 < 2; ++var24) // VIVE - only draw right arm holding map,
-             {
-                 int var25 = var24 * 2 - 1;
-                 GL11.glPushMatrix();
-                 GL11.glTranslatef(-0.0F, -0.6F, 1.1F * (float)var25);
+-            {
+-                int var25 = var24 * 2 - 1;
+-                GL11.glPushMatrix();
+-                GL11.glTranslatef(-0.0F, -0.6F, 1.1F * (float)var25);
 -                GL11.glRotatef((float)(-45 * var25), 1.0F, 0.0F, 0.0F);
-+                GL11.glTranslatef(-0.21f, -0.05f, -0.65f); // VIVE - adjust arm position
-+                GL11.glRotatef((float)(0 * var25), 1.0F, 0.0F, 0.0F); // VIVE - adjust arm rotation
-                 GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
+-                GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
 -                GL11.glRotatef(59.0F, 0.0F, 0.0F, 1.0F);
-+                GL11.glRotatef(39.0F, 0.0F, 0.0F, 1.0F); // VIVE - adjust arm rotation
-                 GL11.glRotatef((float)(-65 * var25), 0.0F, 1.0F, 0.0F);
-                 var26 = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
-                 var29 = (RenderPlayer)var26;
+-                GL11.glRotatef((float)(-65 * var25), 0.0F, 1.0F, 0.0F);
+-                var26 = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
+-                var29 = (RenderPlayer)var26;
 -                var18 = 1.0F;
-+                var18 = 0.5F;       // VIVE - adjust arm scale
-                 GL11.glScalef(var18, var18, var18);
-+
-                 var29.renderFirstPersonArm(this.mc.thePlayer);
-                 GL11.glPopMatrix();
-             }
- 
+-                GL11.glScalef(var18, var18, var18);
+-                var29.renderFirstPersonArm(this.mc.thePlayer);
+-                GL11.glPopMatrix();
+-            }
+-
 -            var14 = var3.getSwingProgress(p_78440_1_);
-+            var14 = player.getSwingProgress(nano);
-             var15 = MathHelper.sin(var14 * var14 * (float)Math.PI);
-             var16 = MathHelper.sin(MathHelper.sqrt_float(var14) * (float)Math.PI);
-             GL11.glRotatef(-var15 * 20.0F, 0.0F, 1.0F, 0.0F);
-@@ -363,7 +402,7 @@
-             var30.addVertexWithUV((double)(128 + var31), (double)(0 - var31), 0.0D, 1.0D, 0.0D);
-             var30.addVertexWithUV((double)(0 - var31), (double)(0 - var31), 0.0D, 0.0D, 0.0D);
-             var30.draw();
+-            var15 = MathHelper.sin(var14 * var14 * (float)Math.PI);
+-            var16 = MathHelper.sin(MathHelper.sqrt_float(var14) * (float)Math.PI);
+-            GL11.glRotatef(-var15 * 20.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glRotatef(-var16 * 20.0F, 0.0F, 0.0F, 1.0F);
+-            GL11.glRotatef(-var16 * 80.0F, 1.0F, 0.0F, 0.0F);
+-            var17 = 0.38F;
+-            GL11.glScalef(var17, var17, var17);
+-            GL11.glRotatef(90.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);
+-            GL11.glTranslatef(-1.0F, -1.0F, 0.0F);
+-            var18 = 0.015625F;
+-            GL11.glScalef(var18, var18, var18);
+-            this.mc.getTextureManager().bindTexture(RES_MAP_BACKGROUND);
+-            Tessellator var30 = Tessellator.instance;
+-            GL11.glNormal3f(0.0F, 0.0F, -1.0F);
+-            var30.startDrawingQuads();
+-            byte var31 = 7;
+-            var30.addVertexWithUV((double)(0 - var31), (double)(128 + var31), 0.0D, 0.0D, 1.0D);
+-            var30.addVertexWithUV((double)(128 + var31), (double)(128 + var31), 0.0D, 1.0D, 1.0D);
+-            var30.addVertexWithUV((double)(128 + var31), (double)(0 - var31), 0.0D, 1.0D, 0.0D);
+-            var30.addVertexWithUV((double)(0 - var31), (double)(0 - var31), 0.0D, 0.0D, 0.0D);
+-            var30.draw();
 -            MapData var21 = Items.filled_map.getMapData(var8, this.mc.theWorld);
-+            MapData var21 = Items.filled_map.getMapData(renderitem8, this.mc.theWorld);
- 
-             if (var21 != null)
-             {
-@@ -372,19 +411,19 @@
- 
-             GL11.glPopMatrix();
-         }
+-
+-            if (var21 != null)
+-            {
+-                this.mc.entityRenderer.getMapItemRenderer().func_148250_a(var21, false);
+-            }
+-
+-            GL11.glPopMatrix();
+-        }
 -        else if (var8 != null)
-+        else if (renderitem8 != null) //most items
-         {
-             GL11.glPushMatrix();
-             var22 = 0.8F;
- 
+-        {
+-            GL11.glPushMatrix();
+-            var22 = 0.8F;
+-
 -            if (var3.getItemInUseCount() > 0)
-+            if (player.getItemInUseCount() > 0) //'using' item animation
-             {
+-            {
 -                EnumAction var23 = var8.getItemUseAction();
-+                EnumAction var23 = renderitem8.getItemUseAction();
- 
-                 if (var23 == EnumAction.eat || var23 == EnumAction.drink)
-                 {
+-
+-                if (var23 == EnumAction.eat || var23 == EnumAction.drink)
+-                {
 -                    var14 = (float)var3.getItemInUseCount() - p_78440_1_ + 1.0F;
 -                    var15 = 1.0F - var14 / (float)var8.getMaxItemUseDuration();
-+                    var14 = (float)player.getItemInUseCount() - nano + 1.0F;
-+                    var15 = 1.0F - var14 / (float)renderitem8.getMaxItemUseDuration();
-                     var16 = 1.0F - var15;
-                     var16 = var16 * var16 * var16;
-                     var16 = var16 * var16 * var16;
-@@ -397,38 +436,125 @@
-                     GL11.glRotatef(var17 * 30.0F, 0.0F, 0.0F, 1.0F);
-                 }
-             }
+-                    var16 = 1.0F - var15;
+-                    var16 = var16 * var16 * var16;
+-                    var16 = var16 * var16 * var16;
+-                    var16 = var16 * var16 * var16;
+-                    var17 = 1.0F - var16;
+-                    GL11.glTranslatef(0.0F, MathHelper.abs(MathHelper.cos(var14 / 4.0F * (float)Math.PI) * 0.1F) * (float)((double)var15 > 0.2D ? 1 : 0), 0.0F);
+-                    GL11.glTranslatef(var17 * 0.6F, -var17 * 0.5F, 0.0F);
+-                    GL11.glRotatef(var17 * 90.0F, 0.0F, 1.0F, 0.0F);
+-                    GL11.glRotatef(var17 * 10.0F, 1.0F, 0.0F, 0.0F);
+-                    GL11.glRotatef(var17 * 30.0F, 0.0F, 0.0F, 1.0F);
+-                }
+-            }
 -            else
-+            else //animate item swinging
-             {
+-            {
 -                var13 = var3.getSwingProgress(p_78440_1_);
-+                var13 = player.getSwingProgress(nano);
-                 var14 = MathHelper.sin(var13 * (float)Math.PI);
-                 var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
+-                var14 = MathHelper.sin(var13 * (float)Math.PI);
+-                var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
 -                GL11.glTranslatef(-var15 * 0.4F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI * 2.0F) * 0.2F, -var14 * 0.2F);
-+                // VIVE START - different attack anim
-+                if (this.mc.lookaimController.getAimSource(0)!=null)
-+                {
-+                    var14 = -0.2F * MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
-+                    var15 = -0.0F * MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
-+                    GL11.glTranslatef(-var15, 0.9F * MathHelper.sin(var13 * (float)Math.PI), -var14);
-+                }
-+                else //controller not found??
-+                {
-+                    GL11.glTranslatef(-var15 * 0.4F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI * 2.0F) * 0.2F, -var14 * 0.2F);
-+                }
-+                // VIVE END - different attack anim
-             }
- 
+-            }
+-
 -            GL11.glTranslatef(0.7F * var22, -0.65F * var22 - (1.0F - var2) * 0.6F, -0.9F * var22);
-+            // VIVE START - adjust item position based on type
-+            if (this.mc.lookaimController.getAimSource(0)!=null)
-+            {
-+                Item item = renderitem8.getItem();
-+                if (item != null)
-+                {
-+                    if (item instanceof ItemBow)
-+                    {
-+                        if (player.getItemInUseCount() > 0)
-+                        {
-+                            GL11.glRotatef(105.f, 1.0F, 0.0F, 0.0F);
-+                            GL11.glRotatef(8.f, 0.0F, 1.0F, 0.0F);
-+                            GL11.glTranslatef(0.15f, -0.15f, -0.00f);
-+                        }
-+                        else
-+                        {
-+                            GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
-+                            GL11.glTranslatef(0.00f, -0.08f, -0.00f);
-+                        }
-+                    }
-+                    else if (item instanceof ItemCarrotOnAStick
-+                            || item instanceof ItemFishingRod
-+                            )
-+                    {
-+                        GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
-+                        GL11.glTranslatef(0.00f, -0.08f, 0.10f);
-+                    }
-+                    else if (item instanceof ItemPotion
-+                            || item instanceof ItemGlassBottle)
-+                    {
-+                        GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
-+                        GL11.glTranslatef(0.00f, -0.26f, -0.00f);
-+                    }
-+                    else if (item instanceof ItemMonsterPlacer
-+                            || item instanceof ItemRedstone
-+                            || item instanceof ItemBucket
-+                            || item instanceof ItemBucketMilk
-+                            || item instanceof ItemDoor
-+                            || item instanceof ItemSign
-+                            )
-+                    {
-+                        GL11.glTranslatef(0.01f, -0.0f, -0.11f);
-+                        GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
-+                    }
-+                    else if (item instanceof ItemBlock)
-+                    {
-+                        Block block = Block.getBlockFromItem(item);
-+                        if (renderitem8.getItemSpriteNumber() == 0 && RenderBlocks.renderItemIn3d(block.getRenderType()))
-+                        {
-+                            // default orientation is fine
-+                        }
-+                        else
-+                        {
-+                            GL11.glTranslatef(0.01f, -0.0f, -0.11f);
-+                            GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
-+                        }
-+                    }
-+                }
-+
-+                GL11.glTranslatef(0.04f, -0.02f, -0.05f);
-+            }
-+            else //no controller?
-+            {
-+                GL11.glTranslatef(0.7F * var22, -0.65F * var22 - (1.0F - equippingprogress) * 0.6F, -0.9F * var22);
-+            }
-+            // VIVE END - adjust item position based on type
-             GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
-             GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+-            GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
+-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 -            var13 = var3.getSwingProgress(p_78440_1_);
-+            var13 = player.getSwingProgress(nano);
-             var14 = MathHelper.sin(var13 * var13 * (float)Math.PI);
-             var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
+-            var14 = MathHelper.sin(var13 * var13 * (float)Math.PI);
+-            var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
 -            GL11.glRotatef(-var14 * 20.0F, 0.0F, 1.0F, 0.0F);
 -            GL11.glRotatef(-var15 * 20.0F, 0.0F, 0.0F, 1.0F);
 -            GL11.glRotatef(-var15 * 80.0F, 1.0F, 0.0F, 0.0F);
 -            var16 = 0.4F;
 -            GL11.glScalef(var16, var16, var16);
-+
-+            // VIVE START - adjust held item
-+            if (this.mc.lookaimController.getAimSource(0)!=null)
-+            {
-+                var16 = 0.26F;
-+                GL11.glScalef(var16, var16, var16);
-+            }
-+            else
-+            {
-+                GL11.glRotatef(-var14 * 20.0F, 0.0F, 1.0F, 0.0F);
-+                GL11.glRotatef(-var15 * 20.0F, 0.0F, 0.0F, 1.0F);
-+                GL11.glRotatef(-var15 * 80.0F, 1.0F, 0.0F, 0.0F);
-+                var16 = 0.4F;
-+                GL11.glScalef(var16, var16, var16);
-+            }
-+            // VIVE END - adjust held item
-             float var19;
-             float var20;
- 
+-            float var19;
+-            float var20;
+-
 -            if (var3.getItemInUseCount() > 0)
-+            if (player.getItemInUseCount() > 0)
-             {
+-            {
 -                EnumAction var27 = var8.getItemUseAction();
-+                EnumAction var27 = renderitem8.getItemUseAction();
- 
-                 if (var27 == EnumAction.block)
-                 {
+-
+-                if (var27 == EnumAction.block)
+-                {
 -                    GL11.glTranslatef(-0.5F, 0.2F, 0.0F);
 -                    GL11.glRotatef(30.0F, 0.0F, 1.0F, 0.0F);
 -                    GL11.glRotatef(-80.0F, 1.0F, 0.0F, 0.0F);
 -                    GL11.glRotatef(60.0F, 0.0F, 1.0F, 0.0F);
-+                    // VIVE START - adjust block angle
-+                    GL11.glRotatef(70.0F, 0.0F, 0.0F, 1.0F);
-+                    GL11.glRotatef(40.0F, 0.0F, 1.0F, 0.0F);
-+                    // VIVE END - adjust block angle
-                 }
-                 else if (var27 == EnumAction.bow)
-                 {
-@@ -436,7 +562,7 @@
-                     GL11.glRotatef(-12.0F, 0.0F, 1.0F, 0.0F);
-                     GL11.glRotatef(-8.0F, 1.0F, 0.0F, 0.0F);
-                     GL11.glTranslatef(-0.9F, 0.2F, 0.0F);
+-                }
+-                else if (var27 == EnumAction.bow)
+-                {
+-                    GL11.glRotatef(-18.0F, 0.0F, 0.0F, 1.0F);
+-                    GL11.glRotatef(-12.0F, 0.0F, 1.0F, 0.0F);
+-                    GL11.glRotatef(-8.0F, 1.0F, 0.0F, 0.0F);
+-                    GL11.glTranslatef(-0.9F, 0.2F, 0.0F);
 -                    var18 = (float)var8.getMaxItemUseDuration() - ((float)var3.getItemInUseCount() - p_78440_1_ + 1.0F);
-+                    var18 = (float)renderitem8.getMaxItemUseDuration() - ((float)player.getItemInUseCount() - nano + 1.0F);
-                     var19 = var18 / 20.0F;
-                     var19 = (var19 * var19 + var19 * 2.0F) / 3.0F;
- 
-@@ -462,51 +588,68 @@
-                 }
-             }
- 
+-                    var19 = var18 / 20.0F;
+-                    var19 = (var19 * var19 + var19 * 2.0F) / 3.0F;
+-
+-                    if (var19 > 1.0F)
+-                    {
+-                        var19 = 1.0F;
+-                    }
+-
+-                    if (var19 > 0.1F)
+-                    {
+-                        GL11.glTranslatef(0.0F, MathHelper.sin((var18 - 0.1F) * 1.3F) * 0.01F * (var19 - 0.1F), 0.0F);
+-                    }
+-
+-                    GL11.glTranslatef(0.0F, 0.0F, var19 * 0.1F);
+-                    GL11.glRotatef(-335.0F, 0.0F, 0.0F, 1.0F);
+-                    GL11.glRotatef(-50.0F, 0.0F, 1.0F, 0.0F);
+-                    GL11.glTranslatef(0.0F, 0.5F, 0.0F);
+-                    var20 = 1.0F + var19 * 0.2F;
+-                    GL11.glScalef(1.0F, 1.0F, var20);
+-                    GL11.glTranslatef(0.0F, -0.5F, 0.0F);
+-                    GL11.glRotatef(50.0F, 0.0F, 1.0F, 0.0F);
+-                    GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
+-                }
+-            }
+-
 -            if (var8.getItem().shouldRotateAroundWhenRendering())
-+            if (renderitem8.getItem().shouldRotateAroundWhenRendering())
-             {
-                 GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
-             }
- 
+-            {
+-                GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+-            }
+-
 -            if (var8.getItem().requiresMultipleRenderPasses())
-+            if (renderitem8.getItem().requiresMultipleRenderPasses())
-             {
+-            {
 -                this.renderItem(var3, var8, 0);
 -                int var28 = var8.getItem().getColorFromItemStack(var8, 1);
-+                this.renderItem(player, renderitem8, 0);
-+                int var28 = renderitem8.getItem().getColorFromItemStack(renderitem8, 1);
-                 var18 = (float)(var28 >> 16 & 255) / 255.0F;
-                 var19 = (float)(var28 >> 8 & 255) / 255.0F;
-                 var20 = (float)(var28 & 255) / 255.0F;
-                 GL11.glColor4f(1.0F * var18, 1.0F * var19, 1.0F * var20, 1.0F);
+-                var18 = (float)(var28 >> 16 & 255) / 255.0F;
+-                var19 = (float)(var28 >> 8 & 255) / 255.0F;
+-                var20 = (float)(var28 & 255) / 255.0F;
+-                GL11.glColor4f(1.0F * var18, 1.0F * var19, 1.0F * var20, 1.0F);
 -                this.renderItem(var3, var8, 1);
-+                this.renderItem(player, renderitem8, 1);
-             }
+-            }
 -            else
-+            else //single render go
-             {
+-            {
 -                this.renderItem(var3, var8, 0);
-+                this.renderItem(player, renderitem8, 0);
-             }
- 
-             GL11.glPopMatrix();
-         }
+-            }
+-
+-            GL11.glPopMatrix();
+-        }
 -        else if (!var3.isInvisible())
-+        else if (!player.isInvisible())
-         {
-             GL11.glPushMatrix();
-             var22 = 0.8F;
+-        {
+-            GL11.glPushMatrix();
+-            var22 = 0.8F;
 -            var13 = var3.getSwingProgress(p_78440_1_);
-+            var13 = player.getSwingProgress(nano);
-             var14 = MathHelper.sin(var13 * (float)Math.PI);
-             var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
+-            var14 = MathHelper.sin(var13 * (float)Math.PI);
+-            var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
 -            GL11.glTranslatef(-var15 * 0.3F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI * 2.0F) * 0.4F, -var14 * 0.4F);
 -            GL11.glTranslatef(0.8F * var22, -0.75F * var22 - (1.0F - var2) * 0.6F, -0.9F * var22);
 -            GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
@@ -508,56 +529,498 @@
 -            GL11.glRotatef(-135.0F, 0.0F, 1.0F, 0.0F);
 -            GL11.glScalef(1.0F, 1.0F, 1.0F);
 -            GL11.glTranslatef(5.6F, 0.0F, 0.0F);
-+
-+            // VIVE START - adjust arm
-+            if (this.mc.lookaimController.getAimSource(0)!=null)
-+            {
-+                GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-+                GL11.glScalef(0.3f, 0.3F, 0.3F);
-+                GL11.glRotatef(10.0F, 1.0F, 0.0F, 0.0F);
-+                GL11.glRotatef(0.0F, 0.0F, 1.0F, 0.0F);
-+                GL11.glRotatef(-10.0F, 0.0F, 0.0F, 1.0F);
-+                GL11.glTranslatef(0.5f, -0.5f, 0);
-+                GL11.glTranslatef(-var15 * 0.3F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI * 2.0F) * 0.4F, -var14 * 0.4F);
-+
-+                this.mc.getTextureManager().bindTexture(player.getLocationSkin());
-+            }
-+            else
-+            {
-+                GL11.glTranslatef(-var15 * 0.3F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI * 2.0F) * 0.4F, -var14 * 0.4F);
-+                GL11.glTranslatef(0.8F * var22, -0.75F * var22 - (1.0F - equippingprogress) * 0.6F, -0.9F * var22);
-+                GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
-+                GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-+                var13 = player.getSwingProgress(nano);
-+                var14 = MathHelper.sin(var13 * var13 * (float) Math.PI);
-+                var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI);
-+                GL11.glRotatef(var15 * 70.0F, 0.0F, 1.0F, 0.0F);
-+                GL11.glRotatef(-var14 * 20.0F, 0.0F, 0.0F, 1.0F);
-+                this.mc.getTextureManager().bindTexture(player.getLocationSkin());
-+                GL11.glTranslatef(-1.0F, 3.6F, 3.5F);
-+                GL11.glRotatef(120.0F, 0.0F, 0.0F, 1.0F);
-+                GL11.glRotatef(200.0F, 1.0F, 0.0F, 0.0F);
-+                GL11.glRotatef(-135.0F, 0.0F, 1.0F, 0.0F);
-+                GL11.glScalef(1.0F, 1.0F, 1.0F);
-+                GL11.glTranslatef(5.6F, 0.0F, 0.0F);
-+            }
-             var26 = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
-             var29 = (RenderPlayer)var26;
-             var18 = 1.0F;
-@@ -515,7 +658,7 @@
-             GL11.glPopMatrix();
-         }
- 
+-            var26 = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
+-            var29 = (RenderPlayer)var26;
+-            var18 = 1.0F;
+-            GL11.glScalef(var18, var18, var18);
+-            var29.renderFirstPersonArm(this.mc.thePlayer);
+-            GL11.glPopMatrix();
+-        }
+-
 -        if (var8 != null && var8.getItem() instanceof ItemCloth)
-+        if (renderitem8 != null && renderitem8.getItem() instanceof ItemCloth)
-         {
-             GL11.glDisable(GL11.GL_BLEND);
-         }
-@@ -524,80 +667,81 @@
-         RenderHelper.disableStandardItemLighting();
+-        {
+-            GL11.glDisable(GL11.GL_BLEND);
+-        }
+-
+-        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+-        RenderHelper.disableStandardItemLighting();
++    	float equippingprogress = this.prevEquippedProgress + (this.equippedProgress - this.prevEquippedProgress) * nano;
++    	EntityClientPlayerMP player = this.mc.thePlayer;
++    	float rotationprogress = player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * nano;
++   	
++    	ItemStack renderitem8 = this.itemToRender;
++
++      	// VIVE START - rotate item by aim direction
++
++    	GL11.glPushMatrix();
++
++      		Object renderPos = new Object();
++	
++	    	if (renderitem8 != null && renderitem8.getItem() instanceof ItemCloth)
++	    	{
++	    		GL11.glEnable(GL11.GL_BLEND);
++	    		OpenGlHelper.glBlendFunc(770, 771, 1, 0);
++	    	}
++	
++	    	int var9 = this.mc.theWorld.getLightBrightnessForSkyBlocks(MathHelper.floor_double(player.posX), MathHelper.floor_double(player.posY), MathHelper.floor_double(player.posZ), 0);
++	    	int var10 = var9 % 65536;
++	    	int var11 = var9 / 65536;
++	    	
++	    	OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)var10 / 1.0F, (float)var11 / 1.0F);
++	    	
++	    	GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++	    	float var13;
++	    	float var14;
++	    	float var15;
++	
++	    	if (renderitem8 != null)
++	    	{
++	    		int var12 = renderitem8.getItem().getColorFromItemStack(renderitem8, 0);
++	    		var13 = (float)(var12 >> 16 & 255) / 255.0F;
++	    		var14 = (float)(var12 >> 8 & 255) / 255.0F;
++	    		var15 = (float)(var12 & 255) / 255.0F;
++	    		GL11.glColor4f(var13, var14, var15, 1.0F);
++	    	}
++	    	else
++	    	{
++	    		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++	    	}
++	
++	    	float var16;
++	    	float var17;
++	    	float var18;
++	    	float var22;
++	    	Render var26;
++	    	RenderPlayer var29;
++	        		
++	    	//Animations
++    		if (renderitem8 != null && player.getItemInUseCount() > 0 && controller ==0) //'using' item animation
++    		{
++    			EnumAction var23 = renderitem8.getItemUseAction();
++
++    			if (var23 == EnumAction.eat || var23 == EnumAction.drink)
++    			{
++    				var14 = (float)player.getItemInUseCount() - nano + 1.0F;
++    				var15 = 1.0F - var14 / (float)renderitem8.getMaxItemUseDuration();
++    				var16 = 1.0F - var15;
++    				var16 = var16 * var16 * var16;
++    				var16 = var16 * var16 * var16;
++    				var16 = var16 * var16 * var16;
++    				var17 = 1.0F - var16;
++    				GL11.glTranslatef(0.0F, MathHelper.abs(MathHelper.cos(var14 / 4.0F * (float)Math.PI) * 0.1F) * (float)((double)var15 > 0.2D ? 1 : 0), 0.0F);
++    				GL11.glTranslatef(var17 * 0.6F, -var17 * 0.5F, 0.0F);
++    				GL11.glRotatef(var17 * 90.0F, 0.0F, 1.0F, 0.0F);
++    				GL11.glRotatef(var17 * 10.0F, 1.0F, 0.0F, 0.0F);
++    				GL11.glRotatef(var17 * 30.0F, 0.0F, 0.0F, 1.0F);
++    			}
++    		}
++    		else if (controller==0)
++    		{
++    			var13 = player.getSwingProgress(nano) ;
++    			var14 = MathHelper.sin(var13 * (float)Math.PI);
++    			var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
++    			// VIVE START - different attack anim
++    			if (renderPos !=null)
++    			{
++    				var14 = -0.2F * MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
++    				var15 = -0.0F * MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
++    				GL11.glTranslatef(0,0, var14);
++    			}
++    			else //not vive
++    			{
++    				GL11.glTranslatef(-var15 * 0.4F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI * 2.0F) * 0.2F, -var14 * 0.2F);
++    			}
++    			// VIVE END - different attack anim
++    		}
++    		
++	    	
++	 	
++	    	if (renderitem8 != null && renderitem8.getItem() == Items.filled_map) //game map
++	    	{
++	    		GL11.glPushMatrix();
++	    		var22 = 0.8F;
++	    		var13 = player.getSwingProgress(nano);
++	    		var14 = MathHelper.sin(var13 * (float)Math.PI);
++	    		var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
++	    		GL11.glTranslatef(-var15 * 0.4F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI * 2.0F) * 0.2F, -var14 * 0.2F);
++	    		var13 = 1.0F - rotationprogress / 45.0F + 0.1F;
++
++	    		if (var13 < 0.0F)
++	    		{
++	    		    var13 = 0.0F;
++	    		}
++
++	    		if (var13 > 1.0F)
++	    		{
++	    		    var13 = 1.0F;
++	    		}
++
++	    		// VIVE START - adjust overall map position
++	    		GL11.glRotatef(150.0f, 1.0F, 0.0F, 0.0F);
++	    		GL11.glTranslatef(-0.1F, 0.3F, 0.2f);
++	    		GL11.glScalef(0.6f, 0.6f, 0.6f);
++	    		// VIVE END - adjust overall map position
++
++	    		var13 = -MathHelper.cos(var13 * (float)Math.PI) * 0.5F + 0.5F;
++	    		GL11.glTranslatef(0.0F, 0.0F * var22 - (1.0F - equippingprogress) * 1.2F - var13 * 0.5F + 0.04F, -0.9F * var22);
++	    		GL11.glRotatef(90.0F, 0.0F, 1.0F, 0.0F);
++	    		GL11.glRotatef(var13 * -85.0F, 0.0F, 0.0F, 1.0F);
++	    		GL11.glEnable(GL12.GL_RESCALE_NORMAL);
++	    		this.mc.getTextureManager().bindTexture(player.getLocationSkin());
++
++	    		for (int var24 = 1; var24 < 2; ++var24) // VIVE - only draw right arm holding map,
++	    		{
++	    		    int var25 = var24 * 2 - 1;
++	    		    GL11.glPushMatrix();
++	    		    GL11.glTranslatef(-0.0F, -0.6F, 1.1F * (float)var25);
++	    		    GL11.glTranslatef(-0.21f, -0.05f, -0.65f); // VIVE - adjust arm position
++	    		    GL11.glRotatef((float)(0 * var25), 1.0F, 0.0F, 0.0F); // VIVE - adjust arm rotation
++	    		    GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
++	    		    GL11.glRotatef(39.0F, 0.0F, 0.0F, 1.0F); // VIVE - adjust arm rotation
++	    		    GL11.glRotatef((float)(-65 * var25), 0.0F, 1.0F, 0.0F);
++	    		    var26 = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
++	    		    var29 = (RenderPlayer)var26;
++	    		    var18 = 0.5F;       // VIVE - adjust arm scale
++	    		    GL11.glScalef(var18, var18, var18);
++
++	    		    var29.renderFirstPersonArm(this.mc.thePlayer);
++	    		    GL11.glPopMatrix();
++	    		}
++
++	    		var14 = player.getSwingProgress(nano);
++	    		var15 = MathHelper.sin(var14 * var14 * (float)Math.PI);
++	    		var16 = MathHelper.sin(MathHelper.sqrt_float(var14) * (float)Math.PI);
++	    		GL11.glRotatef(-var15 * 20.0F, 0.0F, 1.0F, 0.0F);
++	    		GL11.glRotatef(-var16 * 20.0F, 0.0F, 0.0F, 1.0F);
++	    		GL11.glRotatef(-var16 * 80.0F, 1.0F, 0.0F, 0.0F);
++	    		var17 = 0.38F;
++	    		GL11.glScalef(var17, var17, var17);
++	    		GL11.glRotatef(90.0F, 0.0F, 1.0F, 0.0F);
++	    		GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);
++	    		GL11.glTranslatef(-1.0F, -1.0F, 0.0F);
++	    		var18 = 0.015625F;
++	    		GL11.glScalef(var18, var18, var18);
++	    		this.mc.getTextureManager().bindTexture(RES_MAP_BACKGROUND);
++	    		Tessellator var30 = Tessellator.instance;
++	    		GL11.glNormal3f(0.0F, 0.0F, -1.0F);
++	    		var30.startDrawingQuads();
++	    		byte var31 = 7;
++	    		var30.addVertexWithUV((double)(0 - var31), (double)(128 + var31), 0.0D, 0.0D, 1.0D);
++	    		var30.addVertexWithUV((double)(128 + var31), (double)(128 + var31), 0.0D, 1.0D, 1.0D);
++	    		var30.addVertexWithUV((double)(128 + var31), (double)(0 - var31), 0.0D, 1.0D, 0.0D);
++	    		var30.addVertexWithUV((double)(0 - var31), (double)(0 - var31), 0.0D, 0.0D, 0.0D);
++	    		var30.draw();
++	    		MapData var21 = Items.filled_map.getMapData(renderitem8, this.mc.theWorld);
++
++	    		if (var21 != null)
++	    		{
++	    		    this.mc.entityRenderer.getMapItemRenderer().func_148250_a(var21, false);
++	    		}
++
++	    		GL11.glPopMatrix();
++	    	}
++	    	else if (renderitem8 != null) //most items
++	    	{
++		    		var22 = 0.8F;
++	
++		    		
++		    		// VIVE START - adjust item position based on type
++		    		if (renderPos!=null)
++		    		{
++		    			Item item = renderitem8.getItem();
++		    			if (item != null)
++		    			{
++		    				if(item == Items.arrow){
++		    					//fix rotation
++								GL11.glRotatef(-45.0F, 1.0F, 0.0F, 0.0F);
++		    					GL11.glRotatef((float) -90f, 0.0F, 1.0F, 0.0F);
++		    					GL11.glTranslatef(-0.3f, -0.08f, 0.02f);
++		    				}
++		    				else if(item == Items.shears){
++		    					//fix rotation
++		    					GL11.glTranslatef(0.013f,0f,0.25f);
++		    					GL11.glRotatef(-45.0F, 1.0F, 0.0F, 0.0F);
++		    					GL11.glRotatef((float) 90f, 0.0F, 1.0F, 0.0F);
++		    				}
++	
++		    				else if (item instanceof ItemBow)
++		    				{
++	
++		    					GL11.glScaled(1.4f, 1.4f, 1.4f);    					
++	
++		    					if(mc.bowTracker.isDrawing){ //here there be dragons
++	
++		    						Vec3 aim = mc.bowTracker.getAimVector(); 
++		    						Vector3f aimCopy = new Vector3f((float)aim.xCoord,(float) aim.yCoord, (float)aim.zCoord);
++	
++		    						Matrix4f left = mc.lookaimController.getAimRotation(1);
++	
++		    						Vector3f current = left.transform(new Vector3f(0,1,0));
++		    						Vector3f currentfore = left.transform(new Vector3f(0,0,-1));
++	
++		    						Vector3f v = aimCopy.cross(current);
++		    						double d = 180 / Math.PI * Math.acos(aimCopy.dot(current));
++	
++		    						float pitch = -(float)Math.toDegrees(Math.asin(aimCopy.y/aimCopy.length()));
++		    						float yaw = (float)Math.toDegrees(Math.atan2(aimCopy.x, aimCopy.z));    
++		    						//		    									    				    			
++		    						Vector3f up = new Vector3f(0,1,0);
++	
++		    						Vector3f pAim2 = new Vector3f(0,0,0);
++	
++		    						aimCopy.y = 0 ; // we want the normal to a aiming plane, but vertical.
++	
++		    						float porjaim = currentfore.dot(aimCopy); //angle between controller up and aim, just for ortho check			    		        		
++		    						if(porjaim !=0) { //check to make sure 	we arent holding the bow perfectly straight up.					
++		    							pAim2 = aimCopy.divide(1/porjaim);	 //projection of l_controller_up onto aim vector ... why is there no multiply?		        	 
++		    						}
++	
++		    						float dot =0;
++		    						Vector3f proj = currentfore.subtract(pAim2).normalised(); //subtract to get projection of LCU onto vertical aim plane   
++	
++		    						dot = proj.dot(up);		//angle between our projection and straight up (the default bow render pos.)
++	
++		    						float dot2 = aimCopy.dot(proj.cross(up)); //angle sign test, negative is left roll
++	
++		    						float angle;
++	
++		    						if (dot2 < 0) 
++		    							angle = -(float) Math.acos(dot);  	
++		    						else angle = (float) Math.acos(dot); 
++	
++		    						
++		    						float roll = (float) (180 / Math.PI * angle);     //calulate bow model roll.
++	
++		    						GL11.glRotatef(yaw, 0.0F,1.0F, 0.0F);
++		    						GL11.glRotatef(-pitch, 1.0F, 0.0F, 0.0F);
++
++		    						GL11.glRotatef(-roll, 0.0F, 0.0F, 1.0F);  
++		    						GL11.glRotatef(90f, 1.0F, 0.0F, 0.0F);    					
++		    					}
++	
++	
++		    					GL11.glRotatef(-45F, 1.0F, 0.0F, 0.0F);
++		    					GL11.glRotatef(-90.0F, 0.0F, 1.0F, 0.0F);
++		    					GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);	
++	
++		    					GL11.glTranslatef(-.28f, -.28f, 0.01f);
++	
++		    				}
++		    				else if (item instanceof ItemCarrotOnAStick
++		    						|| item instanceof ItemFishingRod
++		    						)
++		    				{
++		    					GL11.glTranslatef(-0.015f,-0.3f,-.08f);
++		    					GL11.glRotatef(-45.0F, 1.0F, 0.0F, 0.0F);
++		    					GL11.glRotatef((float) 90f, 0.0F, 1.0F, 0.0F);
++		    				}
++		    				else if (item instanceof ItemPotion
++		    						|| item instanceof ItemGlassBottle)
++		    				{
++		    					GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
++		    					GL11.glTranslatef(0.00f, -0.26f, -0.00f);
++		    				}
++		    				else if (item instanceof ItemMonsterPlacer
++		    						|| item instanceof ItemRedstone
++		    						|| item instanceof ItemBucket
++		    						|| item instanceof ItemBucketMilk
++		    						|| item instanceof ItemDoor
++		    						|| item instanceof ItemSign
++		    						)
++		    				{
++		    				
++		    					
++		    					GL11.glTranslatef(0,0.0f,.3f);
++		    					GL11.glRotatef(-45.0F, 1.0F, 0.0F, 0.0F);
++		    					GL11.glRotatef((float) 90f, 0.0F, 1.0F, 0.0F);
++		    				}
++		    				else if (item instanceof ItemBlock)
++		    				{
++
++		    					GL11.glScaled(.6f, .6f, .6f);
++		    					GL11.glTranslatef(0.00f, 0f, -.00f);
++	
++		    					Block block = Block.getBlockFromItem(item);
++		    					if (renderitem8.getItemSpriteNumber() == 0 && RenderBlocks.renderItemIn3d(block.getRenderType()))
++		    					{
++		    						// default orientation is fine
++		    					}
++		    					else
++		    					{
++		    						GL11.glTranslatef(0.01f, -0.0f, -0.11f);
++		    						GL11.glRotatef(45.f, 1.0F, 0.0F, 0.0F);
++		    					}
++		    				} else {
++		    					//MOST ITEMS
++				    			//adjust for tools					
++				    			GL11.glTranslatef(0.01f, .28f, -.08f);
++			
++				    			GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);
++			
++				    			//general item adjustment
++			
++				    			GL11.glRotatef(-45F, 1.0F, 0.0F, 0.0F);
++				    			GL11.glRotatef(-90.0F, 0.0F, 1.0F, 0.0F);
++		    					
++		    				}
++		    			}	
++		    		}
++		    		else //no controller?
++		    		{
++		    			GL11.glTranslatef(0.7F * var22, -0.65F * var22 - (1.0F - equippingprogress) * 0.6F, -0.9F * var22);
++		    		}
++	
++		    		// VIVE END - adjust item position based on type
++	
++		    		GL11.glEnable(GL12.GL_RESCALE_NORMAL); //TODO: figure out what this does.
++	   		    		
++	
++		    		// VIVE START - adjust held item
++		    		if (renderPos!=null)
++		    		{
++		    			var16 = 0.26F;
++		    			GL11.glScalef(var16, var16, var16);
++		    		}
++		    		else //no vive?
++		    		{
++		    			var13 = player.getSwingProgress(nano);
++		    			var14 = MathHelper.sin(var13 * var13 * (float)Math.PI);
++		    			var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
++	
++		    			GL11.glRotatef(-var14 * 20.0F, 0.0F, 1.0F, 0.0F);
++		    			GL11.glRotatef(-var15 * 20.0F, 0.0F, 0.0F, 1.0F);
++		    			GL11.glRotatef(-var15 * 80.0F, 1.0F, 0.0F, 0.0F);
++		    			var16 = 0.4F;
++		    			GL11.glScalef(var16, var16, var16);
++		    		}
++		    		// VIVE END - adjust held item
++		    		float var19;
++		    		float var20;
++	
++	
++		    		if (renderitem8.getItem().shouldRotateAroundWhenRendering())
++		    		{
++		    			GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
++		    		}
++	 
++		    		
++		    		if (renderitem8.getItem().requiresMultipleRenderPasses())
++		    		{
++		    			this.renderItem(player, renderitem8, 0);
++		    			int var28 = renderitem8.getItem().getColorFromItemStack(renderitem8, 1);
++		    			var18 = (float)(var28 >> 16 & 255) / 255.0F;
++		    			var19 = (float)(var28 >> 8 & 255) / 255.0F;
++		    			var20 = (float)(var28 & 255) / 255.0F;
++		    			GL11.glColor4f(1.0F * var18, 1.0F * var19, 1.0F * var20, 1.0F);
++		    			this.renderItem(player, renderitem8, 1);
++		    		}
++		    		else //single render go
++		    		{
++	
++		    			this.renderItem(player, renderitem8, 0);
++		    		}
++
++	    	}
++	    	else if (!player.isInvisible()) //render empty hand
++	    	{
++	    		GL11.glPushMatrix();
++		    		var22 = 0.8F;
++		    		var13 = player.getSwingProgress(nano);
++		    		var14 = MathHelper.sin(var13 * (float)Math.PI);
++		    		var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float)Math.PI);
++		
++		    		// VIVE START - adjust arm
++		    		if (renderPos!=null)
++		    		{
++		    			GL11.glEnable(GL12.GL_RESCALE_NORMAL);
++		    			GL11.glTranslatef(0.019f, 0f, .19f);
++		    			GL11.glScalef(0.3f, 0.3F, 0.3F);
++		    			GL11.glRotatef(-90F, 1.0F, 0.0F, 0.0F);
++		    			GL11.glRotatef(0.0F, 0.0F, 1.0F, 0.0F);
++		    				    			
++			    		if (controller==0)	GL11.glTranslatef(0,var14,0);
++		    			this.mc.getTextureManager().bindTexture(player.getLocationSkin());
++		    		}
++		    		else
++		    		{
++		    			GL11.glTranslatef(-var15 * 0.3F, MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI * 2.0F) * 0.4F, -var14 * 0.4F);
++		    			GL11.glTranslatef(0.8F * var22, -0.75F * var22 - (1.0F - equippingprogress) * 0.6F, -0.9F * var22);
++		    			GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
++		    			GL11.glEnable(GL12.GL_RESCALE_NORMAL);
++		    			var13 = player.getSwingProgress(nano);
++		    			var14 = MathHelper.sin(var13 * var13 * (float) Math.PI);
++		    			var15 = MathHelper.sin(MathHelper.sqrt_float(var13) * (float) Math.PI);
++		    			GL11.glRotatef(var15 * 70.0F, 0.0F, 1.0F, 0.0F);
++		    			GL11.glRotatef(-var14 * 20.0F, 0.0F, 0.0F, 1.0F);
++		    			this.mc.getTextureManager().bindTexture(player.getLocationSkin());
++		    			GL11.glTranslatef(-1.0F, 3.6F, 3.5F);
++		    			GL11.glRotatef(120.0F, 0.0F, 0.0F, 1.0F);
++		    			GL11.glRotatef(200.0F, 1.0F, 0.0F, 0.0F);
++		    			GL11.glRotatef(-135.0F, 0.0F, 1.0F, 0.0F);
++		    			GL11.glScalef(1.0F, 1.0F, 1.0F);
++		    			GL11.glTranslatef(5.6F, 0.0F, 0.0F);
++		    		}
++		    		
++		    		var26 = RenderManager.instance.getEntityRenderObject(this.mc.thePlayer);
++		    		var29 = (RenderPlayer)var26;
++		    		var18 = 1.0F;
++		    		
++		    		GL11.glScalef(var18, var18, var18);
++					
++		    		RenderPlayer rp = (RenderPlayer)RenderManager.instance.getEntityRenderObject(mc.thePlayer);        //rp.renderFirstPersonArm(this.mc.thePlayer);
++						    		
++		    		ModelRenderer arm =	rp.modelBipedMain.bipedRightArm;	
++		    		
++		    		float rotationPointX = arm.rotationPointX;
++					float rotationPointY = arm.rotationPointY;
++					float rotationPointZ = arm.rotationPointZ;
++					float rotateAngleX = arm.rotateAngleX;
++					float rotateAngleY = arm.rotateAngleY;
++					float rotateAngleZ = arm.rotateAngleZ;
++					float offsetX = arm.offsetX;
++					float offsetY = arm.offsetY;
++					float offsetZ = arm.offsetZ;
++			
++					// set arm model to some neutral position
++					arm.rotationPointX = 0;
++					arm.rotationPointY = 0;
++					arm.rotationPointZ = 0;
++					arm.rotateAngleX = 0;
++					arm.rotateAngleY = 0;
++					arm.rotateAngleZ = 0;
++					arm.offsetX = 0;
++					arm.offsetY = 0;
++					arm.offsetZ = 0;
++		    		
++					arm.render(0.0625F);
++	    		GL11.glPopMatrix();
++	    		
++				// set arm model to some neutral position
++				arm.rotationPointX = arm.rotationPointX;
++				arm.rotationPointY = arm.rotationPointY;
++				arm.rotationPointZ = arm.rotationPointZ;
++				arm.rotateAngleX = arm.rotateAngleX;
++				arm.rotateAngleY = arm.rotateAngleY;
++				arm.rotateAngleZ = arm.rotateAngleZ;
++				arm.offsetX = arm.offsetX;
++				arm.offsetY = arm.offsetY;
++				arm.offsetZ = arm.offsetZ;
++	    	
++	    		
++	    	}
++	
++	    	if (renderitem8 != null && renderitem8.getItem() instanceof ItemCloth)
++	    	{
++	    		GL11.glDisable(GL11.GL_BLEND);
++	    	}
++	
++	    	GL11.glDisable(GL12.GL_RESCALE_NORMAL);
++	    	RenderHelper.disableStandardItemLighting();
++	
++	    GL11.glPopMatrix();
      }
  
-+    
++
 +    
 +   
      /**
@@ -634,8 +1097,6 @@
 -    private void renderInsideOfBlock(float p_78446_1_, IIcon p_78446_2_)
 +    void renderInsideOfBlock(float par1, Vec3 blockLoc)
      {
-+
-+    	
 +    	//boy i wish this worked
 +//    	GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +//    	GL11.glLoadIdentity(); 	      
@@ -668,11 +1129,8 @@
 +          IIcon tex = eyeBlock.getBlockTextureFromSide(2);
 +		
 +     //JRBUDDA
-+        
-+       
-+        
-+        float renderOriginY;
-+        Vec3 o =  blockLoc.addVector(-mc.entityRenderer.renderOriginX, -mc.entityRenderer.renderOriginY, -mc.entityRenderer.renderOriginZ );
++
++        Vec3 o =  blockLoc.addVector(-mc.entityRenderer.interpolatedPlayerPos.xCoord, -mc.entityRenderer.interpolatedPlayerPos.yCoord, -mc.entityRenderer.interpolatedPlayerPos.zCoord );
 +        
 +		float var5 = - 0.09f;
 +        float var6 = 0.09F;
@@ -686,7 +1144,7 @@
          var3.startDrawingQuads();
          var3.addVertexWithUV((double)var5, (double)var7, (double)var9, (double)var11, (double)var13);
          var3.addVertexWithUV((double)var6, (double)var7, (double)var9, (double)var10, (double)var13);
-@@ -606,6 +750,7 @@
+@@ -606,6 +809,7 @@
          var3.draw();
          GL11.glPopMatrix();
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -694,7 +1152,7 @@
      }
  
      /**
-@@ -621,13 +766,13 @@
+@@ -621,13 +825,13 @@
          GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();

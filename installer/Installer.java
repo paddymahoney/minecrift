@@ -610,7 +610,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         public Void doInBackground()
         {
             StringBuilder sbErrors = new StringBuilder();
-            String minecriftVersionName = "Vivecraft-" + version + mod;
+            String minecriftVersionName = "vivecraft-" + version + mod;
             boolean checkedRedists = false;
             boolean redistSuccess = true;
             boolean downloadedForge = false;
@@ -980,6 +980,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 prof.put("javaArgs", "-Xmx2G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:-UseAdaptiveSizePolicy -Xmn256M -Dfml.ignoreInvalidMinecraftCertificates=true -Dfml.ignorePatchDiscrepancies=true");
                 prof.put("useHopperCrashService", false);
                 prof.put("launcherVisibilityOnGameClose", "keep the launcher open");
+				prof.put("launcherVisibilityOnGameClose", "keep the launcher open");
                 profiles.put(profileName, prof);
             }
             prof.put("lastVersionId", minecriftVer + mod);

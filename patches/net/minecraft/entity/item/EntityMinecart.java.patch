@@ -1,0 +1,11 @@
+--- a/net/minecraft/entity/item/EntityMinecart.java
++++ b/net/minecraft/entity/item/EntityMinecart.java
+@@ -144,7 +144,7 @@
+      */
+     public double getMountedYOffset()
+     {
+-        return (double)this.height * 0.0D - 0.30000001192092896D;
++    return (double)this.height * 0.0D - 0.30000001192092896D;
+     }
+ 
+     /**

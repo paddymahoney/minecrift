@@ -44,6 +44,7 @@ import jopenvr.*;
 import jopenvr.JOpenVRLibrary.EVREventType;
 
 import java.awt.AWTException;
+import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -64,7 +65,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	private static VR_IVRSystem_FnTable vrsystem;
 	private static VR_IVRCompositor_FnTable vrCompositor;
 	private static VR_IVROverlay_FnTable vrOverlay;
-	
+
 	private static IntBuffer hmdErrorStore;
 	private static TrackedDevicePose_t.ByReference hmdTrackedDevicePoseReference;
 	private static TrackedDevicePose_t[] hmdTrackedDevicePoses;
@@ -75,7 +76,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	private static Vec3[] deviceVelocity;
 
 	private LongByReference oHandle = new LongByReference();
-	
+
 	// position/orientation of headset and eye offsets
 	private static final Matrix4f hmdPose = new Matrix4f();
 	private static Matrix4f hmdProjectionLeftEye;
@@ -224,20 +225,20 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 	private boolean tried;
-	
+
 	@Override
 	public boolean init()  throws Exception
 	{
-			
+
 		if ( this.initialized )
 			return true;
 
 		if ( tried )
 			return initialized;
-		
-		
+
+
 		tried = true;
-		
+
 		mc = Minecraft.getMinecraft();
 		// look in .minecraft first for openvr_api.dll
 		File minecraftDir = Utils.getWorkingDirectory();
@@ -256,8 +257,8 @@ IEventNotifier, IEventListener, IBodyAimController
 			System.out.println( "VR Headset not detected.");
 			return false;
 		}
-	
-		
+
+
 		try {
 			initializeJOpenVR();
 			initOpenVRCompositor(true) ;
@@ -295,14 +296,14 @@ IEventNotifier, IEventListener, IBodyAimController
 		} catch (NoSuchFieldException e) {
 		}
 
-			
-				HmdMatrix34_t matL = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Left);
-				OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matL, hmdPoseLeftEye);
-		
-				HmdMatrix34_t matR = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Right);
-				OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matR, hmdPoseRightEye);
-		
-		
+
+		HmdMatrix34_t matL = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Left);
+		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matL, hmdPoseLeftEye);
+
+		HmdMatrix34_t matR = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Right);
+		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matR, hmdPoseRightEye);
+
+
 		this.initialized = true;
 		return true;
 	}
@@ -315,15 +316,17 @@ IEventNotifier, IEventListener, IBodyAimController
 		if( hmdErrorStore.get(0) == 0 ) {
 			// ok, try and get the vrsystem pointer..
 			vrsystem = new VR_IVRSystem_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRSystem_Version, hmdErrorStore));
+			
 		}
 		if( vrsystem == null || hmdErrorStore.get(0) != 0 ) {
 			throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));		
 		} else {
-			System.out.println("OpenVR initialized & VR connected.");
-
+			
 			vrsystem.setAutoSynch(false);
 			vrsystem.read();
-
+			
+			System.out.println("OpenVR initialized & VR connected.");
+			
 			tlastVsync = FloatBuffer.allocate(1);
 			_tframeCount = LongBuffer.allocate(1);
 
@@ -357,12 +360,12 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 	private Pointer ptrFomrString(String in){
-	    Pointer p = new Memory(in.length()+1);
+		Pointer p = new Memory(in.length()+1);
 		p.setString(0, in);
 		return p;
-		
+
 	}
-	
+
 
 	// needed for in-game keyboard
 	public void initOpenVROverlay() throws Exception
@@ -371,7 +374,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		if (vrOverlay != null &&  hmdErrorStore.get(0) == 0) {     		
 			vrOverlay.setAutoSynch(false);
 			vrOverlay.read();					
-	//	    vrOverlay.CreateOverlay.apply(ptrFomrString(""), ptrFomrString(""), oHandle);
+			//	    vrOverlay.CreateOverlay.apply(ptrFomrString(""), ptrFomrString(""), oHandle);
 			System.out.println("OpenVR Overlay initialized OK");
 		} else {
 			throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));		
@@ -458,7 +461,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	{
 		mc.mcProfiler.startSection("poll");
 
-	
+
 		pollInputEvents();
 
 		updateControllerButtonState();
@@ -490,27 +493,27 @@ IEventNotifier, IEventListener, IBodyAimController
 			pointer.setString(0, "mc");
 			Pointer empty = new Memory(1);
 			empty.setString(0, "");
-			
 
-			ret = vrOverlay.ShowKeyboard.apply(0, 0, pointer, 256, empty, (byte)1, 0L);						
+			ret = vrOverlay.ShowKeyboard.apply(0, 0, pointer, 256, empty, (byte)1, 0)	;	
 			
-			keyboardShowing = 0 == ret; //0 = no error, > 0 see EVROverlayError
-			
+			keyboardShowing = 0 == ret; //0 = no error, > 0 see EVROverlayError	
+	
+		
 			if (ret != 0) {
 				System.out.println("VR Overlay Error: " + vrOverlay.GetOverlayErrorNameFromEnum.apply(ret).getString(0));
 			}
-			
+
 		} else {
 			try {
-			if (keyboardShowing) {
-				 vrOverlay.HideKeyboard.apply();				
-			}
+				if (keyboardShowing) {
+					vrOverlay.HideKeyboard.apply();				
+				}
 			} catch (Error e) {
 				// TODO: handle exception
 			}
 			keyboardShowing = false;
 		}
-		
+
 		return keyboardShowing;
 	}
 
@@ -699,7 +702,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 				if (pressedAttack || pressedPlaceBlock)
 				{
-					{mc.thePlayer.closeScreen();}
+					{mc.thePlayer.closeScreen();}			
 
 				}
 			}
@@ -930,19 +933,22 @@ IEventNotifier, IEventListener, IBodyAimController
 		KeyBinding keyBindR_TouchpadUR = mc.gameSettings.keyBindUseItem;
 		KeyBinding keyBindR_Appmenu = mc.gameSettings.keyBindDrop;
 		KeyBinding keyBindR_Grip = mc.gameSettings.keyBindPickBlock;
+		KeyBinding keyBindR_TriggerClick = new KeyBinding("null", 0, "null");
 
-		KeyBinding keyBindL_Appmenu = null;
+		KeyBinding keyBindL_Appmenu = new KeyBinding("null", 0, "null");
 		KeyBinding keyBindL_Trigger = mc.gameSettings.keyBindForward;
 		KeyBinding keyBindL_TouchpadBL = mc.gameSettings.keyBindJump;
 		KeyBinding keyBindL_TouchpadBR = mc.gameSettings.keyBindJump;
 		KeyBinding keyBindL_TouchpadUL = mc.gameSettings.keyBindInventory;
 		KeyBinding keyBindL_TouchpadUR = mc.gameSettings.keyBindInventory;
 		KeyBinding keyBindL_Grip = mc.gameSettings.keyBindSneak;
+		KeyBinding keyBindL_TriggerClick = mc.gameSettings.keyBindSprint;
 
 		boolean gui = (mc.currentScreen != null);
 		boolean sleeping = (mc.thePlayer != null && mc.thePlayer.isPlayerSleeping());
 
 		// right controller
+		//last
 		boolean lastpressedRGrip = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonGrip) > 0;		
 		boolean lastpressedRtouchpadBottomLeft = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
@@ -958,6 +964,8 @@ IEventNotifier, IEventListener, IBodyAimController
 				(lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;		
 		boolean lastpressedRAppMenu = (lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonAppMenu) > 0;
 		boolean lastpressedRTrigger = lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;		
+		boolean lastpressedRTriggerClick =( lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTrigger )>0;
+		//current
 		boolean pressedRGrip = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonGrip) > 0;
 		boolean pressedRtouchpadBottomLeft = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
@@ -973,6 +981,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				(controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;	
 		boolean pressedRAppMenu = (controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonAppMenu) > 0;
 		boolean pressedRTrigger = controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;
+		boolean pressedRTriggerClick =( controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTrigger )>0;
 
 		//		if(!gui) {//simulated mouse UI input is done elsewhere I think. 
 		//TODO dont make this check here. move the poll() to somewhere else.
@@ -1027,9 +1036,19 @@ IEventNotifier, IEventListener, IBodyAimController
 		if(!pressedRAppMenu && lastpressedRAppMenu) {
 			keyBindR_Appmenu.unpressKey();
 		}
-		//		}
+
+		//R triggerclick
+		if (pressedRTriggerClick && !lastpressedRTriggerClick) {
+			keyBindR_TriggerClick.pressKey();
+		}	
+		if(!pressedRTriggerClick && lastpressedRTriggerClick) {
+			keyBindR_TriggerClick.unpressKey();
+		}
+
+
 
 		// left controller
+		//last
 		boolean lastpressedLGrip = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonGrip) > 0;		
 		boolean lastpressedLtouchpadBottomLeft = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
@@ -1045,6 +1064,8 @@ IEventNotifier, IEventListener, IBodyAimController
 				(lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;		
 		boolean lastpressedLAppMenu = (lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonAppMenu) > 0;
 		boolean lastpressedLTrigger = lastControllerState[LEFT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;		
+		boolean lastpressedLTriggerClick =( lastControllerState[LEFT_CONTROLLER].ulButtonPressed & k_buttonTrigger )>0;
+		//current
 		boolean pressedLGrip = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonGrip) > 0;
 		boolean pressedLtouchpadBottomLeft = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].y <= 0 ) &&
@@ -1060,6 +1081,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				(controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_TouchPad].x > 0 ) ;	
 		boolean pressedLAppMenu = (controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonAppMenu) > 0;
 		boolean pressedLTrigger = controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;
+		boolean pressedLTriggerClick =( controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonTrigger )>0;
 
 		//		if(!gui) {//simulated mouse UI input is done elsewhere I think. 
 		//			//TODO dont make this check here. move the poll() to somewhere else.
@@ -1108,16 +1130,22 @@ IEventNotifier, IEventListener, IBodyAimController
 			keyBindL_Trigger.unpressKey();
 		}
 
-		if(keyBindL_Appmenu != null){	//hard coded to 'esc' since there no keybinding for menu	
-			//R AppMenu
-			if (pressedLAppMenu && !lastpressedLAppMenu) {
-				keyBindR_Appmenu.pressKey();
-			}	
-			if(!pressedLAppMenu && lastpressedLAppMenu) {
-				keyBindL_Appmenu.unpressKey();
-			}				
+		//L AppMenu
+		if (pressedLAppMenu && !lastpressedLAppMenu) {
+			keyBindR_Appmenu.pressKey();
+		}	
+		if(!pressedLAppMenu && lastpressedLAppMenu) {
+			keyBindL_Appmenu.unpressKey();
+		}				
 
+		//L triggerclick
+		if (pressedLTriggerClick && !lastpressedLTriggerClick) {
+			keyBindL_TriggerClick.pressKey();
+		}	
+		if(!pressedLTriggerClick && lastpressedLTriggerClick) {
+			keyBindL_TriggerClick.unpressKey();
 		}
+
 
 		//VIVE SPECIFIC FUNCTIONALITY
 		//TODO: Find a better home for these in Minecraft.java		
@@ -1160,7 +1188,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 		if(pressedLAppMenu  && !lastpressedLAppMenu) { //handle menu directly
-
+				
 			if(mc.gameSettings.keyBindSneak.getIsKeyPressed()){				
 				setKeyboardOverlayShowing(!keyboardShowing, null);			
 			} else{
@@ -1181,19 +1209,19 @@ IEventNotifier, IEventListener, IBodyAimController
 
 		while (vrsystem.PollNextEvent.apply(event, event.size() ) > 0)
 		{
-		
+
 			switch (event.eventType) {
 			case EVREventType.EVREventType_VREvent_KeyboardClosed:
-		      //'huzzah'
+				//'huzzah'
 				keyboardShowing = false;
 				break;
 			case EVREventType.EVREventType_VREvent_KeyboardCharInput:
 				byte[] inbytes = event.data.getPointer().getByteArray(0, 8);	
 				int len = 0;			
-					for (byte b : inbytes) {
-						if(b>0)len++;
-					}
-					String str = new String(inbytes,0,len, StandardCharsets.UTF_8);
+				for (byte b : inbytes) {
+					if(b>0)len++;
+				}
+				String str = new String(inbytes,0,len, StandardCharsets.UTF_8);
 				keyboard.type(str); //holy shit it works.
 				break;
 			default:
@@ -1792,7 +1820,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		mc.mcProfiler.endSection();
 	}
 
-	
+
 	public boolean applyGUIModelView(EyeType eyeType)
 	{
 		mc.mcProfiler.startSection("applyGUIModelView");
@@ -1830,7 +1858,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 			guiPos = headPos.subtract(headDirection);
 		}
-		
+
 		// HUD view - attach to head or controller
 		else if (this.mc.theWorld!=null && (this.mc.currentScreen==null || mc.vrSettings.floatInventory == false))
 		{
@@ -1865,23 +1893,23 @@ IEventNotifier, IEventListener, IBodyAimController
 				guiPos = guiPos.subtract(controllerForward.divide(1.0f / 0.5f));
 			}
 		} else {
-			
-			
+
+
 		}
-		
+
 		// otherwise, looking at inventory screen. use pose calculated when screen was opened
-		   //where is this set up... should be here....
-		
+		//where is this set up... should be here....
+
 		if(this.mc.currentScreen instanceof GuiChat){
-			
-			
+
+
 		}
-		
-	
+
+
 		// Show inventory at the guiRotationPose
 		FloatBuffer guiRotationBuf = guiRotationPose.transposed().toFloatBuffer();
 
-				
+
 		// counter head rotation
 		Quaternion q = getOrientationQuaternion(eyeType);
 		org.lwjgl.util.vector.Matrix4f head = QuaternionHelper.quatToMatrix4f(q);
@@ -1895,32 +1923,32 @@ IEventNotifier, IEventListener, IBodyAimController
 		GL11.glTranslatef((float) (guiPos.x - eye.xCoord), (float) (guiPos.y + eye.yCoord), (float) (guiPos.z - eye.zCoord));
 
 		GL11.glPushMatrix();
-			GL11.glMultMatrix(guiRotationBuf);
-	
-			Quaternion tiltBack = new Quaternion();
-			float tiltAngle = 0.0f; //15.0f;
-			tiltBack.setFromAxisAngle(new Vector4f(1.0f, 0.0f, 0.0f,  tiltAngle * PIOVER180));
-			org.lwjgl.util.vector.Matrix4f tiltBackMatrix = QuaternionHelper.quatToMatrix4f(tiltBack);
-			FloatBuffer tiltBackBuf = BufferUtil.createFloatBuffer(16);
-			tiltBackMatrix.storeTranspose(tiltBackBuf);
-			tiltBackBuf.flip();
-			GL11.glMultMatrix(tiltBackBuf);
-	
-			double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
-	
-					if (this.mc.theWorld == null || (this.mc.currentScreen!=null && this.mc.currentScreen instanceof GuiContainer
-							&& !(this.mc.currentScreen instanceof GuiInventory || this.mc.currentScreen instanceof GuiContainerCreative)))
-					{
-						guiScale = 2.0f; 		
-					 }else guiScale = 1.0f;//mc.vrSettings.hudScale;
-	
-	//		if (timeOpen < 1.5) {
-	//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
-	//		}
-	
-			mc.mcProfiler.endSection();
-	
-			return true;
+		GL11.glMultMatrix(guiRotationBuf);
+
+		Quaternion tiltBack = new Quaternion();
+		float tiltAngle = 0.0f; //15.0f;
+		tiltBack.setFromAxisAngle(new Vector4f(1.0f, 0.0f, 0.0f,  tiltAngle * PIOVER180));
+		org.lwjgl.util.vector.Matrix4f tiltBackMatrix = QuaternionHelper.quatToMatrix4f(tiltBack);
+		FloatBuffer tiltBackBuf = BufferUtil.createFloatBuffer(16);
+		tiltBackMatrix.storeTranspose(tiltBackBuf);
+		tiltBackBuf.flip();
+		GL11.glMultMatrix(tiltBackBuf);
+
+		double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
+
+		if (this.mc.theWorld == null || (this.mc.currentScreen!=null && this.mc.currentScreen instanceof GuiContainer
+				&& !(this.mc.currentScreen instanceof GuiInventory || this.mc.currentScreen instanceof GuiContainerCreative)))
+		{
+			guiScale = 2.0f; 		
+		}else guiScale = 1.0f;//mc.vrSettings.hudScale;
+
+		//		if (timeOpen < 1.5) {
+		//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
+		//		}
+
+		mc.mcProfiler.endSection();
+
+		return true;
 	}
 
 	//-------------------------------------------------------
