@@ -88,7 +88,7 @@ If you're seeing lots of judder, try lowering your Minecraft video settings. Set
 Building the Installer
 ======================
 
-* Install Java JDK 1.6, 1.7 or 1.8. The Java JRE will NOT work, it MUST be the JDK. This has been tested with JDK1.6.0_38 x64. [Download from oracle.com](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase6-419409.html#jdk-6u38-oth-JPR)
+* Install Java JDK 1.7 or 1.8. The Java JRE will NOT work, it MUST be the JDK.
 * Set the JAVA_HOME environment variable to the JDK directory
 * Add %JAVA_HOME%\bin to your PATH environment variable
 * Install Python 2.7.x (NOT 3.x). Be sure to tick the 'add python to your PATH' option during install. [Download from python.org](https://www.python.org/downloads/)
@@ -165,7 +165,7 @@ Setting up
 Install build prerequisites
 ---------------------------
 
-- Java JDK 1.6, 1.7 or 1.8 (the Java JRE will NOT work, it MUST be the JDK)
+- Java JDK 1.7 or 1.8 (the Java JRE will NOT work, it MUST be the JDK)
 - JAVA_HOME should be set to the JDK directory
 - ${JAVA_HOME}\bin or %JAVA_HOME%/bin must be added to your path
 - Python 2.7.x (NOT 3.x)
