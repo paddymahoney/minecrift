@@ -78,6 +78,7 @@ Multiplayer
 
 Multiplayer will work if all clients and the server are running this mod. If you connect to a vanilla Minecraft server, it will fall back to a traditional movement scheme with continuous camera movement, which typically causes some amount of nausea for VR users. This is because vanilla servers don't allow clients to teleport as a form of cheat protection. You can also force the traditional movement scheme in singleplayer by pressing Right CTRL+R.
 
+Instructions for running a Minecraft server which allows teleportation, see the [Minecraft for Vive Wiki](https://www.reddit.com/r/Vive/wiki/minecrift_for_vive) on Reddit.
 
 Performance
 ===========
