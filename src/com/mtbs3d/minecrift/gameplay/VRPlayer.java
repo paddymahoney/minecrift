@@ -5,6 +5,7 @@ import de.fruitfly.ovr.structs.EulerOrient;
 import de.fruitfly.ovr.structs.Matrix4f;
 import de.fruitfly.ovr.structs.Quatf;
 import de.fruitfly.ovr.structs.Vector3f;
+import io.netty.util.concurrent.GenericFutureListener;
 import jopenvr.OpenVRUtil;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -19,11 +20,14 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C17PacketCustomPayload;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.Random;
+
+import com.google.common.base.Charsets;
 
 // VIVE
 public class VRPlayer
@@ -118,7 +122,6 @@ public class VRPlayer
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
 	
-    	
         updateSwingAttack();
 		
        if(mc.vrSettings.vrAllowCrawling){         //experimental
@@ -127,9 +130,9 @@ public class VRPlayer
            if(topofhead < .5) {topofhead = 0.5f;}
            if(topofhead > 1.8) {topofhead = 1.8f;}
            
-           player.height = (float) topofhead;
+           player.height = (float) topofhead - 0.05f;
 
-           player.boundingBox.maxY = player.boundingBox.minY +  player.height;    	   
+           player.boundingBox.maxY = player.boundingBox.minY +  topofhead;  	   
        }
 
       
@@ -1007,6 +1010,7 @@ public class VRPlayer
 	
 	public void setFreeMoveMode(boolean free) { 
 		restrictedViveClient = free;
+	      Minecraft.getMinecraft().getNetHandler().addToSendQueue(new C17PacketCustomPayload("MC|Vive|FreeMove", (byte[]) (restrictedViveClient ?  new byte[]{1} : new byte[]{0} )));
 		if(Minecraft.getMinecraft().thePlayer != null) {
 			Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY, Minecraft.getMinecraft().thePlayer.posZ); //reset room origin on mode change.
 		}		

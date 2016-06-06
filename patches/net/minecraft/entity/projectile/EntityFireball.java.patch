@@ -36,11 +36,11 @@
 +        float yaw = shooter.rotationYaw;
 +        float pitch = shooter.rotationPitch;
 +     
-+       if (shooter instanceof EntityPlayerSP)
++       if (shooter instanceof EntityPlayer)
 +        {
 +       	
 +           Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
-+       	Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
++           Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
 +           //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
 +           //aimRotation = Matrix4f.multiply(aimRotation, tilt);
 +           Vector3f forward = new Vector3f(0,0,1);

@@ -1860,7 +1860,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1141,4182 @@
+@@ -825,1829 +1141,4177 @@
          {
              clipDistance = 256.0F;
          }
@@ -4490,33 +4490,27 @@
 +		}
 +
 +		if( entity != null )
-+		{
-+			//set movement direction
-+			switch(this.mc.vrSettings.lookMoveDecoupled) {
-+			case VRSettings.DECOUPLE_OFF:
-+				entity.rotationYaw = (float)cameraYaw;
-+				entity.headPitch = (float)cameraPitch;
-+				break;
-+			case VRSettings.DECOUPLE_WITH_HUD:
-+				entity.rotationYaw = lookYawOffset;
-+				entity.headPitch = lookPitchOffset;
-+				break;
-+			case VRSettings.DECOUPLE_WITH_CROSSHAIR:
-+				entity.rotationYaw = mc.lookaimController.getAimYaw();
-+				entity.headPitch = mc.lookaimController.getAimPitch();
-+				break;
-+			}
++		{		
++			//set model view direction
++			entity.rotationYaw = (float)cameraYaw;
++			entity.headPitch = (float)cameraPitch;	
 +			entity.rotationYawHead = (float)cameraYaw;
-+
-+			// Always make pitch follow crosshair direction
-+			switch(this.mc.vrSettings.lookMoveDecoupled) {
-+			case VRSettings.DECOUPLE_OFF:
-+			case VRSettings.DECOUPLE_WITH_HUD:
-+			case VRSettings.DECOUPLE_WITH_CROSSHAIR:
-+				entity.rotationPitch = mc.lookaimController.getAimPitch();
-+				break;
++			entity.rotationPitch = (float)cameraPitch;
++			
++			if(entity instanceof EntityPlayerSP){
++				if(this.mc.bowTracker.isDrawing){
++					//use bow aim
++					Vec3 aim = mc.bowTracker.getAimVector();
++					
++					float pitch = -(float)Math.toDegrees(Math.asin(aim.yCoord/aim.lengthVector()));
++					float yaw = (float)Math.toDegrees(Math.atan2(aim.xCoord, aim.zCoord));   		
++					
++					entity.rotationYaw = (float)yaw;
++					entity.headPitch = (float)pitch;	
++					entity.rotationYawHead = (float)yaw;
++					entity.rotationPitch = (float)pitch;
++				}
 +			}
-+			//entity.rotationPitch = (float)cameraPitch;
 +		}
 +
 +		if( this.mc.vrSettings.keyholeWidth > 0 )
@@ -5049,131 +5043,132 @@
 +			// Pass matrici on to OpenGL...
 +			GL11.glMatrixMode(GL11.GL_PROJECTION);
 +			GL11.glPushMatrix();
-+			GL11.glLoadIdentity();
-+
-+			// Minecrift - use correct projection
-+			if (this.mc.stereoProvider.isStereo())
-+			{
-+				GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
-+			}
-+			else
-+			{
-+				Project.gluPerspective(this.mc.renderViewEntity == null ? 90f : this.getFOVModifier(par1, true), (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
-+			}
-+
-+			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+			GL11.glPushMatrix();
-+			GL11.glLoadIdentity();
-+
-+			// VIVE START - custom GUI position
-+			if (this.mc.lookaimController.applyGUIModelView(this.mc.currentEye)) //MCOpenVR.java
-+			{
-+				// gui pose setup by aim controller
-+			}
-+			// VIVE END - custom GUI position
-+			
-+			else //dead code for Vive
-+			{
-+				float guiYaw = 0f;
-+				if (this.mc.theWorld != null && this.mc.currentScreen != null)
++				GL11.glLoadIdentity();
++	
++				// Minecrift - use correct projection
++				if (this.mc.stereoProvider.isStereo())
 +				{
-+					guiYaw = inGameMenuHeadYaw + this.mc.lookaimController.getBodyYawDegrees();
-+				}
-+				else if (this.mc.theWorld != null && ( this.mc.vrSettings.lookMoveDecoupled > VRSettings.DECOUPLE_OFF) )
-+				{
-+					guiYaw = this.mc.lookaimController.getBodyYawDegrees();
++					GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
 +				}
 +				else
 +				{
-+					guiYaw = hudHeadYaw + this.mc.lookaimController.getBodyYawDegrees();
++					Project.gluPerspective(this.mc.renderViewEntity == null ? 90f : this.getFOVModifier(par1, true), (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
 +				}
-+
-+				float guiPitch = 0f;
-+
-+				// View adjust (for IPD, eye relief)
-+				//                if (this.mc.stereoProvider.isStereo())
-+				//                {
-+				//                  Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
-+				//                    GlStateManager.translate(viewAdjust.x,
-+				//                                             viewAdjust.y,
-+				//                                             viewAdjust.z);
-+				//                }
-+
-+				// Orientation adjust
-+				GL11.glRotatef((float)headRoll, 0f, 0f, 1f);
-+				GL11.glRotatef((float)headPitch, 1f, 0f, 0f);
-+				GL11.glRotatef((float)headYaw, 0f, 1f, 0f);
-+
-+				// Position adjust 'player' head to HMD
-+				GL11.glTranslatef(camRelX, camRelY, camRelZ);
-+
-+				// Rotate HUD to appropriate position
-+				//if (this.mc.theWorld != null)
-+				{
-+					GL11.glRotatef(guiYaw - lookYawOffset - this.mc.vrSettings.hudYawOffset, 0f, 1f, 0f);
-+					GL11.glRotatef(this.mc.vrSettings.hudPitchOffset - guiPitch, 1f, 0f, 0f);
-+				}
-+
-+				// Move out HUD distance
-+				GL11.glTranslatef(0.0f, 0.0f, -this.mc.vrSettings.hudDistance);
-+			}
-+
-+
-+			///JRBUDDA MAIN MENU ROOM            
-+			if(mc.theWorld == null){		
-+				rendserJrbuddasAwesomeMainMenuRoom();			
-+			}
-+			//END JRBUDDA'S AWESOME MAIN MENU ROOM       
-+
-+
-+			GL11.glDisable(GL11.GL_CULL_FACE);
-+			GL11.glEnable(GL11.GL_TEXTURE_2D);
-+			this.mc.guiFramebuffer.bindFramebufferTexture();
-+			//this.mc.getTextureManager().bindTexture(Gui.icons);
-+
-+			// Prevent black border at top / bottom of GUI
-+			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
-+			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
-+
-+			// Set texture filtering
-+			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
-+			GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-+			GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
-+
-+			if (this.mc.theWorld != null)
-+			{
-+				GL11.glColor4f(1, 1, 1, this.mc.vrSettings.hudOpacity);
-+			}
-+			else{
-+				GL11.glColor4f(1, 1, 1, 1);
-+			}
-+
-+			if (this.mc.vrSettings.hudOcclusion == false || this.mc.currentScreen != null){
-+				// Never use depth test for in game menu - so you can always see it!
-+				GL11.glDisable(GL11.GL_DEPTH_TEST);			
-+			}
-+
-+			//the framebuffer has to be drawn with color blending transparency to support non-alpha cursors. Always has a black background.	
-+			GL11.glEnable(GL11.GL_BLEND);		
-+	//		OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0); //color blend for corsshair transparency
++	
++				GL11.glMatrixMode(GL11.GL_MODELVIEW);
++				GL11.glPushMatrix();
++					GL11.glLoadIdentity();
 +		
-+			float scale = MCOpenVR.guiScale; // * this.mc.vroptions.hudscale
-+			
-+			GL11.glScalef(scale, scale, scale);
-+				
-+			//Render framebuffer onto world projection
-+			drawSizedQuad(this.mc.displayFBWidth, this.mc.displayFBHeight, 1.5f); //this.mc.vrSettings.hudScale);
-+			
-+	//		OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0); 
-+
-+			GL11.glDisable(GL11.GL_BLEND);
-+			GL11.glEnable(GL11.GL_DEPTH_TEST);
-+			GL11.glEnable(GL11.GL_CULL_FACE);
-+
-+			GL11.glMatrixMode(GL11.GL_PROJECTION);
-+			GL11.glPopMatrix();
-+			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+			GL11.glPopMatrix();
++					// VIVE START - custom GUI position
++					if (this.mc.lookaimController.applyGUIModelView(this.mc.currentEye)) //MCOpenVR.java
++					{
++						// gui pose setup by aim controller
++					}
++					// VIVE END - custom GUI position
++					
++					else //dead code for Vive
++					{
++						float guiYaw = 0f;
++						if (this.mc.theWorld != null && this.mc.currentScreen != null)
++						{
++							guiYaw = inGameMenuHeadYaw + this.mc.lookaimController.getBodyYawDegrees();
++						}
++						else if (this.mc.theWorld != null && ( this.mc.vrSettings.lookMoveDecoupled > VRSettings.DECOUPLE_OFF) )
++						{
++							guiYaw = this.mc.lookaimController.getBodyYawDegrees();
++						}
++						else
++						{
++							guiYaw = hudHeadYaw + this.mc.lookaimController.getBodyYawDegrees();
++						}
++		
++						float guiPitch = 0f;
++		
++						// View adjust (for IPD, eye relief)
++						//                if (this.mc.stereoProvider.isStereo())
++						//                {
++						//                  Vector3f viewAdjust = getViewAdjust(this.mc.currentEye);
++						//                    GlStateManager.translate(viewAdjust.x,
++						//                                             viewAdjust.y,
++						//                                             viewAdjust.z);
++						//                }
++		
++						// Orientation adjust
++						GL11.glRotatef((float)headRoll, 0f, 0f, 1f);
++						GL11.glRotatef((float)headPitch, 1f, 0f, 0f);
++						GL11.glRotatef((float)headYaw, 0f, 1f, 0f);
++		
++						// Position adjust 'player' head to HMD
++						GL11.glTranslatef(camRelX, camRelY, camRelZ);
++		
++						// Rotate HUD to appropriate position
++						//if (this.mc.theWorld != null)
++						{
++							GL11.glRotatef(guiYaw - lookYawOffset - this.mc.vrSettings.hudYawOffset, 0f, 1f, 0f);
++							GL11.glRotatef(this.mc.vrSettings.hudPitchOffset - guiPitch, 1f, 0f, 0f);
++						}
++		
++						// Move out HUD distance
++						GL11.glTranslatef(0.0f, 0.0f, -this.mc.vrSettings.hudDistance);
++					}
++		
++		
++					///JRBUDDA MAIN MENU ROOM            
++					if(mc.theWorld == null){		
++						rendserJrbuddasAwesomeMainMenuRoom();			
++					}
++					//END JRBUDDA'S AWESOME MAIN MENU ROOM       
++		
++		
++					GL11.glDisable(GL11.GL_CULL_FACE);
++					GL11.glEnable(GL11.GL_TEXTURE_2D);
++					this.mc.guiFramebuffer.bindFramebufferTexture();
++		
++					// Prevent black border at top / bottom of GUI
++					GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
++					GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
++		
++					// Set texture filtering
++					GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
++					GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
++					GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
++		
++					if (this.mc.theWorld != null)
++					{
++						GL11.glColor4f(1, 1, 1, this.mc.vrSettings.hudOpacity);
++					}
++					else{
++						GL11.glColor4f(1, 1, 1, 1);
++					}
++		
++					if (this.mc.vrSettings.hudOcclusion == false || this.mc.currentScreen != null){
++						// Never use depth test for in game menu - so you can always see it!
++						GL11.glDisable(GL11.GL_DEPTH_TEST);			
++					}
++		
++					//the framebuffer has to be drawn with color blending transparency to support non-alpha cursors. Always has a black background.	
++					GL11.glDisable(GL11.GL_BLEND);	
++					GL11.glEnable(GL11.GL_ALPHA_TEST);
++					GL11.glAlphaFunc(GL11.GL_GREATER, 0.01f);
++				//	OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0); //color blend for corsshair transparency
++				//	OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ZERO,0,1);
++					float scale = MCOpenVR.guiScale; // * this.mc.vroptions.hudscale
++					
++					GL11.glScalef(scale, scale, scale);
++						
++					//Render framebuffer onto world projection
++					drawSizedQuad(this.mc.displayFBWidth, this.mc.displayFBHeight, 1.5f); //this.mc.vrSettings.hudScale);
++					
++			//		OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0); 
++		
++					GL11.glDisable(GL11.GL_BLEND);
++					GL11.glEnable(GL11.GL_DEPTH_TEST);
++					GL11.glEnable(GL11.GL_CULL_FACE);
++		
++					GL11.glMatrixMode(GL11.GL_PROJECTION);
++					GL11.glPopMatrix();
++					GL11.glMatrixMode(GL11.GL_MODELVIEW);
++				GL11.glPopMatrix();
 +			GL11.glPopMatrix(); // vive temp to undo extra push in (gui?) camera setup
 +
 +			
@@ -5297,7 +5292,7 @@
 +				GL11.glLoadIdentity();
 +				GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
 +
-+				
++
 +				if (this.mc.theWorld != null && this.mc.currentScreen != null)
 +					this.inWorldGuiScreenShowingThisFrame = true; // In game menus will open at look forward orient, with no depth check applied
 +				else
@@ -5318,10 +5313,10 @@
 +					/** END MINECRIFT FORGE **/
 +					//Draw in game HUD overlay
 +					GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-+								
++
 +					//Render HUD elements
 +					this.mc.ingameGUI.renderGameOverlay(renderPartialTicks, this.mc.currentScreen != null, 0, 0);
-+					
++
 +					mc.guiAchievement.updateAchievementWindow();
 +					GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 +				}
@@ -5338,7 +5333,7 @@
 +					final int mouseY1 = mouseY = this.mc.currentScreen.getMouseY();
 +
 +
-+						 
++
 +					try
 +					{
 +						boolean drawScreenHandled = false;
@@ -5350,17 +5345,17 @@
 +						if (!drawScreenHandled)
 +						{
 +							this.mc.currentScreen.drawScreen(mouseX, mouseY, renderPartialTicks);
-+							
-+					//	Draw GUI crosshair
-+								 if (mc.lookaimController instanceof MCOpenVR){					
-+									 if(((MCOpenVR)mc.lookaimController).controllerMouseValid){
-+										 mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())		;				
-+									}
-+									
-+								 	} else  mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())	;
-+							
++
++							//	Draw GUI crosshair
++							if (mc.lookaimController instanceof MCOpenVR){					
++								if(((MCOpenVR)mc.lookaimController).controllerMouseValid){
++									mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())		;				
++								}
++
++							} else  mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())	;
++
 +						}
-+				        
++
 +						Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Post_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(mouseX), Integer.valueOf(mouseY), Float.valueOf(renderPartialTicks)});
 +					}
 +					catch (Throwable throwable)
@@ -5393,7 +5388,7 @@
 +
 +					GL11.glDisable(GL11.GL_LIGHTING); //inventory messes up fog color sometimes... This fixes
 +					GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-+											
++
 +				}
 +			}
 +		}

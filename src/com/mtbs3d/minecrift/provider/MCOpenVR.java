@@ -752,7 +752,6 @@ IEventNotifier, IEventListener, IBodyAimController
 
 		//GL11.glFlush();
 		GL11.glFinish();
-
 		vrCompositor.Submit.apply(
 				JOpenVRLibrary.EVREye.EVREye_Eye_Left,
 				texTypeLeft, texBoundsLeft,
@@ -933,9 +932,9 @@ IEventNotifier, IEventListener, IBodyAimController
 		KeyBinding keyBindR_TouchpadUR = mc.gameSettings.keyBindUseItem;
 		KeyBinding keyBindR_Appmenu = mc.gameSettings.keyBindDrop;
 		KeyBinding keyBindR_Grip = mc.gameSettings.keyBindPickBlock;
-		KeyBinding keyBindR_TriggerClick = new KeyBinding("null", 0, "null");
+		KeyBinding keyBindR_TriggerClick = null; //new KeyBinding("null", 0, "null");
 
-		KeyBinding keyBindL_Appmenu = new KeyBinding("null", 0, "null");
+		KeyBinding keyBindL_Appmenu = null; // new KeyBinding("null", 0, "null");
 		KeyBinding keyBindL_Trigger = mc.gameSettings.keyBindForward;
 		KeyBinding keyBindL_TouchpadBL = mc.gameSettings.keyBindJump;
 		KeyBinding keyBindL_TouchpadBR = mc.gameSettings.keyBindJump;
@@ -1038,11 +1037,13 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 		//R triggerclick
-		if (pressedRTriggerClick && !lastpressedRTriggerClick) {
-			keyBindR_TriggerClick.pressKey();
-		}	
-		if(!pressedRTriggerClick && lastpressedRTriggerClick) {
-			keyBindR_TriggerClick.unpressKey();
+		if(keyBindR_TriggerClick !=null){
+			if (pressedRTriggerClick && !lastpressedRTriggerClick) {
+				keyBindR_TriggerClick.pressKey();
+			}	
+			if(!pressedRTriggerClick && lastpressedRTriggerClick) {
+				keyBindR_TriggerClick.unpressKey();
+			}			
 		}
 
 
@@ -1131,12 +1132,15 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 		//L AppMenu
-		if (pressedLAppMenu && !lastpressedLAppMenu) {
-			keyBindR_Appmenu.pressKey();
-		}	
-		if(!pressedLAppMenu && lastpressedLAppMenu) {
-			keyBindL_Appmenu.unpressKey();
-		}				
+		if(keyBindL_Appmenu !=null){
+			if (pressedLAppMenu && !lastpressedLAppMenu) {
+				keyBindL_Appmenu.pressKey();
+			}	
+			if(!pressedLAppMenu && lastpressedLAppMenu) {
+				keyBindL_Appmenu.unpressKey();
+			}				
+		}
+			
 
 		//L triggerclick
 		if (pressedLTriggerClick && !lastpressedLTriggerClick) {

@@ -14,8 +14,8 @@
          this.netManager.scheduleOutboundPacket(new C17PacketCustomPayload("MC|Brand", ClientBrandRetriever.getClientModName().getBytes(Charsets.UTF_8)), new GenericFutureListener[0]);
 +        // VIVE START - ask server if it's running this mod
 +        this.gameController.vrPlayer.setFreeMoveMode(Minecraft.getMinecraft().vrSettings.vrFreeMove);
-+        String please = "please";
-+        this.netManager.scheduleOutboundPacket(new C17PacketCustomPayload("MC|Vive", please.getBytes(Charsets.UTF_8)), new GenericFutureListener[0]);
++        String version = Minecraft.getMinecraft().minecriftVerString;
++        this.addToSendQueue(new C17PacketCustomPayload("MC|Vive|Version", version.getBytes(Charsets.UTF_8)));
 +        // VIVE END - ask server if it's running this mod
      }
  

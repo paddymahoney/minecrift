@@ -479,16 +479,19 @@
  
          this.worldObj.theProfiler.startSection("ai");
  
-@@ -2071,7 +2287,7 @@
+@@ -2069,9 +2285,10 @@
+      * Sets the position and rotation. Only difference from the other one is no bounding on the rotation. Args: posX,
+      * posY, posZ, yaw, pitch
       */
++    //from server
      public void setPositionAndRotation2(double x, double y, double z, float yaw, float pitch, int rotationIncrements)
      {
 -        this.yOffset = 0.0F;
-+        //this.yOffset = 0.0F; oh man this is gonna bit me - jrbudda
++        //this.yOffset = 0.0F; oh man this is gonna bite me - jrbudda
          this.newPosX = x;
          this.newPosY = y;
          this.newPosZ = z;
-@@ -2149,16 +2365,24 @@
+@@ -2149,16 +2366,24 @@
  
          if (p_70676_1_ == 1.0F)
          {
@@ -517,7 +520,7 @@
              var4 = MathHelper.cos(-var3 * 0.017453292F - (float)Math.PI);
              var5 = MathHelper.sin(-var3 * 0.017453292F - (float)Math.PI);
              float var6 = -MathHelper.cos(-var2 * 0.017453292F);
-@@ -2293,7 +2517,46 @@
+@@ -2293,7 +2518,46 @@
      {
          return this.getTeam() != null ? this.getTeam().isSameTeam(p_142012_1_) : false;
      }

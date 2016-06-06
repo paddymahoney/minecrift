@@ -47,7 +47,7 @@ def zipmerge( target_file, source_file ):
 def process_json( addon, version ):
     json_id = "vivecraft-"+version+addon
     lib_id = "com.mtbs3d:minecrift:"+version
-    time = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S-05:00")
+    time = datetime.datetime(1979,6,1).strftime("%Y-%m-%dT%H:%M:%S-05:00")
     with  open(os.path.join("installer",mc_version+addon+".json"),"rb") as f:
         json_obj = json.load(f)
         json_obj["id"] = json_id

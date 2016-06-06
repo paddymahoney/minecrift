@@ -102,11 +102,13 @@
      /**
       * Render the ingame overlay with quick icon bar, ...
       */
-@@ -122,16 +153,32 @@
+@@ -121,17 +152,33 @@
+         int var13;
  
          if (!this.mc.playerController.enableEverythingIsScrewedUpMode())
-         {
+-        {
 -            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++        { //render HUD
 +            
 +        	GL11.glColor4f(1F,1f,1F,1F);
 +            GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -120,14 +122,14 @@
              this.drawTexturedModalRect(var6 / 2 - 91, var7 - 22, 0, 0, 182, 22);
              this.drawTexturedModalRect(var6 / 2 - 91 - 1 + var31.currentItem * 20, var7 - 22 - 1, 0, 22, 24, 22);
 +            
++                 
              this.mc.getTextureManager().bindTexture(icons);
 +            
-+            GL11.glEnable(GL11.GL_BLEND);
-+            GL11.glEnable(GL11.GL_DEPTH_TEST);
-+            GL11.glEnable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_BLEND);
 -            OpenGlHelper.glBlendFunc(775, 769, 1, 0);
 -            this.drawTexturedModalRect(var6 / 2 - 7, var7 / 2 - 7, 0, 0, 16, 16);
++            GL11.glEnable(GL11.GL_DEPTH_TEST);
++            GL11.glEnable(GL11.GL_ALPHA_TEST);
 +        
 +            /** MINECRIFT ** - don't render the normal crosshair
 +       		OpenGlHelper.glBlendFunc(775, 769, 1, 0);

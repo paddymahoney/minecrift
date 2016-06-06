@@ -136,7 +136,15 @@
  
      protected abstract void entityInit();
  
-@@ -610,11 +669,11 @@
+@@ -385,6 +444,7 @@
+      * Adds 15% to the entity's yaw and subtracts 15% from the pitch. Clamps pitch from -90 to 90. Both arguments in
+      * degrees.
+      */
++    //Not called at all.
+     public void setAngles(float yaw, float pitch)
+     {
+         float var3 = this.rotationPitch;
+@@ -610,11 +670,11 @@
      /**
       * Tries to moves the entity by the passed in displacement. Args: x, y, z
       */
@@ -150,7 +158,7 @@
              this.posX = (this.boundingBox.minX + this.boundingBox.maxX) / 2.0D;
              this.posY = this.boundingBox.minY + (double)this.yOffset - (double)this.yOffset2;
              this.posZ = (this.boundingBox.minZ + this.boundingBox.maxZ) / 2.0D;
-@@ -630,218 +689,219 @@
+@@ -630,218 +690,219 @@
              if (this.isInWeb)
              {
                  this.isInWeb = false;
@@ -464,7 +472,7 @@
                      this.boundingBox.setBB(var29);
                  }
              }
-@@ -851,23 +911,27 @@
+@@ -851,23 +912,27 @@
              this.posX = (this.boundingBox.minX + this.boundingBox.maxX) / 2.0D;
              this.posY = this.boundingBox.minY + (double)this.yOffset - (double)this.yOffset2;
              this.posZ = (this.boundingBox.minZ + this.boundingBox.maxZ) / 2.0D;
@@ -499,7 +507,7 @@
              {
                  this.motionZ = 0.0D;
              }
-@@ -876,7 +940,7 @@
+@@ -876,7 +941,7 @@
              var25 = this.posY - var9;
              var27 = this.posZ - var11;
  
@@ -508,7 +516,7 @@
              {
                  int var39 = MathHelper.floor_double(this.posX);
                  var30 = MathHelper.floor_double(this.posY - 0.20000000298023224D - (double)this.yOffset);
-@@ -1171,9 +1235,38 @@
+@@ -1171,9 +1236,38 @@
  
          if (var7.getMaterial() == materialIn)
          {
@@ -550,7 +558,7 @@
          }
          else
          {
-@@ -1193,30 +1286,36 @@
+@@ -1193,30 +1287,36 @@
      {
          return this.worldObj.isMaterialInBB(this.boundingBox.expand(-0.10000000149011612D, -0.4000000059604645D, -0.10000000149011612D), Material.lava);
      }
@@ -601,7 +609,23 @@
          }
      }
  
-@@ -1526,6 +1625,31 @@
+@@ -1268,6 +1368,7 @@
+     /**
+      * Sets the entity's position and rotation.
+      */
++    //Server calls this.
+     public void setPositionAndRotation(double x, double y, double z, float yaw, float pitch)
+     {
+         this.prevPosX = this.posX = x;
+@@ -1295,6 +1396,7 @@
+     /**
+      * Sets the location and Yaw/Pitch of an entity in the world
+      */
++    //client
+     public void setLocationAndAngles(double x, double y, double z, float yaw, float pitch)
+     {
+         this.lastTickPosX = this.prevPosX = this.posX = x;
+@@ -1526,6 +1628,31 @@
              tagCompund.setInteger("PortalCooldown", this.timeUntilPortal);
              tagCompund.setLong("UUIDMost", this.getUniqueID().getMostSignificantBits());
              tagCompund.setLong("UUIDLeast", this.getUniqueID().getLeastSignificantBits());
@@ -633,7 +657,7 @@
              this.writeEntityToNBT(tagCompund);
  
              if (this.ridingEntity != null)
-@@ -1596,6 +1720,37 @@
+@@ -1596,6 +1723,37 @@
  
              this.setPosition(this.posX, this.posY, this.posZ);
              this.setRotation(this.rotationYaw, this.rotationPitch);
@@ -671,7 +695,7 @@
              this.readEntityFromNBT(tagCompund);
  
              if (this.shouldSetPosAfterLoading())
-@@ -1697,7 +1852,16 @@
+@@ -1697,7 +1855,16 @@
          {
              EntityItem var3 = new EntityItem(this.worldObj, this.posX, this.posY + (double)offsetY, this.posZ, itemStackIn);
              var3.delayBeforeCanPickup = 10;
@@ -689,7 +713,7 @@
              return var3;
          }
          else
-@@ -1725,7 +1889,9 @@
+@@ -1725,7 +1892,9 @@
              float var3 = ((float)((var1 >> 1) % 2) - 0.5F) * 0.1F;
              float var4 = ((float)((var1 >> 2) % 2) - 0.5F) * this.width * 0.8F;
              int var5 = MathHelper.floor_double(this.posX + (double)var2);
@@ -700,7 +724,7 @@
              int var7 = MathHelper.floor_double(this.posZ + (double)var4);
  
              if (this.worldObj.getBlock(var5, var6, var7).isNormalCube())
-@@ -1828,8 +1994,13 @@
+@@ -1828,8 +1997,13 @@
      public void updateRiderPosition()
      {
          if (this.riddenByEntity != null)
@@ -716,7 +740,7 @@
          }
      }
  
-@@ -2008,7 +2179,16 @@
+@@ -2008,7 +2182,16 @@
       */
      public boolean isRiding()
      {
@@ -734,7 +758,7 @@
      }
  
      /**
-@@ -2131,6 +2311,7 @@
+@@ -2131,6 +2314,7 @@
  
      protected boolean pushOutOfBlocks(double x, double y, double z)
      {
@@ -742,7 +766,7 @@
          int var7 = MathHelper.floor_double(x);
          int var8 = MathHelper.floor_double(y);
          int var9 = MathHelper.floor_double(z);
-@@ -2375,7 +2556,17 @@
+@@ -2375,7 +2559,17 @@
       */
      public float getExplosionResistance(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn)
      {
@@ -761,7 +785,7 @@
      }
  
      public boolean func_145774_a(Explosion explosionIn, World worldIn, int x, int y, int z, Block blockIn, float unused)
-@@ -2453,6 +2644,204 @@
+@@ -2453,6 +2647,204 @@
  
      public void func_145781_i(int p_145781_1_) {}
  

@@ -1,0 +1,87 @@
+--- a/net/minecraft/client/renderer/entity/RenderItem.java
++++ b/net/minecraft/client/renderer/entity/RenderItem.java
+@@ -438,28 +438,27 @@
+         }
+         else if (p_77015_3_.getItem().requiresMultipleRenderPasses())
+         {
+-            GL11.glDisable(GL11.GL_LIGHTING);
+-            GL11.glEnable(GL11.GL_ALPHA_TEST);
+-            p_77015_2_.bindTexture(TextureMap.locationItemsTexture);
+-            GL11.glDisable(GL11.GL_ALPHA_TEST);
+-            GL11.glDisable(GL11.GL_TEXTURE_2D);
+-            GL11.glEnable(GL11.GL_BLEND);
+-            OpenGlHelper.glBlendFunc(0, 0, 0, 0);
+-            GL11.glColorMask(false, false, false, true);
+-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+-            Tessellator var8 = Tessellator.instance;
+-            var8.startDrawingQuads();
+-            var8.setColorOpaque_I(-1);
+-            var8.addVertex((double)(p_77015_4_ - 2), (double)(p_77015_5_ + 18), (double)this.zLevel);
+-            var8.addVertex((double)(p_77015_4_ + 18), (double)(p_77015_5_ + 18), (double)this.zLevel);
+-            var8.addVertex((double)(p_77015_4_ + 18), (double)(p_77015_5_ - 2), (double)this.zLevel);
+-            var8.addVertex((double)(p_77015_4_ - 2), (double)(p_77015_5_ - 2), (double)this.zLevel);
+-            var8.draw();
+-            GL11.glColorMask(true, true, true, true);
+-            GL11.glEnable(GL11.GL_TEXTURE_2D);
+-            GL11.glEnable(GL11.GL_ALPHA_TEST);
+-            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+-
++          GL11.glDisable(GL11.GL_LIGHTING);
++//            GL11.glEnable(GL11.GL_ALPHA_TEST); //jrbudda dont care how. it works.
++              p_77015_2_.bindTexture(TextureMap.locationItemsTexture);
++          	  GL11.glDisable(GL11.GL_BLEND);
++//          GL11.glDisable(GL11.GL_TEXTURE_2D);
++//            GL11.glEnable(GL11.GL_BLEND);
++//            GL11.glColorMask(false, false, false, true);
++//            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++//            Tessellator var8 = Tessellator.instance;
++//            var8.startDrawingQuads();
++//            var8.setColorOpaque_I(-1);
++//            var8.addVertex((double)(p_77015_4_ - 2), (double)(p_77015_5_ + 18), (double)this.zLevel);
++//            var8.addVertex((double)(p_77015_4_ + 18), (double)(p_77015_5_ + 18), (double)this.zLevel);
++//            var8.addVertex((double)(p_77015_4_ + 18), (double)(p_77015_5_ - 2), (double)this.zLevel);
++//            var8.addVertex((double)(p_77015_4_ - 2), (double)(p_77015_5_ - 2), (double)this.zLevel);
++//            var8.draw();
++           GL11.glColorMask(true, true, true, true);
++           GL11.glEnable(GL11.GL_TEXTURE_2D);
++           GL11.glEnable(GL11.GL_ALPHA_TEST);
++           OpenGlHelper.glBlendFunc(770, 771, 1, 0);
++//            
+             for (var9 = 0; var9 <= 1; ++var9)
+             {
+                 IIcon var10 = p_77015_3_.getItem().getIconFromDamageForRenderPass(var6, var9);
+@@ -475,7 +474,6 @@
+ 
+                 this.renderIcon(p_77015_4_, p_77015_5_, var10, 16, 16);
+             }
+-
+             GL11.glEnable(GL11.GL_LIGHTING);
+         }
+         else
+@@ -566,13 +564,16 @@
+                 GL11.glDepthFunc(GL11.GL_EQUAL);
+                 GL11.glDisable(GL11.GL_LIGHTING);
+                 GL11.glDepthMask(false);
++                GL11.glColorMask(true, true, true, false);
+                 p_82406_2_.bindTexture(RES_ITEM_GLINT);
+-                GL11.glEnable(GL11.GL_ALPHA_TEST);
+-                GL11.glEnable(GL11.GL_BLEND);
+                 GL11.glColor4f(0.5F, 0.25F, 0.8F, 1.0F);
++                GL11.glEnable(GL11.GL_BLEND);
++                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+                 this.renderGlint(p_82406_4_ * 431278612 + p_82406_5_ * 32178161, p_82406_4_ - 2, p_82406_5_ - 2, 20, 20);
+                 OpenGlHelper.glBlendFunc(770, 771, 1, 0);
++                GL11.glDisable(GL11.GL_BLEND);
+                 GL11.glDepthMask(true);
++                GL11.glColorMask(true, true, true, true);
+                 GL11.glEnable(GL11.GL_LIGHTING);
+                 GL11.glDepthFunc(GL11.GL_LEQUAL);
+             }
+@@ -585,7 +586,6 @@
+     {
+         for (int var6 = 0; var6 < 2; ++var6)
+         {
+-            OpenGlHelper.glBlendFunc(772, 1, 0, 0);
+             float var7 = 0.00390625F;
+             float var8 = 0.00390625F;
+             float var9 = (float)(Minecraft.getSystemTime() % (long)(3000 + var6 * 1873)) / (3000.0F + (float)(var6 * 1873)) * 256.0F;
