@@ -30,9 +30,6 @@ public abstract class ControlBinding {
 		bindings.add( new WalkBackwardBinding());
 		bindings.add( new WalkLeftBinding());
 		bindings.add( new WalkRightBinding());
-		bindings.add( new JoystickAim.JoyAimYawBinding() );
-		bindings.add( new JoystickAim.JoyAimPitchBinding() );
-		bindings.add( new JoystickAim.JoyAimCenterBinding() );
 		bindings.add( new KeyControlBinding( settings.keyBindAttack ));
 		bindings.add( new KeyControlBinding( settings.keyBindUseItem ));
 		bindings.add( new KeyControlBinding( settings.keyBindJump ));

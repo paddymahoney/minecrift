@@ -256,7 +256,7 @@
  
          GL11.glPopMatrix();
      }
-@@ -240,364 +249,500 @@
+@@ -240,364 +249,503 @@
  
          p_78439_0_.draw();
      }
@@ -687,6 +687,9 @@
 +	
 +	    					if(mc.bowTracker.isDrawing){ //here there be dragons
 +	
++								int c = 0;
++								if (mc.vrSettings.vrReverseShootingEye) c = 1;
++	    						
 +	    						Vec3 aim = mc.bowTracker.getAimVector(); 
 +	    						Vector3f aimCopy = new Vector3f((float)aim.xCoord,(float) aim.yCoord, (float)aim.zCoord);
 +	
@@ -1085,7 +1088,7 @@
          var3.startDrawingQuads();
          var3.addVertexWithUV((double)var5, (double)var7, (double)var9, (double)var11, (double)var13);
          var3.addVertexWithUV((double)var6, (double)var7, (double)var9, (double)var10, (double)var13);
-@@ -606,6 +751,7 @@
+@@ -606,6 +754,7 @@
          var3.draw();
          GL11.glPopMatrix();
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1093,7 +1096,7 @@
      }
  
      /**
-@@ -621,13 +767,13 @@
+@@ -621,13 +770,13 @@
          GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();

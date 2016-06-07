@@ -79,10 +79,10 @@ public class BowTracker {
 		lastcanDraw = canDraw;
 		maxDraw = Minecraft.getMinecraft().thePlayer.height * 0.25;
 
-
 		Vec3 rightPos = provider.getAimSource(0);
 		Vec3 leftPos = provider.getAimSource(1);
 		controllersDist = leftPos.distanceTo(rightPos);
+		
 		aim = rightPos.subtract(leftPos).normalize();
 
 		Vector3f forward = new Vector3f(0,0,1);

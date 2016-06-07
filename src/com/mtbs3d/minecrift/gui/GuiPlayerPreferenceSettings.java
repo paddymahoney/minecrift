@@ -19,7 +19,6 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.SOUND_ORIENT,
-            VRSettings.VrOptions.CALIBRATION_STRATEGY,
     };
 
     public GuiPlayerPreferenceSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
@@ -41,9 +40,6 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
             if (profile != null)
             {
                 this.guivrSettings.setOculusProfileIpd(profile._ipd);
-                this.guivrSettings.setOculusProfilePlayerEyeHeight(profile._eyeHeight);
-                this.guivrSettings.oculusProfileName = profile._name;
-                this.guivrSettings.oculusProfileGender = profile.getGenderString();
             }
         }
         else
@@ -116,13 +112,8 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
         if (e ==  VRSettings.VrOptions.OCULUS_PROFILE_NAME)
             return false; // Always disabled
 
-        if (Minecraft.getMinecraft().vrSettings.useOculusProfilePlayerHeight)
-        {
-            if (e == VRSettings.VrOptions.EYE_HEIGHT)
-                return false;
-        }
 
-        return true;
+        return false;
     }
 
     /**
@@ -145,7 +136,6 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
                 this.guivrSettings.renderHeadWear = false;
                 this.guivrSettings.renderFullFirstPersonModelMode = VRSettings.RENDER_FIRST_PERSON_HAND;    // VIVE - hand only by default
                 this.guivrSettings.renderPlayerOffset = 0.2f;
-                this.guivrSettings.calibrationStrategy = VRSettings.CALIBRATION_STRATEGY_AT_STARTUP;
                 this.guivrSettings.soundOrientWithHead = true;
 
                 this.guivrSettings.saveOptions();
@@ -230,16 +220,6 @@ public class GuiPlayerPreferenceSettings extends BaseGuiSettings implements GuiE
                             "listening to Minecraft.",
                             "  Headphones: Sound oriented with head.",
                             "  Speakers:   Sound oriented with body."
-                    };
-                case CALIBRATION_STRATEGY:
-                    return new String[] {
-                            "Sets whether device calibration is performed when",
-                            "Minecraft is started.",
-                            "  At Startup: Calibration routines for all",
-                            "     utilised devices are run at startup.",
-                            "  Skip: No calibration will be performed. The user",
-                            "     will have to manually trigger calibration",
-                            "     at some point for correct device operation."
                     };
                 default:
                     return null;

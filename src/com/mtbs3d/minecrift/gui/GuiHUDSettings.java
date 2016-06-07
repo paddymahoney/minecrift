@@ -22,12 +22,11 @@ public class GuiHUDSettings extends BaseGuiSettings
             VRSettings.VrOptions.HUD_YAW,
             VRSettings.VrOptions.HUD_OPACITY,
             VRSettings.VrOptions.RENDER_MENU_BACKGROUND,
-            VRSettings.VrOptions.OTHER_HUD_SETTINGS,
     };
 
     public GuiHUDSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
         super( guiScreen, guivrSettings );
-        screenTitle = "HUD / Overlay Settings";
+        screenTitle = "HUD Settings";
     }
 
     /**
@@ -103,12 +102,7 @@ public class GuiHUDSettings extends BaseGuiSettings
     {
         if (par1GuiButton.enabled)
         {
-            if (par1GuiButton.id == VRSettings.VrOptions.OTHER_HUD_SETTINGS.returnEnumOrdinal())
-            {
-                Minecraft.getMinecraft().vrSettings.saveOptions();
-                this.mc.displayGuiScreen(new GuiOtherHUDSettings(this, this.guivrSettings));
-            }
-            else if (par1GuiButton.id < 200 && par1GuiButton instanceof GuiSmallButtonEx)
+           if (par1GuiButton.id < 200 && par1GuiButton instanceof GuiSmallButtonEx)
             {
                 VRSettings.VrOptions num = VRSettings.VrOptions.getEnumOptions(par1GuiButton.id);
                 this.guivrSettings.setOptionValue(((GuiSmallButtonEx)par1GuiButton).returnVrEnumOptions(), 1);

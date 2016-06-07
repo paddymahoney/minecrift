@@ -19,14 +19,6 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.INERTIA_FACTOR,
             //VRSettings.VrOptions.VIEW_BOBBING,
             VRSettings.VrOptions.PITCH_AFFECTS_FLYING,
-            //VRSettings.VrOptions.DUMMY_SMALL,
-            //VRSettings.VrOptions.USE_VR_COMFORT,
-            //VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW,
-            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR,
-            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS,
-            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS,
-            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_BLANKING_MODE,
-            VRSettings.VrOptions.CAMERA_UPDATE_INTERVAL,        // VIVE new option
             VRSettings.VrOptions.SIMULATE_FALLING,              // VIVE new option
             VRSettings.VrOptions.WEAPON_COLLISION,              // VIVE new option
             // VIVE END - hide options not relevant for standing
@@ -103,14 +95,6 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                     increment = 0.005f;
                 }
                 // VIVE START - new options
-                else if ( var8 == VRSettings.VrOptions.CAMERA_UPDATE_INTERVAL)
-                {
-                    minValue = 0f;
-                    maxValue = 2.0f;
-                    increment = 0.1f;
-                }
-                // VIVE END - new options
-
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height - 20, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.setEventHandler(this);
                 slider.enabled = getEnabledState(var8);
@@ -187,7 +171,6 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 vr.vrComfortTransitionTimeSecs = 0.150f;
                 vr.vrComfortTransitionAngleDegs = 30f;
                 vr.vrComfortTransitionBlankingMode = VRSettings.VR_COMFORT_TRANS_BLANKING_MODE_OFF;
-                vr.movementQuantisation = 4;
                 vr.inertiaFactor = VRSettings.INERTIA_NORMAL;
                 vr.allowPitchAffectsHeightWhileFlying = false;
                 vr.useKeyBindingForComfortYaw = false;
@@ -245,7 +228,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "simulator sickness.",
                             "WARNING: May trigger anti-cheat warnings if on a",
                             "Multiplayer server!!",
-                            "Defaults to 0.75 (1.0 is standard Minecraft movement",
+                            "Defaults to standard Minecraft movement (1.0)",
                             "speed)."
                     } ;
                 case STRAFE_MULTIPLIER:
@@ -366,12 +349,6 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "             trigger a yaw transition."
                     };
                 // VIVE START - new options
-                case CAMERA_UPDATE_INTERVAL:
-                    return new String[] {
-                            "When connected to a server that doesn't support",
-                            "teleporting, this determines the time between",
-                            "camera updates, in seconds."
-                    } ;
                 case SIMULATE_FALLING:
                     return new String[] {
                             "If enabled the player will falls to the ground in TP mode",

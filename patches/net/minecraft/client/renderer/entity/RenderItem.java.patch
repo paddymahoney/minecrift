@@ -27,10 +27,10 @@
 -            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
 -
 +          GL11.glDisable(GL11.GL_LIGHTING);
-+//            GL11.glEnable(GL11.GL_ALPHA_TEST); //jrbudda dont care how. it works.
-+              p_77015_2_.bindTexture(TextureMap.locationItemsTexture);
++//            GL11.glEnable(GL11.GL_ALPHA_TEST); jrbudda dont care how. it works.
++          	  p_77015_2_.bindTexture(TextureMap.locationItemsTexture);
 +          	  GL11.glDisable(GL11.GL_BLEND);
-+//          GL11.glDisable(GL11.GL_TEXTURE_2D);
++//            GL11.glDisable(GL11.GL_TEXTURE_2D);
 +//            GL11.glEnable(GL11.GL_BLEND);
 +//            GL11.glColorMask(false, false, false, true);
 +//            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -46,7 +46,7 @@
 +           GL11.glEnable(GL11.GL_TEXTURE_2D);
 +           GL11.glEnable(GL11.GL_ALPHA_TEST);
 +           OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-+//            
++           
              for (var9 = 0; var9 <= 1; ++var9)
              {
                  IIcon var10 = p_77015_3_.getItem().getIconFromDamageForRenderPass(var6, var9);
@@ -77,11 +77,68 @@
                  GL11.glEnable(GL11.GL_LIGHTING);
                  GL11.glDepthFunc(GL11.GL_LEQUAL);
              }
-@@ -585,7 +586,6 @@
+@@ -585,7 +586,7 @@
      {
          for (int var6 = 0; var6 < 2; ++var6)
          {
 -            OpenGlHelper.glBlendFunc(772, 1, 0, 0);
++        	
              float var7 = 0.00390625F;
              float var8 = 0.00390625F;
              float var9 = (float)(Minecraft.getSystemTime() % (long)(3000 + var6 * 1873)) / (3000.0F + (float)(var6 * 1873)) * 256.0F;
+@@ -700,4 +701,55 @@
+     {
+         this.doRender((EntityItem)p_76986_1_, p_76986_2_, p_76986_4_, p_76986_6_, p_76986_8_, p_76986_9_);
+     }
++    
++    /*==================================== FORGE START ===========================================*/
++
++    /**
++     * Items should spread out when rendered in 3d?
++     * @return
++     */
++    public boolean shouldSpreadItems()
++    {
++        return true;
++    }
++
++    /**
++     * Items should have a bob effect
++     * @return
++     */
++    public boolean shouldBob()
++    {
++        return true;
++    }
++
++    public byte getMiniBlockCount(ItemStack stack, byte original)
++    {
++        return original;
++    }
++
++    /**
++     * Allows for a subclass to override how many rendered items appear in a
++     * "mini item 3d stack"
++     * @param stack The item stack
++     * @param original The default amount vanilla would use
++     * @return
++     */
++    public byte getMiniItemCount(ItemStack stack, byte original)
++    {
++        return original;
++    }
++
++    private static RenderItem instance;
++    /**
++     * Returns a single lazy loaded instance of RenderItem, for use in mods who
++     * don't care about the interaction of other objects on the current state of the RenderItem they are using.
++     * @return A global instance of RenderItem
++     */
++    public static RenderItem getInstance()
++    {
++        if (instance == null) instance = new RenderItem();
++        return instance;
++    }
++    /*==================================== FORGE END =============================================*/
++    
+ }

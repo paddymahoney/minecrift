@@ -76,23 +76,24 @@ public class MinecriftClassTransformer implements IClassTransformer
             return null;
         }
     }
-
+   
+    
     public byte[] transform(String name, String transformedName, byte[] bytes)
     {
-        byte[] minecriftClass = this.getMinecriftClass(name);
-        if (minecriftClass == null) {
-      //      debug(String.format("Minecrift: Passthrough '%s' -> '%s'", name, transformedName));
-        }
-        else {
-            debug(String.format("Transformed class " + name +" "+ transformedName + " " +bytes.length));
+    	byte[] minecriftClass = this.getMinecriftClass(name);
 
-            // Perform any additional mods using ASM
-            minecriftClass = performAsmModification(minecriftClass, transformedName);
+    	if (minecriftClass == null) {
+    		//debug(String.format("Minecrift: Passthrough '%s' -> '%s'", name, transformedName));
+    	}
+    	else {
+    		// Perform any additional mods using ASM
+    		minecriftClass = performAsmModification(minecriftClass, transformedName);
+    		debug(String.format("Minecrift: Overwrite " + name +" "+ transformedName + " " + bytes.length + " > "  + minecriftClass.length));
 
-            //writeToFile("original", transformedName, name, bytes);
-            //writeToFile("transformed", transformedName, name, minecriftClass);
-        }
-        return minecriftClass != null ? minecriftClass : bytes;
+    		//writeToFile("original", transformedName, name, bytes);
+    		//writeToFile("transformed", transformedName, name, minecriftClass);
+    	}
+    	return minecriftClass != null ? minecriftClass : bytes;
     }
 
     private void writeToFile(String dir, String transformedName, String name, byte[] bytes)

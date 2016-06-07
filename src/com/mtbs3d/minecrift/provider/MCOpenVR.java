@@ -26,10 +26,12 @@ import net.minecraft.client.gui.GuiKeyBindingList;
 import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.GuiWinGame;
 import net.minecraft.client.gui.inventory.*;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.client.C16PacketClientStatus;
 import net.minecraft.util.Vec3;
 import optifine.Utils;
 
@@ -185,6 +187,8 @@ IEventNotifier, IEventListener, IBodyAimController
 	@Override
 	public String getVersion() { return "Version TODO"; }
 
+	public boolean headIsTracking;
+	
 	public MCOpenVR()
 	{
 		super();
@@ -692,7 +696,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 			if(controllerMouseTicks>0)controllerMouseTicks--;
 
-			if (mc.thePlayer != null)
+			if (mc.thePlayer != null && !(mc.currentScreen instanceof GuiWinGame))
 			{
 				boolean pressedPlaceBlock = ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0)
 						&& ((lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) == 0);
@@ -762,8 +766,6 @@ IEventNotifier, IEventListener, IBodyAimController
 				texTypeRight, texBoundsRight,
 				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
 
-		Display.update();
-		//Display.processMessages();
 
 		mc.mcProfiler.endSection();
 
@@ -845,22 +847,14 @@ IEventNotifier, IEventListener, IBodyAimController
 	{
 		controllerDeviceIndex[RIGHT_CONTROLLER] = -1;
 		controllerDeviceIndex[LEFT_CONTROLLER] = -1;
-		for (int nDevice = 0; nDevice < JOpenVRLibrary.k_unMaxTrackedDeviceCount; ++nDevice ) {
-			int deviceClass = vrsystem.GetTrackedDeviceClass.apply(nDevice);
-			int connected = vrsystem.IsTrackedDeviceConnected.apply(nDevice);
-			if ( deviceClass == JOpenVRLibrary.ETrackedDeviceClass.ETrackedDeviceClass_TrackedDeviceClass_Controller
-					&& connected != 0
-					&& hmdTrackedDevicePoses[nDevice].bPoseIsValid != 0) {
-				if (controllerDeviceIndex[RIGHT_CONTROLLER]==-1)
-				{
-					controllerDeviceIndex[RIGHT_CONTROLLER] = nDevice;
-				}
-				else if ( controllerDeviceIndex[LEFT_CONTROLLER]==-1)
-				{
-					controllerDeviceIndex[LEFT_CONTROLLER] = nDevice;
-				}
+		
+			if(mc.vrSettings.vrReverseHands){
+				controllerDeviceIndex[RIGHT_CONTROLLER]  = vrsystem.GetTrackedDeviceIndexForControllerRole.apply(JOpenVRLibrary.ETrackedControllerRole.ETrackedControllerRole_TrackedControllerRole_LeftHand);
+				controllerDeviceIndex[LEFT_CONTROLLER] = vrsystem.GetTrackedDeviceIndexForControllerRole.apply(JOpenVRLibrary.ETrackedControllerRole.ETrackedControllerRole_TrackedControllerRole_RightHand);
+			}else {
+				controllerDeviceIndex[LEFT_CONTROLLER]  = vrsystem.GetTrackedDeviceIndexForControllerRole.apply(JOpenVRLibrary.ETrackedControllerRole.ETrackedControllerRole_TrackedControllerRole_LeftHand);
+				controllerDeviceIndex[RIGHT_CONTROLLER] = vrsystem.GetTrackedDeviceIndexForControllerRole.apply(JOpenVRLibrary.ETrackedControllerRole.ETrackedControllerRole_TrackedControllerRole_RightHand);
 			}
-		}
 	}
 
 	private void updateControllerButtonState()
@@ -1162,7 +1156,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 		// if you start teleporting, close any UI
-		if (gui && !sleeping && mc.gameSettings.keyBindForward.getIsKeyPressed())
+		if (gui && !sleeping && mc.gameSettings.keyBindForward.getIsKeyPressed() && !(mc.currentScreen instanceof GuiWinGame))
 		{
 			mc.thePlayer.closeScreen();
 		}
@@ -1186,7 +1180,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 		//GuiContainer.java only listens directly to the keyboard to close.
-		if(gui && mc.gameSettings.keyBindInventory.getIsKeyPressed()){ //inventory will repeat open/close while button is held down. TODO: fix.
+		if(gui && !(mc.currentScreen instanceof GuiWinGame) && mc.gameSettings.keyBindInventory.getIsKeyPressed()){ //inventory will repeat open/close while button is held down. TODO: fix.
 			if((getCurrentTimeSecs() - startedOpeningInventory) > 0.5) mc.thePlayer.closeScreen();
 			mc.gameSettings.keyBindInventory.unpressKey(); //minecraft.java will open a new window otherwise.
 		}
@@ -1197,8 +1191,14 @@ IEventNotifier, IEventListener, IBodyAimController
 				setKeyboardOverlayShowing(!keyboardShowing, null);			
 			} else{
 				if(gui || keyboardShowing){
-					mc.thePlayer.closeScreen();
-					setKeyboardOverlayShowing(false, null);	
+
+					if(mc.currentScreen instanceof GuiWinGame){ //from 'esc' key on guiwingame since we cant push it.
+						this.mc.thePlayer.sendQueue.addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.PERFORM_RESPAWN));
+						this.mc.displayGuiScreen((GuiScreen)null);		
+					}else {
+						mc.thePlayer.closeScreen();
+						setKeyboardOverlayShowing(false, null);
+					}
 				}else
 					mc.displayInGameMenu();				
 			}
@@ -1330,9 +1330,11 @@ IEventNotifier, IEventListener, IBodyAimController
 		if ( hmdTrackedDevicePoses[JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd].bPoseIsValid != 0 )
 		{
 			OpenVRUtil.Matrix4fCopy(poseMatrices[JOpenVRLibrary.k_unTrackedDeviceIndex_Hmd], hmdPose);
+			headIsTracking = true;
 		}
 		else
 		{
+			headIsTracking = false;
 			OpenVRUtil.Matrix4fSetIdentity(hmdPose);
 		}
 
@@ -1827,12 +1829,12 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	public boolean applyGUIModelView(EyeType eyeType)
 	{
-		mc.mcProfiler.startSection("applyGUIModelView");
+   		mc.mcProfiler.startSection("applyGUIModelView");
 
 		float scale = guiScale; 
 
 		// main menu view
-		if (this.mc.theWorld==null) {
+		if (this.mc.theWorld==null || mc.currentScreen instanceof GuiWinGame) {
 			guiPos.x = 0;
 			guiPos.y = 1.3f;
 			guiPos.z = -1.3f;
@@ -1868,7 +1870,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		{
 			if (mc.vrSettings.hudLockToHead)
 			{
-				guiPos = OpenVRUtil.convertMatrix4ftoTranslationVector(hmdPose);
+  				guiPos = OpenVRUtil.convertMatrix4ftoTranslationVector(hmdPose);
 
 				Quatf orientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
 				guiRotationPose = new Matrix4f(orientationQuat);
@@ -1896,10 +1898,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				Vector3f controllerForward = controllerPose[1].transform(forward).subtract(guiPos);
 				guiPos = guiPos.subtract(controllerForward.divide(1.0f / 0.5f));
 			}
-		} else {
-
-
-		}
+		} 
 
 		// otherwise, looking at inventory screen. use pose calculated when screen was opened
 		//where is this set up... should be here....
@@ -1927,33 +1926,33 @@ IEventNotifier, IEventListener, IBodyAimController
 		GL11.glTranslatef((float) (guiPos.x - eye.xCoord), (float) (guiPos.y + eye.yCoord), (float) (guiPos.z - eye.zCoord));
 
 		GL11.glPushMatrix();
-		GL11.glMultMatrix(guiRotationBuf);
-
-		Quaternion tiltBack = new Quaternion();
-		float tiltAngle = 0.0f; //15.0f;
-		tiltBack.setFromAxisAngle(new Vector4f(1.0f, 0.0f, 0.0f,  tiltAngle * PIOVER180));
-		org.lwjgl.util.vector.Matrix4f tiltBackMatrix = QuaternionHelper.quatToMatrix4f(tiltBack);
-		FloatBuffer tiltBackBuf = BufferUtil.createFloatBuffer(16);
-		tiltBackMatrix.storeTranspose(tiltBackBuf);
-		tiltBackBuf.flip();
-		GL11.glMultMatrix(tiltBackBuf);
-
-		double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
-
-		if (this.mc.theWorld == null || (this.mc.currentScreen!=null && this.mc.currentScreen instanceof GuiContainer
-				&& !(this.mc.currentScreen instanceof GuiInventory || this.mc.currentScreen instanceof GuiContainerCreative)))
-		{
-			guiScale = 2.0f; 		
-		}else guiScale = 1.0f;//mc.vrSettings.hudScale;
-
-		//		if (timeOpen < 1.5) {
-		//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
-		//		}
-
-		mc.mcProfiler.endSection();
-
-		return true;
-	}
+			GL11.glMultMatrix(guiRotationBuf);
+	
+			Quaternion tiltBack = new Quaternion();
+			float tiltAngle = 0.0f; //15.0f;
+			tiltBack.setFromAxisAngle(new Vector4f(1.0f, 0.0f, 0.0f,  tiltAngle * PIOVER180));
+			org.lwjgl.util.vector.Matrix4f tiltBackMatrix = QuaternionHelper.quatToMatrix4f(tiltBack);
+			FloatBuffer tiltBackBuf = BufferUtil.createFloatBuffer(16);
+			tiltBackMatrix.storeTranspose(tiltBackBuf);
+			tiltBackBuf.flip();
+			GL11.glMultMatrix(tiltBackBuf);
+	
+			double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
+	
+			if (this.mc.theWorld == null || this.mc.currentScreen instanceof GuiWinGame || (this.mc.currentScreen!=null && this.mc.currentScreen instanceof GuiContainer
+					&& !(this.mc.currentScreen instanceof GuiInventory || this.mc.currentScreen instanceof GuiContainerCreative)))
+			{
+				guiScale = 2.0f; 		
+			}else guiScale = 1.0f;//mc.vrSettings.hudScale;
+	
+			//		if (timeOpen < 1.5) {
+			//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
+			//		}
+	
+			mc.mcProfiler.endSection();
+	
+			return true;
+	} //note returns with matrix pushed
 
 	//-------------------------------------------------------
 	// EventNotifier/IEventListener

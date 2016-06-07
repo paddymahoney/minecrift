@@ -9,6 +9,8 @@ import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.gameplay.VRPlayer;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiWinGame;
+
 import org.lwjgl.input.Keyboard;
 
 public class VRHotkeys {
@@ -30,14 +32,6 @@ public class VRHotkeys {
 		{
 			PluginManager.destroyAll();
 			mc.printChatMessage("Re-initialising all plugins (RCTRL+BACK): done");
-			gotKey = true;
-		}
-
-		// Reset positional track origin
-		if ((Keyboard.getEventKey() == Keyboard.KEY_RETURN && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)) || Keyboard.isKeyDown(Keyboard.KEY_F12))
-		{
-			mc.vrSettings.posTrackResetPosition = true;
-			mc.printChatMessage("Reset origin (RCTRL+RET or F12): done");
 			gotKey = true;
 		}
 

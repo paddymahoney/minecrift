@@ -279,7 +279,7 @@ public class PluginManager implements IEventListener
         {
             case IBasePlugin.EVENT_SET_ORIGIN:
             {
-                Minecraft.getMinecraft().vrSettings.posTrackResetPosition = true;
+
                 break;
             }
         }

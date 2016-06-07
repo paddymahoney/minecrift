@@ -31,7 +31,7 @@ public class GuiOtherHUDSettings extends BaseGuiSettings
 
     public GuiOtherHUDSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
         super( guiScreen, guivrSettings );
-        screenTitle = "HUD Overlay/Crosshair/Chat Settings";
+        screenTitle = "Chat/Crosshair Settings";
     }
 
     /**

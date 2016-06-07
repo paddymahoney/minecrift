@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/Minecraft.java
 +++ b/net/minecraft/client/Minecraft.java
-@@ -9,19 +9,41 @@
+@@ -9,19 +9,42 @@
  import com.google.common.util.concurrent.ListenableFutureTask;
  import com.mojang.authlib.minecraft.MinecraftSessionService;
  import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
@@ -20,6 +20,7 @@
 +import de.fruitfly.ovr.enums.EyeType;
 +import de.fruitfly.ovr.structs.*;
  import io.netty.util.concurrent.GenericFutureListener;
++import jopenvr.VR_IVRCompositor_FnTable.ClearLastSubmittedFrame_callback;
 +
  import java.awt.image.BufferedImage;
  import java.io.File;
@@ -42,7 +43,7 @@
  import java.util.HashSet;
  import java.util.Iterator;
  import java.util.List;
-@@ -30,26 +52,18 @@
+@@ -30,26 +53,18 @@
  import java.util.concurrent.Callable;
  import java.util.concurrent.Executors;
  import java.util.concurrent.FutureTask;
@@ -75,7 +76,7 @@
  import net.minecraft.client.gui.achievement.GuiAchievement;
  import net.minecraft.client.gui.inventory.GuiInventory;
  import net.minecraft.client.gui.stream.GuiStreamUnavailable;
-@@ -97,6 +111,7 @@
+@@ -97,6 +112,7 @@
  import net.minecraft.client.settings.GameSettings;
  import net.minecraft.client.settings.KeyBinding;
  import net.minecraft.client.shader.Framebuffer;
@@ -83,7 +84,7 @@
  import net.minecraft.client.stream.IStream;
  import net.minecraft.client.stream.NullStream;
  import net.minecraft.client.stream.TwitchStream;
-@@ -127,6 +142,8 @@
+@@ -127,6 +143,8 @@
  import net.minecraft.profiler.Profiler;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.integrated.IntegratedServer;
@@ -92,7 +93,7 @@
  import net.minecraft.stats.AchievementList;
  import net.minecraft.stats.IStatStringFormat;
  import net.minecraft.stats.StatFileWriter;
-@@ -142,6 +159,7 @@
+@@ -142,6 +160,7 @@
  import net.minecraft.util.Session;
  import net.minecraft.util.Timer;
  import net.minecraft.util.Util;
@@ -100,7 +101,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,640 +168,936 @@
+@@ -150,640 +169,936 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1025,7 +1026,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda15";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda16";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -1660,7 +1661,7 @@
          {
              this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
              this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,2348 +1105,3878 @@
+@@ -791,2348 +1106,3857 @@
          catch (IOException var7)
          {
              logger.error("Unable to load logo: " + locationMojangPng, var7);
@@ -2908,7 +2909,6 @@
 +			int currentDisplayHeight = this.displayHeight;
 +
 +			
-+			
 +			/** Minecrift - main stereo render loop **/
 +			for (int i = 0; this.visible && i < viewPortCount; i++)
 +			{
@@ -3023,31 +3023,14 @@
 +				GL11.glPushMatrix();
 +				//this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);   // <-- TODO: What does this do? Some sort of stream status overlay? REENABLE, move to GUI FBO?
 +				GL11.glPopMatrix();
-+			}
++				
++			} //end per eye rendering.
 +
 +			// VIVE - restore display width
 +			this.displayWidth = currentDisplayWidth;
 +			this.displayHeight = currentDisplayHeight;
 +
-+			// VIVE start - render eye buffers to the desktop window
-+			// TODO: change this to some 'if needs window render'
-+			GL11.glPushMatrix();
-+			this.framebufferMc.unbindFramebuffer();
-+			if (this.stereoProvider.isStereo())
-+			{
-+				for (int i = 0; i < viewPortCount; i++)
-+				{
-+					this.currentEye = this.stereoProvider.eyeRenderOrder(i);
-+
-+					this.framebufferMc = framebuffers[this.currentEye.value()];
-+
-+					float phase = (getSystemTime() % 1000) / 1000.0f;
-+					framebufferMc.framebufferRender((int)(0 + (this.displayWidth * this.currentEye.value())*0.5f),
-+							this.displayWidth/2, this.displayHeight,0 );
-+				}
-+			}
-+			GL11.glPopMatrix();
-+			// VIVE end - render eye buffers to the window
++	
 +
 +			this.visible = endFrame();
 +
@@ -6796,52 +6779,58 @@
 +
 +	private void copyToMirror()
 +	{
-+		if (this.stereoProvider.providesMirrorTexture())
++
++		// VIVE start - render eye buffers to the desktop window
++		GL11.glPushMatrix();
++		this.framebufferMc.unbindFramebuffer();
++
++		if (this.stereoProvider.isStereo() )
 +		{
-+			int updateEvery = 3;
-+			if (this.vrSettings.displayMirrorMode == VRSettings.MIRROR_ON_FULL_FRAME_RATE ||
-+					this.vrSettings.displayMirrorMode == VRSettings.MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW) {
-+				updateEvery = 1;
-+			}
++			if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF && ((MCOpenVR) this.lookaimController).headIsTracking){
 +
-+			if (this.frameIndex % updateEvery == 0)
-+			{
-+				if (this.vrSettings.displayMirrorMode != VRSettings.MIRROR_OFF)
-+				{
-+					OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, mirrorFB.getFramebufferId());   // GL30.glBindFramebuffer
-+					OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
-+					GL11.glClearColor(0f, 0f, 0f, 1.0f);
-+					GL11.glClearDepth(1.0D);
-+					GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-+
-+					if (this.vrSettings.displayMirrorMode == VRSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE ||
-+							this.vrSettings.displayMirrorMode == VRSettings.MIRROR_ON_FULL_FRAME_RATE) {
-+						GL30.glBlitFramebuffer(0, displayFBHeight, displayFBWidth, 0,
-+								0, 0, displayFBWidth, displayFBHeight,
-+								GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
-+					}
-+					else {
-+						GL30.glBlitFramebuffer(0, mirrorFBHeight / 4 * 3, mirrorFBWidth / 2, mirrorFBHeight / 4,
-+								0, 0, displayFBWidth, displayFBHeight,
-+								GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
-+					}
-+					OpenGlHelper.func_153171_g(GL30.GL_READ_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
-+
-+					Display.update();
-+				}
-+				else
-+				{
-+					// Notify mirror is off!
++				if(frameIndex % 45 == 0) {
 +					OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
 +					GL11.glViewport(0, 0, this.displayFBWidth, this.displayFBHeight);
 +
 +					if (entityRenderer != null)
 +						entityRenderer.displayNotificationText("Mirror is OFF", "", "", this.displayFBWidth, this.displayFBHeight, false, true);
 +
-+					Display.update();
++					Display.update(true);
++				}
++
++			}else {
++				int every = 1;
++				int ports = 2;
++
++				if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE){
++					//ok
++				} else if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW){
++					ports = 1;
++				}if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE){
++					every = 3;
++				}if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW){
++					every = 3;
++					ports = 1;
++				}
++
++				if((frameIndex % every) == 0){
++
++					for (int i = 0; i < ports; i++)
++					{
++						this.framebufferMc = framebuffers[i];
++
++						float phase = (getSystemTime() % 1000) / 1000.0f;
++						framebufferMc.framebufferRender((int)(0 + (this.displayWidth *i)*0.5f),
++								this.displayWidth/ports, this.displayHeight,0 );
++					}
++					Display.update(true);
 +				}
 +			}
-+		}
++		} 
++
++		GL11.glPopMatrix();
++		// VIVE end - render eye buffers to the window
++
 +	}
 +
 +	private void setupRenderConfiguration() throws Exception 
@@ -6851,14 +6840,7 @@
 +
 +		glConfig.mirrorDisplay = this.vrSettings.displayMirrorMode == VRSettings.MIRROR_OFF ? false : true;
 +		glConfig.usePositionalTimewarp = this.vrSettings.usePositionalTimewarp;
-+		glConfig.worldScale = this.vrSettings.worldScale;
-+
-+		if (this.lastWorldScale != this.vrSettings.worldScale)
-+		{
-+			changeNonDestructiveRenderConfig = true;
-+			this.lastWorldScale = this.vrSettings.worldScale;
-+		}
-+
++	
 +		if (clipPlanesChanged())
 +		{
 +			this.reinitFramebuffers = true;
@@ -7403,10 +7385,6 @@
 +
 +		new NullHmdInfo();
 +		new NullPositionAndOrientation();
-+		new MCController();
-+		new MCMouse();
-+//		ControlBinding.CreateBindingList(this.gameSettings); // Create control binding list
-+		new NeckModelEyePosition();                          // Create and register "None" head position plugin
 +		new NullStereoRenderer();                            // Create and register "None" stereo renderer plugin
 +
 +		initPlugins();
@@ -7495,9 +7473,11 @@
 +
 +	public boolean endFrame()
 +	{
++				
 +		if (this.stereoProvider != null)
 +			return this.stereoProvider.endFrame();
 +
++	
 +		return true;
 +	}
 +

@@ -8,7 +8,7 @@
  import net.minecraft.client.settings.GameSettings;
  
  public class MovementInputFromOptions extends MovementInput
-@@ -14,8 +16,51 @@
+@@ -14,8 +16,12 @@
  
      public void updatePlayerMoveState()
      {
@@ -19,50 +19,11 @@
 +        this.moveStrafe = baseMoveStrafe;        // 0.0f;
 +        this.moveForward = baseMoveForward;      // 0.0f;
 +
-+        if (vr.movementQuantisation == VRSettings.MOVEMENT_QUANTISATION_1)
-+        {
-+            this.moveStrafe = this.moveStrafe > 0.95f ? 1f : (this.moveStrafe < -0.95f ? -1f : 0f);
-+            this.moveForward = this.moveForward > 0.95f ? 1f : (this.moveForward < -0.95f ? -1f : 0f);
-+        }
-+        else if (vr.movementQuantisation == VRSettings.MOVEMENT_QUANTISATION_2)
-+        {
-+            if (this.moveStrafe > 0.95f) this.moveStrafe = 1f;
-+            else if (this.moveStrafe > 0.45f) this.moveStrafe = 0.5f;
-+            else if (this.moveStrafe < -0.95f) this.moveStrafe = -1f;
-+            else if (this.moveStrafe < -0.45f) this.moveStrafe = -0.5f;
-+            else this.moveStrafe = 0f;
-+            if (this.moveForward > 0.95f) this.moveForward = 1f;
-+            else if (this.moveForward > 0.45f) this.moveForward = 0.5f;
-+            else if (this.moveForward < -0.95f) this.moveForward = -1f;
-+            else if (this.moveForward < -0.45f) this.moveForward = -0.5f;
-+            else this.moveForward = 0f;
-+        }
-+        else if (vr.movementQuantisation == VRSettings.MOVEMENT_QUANTISATION_4)
-+        {
-+            if (this.moveStrafe > 0.95f) this.moveStrafe = 1f;
-+            else if (this.moveStrafe > 0.70f) this.moveStrafe = 0.75f;
-+            else if (this.moveStrafe > 0.45f) this.moveStrafe = 0.5f;
-+            else if (this.moveStrafe > 0.20f) this.moveStrafe = 0.25f;
-+            else if (this.moveStrafe < -0.95f) this.moveStrafe = -1f;
-+            else if (this.moveStrafe < -0.70f) this.moveStrafe = -0.75f;
-+            else if (this.moveStrafe < -0.45f) this.moveStrafe = -0.5f;
-+            else if (this.moveStrafe < -0.20f) this.moveStrafe = -0.25f;
-+            else this.moveStrafe = 0f;
-+            if (this.moveForward > 0.95f) this.moveForward = 1f;
-+            else if (this.moveForward > 0.70f) this.moveForward = 0.75f;
-+            else if (this.moveForward > 0.45f) this.moveForward = 0.5f;
-+            else if (this.moveForward > 0.20f) this.moveForward = 0.25f;
-+            else if (this.moveForward < -0.95f) this.moveForward = -1f;
-+            else if (this.moveForward < -0.70f) this.moveForward = -0.75f;
-+            else if (this.moveForward < -0.45f) this.moveForward = -0.5f;
-+            else if (this.moveForward < -0.20f) this.moveForward = -0.25f;
-+            else this.moveForward = 0f;
-+        }
 +        /** END MINECRIFT */
  
          if (this.gameSettings.keyBindForward.getIsKeyPressed())
          {
-@@ -45,5 +90,24 @@
+@@ -45,5 +51,24 @@
              this.moveStrafe = (float)((double)this.moveStrafe * 0.3D);
              this.moveForward = (float)((double)this.moveForward * 0.3D);
          }

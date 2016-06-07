@@ -90,11 +90,7 @@ public class VRPlayer
 
         if (mc.positionTracker == null || !mc.positionTracker.isInitialized() || bRestricted)
         { // set room origin exactly to x,y,z since in restricted mode the room origin is always the players feet
-            if (lastRoomUpdateTime==0
-                    || mc.stereoProvider.getCurrentTimeSecs() - lastRoomUpdateTime >= mc.vrSettings.restrictedCameraUpdateInterval)
-            {
             	setRoomOrigin(x, y, z);
-            }
         }
         else
         { //set room origin to underneath the headset... which is where the player entity should be already? shouldnt be already anyway? maybe cause collosion?
@@ -725,6 +721,8 @@ public class VRPlayer
 			   				   			   
 			if ( testClimb == Blocks.ladder || testClimb == Blocks.vine) {
 			            Vec3 dest = Vec3.createVectorHelper(collision.blockX+0.5, collision.blockY + 0.5, collision.blockZ+0.5);
+	            		Block playerblock = player.worldObj.getBlock((int)player.posX, (int)player.boundingBox.minY -1, (int)player.posZ);
+	            		if(playerblock == testClimb) dest.yCoord-=1;
                         movementTeleportDestination.xCoord = dest.xCoord;
                         movementTeleportDestination.yCoord = dest.yCoord;
                         movementTeleportDestination.zCoord = dest.zCoord;
@@ -753,70 +751,65 @@ public class VRPlayer
             startBlockY = Math.max(startBlockY, 0);
             for (int by = startBlockY; by < startBlockY + 2; by++)
             {
-                if (canStand(player.worldObj,bx, by, bz))
-                {
-                    float maxTeleportDist = 16.0f;
+            	if (canStand(player.worldObj,bx, by, bz))
+            	{
+            		float maxTeleportDist = 16.0f;
 
-                    float var27 = 0.0625F; //uhhhh?
-                    
-                    double ox = hitVec.xCoord - player.posX;
-                    double oy = by + 1 - player.posY;
-                    double oz = hitVec.zCoord - player.posZ;
-                    AxisAlignedBB bb = player.boundingBox.copy().contract((double)var27, (double)var27, (double)var27).offset(ox, oy, oz); 
-                    bb.minY = by+1f;
-                    bb.maxY = by+2.8f;
-                    boolean emptySpotReq = mc.theWorld.getCollidingBoundingBoxes(player,bb).isEmpty();
-                             
-                    double ox2 = bx + 0.5f - player.posX;
-                    double oy2 = by + 1.0f - player.posY;
-                    double oz2 = bz + 0.5f - player.posZ;
-                    AxisAlignedBB bb2 = player.boundingBox.copy().contract((double)var27, (double)var27, (double)var27).offset(ox2, oy2, oz2);
-                    bb2.minY = by+1f;
-                    bb2.maxY = by+2.8f;
-                    boolean emptySpotCenter = mc.theWorld.getCollidingBoundingBoxes(player,bb2).isEmpty();
-                    
-                    List l = mc.theWorld.getCollidingBoundingBoxes(player,bb2);
-                  
-                    Vec3 dest;
-                    
-                    //teleport to exact spot unless collision, then teleport to center.
-                    
-                    if (emptySpotReq) {           	
-                    	dest = Vec3.createVectorHelper(hitVec.xCoord, by+1,hitVec.zCoord);
-                    }
-                   else {
-                    	dest = Vec3.createVectorHelper(bx + 0.5f, by + 1f, bz + 0.5f);
-                    }
-                            
-                   //System.out.println(dest.toString() + " " + emptySpotReq + " " + emptySpotCenter);
-//                    
-//          //          System.out.println(hitVec.xCoord + " " + hitVec.yCoord + " " + hitVec.zCoord + " " +emptySpotCenter + " " + emptySpotReq + " " +bx + " " + by + " " + bz + bb.minX + " " + bb.minY + " " + bb.minZ);
-//                    for (Object li : l) {
-//                    	   System.out.println(li.toString());
-//					}
-;                    
+            		float var27 = 0.0625F; //uhhhh?
+
+            		double ox = hitVec.xCoord - player.posX;
+            		double oy = by + 1 - player.posY;
+            		double oz = hitVec.zCoord - player.posZ;
+            		AxisAlignedBB bb = player.boundingBox.copy().contract((double)var27, (double)var27, (double)var27).offset(ox, oy, oz); 
+            		bb.minY = by+1f;
+            		bb.maxY = by+2.8f;
+            		boolean emptySpotReq = mc.theWorld.getCollidingBoundingBoxes(player,bb).isEmpty();
+
+            		double ox2 = bx + 0.5f - player.posX;
+            		double oy2 = by + 1.0f - player.posY;
+            		double oz2 = bz + 0.5f - player.posZ;
+            		AxisAlignedBB bb2 = player.boundingBox.copy().contract((double)var27, (double)var27, (double)var27).offset(ox2, oy2, oz2);
+            		bb2.minY = by+1f;
+            		bb2.maxY = by+2.8f;
+            		boolean emptySpotCenter = mc.theWorld.getCollidingBoundingBoxes(player,bb2).isEmpty();
+
+            		List l = mc.theWorld.getCollidingBoundingBoxes(player,bb2);
+
+            		Vec3 dest;
+
+            		//teleport to exact spot unless collision, then teleport to center.
+
+            		if (emptySpotReq) {           	
+            			dest = Vec3.createVectorHelper(hitVec.xCoord, by+1,hitVec.zCoord);
+            		}
+            		else {
+            			dest = Vec3.createVectorHelper(bx + 0.5f, by + 1f, bz + 0.5f);
+            		}
 
 
-                    if (start.distanceTo(dest) <= maxTeleportDist && (emptySpotReq || emptySpotCenter))
-                    {
-                   	
-                     	
-                        movementTeleportDestination.xCoord = dest.xCoord;
-                        movementTeleportDestination.yCoord = dest.yCoord;
-                        movementTeleportDestination.zCoord = dest.zCoord;
-                        movementTeleportDestinationSideHit = collision.sideHit;
 
-                        debugPos.xCoord = bx + 0.5;
-                        debugPos.yCoord = by + 1;
-                        debugPos.zCoord = bz + 0.5;
+            		if (start.distanceTo(dest) <= maxTeleportDist && (emptySpotReq || emptySpotCenter))
+            		{
 
-                        bFoundValidSpot = true;
-                 
-                        break;
-                        
-                      }
-                
-                }
+            			Block testClimb = player.worldObj.getBlock(bx, by, bz);
+
+
+            			movementTeleportDestination.xCoord = dest.xCoord;
+            			movementTeleportDestination.yCoord = testClimb.getBlockBoundsMaxY() + by;
+            			movementTeleportDestination.zCoord = dest.zCoord;
+            			movementTeleportDestinationSideHit = collision.sideHit;
+
+            			debugPos.xCoord = bx + 0.5;
+            			debugPos.yCoord = by + 1;
+            			debugPos.zCoord = bz + 0.5;
+
+            			bFoundValidSpot = true;
+
+            			break;
+
+            		}
+            	}
+
             }
         }
         

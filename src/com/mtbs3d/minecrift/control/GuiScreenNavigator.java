@@ -549,7 +549,7 @@ public class GuiScreenNavigator {
 
     protected void getInput(float partialTicks)
     {
-        aimYawAdd = 2 * aimYawRate * VRSettings.inst.joystickSensitivity * partialTicks;
-        aimPitchAdd = 2 * aimPitchRate * VRSettings.inst.joystickSensitivity * partialTicks;
+        aimYawAdd = 2 * aimYawRate;// * VRSettings.inst.joystickSensitivity * partialTicks;
+        aimPitchAdd = 2 * aimPitchRate;// * VRSettings.inst.joystickSensitivity * partialTicks;
     }
 }

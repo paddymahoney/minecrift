@@ -170,25 +170,25 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         return getEyePosition(EyeType.ovrEye_Center);
     }
 
-    @Override
-    public Vec3 getEyePosition(EyeType eye)
-    {
-        VRSettings vr = Minecraft.getMinecraft().vrSettings;
-        Vec3 eyePosition = Vec3.createVectorHelper(0, 0, 0);
-        if (vr.usePositionTracking)
-        {
-            float posTrackScale = vr.posTrackDistanceScale;
-            if (vr.debugPos) {
-                posTrackScale = 1f;
-            }
-            Vector3f eyePos = super.getEyePos(eye);
-            eyePosition = Vec3.createVectorHelper(eyePos.x * posTrackScale,
-                                                  eyePos.y * posTrackScale,
-                                                  eyePos.z * posTrackScale);
-        }
-
-        return eyePosition;
-    }
+//    @Override
+//    public Vec3 getEyePosition(EyeType eye)
+//   {
+//        VRSettings vr = Minecraft.getMinecraft().vrSettings;
+//        Vec3 eyePosition = Vec3.createVectorHelper(0, 0, 0);
+//        if (vr.usePositionTracking)
+//        {
+//            float posTrackScale = vr.posTrackDistanceScale;
+//            if (vr.debugPos) {
+//                posTrackScale = 1f;
+//            }
+//            Vector3f eyePos = super.getEyePos(eye);
+//            eyePosition = Vec3.createVectorHelper(eyePos.x * posTrackScale,
+//                                                  eyePos.y * posTrackScale,
+//                                                  eyePos.z * posTrackScale);
+//        }
+//
+//        return eyePosition;
+//    }
 
     @Override
 	public void resetOrigin() {
@@ -471,4 +471,10 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     // VIVE START
     public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen) { }
     // VIVE END
+
+	@Override
+	public Vec3 getEyePosition(EyeType eye) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
