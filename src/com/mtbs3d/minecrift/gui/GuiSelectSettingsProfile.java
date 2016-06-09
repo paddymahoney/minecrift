@@ -195,7 +195,7 @@ public class GuiSelectSettingsProfile extends BaseGuiSettings implements GuiYesN
      * Draws the screen and all the components in it. Args : mouseX, mouseY, renderPartialTicks
      */
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
-    {
+    {      
         this.profileListCtrl.drawScreen(mouseX, mouseY, partialTicks);
         super.drawScreen(mouseX, mouseY, partialTicks, false);
     }

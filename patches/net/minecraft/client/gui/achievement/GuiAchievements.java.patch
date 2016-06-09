@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/achievement/GuiAchievements.java
 +++ b/net/minecraft/client/gui/achievement/GuiAchievements.java
-@@ -1,6 +1,11 @@
+@@ -1,6 +1,10 @@
  package net.minecraft.client.gui.achievement;
  
 +import java.util.LinkedList;
@@ -8,11 +8,10 @@
  import java.util.Random;
 +import java.util.Set;
 +
-+import com.mtbs3d.minecrift.control.GuiScreenNavigator;
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.GuiButton;
  import net.minecraft.client.gui.GuiOptionButton;
-@@ -12,6 +17,7 @@
+@@ -12,6 +16,7 @@
  import net.minecraft.client.resources.I18n;
  import net.minecraft.init.Blocks;
  import net.minecraft.network.play.client.C16PacketClientStatus;
@@ -20,7 +19,7 @@
  import net.minecraft.stats.Achievement;
  import net.minecraft.stats.AchievementList;
  import net.minecraft.stats.StatFileWriter;
-@@ -46,7 +52,11 @@
+@@ -46,7 +51,11 @@
      private StatFileWriter statFileWriter;
      private boolean loadingAchievements = true;
      private static final String __OBFID = "CL_00000722";
@@ -33,7 +32,7 @@
      public GuiAchievements(GuiScreen p_i45026_1_, StatFileWriter p_i45026_2_)
      {
          this.parentScreen = p_i45026_1_;
-@@ -55,6 +65,18 @@
+@@ -55,6 +64,18 @@
          short var4 = 141;
          this.field_146569_s = this.field_146567_u = this.field_146565_w = (double)(AchievementList.openInventory.displayColumn * 24 - var3 / 2 - 12);
          this.field_146568_t = this.field_146566_v = this.field_146573_x = (double)(AchievementList.openInventory.displayRow * 24 - var4 / 2);
@@ -52,7 +51,7 @@
      }
  
      /**
-@@ -74,7 +96,23 @@
+@@ -74,7 +95,23 @@
              if (button.id == 1)
              {
                  this.mc.displayGuiScreen(this.parentScreen);
@@ -77,19 +76,19 @@
          }
      }
  
-@@ -109,8 +147,9 @@
+@@ -109,8 +146,9 @@
          else
          {
              int var4;
 -
 -            if (Mouse.isButtonDown(0))
 +            /** MINECRIFT **/
-+            if (Mouse.isButtonDown(0) || GuiScreenNavigator.selectDepressed)
++            if (Mouse.isButtonDown(0) )
 +            /** END MINECRIFT **/
              {
                  var4 = (this.width - this.field_146555_f) / 2;
                  int var5 = (this.height - this.field_146557_g) / 2;
-@@ -270,7 +309,17 @@
+@@ -270,7 +308,17 @@
          GL11.glDepthFunc(GL11.GL_GEQUAL);
          GL11.glPushMatrix();
          GL11.glTranslatef((float)var8, (float)var9, -200.0F);
@@ -108,7 +107,7 @@
          GL11.glEnable(GL11.GL_TEXTURE_2D);
          GL11.glDisable(GL11.GL_LIGHTING);
          GL11.glEnable(GL12.GL_RESCALE_NORMAL);
-@@ -348,13 +397,24 @@
+@@ -348,13 +396,24 @@
          int var30;
          int var31;
          int var39;
@@ -136,7 +135,7 @@
                  var24 = var35.displayColumn * 24 - var4 + 11;
                  var25 = var35.displayRow * 24 - var5 + 11;
                  var39 = var35.parentAchievement.displayColumn * 24 - var4 + 11;
-@@ -453,7 +513,12 @@
+@@ -453,7 +512,12 @@
                  }
  
                  this.mc.getTextureManager().bindTexture(field_146561_C);
@@ -150,7 +149,7 @@
                  if (var41.getSpecial())
                  {
                      this.drawTexturedModalRect(var43 - 2, var44 - 2, 26, 202, 26, 26);
-@@ -462,15 +527,22 @@
+@@ -462,15 +526,22 @@
                  {
                      this.drawTexturedModalRect(var43 - 2, var44 - 2, 0, 202, 26, 26);
                  }

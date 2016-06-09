@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/GuiTextField.java
 +++ b/net/minecraft/client/gui/GuiTextField.java
-@@ -1,9 +1,12 @@
+@@ -1,18 +1,21 @@
  package net.minecraft.client.gui;
  
 +import net.minecraft.client.Minecraft;
@@ -13,6 +13,19 @@
  public class GuiTextField extends Gui
  {
      private final FontRenderer fontRendererInstance;
+-    private final int xPosition;
+-    private final int yPosition;
++    public int xPosition;
++    public int yPosition;
+ 
+     /** The width of this text field. */
+-    private final int width;
+-    private final int height;
++    public int width;
++    public int height;
+ 
+     /** Has the current text being edited on the textbox. */
+     private String text = "";
 @@ -473,6 +476,13 @@
          if (this.canLoseFocus)
          {

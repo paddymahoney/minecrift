@@ -4,7 +4,6 @@
  */
 package com.mtbs3d.minecrift.api;
 
-import com.mtbs3d.minecrift.control.ControlBinding;
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.Matrix4f;
 import net.minecraft.util.Vec3;
@@ -41,8 +40,6 @@ public interface IBodyAimController extends IBasePlugin {
 	 */
 	public float getAimPitch();
 	
-	public void mapBinding(ControlBinding binding);
-
 	public boolean initBodyAim() throws Exception;
 
 	public void saveOptions();

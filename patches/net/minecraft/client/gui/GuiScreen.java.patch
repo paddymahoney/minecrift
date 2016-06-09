@@ -220,13 +220,13 @@
          else
          {
              this.drawBackground(tint);
-@@ -441,4 +535,79 @@
+@@ -441,4 +535,82 @@
      {
          return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
      }
 +	
 +    /** MINECRIFT ADDITIONS BELOW */
-+	
++	public static boolean mouseDown;
 +    public void mouseDown( int rawX, int rawY, int button )
 +    {
 +        int var1 = rawX * this.width / this.mc.displayFBWidth;
@@ -234,10 +234,12 @@
 +        this.eventButton = button;
 +        this.lastMouseEvent = Minecraft.getSystemTime();
 +        mouseClicked(var1, var2, button);
++    	mouseDown = true;
 +    }
 +    
 +    public void mouseUp( int rawX, int rawY, int button )
 +    {
++    	mouseDown = false;
 +        int var1 = rawX * this.width / this.mc.displayFBWidth;
 +        int var2 = this.height - rawY * this.height / this.mc.displayFBHeight - 1;
 +        mouseReleased(var1, var2, button);
@@ -260,6 +262,7 @@
 +    
 +    public void mouseGuiUp( int guiX, int guiY, int button )
 +    {
++    	mouseDown = false;
 +        mouseReleased(guiX, guiY, button);
 +    }
 +    

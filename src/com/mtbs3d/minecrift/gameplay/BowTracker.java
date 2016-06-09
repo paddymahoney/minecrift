@@ -10,6 +10,7 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
+import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Vec3;
 
@@ -56,7 +57,7 @@ public class BowTracker {
 		if(p.isPlayerSleeping()) return false;
 		if(p.inventory == null) return false;
 		if(p.inventory.getCurrentItem() == null) return false;
-		return	p.inventory.getCurrentItem().getItem().getItemUseAction(p.getItemInUse()) == EnumAction.bow;
+		return	p.inventory.getCurrentItem().getItem() instanceof ItemBow;
 	}
 	
 	float tsNotch = 0;

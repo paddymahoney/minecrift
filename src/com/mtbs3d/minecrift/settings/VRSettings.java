@@ -5,16 +5,25 @@
 package com.mtbs3d.minecrift.settings;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.SortedSet;
 
 import com.mtbs3d.minecrift.settings.profile.ProfileReader;
+import com.mtbs3d.minecrift.control.VRControllerButtonMapping;
+import com.mtbs3d.minecrift.control.ViveButtons;
 import com.mtbs3d.minecrift.settings.profile.ProfileManager;
 import com.mtbs3d.minecrift.settings.profile.ProfileWriter;
+import com.mtbs3d.minecrift.utils.KeyboardSimulator;
+
 import de.fruitfly.ovr.IOculusRift;
 import de.fruitfly.ovr.enums.EyeType;
+import jopenvr.VR_IVRSystem_FnTable.GetTrackedDeviceIndexForControllerRole_callback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.MathHelper;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
@@ -167,7 +176,8 @@ public class VRSettings
     public boolean vrAllowCrawling = true;
     public boolean vrReverseHands = false;
     public boolean vrReverseShootingEye = false;
-
+    public VRControllerButtonMapping[] buttonMappings;
+    
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -210,7 +220,7 @@ public class VRSettings
             ProfileReader optionsVRReader = new ProfileReader(ProfileManager.PROFILE_SET_VR, theProfiles);
 
             String var2 = "";
-
+           
             while ((var2 = optionsVRReader.readLine()) != null)
             {
                 try
@@ -694,11 +704,26 @@ public class VRSettings
                     {
                         this.vrReverseHands = optionTokens[1].equals("true");
                     }
-                    
+    
+                    if (optionTokens[0].startsWith("BUTTON_"))
+                    {
+                       VRControllerButtonMapping vb = new VRControllerButtonMapping(
+                    		   Enum.valueOf(ViveButtons.class, optionTokens[0]),"");
+                                               
+                       String[] pts = optionTokens[1].split("_");
+                      
+                       if (pts.length == 1) {
+                           vb.FunctionDesc = optionTokens[1];                   	   
+                       } else {
+                           vb.FunctionDesc = pts[0];
+                           vb.FunctionExt = (char) pts[1].getBytes()[0];
+                       }
+                                         
+                       this.buttonMappings[vb.Button.ordinal()] = vb;
+                    }                  
                     
                     //END JRBUDDA
-                    
-                    
+         
                 }
                 catch (Exception var7)
                 {
@@ -706,7 +731,10 @@ public class VRSettings
                     var7.printStackTrace();
                 }
             }
-
+                    
+            processBindings();
+            
+            
             optionsVRReader.close();
         }
         catch (Exception var8)
@@ -715,6 +743,32 @@ public class VRSettings
             var8.printStackTrace();
         }
     }
+
+	private void processBindings() {
+		//process button mappings           
+		for (int i = 0; i < 16;i++){
+			VRControllerButtonMapping vb = buttonMappings[i];
+			
+			if(vb==null) { //shouldnt
+		        vb = new VRControllerButtonMapping(ViveButtons.values()[i],"none");
+		        buttonMappings[i] = vb;
+			}
+			
+			//todo handle unknown binding.
+			if(vb.FunctionDesc.equals("keyboard")){
+				vb.key = null;
+			} else {
+		        KeyBinding[] var3 = mc.gameSettings.keyBindings;
+		        for (final KeyBinding keyBinding : var3) {	
+		        	if (keyBinding.getKeyDescription().equals(vb.FunctionDesc)){
+		        		vb.key = keyBinding;    
+		        		vb.FunctionExt = 0;
+		        		break;
+		        	}
+				}					
+			}
+		}
+	}
 
     public void resetSettings()
     {
@@ -1451,6 +1505,13 @@ public class VRSettings
             var5.println("limitedTeleport:" + this.vrLimitedSurvivalTeleport);
             var5.println("reverseHands:" + this.vrReverseHands);
            
+            if (buttonMappings == null) resetBindings(); //defaults
+            
+            for (int i = 0; i<16;i++){
+            	VRControllerButtonMapping vb = buttonMappings[i];
+            	var5.println(vb.toString());
+			}
+            
             //END JRBUDDA
             var5.close();
         }
@@ -1461,6 +1522,11 @@ public class VRSettings
         }
     }
 
+    public void resetBindings(){
+    	buttonMappings = getBindingsDefaults();
+    	processBindings();
+    }
+    
     public void setMinecraftIpd(float leftHalfIpd, float rightHalfIpd)
     {
         this.leftHalfIpd = Math.abs(leftHalfIpd);
@@ -1808,7 +1874,7 @@ public class VRSettings
             this.valueMax = p_i45004_7_;
             this.valueStep = p_i45004_8_;
         }
-
+        
         public boolean getEnumFloat()
         {
             return this.enumFloat;
@@ -2021,4 +2087,34 @@ public class VRSettings
 
         return true;
     }
+    
+
+    private VRControllerButtonMapping[] getBindingsDefaults(){
+   	
+    	VRControllerButtonMapping[] out = new VRControllerButtonMapping[16];
+    	
+    	out[ViveButtons.BUTTON_RIGHT_TRIGGER.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_RIGHT_TRIGGER, "key.attack");
+    	out[ViveButtons.BUTTON_RIGHT_TRIGGER_FULLCLICK.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_RIGHT_TRIGGER_FULLCLICK, "none");
+    	out[ViveButtons.BUTTON_RIGHT_GRIP.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_RIGHT_GRIP, "key.pickItem");
+    	out[ViveButtons.BUTTON_RIGHT_APPMENU.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_RIGHT_APPMENU, "key.drop");
+    	out[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BL.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_RIGHT_TOUCHPAD_BL, "key.use");
+    	out[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BR.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_RIGHT_TOUCHPAD_BR, "key.use");
+    	out[ViveButtons.BUTTON_RIGHT_TOUCHPAD_UL.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_RIGHT_TOUCHPAD_UL, "key.use");
+    	out[ViveButtons.BUTTON_RIGHT_TOUCHPAD_UR.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_RIGHT_TOUCHPAD_UR, "key.use");
+  
+    	out[ViveButtons.BUTTON_LEFT_TRIGGER.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_LEFT_TRIGGER, "key.forward");
+    	out[ViveButtons.BUTTON_LEFT_TRIGGER_FULLCLICK.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_LEFT_TRIGGER_FULLCLICK, "key.sprint");
+    	out[ViveButtons.BUTTON_LEFT_GRIP.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_LEFT_GRIP, "key.sneak");
+    	out[ViveButtons.BUTTON_LEFT_APPMENU.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_LEFT_APPMENU, "none");
+    	out[ViveButtons.BUTTON_LEFT_TOUCHPAD_BL.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_LEFT_TOUCHPAD_BL, "key.jump");
+    	out[ViveButtons.BUTTON_LEFT_TOUCHPAD_BR.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_LEFT_TOUCHPAD_BR, "key.jump");
+    	out[ViveButtons.BUTTON_LEFT_TOUCHPAD_UL.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_LEFT_TOUCHPAD_UL, "key.inventory");
+    	out[ViveButtons.BUTTON_LEFT_TOUCHPAD_UR.ordinal()] = new VRControllerButtonMapping(ViveButtons.BUTTON_LEFT_TOUCHPAD_UR, "key.inventory");
+    	
+    	
+    	return out;
+    	
+    }
+    
 }
+

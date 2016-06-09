@@ -1,9 +1,6 @@
 --- a/net/minecraft/client/gui/GuiSlot.java
 +++ b/net/minecraft/client/gui/GuiSlot.java
-@@ -1,28 +1,31 @@
- package net.minecraft.client.gui;
- 
-+import com.mtbs3d.minecrift.control.GuiScreenNavigator;
+@@ -3,26 +3,28 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.renderer.OpenGlHelper;
  import net.minecraft.client.renderer.Tessellator;
@@ -40,6 +37,14 @@
      /** The buttonID of the button used to scroll up */
      private int scrollUpButtonID;
  
+@@ -32,6 +34,7 @@
+     protected int mouseY;
+     protected boolean field_148163_i = true;
+ 
++   
+     /** Where the mouse was in the window when you first clicked to scroll */
+     private float initialClickY = -2.0F;
+ 
 @@ -55,7 +58,9 @@
       */
      private boolean showSelectionBox = true;
@@ -51,18 +56,90 @@
      private boolean enabled = true;
      private static final String __OBFID = "CL_00000679";
  
-@@ -242,7 +247,9 @@
+@@ -227,10 +232,12 @@
+         }
+     }
  
-         if (p_148128_1_ > this.left && p_148128_1_ < this.right && p_148128_2_ > this.top && p_148128_2_ < this.bottom)
+-    public void drawScreen(int p_148128_1_, int p_148128_2_, float p_148128_3_)
++    
++    
++    public void drawScreen(int mx, int my, float nano)
+     {
+-        this.mouseX = p_148128_1_;
+-        this.mouseY = p_148128_2_;
++        this.mouseX = mx;
++        this.mouseY = my;
+         this.drawBackground();
+         int var4 = this.getSize();
+         int var5 = this.getScrollBarX();
+@@ -240,35 +247,37 @@
+         int var13;
+         int var19;
+ 
+-        if (p_148128_1_ > this.left && p_148128_1_ < this.right && p_148128_2_ > this.top && p_148128_2_ < this.bottom)
++        if (mx > this.left && mx < this.right && my > this.top && my < this.bottom)
          {
 -            if (Mouse.isButtonDown(0) && this.getEnabled())
 +            /** MINECRIFT */   // Allow gui cursor emulation with clickable scroll bars
-+            if (( Mouse.isButtonDown(0) || GuiScreenNavigator.selectDepressed )&& this.getEnabled())
++            if (( Mouse.isButtonDown(0) || GuiScreen.mouseDown )&& this.getEnabled())
 +            /** END MINECRIFT */
              {
                  if (this.initialClickY == -1.0F)
                  {
-@@ -346,16 +353,21 @@
+                     boolean var15 = true;
+ 
+-                    if (p_148128_2_ >= this.top && p_148128_2_ <= this.bottom)
++                    if (my >= this.top && my <= this.bottom)
+                     {
+                         int var8 = this.width / 2 - this.getListWidth() / 2;
+                         var9 = this.width / 2 + this.getListWidth() / 2;
+-                        var10 = p_148128_2_ - this.top - this.headerPadding + (int)this.amountScrolled - 4;
++                        var10 = my - this.top - this.headerPadding + (int)this.amountScrolled - 4;
+                         int var11 = var10 / this.slotHeight;
+ 
+-                        if (p_148128_1_ >= var8 && p_148128_1_ <= var9 && var11 >= 0 && var10 >= 0 && var11 < var4)
++                        if (mx >= var8 && mx <= var9 && var11 >= 0 && var10 >= 0 && var11 < var4)
+                         {
+                             boolean var12 = var11 == this.selectedElement && Minecraft.getSystemTime() - this.lastClicked < 250L;
+-                            this.elementClicked(var11, var12, p_148128_1_, p_148128_2_);
++                            this.elementClicked(var11, var12, mx, my);
+                             this.selectedElement = var11;
+                             this.lastClicked = Minecraft.getSystemTime();
+                         }
+-                        else if (p_148128_1_ >= var8 && p_148128_1_ <= var9 && var10 < 0)
++                        else if (mx >= var8 && mx <= var9 && var10 < 0)
+                         {
+-                            this.func_148132_a(p_148128_1_ - var8, p_148128_2_ - this.top + (int)this.amountScrolled - 4);
++                            this.func_148132_a(mx - var8, my - this.top + (int)this.amountScrolled - 4);
+                             var15 = false;
+                         }
+ 
+-                        if (p_148128_1_ >= var5 && p_148128_1_ <= var6)
++                        if (mx >= var5 && mx <= var6)
+                         {
+                             this.scrollMultiplier = -1.0F;
+                             var19 = this.func_148135_f();
+@@ -299,7 +308,7 @@
+ 
+                         if (var15)
+                         {
+-                            this.initialClickY = (float)p_148128_2_;
++                            this.initialClickY = (float)my;
+                         }
+                         else
+                         {
+@@ -313,8 +322,8 @@
+                 }
+                 else if (this.initialClickY >= 0.0F)
+                 {
+-                    this.amountScrolled -= ((float)p_148128_2_ - this.initialClickY) * this.scrollMultiplier;
+-                    this.initialClickY = (float)p_148128_2_;
++                    this.amountScrolled -= ((float)my - this.initialClickY) * this.scrollMultiplier;
++                    this.initialClickY = (float)my;
+                 }
+             }
+             else
+@@ -346,16 +355,21 @@
          GL11.glDisable(GL11.GL_LIGHTING);
          GL11.glDisable(GL11.GL_FOG);
          Tessellator var16 = Tessellator.instance;
@@ -94,7 +171,25 @@
          var9 = this.left + this.width / 2 - this.getListWidth() / 2 + 2;
          var10 = this.top + 4 - (int)this.amountScrolled;
  
-@@ -539,4 +551,33 @@
+@@ -364,7 +378,7 @@
+             this.drawListHeader(var9, var10, var16);
+         }
+ 
+-        this.drawSelectionBox(var9, var10, p_148128_1_, p_148128_2_);
++        this.drawSelectionBox(var9, var10, mx, my);
+         GL11.glDisable(GL11.GL_DEPTH_TEST);
+         byte var18 = 4;
+         this.overlayBackground(0, this.top, 255, 255);
+@@ -436,7 +450,7 @@
+             var16.draw();
+         }
+ 
+-        this.func_148142_b(p_148128_1_, p_148128_2_);
++        this.func_148142_b(mx, my);
+         GL11.glEnable(GL11.GL_TEXTURE_2D);
+         GL11.glShadeModel(GL11.GL_FLAT);
+         GL11.glEnable(GL11.GL_ALPHA_TEST);
+@@ -539,4 +553,33 @@
      {
          return this.slotHeight;
      }

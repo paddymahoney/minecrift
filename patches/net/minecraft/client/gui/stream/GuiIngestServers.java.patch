@@ -1,0 +1,10 @@
+--- a/net/minecraft/client/gui/stream/GuiIngestServers.java
++++ b/net/minecraft/client/gui/stream/GuiIngestServers.java
+@@ -71,7 +71,6 @@
+     public void drawScreen(int mouseX, int mouseY, float partialTicks)
+     {
+         this.drawDefaultBackground();
+-        this.field_152311_g.drawScreen(mouseX, mouseY, partialTicks);
+         this.drawCenteredString(this.fontRendererObj, this.field_152310_f, this.width / 2, 20, 16777215);
+         super.drawScreen(mouseX, mouseY, partialTicks);
+     }

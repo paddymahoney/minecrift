@@ -1,8 +1,7 @@
 package com.mtbs3d.minecrift.provider;
 
 import com.mtbs3d.minecrift.api.*;
-import com.mtbs3d.minecrift.control.ControlBinding;
-import com.mtbs3d.minecrift.control.GuiScreenNavigator;
+import com.mtbs3d.minecrift.control.ViveButtons;
 import com.mtbs3d.minecrift.render.QuaternionHelper;
 import com.mtbs3d.minecrift.utils.KeyboardSimulator;
 import com.sun.jna.Memory;
@@ -147,8 +146,6 @@ IEventNotifier, IEventListener, IBodyAimController
 	// For mouse menu emulation
 	private float controllerMouseX = -1.0f;
 	private float controllerMouseY = -1.0f;
-	private Field keyDownField;
-	private Field buttonDownField;
 	public boolean controllerMouseValid;
 	public int controllerMouseTicks;
 
@@ -157,8 +154,6 @@ IEventNotifier, IEventListener, IBodyAimController
 	byte[] lastTyped = new byte[256];
 	byte[] typed = new byte[256];
 	static int pollsSinceLastChange = 0;
-	KeyboardSimulator keyboard;
-
 
 	// Touchpad samples
 	private Vector2f[][] touchpadSamples = new Vector2f[2][5];
@@ -285,21 +280,6 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 
-		try {
-			keyboard = new KeyboardSimulator();
-		} catch (AWTException e) {
-			System.out.println("Error Initializing Keyboard Simulator");
-		}
-
-		try {
-			keyDownField = Keyboard.class.getDeclaredField("keyDownBuffer");
-			keyDownField.setAccessible(true);
-			buttonDownField = Mouse.class.getDeclaredField("buttons");
-			buttonDownField.setAccessible(true);
-		} catch (SecurityException e) {
-		} catch (NoSuchFieldException e) {
-		}
-
 
 		HmdMatrix34_t matL = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Left);
 		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matL, hmdPoseLeftEye);
@@ -378,7 +358,6 @@ IEventNotifier, IEventListener, IBodyAimController
 		if (vrOverlay != null &&  hmdErrorStore.get(0) == 0) {     		
 			vrOverlay.setAutoSynch(false);
 			vrOverlay.read();					
-			//	    vrOverlay.CreateOverlay.apply(ptrFomrString(""), ptrFomrString(""), oHandle);
 			System.out.println("OpenVR Overlay initialized OK");
 		} else {
 			throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));		
@@ -395,7 +374,6 @@ IEventNotifier, IEventListener, IBodyAimController
 				vrCompositor.setAutoSynch(false);
 				vrCompositor.read();
 				vrCompositor.SetTrackingSpace.apply(JOpenVRLibrary.ETrackingUniverseOrigin.ETrackingUniverseOrigin_TrackingUniverseStanding);                
-
 			} else {
 				throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));			 
 			}
@@ -625,17 +603,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 				if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold) {					
 					mc.currentScreen.mouseDrag(mouseX, mouseY);//Signals mouse move
-					if (buttonDownField != null)
-					{
-						try
-						{
-							((ByteBuffer) buttonDownField.get(null)).put(0, (byte) 1);
-						} catch (IllegalArgumentException e)
-						{
-						} catch (IllegalAccessException e)
-						{
-						}
-					}
+
 				}
 
 
@@ -647,11 +615,6 @@ IEventNotifier, IEventListener, IBodyAimController
 					mc.currentScreen.mouseUp(mouseX, mouseY, 0);
 				}	
 
-				// hack for scrollbars
-				GuiScreenNavigator.selectDepressed = (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold);
-				//end LMB
-
-
 				//RMB
 				if (
 						(controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 &&
@@ -662,7 +625,7 @@ IEventNotifier, IEventListener, IBodyAimController
 					mc.currentScreen.mouseDown(mouseX, mouseY, 1);
 				}	
 
-				if ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0 )
+				if (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold)
 				{
 					mc.currentScreen.mouseDrag(mouseX, mouseY);//Signals mouse move
 				}
@@ -681,14 +644,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 			} else // right controller not found
 			{
-				//jrbudda: someday it might not be attack
-				//				// no controller connected, do mouse ups
-				//				if (mc.gameSettings.keyBindAttack.getIsKeyPressed())
-				//				{
-				//					mc.currentScreen.mouseUp(mouseX, mouseY, 0);
-				//					mc.gameSettings.keyBindAttack.unpressKey();
-				//				}
-				//				// TODO: rmb?
+
 			}
 		} else {
 			if(controllerMouseTicks == 0)
@@ -698,19 +654,18 @@ IEventNotifier, IEventListener, IBodyAimController
 
 			if (mc.thePlayer != null && !(mc.currentScreen instanceof GuiWinGame))
 			{
-				boolean pressedPlaceBlock = ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0)
+				boolean pressedRMB = ((controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) > 0)
 						&& ((lastControllerState[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTouchpad) == 0);
 
-				boolean pressedAttack = (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold)
+				boolean pressedLMB = (controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold)
 						&& (lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x <= triggerThreshold);
 
-				if (pressedAttack || pressedPlaceBlock)
+				if (pressedLMB || pressedRMB)
 				{
 					{mc.thePlayer.closeScreen();}			
 
 				}
 			}
-
 		}
 	}
 
@@ -917,26 +872,6 @@ IEventNotifier, IEventListener, IBodyAimController
 		if (mc.theWorld == null)
 			return;
 
-		// map functionality to keybinds
-
-		KeyBinding keyBindR_Trigger = mc.gameSettings.keyBindAttack;
-		KeyBinding keyBindR_TouchpadBL = mc.gameSettings.keyBindUseItem;
-		KeyBinding keyBindR_TouchpadBR = mc.gameSettings.keyBindUseItem;
-		KeyBinding keyBindR_TouchpadUL = mc.gameSettings.keyBindUseItem;
-		KeyBinding keyBindR_TouchpadUR = mc.gameSettings.keyBindUseItem;
-		KeyBinding keyBindR_Appmenu = mc.gameSettings.keyBindDrop;
-		KeyBinding keyBindR_Grip = mc.gameSettings.keyBindPickBlock;
-		KeyBinding keyBindR_TriggerClick = null; //new KeyBinding("null", 0, "null");
-
-		KeyBinding keyBindL_Appmenu = null; // new KeyBinding("null", 0, "null");
-		KeyBinding keyBindL_Trigger = mc.gameSettings.keyBindForward;
-		KeyBinding keyBindL_TouchpadBL = mc.gameSettings.keyBindJump;
-		KeyBinding keyBindL_TouchpadBR = mc.gameSettings.keyBindJump;
-		KeyBinding keyBindL_TouchpadUL = mc.gameSettings.keyBindInventory;
-		KeyBinding keyBindL_TouchpadUR = mc.gameSettings.keyBindInventory;
-		KeyBinding keyBindL_Grip = mc.gameSettings.keyBindSneak;
-		KeyBinding keyBindL_TriggerClick = mc.gameSettings.keyBindSprint;
-
 		boolean gui = (mc.currentScreen != null);
 		boolean sleeping = (mc.thePlayer != null && mc.thePlayer.isPlayerSleeping());
 
@@ -976,69 +911,68 @@ IEventNotifier, IEventListener, IBodyAimController
 		boolean pressedRTrigger = controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;
 		boolean pressedRTriggerClick =( controllerStateReference[RIGHT_CONTROLLER].ulButtonPressed & k_buttonTrigger )>0;
 
-		//		if(!gui) {//simulated mouse UI input is done elsewhere I think. 
-		//TODO dont make this check here. move the poll() to somewhere else.
 
 		//R GRIP
 		if (pressedRGrip && !lastpressedRGrip) {
-			keyBindR_Grip.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_GRIP.ordinal()].press();
 		}	
 		if(!pressedRGrip && lastpressedRGrip) {
-			keyBindR_Grip.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_GRIP.ordinal()].unpress();
 		}
 
 		//R TOUCHPAD	
 
+		if(!gui){ //this are the mouse buttons.
+		
 		if (pressedRtouchpadBottomLeft && !lastpressedRtouchpadBottomLeft){
-			keyBindR_TouchpadBL.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BL.ordinal()].press();
 		}			
 		if (!pressedRtouchpadBottomLeft && lastpressedRtouchpadBottomLeft){
-			keyBindR_TouchpadBL.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BL.ordinal()].unpress();
 		}		
 		if (pressedRtouchpadBottomRight && !lastpressedRtouchpadBottomRight){
-			keyBindR_TouchpadBR.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BR.ordinal()].press();
 		}			
 		if (!pressedRtouchpadBottomRight && lastpressedRtouchpadBottomRight){
-			keyBindR_TouchpadBR.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BR.ordinal()].unpress();
 		}	
 		if (pressedRtouchpadTopLeft && !lastpressedRtouchpadTopLeft){
-			keyBindR_TouchpadUL.pressKey();
-		}			
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_UL.ordinal()].press();		}			
 		if (!pressedRtouchpadTopLeft && lastpressedRtouchpadTopLeft){
-			keyBindR_TouchpadUL.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_UL.ordinal()].unpress();
 		}	
 		if (pressedRtouchpadTopRight && !lastpressedRtouchpadTopRight ){
-			keyBindR_TouchpadUR.pressKey();
-		}			
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_UR.ordinal()].press();		}			
 		if (!pressedRtouchpadTopRight  && lastpressedRtouchpadTopRight ){
-			keyBindR_TouchpadUR.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_UR.ordinal()].unpress();
 		}	
 
-		//R TRIGGER
-		if (pressedRTrigger && !lastpressedRTrigger) {
-			keyBindR_Trigger.pressKey();
-		}	
-		if(!pressedRTrigger && lastpressedRTrigger) {
-			keyBindR_Trigger.unpressKey();
+			//R TRIGGER
+			if (pressedRTrigger && !lastpressedRTrigger) {
+				mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TRIGGER.ordinal()].press();
+				//keyBindR_Trigger.pressKey();
+			}	
+			if(!pressedRTrigger && lastpressedRTrigger) {
+				mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TRIGGER.ordinal()].unpress();
+				//	keyBindR_Trigger.unpressKey();
+			}
 		}
 
 		//R AppMenu
 		if (pressedRAppMenu && !lastpressedRAppMenu) {
-			keyBindR_Appmenu.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_APPMENU.ordinal()].press();
 		}	
 		if(!pressedRAppMenu && lastpressedRAppMenu) {
-			keyBindR_Appmenu.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_APPMENU.ordinal()].unpress();
 		}
 
 		//R triggerclick
-		if(keyBindR_TriggerClick !=null){
-			if (pressedRTriggerClick && !lastpressedRTriggerClick) {
-				keyBindR_TriggerClick.pressKey();
-			}	
-			if(!pressedRTriggerClick && lastpressedRTriggerClick) {
-				keyBindR_TriggerClick.unpressKey();
-			}			
-		}
+		if (pressedRTriggerClick && !lastpressedRTriggerClick) {
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TRIGGER_FULLCLICK.ordinal()].press();
+		}	
+		if(!pressedRTriggerClick && lastpressedRTriggerClick) {
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TRIGGER_FULLCLICK.ordinal()].unpress();
+		}			
 
 
 
@@ -1078,73 +1012,66 @@ IEventNotifier, IEventListener, IBodyAimController
 		boolean pressedLTrigger = controllerStateReference[LEFT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold;
 		boolean pressedLTriggerClick =( controllerStateReference[LEFT_CONTROLLER].ulButtonPressed & k_buttonTrigger )>0;
 
-		//		if(!gui) {//simulated mouse UI input is done elsewhere I think. 
-		//			//TODO dont make this check here. move the poll() to somewhere else.
-
-		//L GRIP
-
+		//l GRIP
 		if (pressedLGrip && !lastpressedLGrip) {
-			keyBindL_Grip.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_GRIP.ordinal()].press();
 		}	
 		if(!pressedLGrip && lastpressedLGrip) {
-			keyBindL_Grip.unpressKey();			
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_GRIP.ordinal()].unpress();
 		}
 
-		//L TOUCHPAD	
+		//l TOUCHPAD	
 
+		
 		if (pressedLtouchpadBottomLeft && !lastpressedLtouchpadBottomLeft){
-			keyBindL_TouchpadBL.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TOUCHPAD_BL.ordinal()].press();
 		}			
 		if (!pressedLtouchpadBottomLeft && lastpressedLtouchpadBottomLeft){
-			keyBindL_TouchpadBL.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TOUCHPAD_BL.ordinal()].unpress();
 		}		
 		if (pressedLtouchpadBottomRight && !lastpressedLtouchpadBottomRight){
-			keyBindL_TouchpadBR.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TOUCHPAD_BR.ordinal()].press();
 		}			
 		if (!pressedLtouchpadBottomRight && lastpressedLtouchpadBottomRight){
-			keyBindL_TouchpadBR.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TOUCHPAD_BR.ordinal()].unpress();
 		}	
 		if (pressedLtouchpadTopLeft && !lastpressedLtouchpadTopLeft){
-			keyBindL_TouchpadUL.pressKey();
-		}			
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TOUCHPAD_UL.ordinal()].press();		}			
 		if (!pressedLtouchpadTopLeft && lastpressedLtouchpadTopLeft){
-			keyBindL_TouchpadUL.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TOUCHPAD_UL.ordinal()].unpress();
 		}	
 		if (pressedLtouchpadTopRight && !lastpressedLtouchpadTopRight ){
-			keyBindL_TouchpadUR.pressKey();
-		}			
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TOUCHPAD_UR.ordinal()].press();		}			
 		if (!pressedLtouchpadTopRight  && lastpressedLtouchpadTopRight ){
-			keyBindL_TouchpadUR.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TOUCHPAD_UR.ordinal()].unpress();
 		}	
 
 		//L TRIGGER
 		if (pressedLTrigger && !lastpressedLTrigger) {
-			keyBindL_Trigger.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TRIGGER.ordinal()].press();
 		}	
 		if(!pressedLTrigger && lastpressedLTrigger) {
-			keyBindL_Trigger.unpressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TRIGGER.ordinal()].unpress();
 		}
 
 		//L AppMenu
-		if(keyBindL_Appmenu !=null){
-			if (pressedLAppMenu && !lastpressedLAppMenu) {
-				keyBindL_Appmenu.pressKey();
-			}	
-			if(!pressedLAppMenu && lastpressedLAppMenu) {
-				keyBindL_Appmenu.unpressKey();
-			}				
+		if (pressedLAppMenu && !lastpressedLAppMenu) {
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_APPMENU.ordinal()].press();
+		}	
+		if(!pressedLAppMenu && lastpressedLAppMenu) {
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_APPMENU.ordinal()].unpress();
 		}
-			
 
 		//L triggerclick
 		if (pressedLTriggerClick && !lastpressedLTriggerClick) {
-			keyBindL_TriggerClick.pressKey();
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TRIGGER_FULLCLICK.ordinal()].press();
 		}	
 		if(!pressedLTriggerClick && lastpressedLTriggerClick) {
-			keyBindL_TriggerClick.unpressKey();
-		}
+			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TRIGGER_FULLCLICK.ordinal()].unpress();
+		}			
 
 
+		
 		//VIVE SPECIFIC FUNCTIONALITY
 		//TODO: Find a better home for these in Minecraft.java		
 
@@ -1226,7 +1153,7 @@ IEventNotifier, IEventListener, IBodyAimController
 					if(b>0)len++;
 				}
 				String str = new String(inbytes,0,len, StandardCharsets.UTF_8);
-				keyboard.type(str); //holy shit it works.
+				KeyboardSimulator.type(str); //holy shit it works.
 				break;
 			default:
 				break;
@@ -1651,8 +1578,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	public Matrix4f getAimRotation( int controller ) {
 		return controller == 0 ? controllerRotation[0] : controllerRotation[1];
 	}
-	@Override
-	public void mapBinding(ControlBinding binding) { }
+	
 	@Override
 	public double ratchetingYawTransitionPercent()
 	{

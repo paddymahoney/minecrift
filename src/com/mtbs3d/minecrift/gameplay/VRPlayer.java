@@ -134,6 +134,9 @@ public class VRPlayer
       
         // don't do teleport movement if on a server that doesn't have this mod installed
         if (restrictedViveClient) {
+        	
+        		if(player.movementInput.moveForward ==0) doPlayerMoveInRoom(player);
+        	
 			  return; //let mc handle look direction movement
 			// controller vs gaze movement is handled in Entity.java > moveFlying
           }
@@ -352,171 +355,117 @@ public class VRPlayer
 
     private boolean wasYMoving;
     
-	private void doPlayerMoveInRoom(EntityPlayerSP player){
-		// this needs... work...
-	
-		
-		
-				if(player.isSneaking()) {return;} //jrbudda : prevent falling off things or walking up blocks while moving in room scale.
-		
-				if(player.isRiding()) return;
-				
-				Minecraft mc = Minecraft.getMinecraft();
-	            float playerHalfWidth = player.width / 2.0F;
+    private void doPlayerMoveInRoom(EntityPlayerSP player){
+    	// this needs... work...
 
-                // move player's X/Z coords as the HMD moves around the room
+    	if(player.isSneaking()) {return;} //jrbudda : prevent falling off things or walking up blocks while moving in room scale.
 
-                Vec3 eyePos = mc.positionTracker.getCenterEyePosition();
+    	if(player.isRiding()) return;
 
-                double x = roomOrigin.xCoord - eyePos.xCoord;
-                double y = player.posY;
-                double z = roomOrigin.zCoord - eyePos.zCoord;
-			
-                // create bounding box at dest position
-                AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(
-                        x - (double) playerHalfWidth,
-                        y - (double) player.yOffset + (double) player.yOffset2,
-                        z - (double) playerHalfWidth,
-                        x + (double) playerHalfWidth,
-                        y - (double) player.yOffset + (double) player.yOffset2 + (double) player.height,
-                        z + (double) playerHalfWidth);
+    	Minecraft mc = Minecraft.getMinecraft();
+    	float playerHalfWidth = player.width / 2.0F;
 
-                Vec3 torso = null;
+    	// move player's X/Z coords as the HMD moves around the room
 
-                // valid place to move player to?
-                float var27 = 0.0625F;
-                boolean emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bb).isEmpty();
-				
-                if (emptySpot)
-                {
-                    // don't call setPosition style functions to avoid shifting room origin
-                    player.lastTickPosX = player.prevPosX = player.posX = x;
-                    
-                    if (!mc.vrSettings.simulateFalling)	{
-                    	  player.lastTickPosY = player.prevPosY = player.posY = y;                	
-                    }
-                                        
-                    player.lastTickPosZ = player.prevPosZ = player.posZ = z;
-                    player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY + player.height, bb.maxZ);
-                    player.fallDistance = 0.0F;
+    	Vec3 eyePos = mc.positionTracker.getCenterEyePosition();
 
-                    torso = getEstimatedTorsoPosition(x, y, z);
+    	double x = roomOrigin.xCoord - eyePos.xCoord;
+    	double y = player.posY;
+    	double z = roomOrigin.zCoord - eyePos.zCoord;
+
+    	// create bounding box at dest position
+    	AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(
+    			x - (double) playerHalfWidth,
+    			y - (double) player.yOffset + (double) player.yOffset2,
+    			z - (double) playerHalfWidth,
+    			x + (double) playerHalfWidth,
+    			y - (double) player.yOffset + (double) player.yOffset2 + (double) player.height,
+    			z + (double) playerHalfWidth);
+
+    	Vec3 torso = null;
+
+    	// valid place to move player to?
+    	float var27 = 0.0625F;
+    	boolean emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bb).isEmpty();
+
+    	if (emptySpot)
+    	{
+    		// don't call setPosition style functions to avoid shifting room origin
+    		player.lastTickPosX = player.prevPosX = player.posX = x;
+
+    		if (!mc.vrSettings.simulateFalling)	{
+    			player.lastTickPosY = player.prevPosY = player.posY = y;                	
+    		}
+
+    		player.lastTickPosZ = player.prevPosZ = player.posZ = z;
+    		player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY + player.height, bb.maxZ);
+    		player.fallDistance = 0.0F;
+
+    		torso = getEstimatedTorsoPosition(x, y, z);
 
 
-//                        float fallPadding = player.width * 0.0f;
-//
-//                        double paddedFallHalfWidth = playerHalfWidth + fallPadding;
-//                        AxisAlignedBB bbFall = AxisAlignedBB.getBoundingBox(
-//                                torso.xCoord - paddedFallHalfWidth,
-//                                bb.minY,
-//                                torso.zCoord - paddedFallHalfWidth,
-//                                torso.xCoord + paddedFallHalfWidth,
-//                                bb.maxY,
-//                                torso.zCoord + paddedFallHalfWidth);
-//
-//                        int fallCount = 0;
-//                        
-//                        while (emptySpot && fallCount < 32)
-//                        {
-//                            bbFall.maxY -= 1.0f;
-//                            bbFall.minY -= 1.0f;
-//                            emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bbFall).isEmpty();
-//                            fallCount++;
-//                        }
-//                        
-//                        if (fallCount > 1)
-//                        {
-//                            if (mc.stereoProvider.getCurrentTimeSecs() >= fallTime)
-//                            {
-//                                double xOffset = torso.xCoord - x;
-//                                double zOffset = torso.zCoord - z;
-//
-//                                float fallDist = 1.0f * (fallCount - 1);
-//                                x += xOffset;
-//                                y -= fallDist;
-//                                z += zOffset;
-//                                bb.minX += xOffset;
-//                                bb.maxX += xOffset;
-//                                bb.minY -= fallDist;
-//                                bb.maxY -= fallDist;
-//                                bb.minZ += zOffset;
-//                                bb.maxZ += zOffset;
-//                                player.lastTickPosX = player.prevPosX = player.posX = x;
-//                                player.lastTickPosY = player.prevPosY = player.posY = y;
-//                                player.lastTickPosZ = player.prevPosZ = player.posZ = z;
-//                                player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
-//                                player.fallDistance = fallDist;
-//                                roomOrigin.xCoord += xOffset;
-//                                roomOrigin.yCoord -= fallDist;
-//                                roomOrigin.zCoord += zOffset;
-//
-//                                playFootstepSound(mc, player.posX, player.posY-1.62f, player.posZ);
-//                            }
-//                        }
-//                        else
-//                        {
-//                            fallTime = mc.stereoProvider.getCurrentTimeSecs() + 0.25;
-//                        }
-//                	}
-                    		}
+    	}
 
-    //             test for climbing up a block
-                if (mc.vrSettings.walkUpBlocks && player.fallDistance == 0)
-                {
-                    if (torso == null)
-                    {
-                        torso = getEstimatedTorsoPosition(x, y, z);
-                    }
+    	//             test for climbing up a block
+    	else if (mc.vrSettings.walkUpBlocks && player.fallDistance == 0)
+    	{
+    		if (torso == null)
+    		{
+    			torso = getEstimatedTorsoPosition(x, y, z);
+    		}
 
-                    // is the player significantly inside a block?
-                    float climbShrink = player.width * 0.45f;
-                    double shrunkClimbHalfWidth = playerHalfWidth - climbShrink;
-                    AxisAlignedBB bbClimb = AxisAlignedBB.getBoundingBox(
-                            torso.xCoord - shrunkClimbHalfWidth,
-                            bb.minY,
-                            torso.zCoord - shrunkClimbHalfWidth,
-                            torso.xCoord + shrunkClimbHalfWidth,
-                            bb.maxY,
-                            torso.zCoord + shrunkClimbHalfWidth);
+    		// is the player significantly inside a block?
+    		float climbShrink = player.width * 0.45f;
+    		double shrunkClimbHalfWidth = playerHalfWidth - climbShrink;
+    		AxisAlignedBB bbClimb = AxisAlignedBB.getBoundingBox(
+    				torso.xCoord - shrunkClimbHalfWidth,
+    				bb.minY,
+    				torso.zCoord - shrunkClimbHalfWidth,
+    				torso.xCoord + shrunkClimbHalfWidth,
+    				bb.maxY,
+    				torso.zCoord + shrunkClimbHalfWidth);
 
-                    emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bbClimb).isEmpty();
-                    if (!emptySpot)
-                    {
-                        // is 1 block up empty?
-                        double xOffset = torso.xCoord - x;
-                        double zOffset = torso.zCoord - z;
-                        bb.minX += xOffset;
-                        bb.maxX += xOffset;
-                        bb.minY += 1.0f;
-                        bb.maxY += 1.0f;
-                        bb.minZ += zOffset;
-                        bb.maxZ += zOffset;
-                        emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bb).isEmpty();
-                        if (emptySpot)
-                        {
-                            x += xOffset;
-                            y += 1.0f;
-                            z += zOffset;
-                            player.lastTickPosX = player.prevPosX = player.posX = x;
-                            player.lastTickPosY = player.prevPosY = player.posY = y;
-                            player.lastTickPosZ = player.prevPosZ = player.posZ = z;
-                            player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
-                            
-							roomOrigin.xCoord += xOffset;
-                            roomOrigin.yCoord += 1.0f;
-                            roomOrigin.zCoord += zOffset;
+    		boolean notyet = mc.theWorld.getCollidingBoundingBoxes(player, bbClimb).isEmpty();
 
-                            Vec3 look = player.getLookVec();
-                            Vec3 forward = Vec3.createVectorHelper(look.xCoord,0,look.zCoord).normalize();
-                            playFootstepSound(mc,
-                                    player.posX + forward.xCoord * 0.4f,
-                                    player.posY-1.62f,
-                                    player.posZ + forward.zCoord * 0.4f);
-                        }
-                    }
-                }
-            
-	}
+    		if(!notyet){
+    			double xOffset = torso.xCoord - x;
+    			double zOffset = torso.zCoord - z;
+    			bb.minX += xOffset;
+    			bb.maxX += xOffset;                	 
+    			bb.minZ += zOffset;
+    			bb.maxZ += zOffset;              	 
+    			for (int i = 0; i <=10 ; i++)
+    			{
+    				bb.minY += 0.1f;
+    				bb.maxY += 0.1f;
+
+    				emptySpot = mc.theWorld.getCollidingBoundingBoxes(player, bb).isEmpty();
+    				if (emptySpot)
+    				{
+    	    			x += xOffset;  	
+    	    			z += zOffset;
+    					y += 0.1f*i;
+    					player.lastTickPosX = player.prevPosX = player.posX = x;
+    					player.lastTickPosY = player.prevPosY = player.posY = y;
+    					player.lastTickPosZ = player.prevPosZ = player.posZ = z;
+    					player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
+
+    					roomOrigin.xCoord += xOffset;
+    					roomOrigin.yCoord += 0.1f*i;
+    					roomOrigin.zCoord += zOffset;
+
+    					Vec3 look = player.getLookVec();
+    					Vec3 forward = Vec3.createVectorHelper(look.xCoord,0,look.zCoord).normalize();
+    					playFootstepSound(mc,
+    							player.posX + forward.xCoord * 0.4f,
+    							player.posY-player.height,
+    							player.posZ + forward.zCoord * 0.4f);
+    					break;
+    				}
+    			}
+    		}
+    	}
+    }
 	
     public void playFootstepSound( Minecraft mc, double x, double y, double z )
     {
@@ -792,10 +741,12 @@ public class VRPlayer
             		{
 
             			Block testClimb = player.worldObj.getBlock(bx, by, bz);
-
-
+            			
+            			double y = testClimb.getBlockBoundsMaxY();
+            			if (testClimb == Blocks.farmland) y = 1f; //cheeky bastard
+            			
             			movementTeleportDestination.xCoord = dest.xCoord;
-            			movementTeleportDestination.yCoord = testClimb.getBlockBoundsMaxY() + by;
+            			movementTeleportDestination.yCoord = y + by;
             			movementTeleportDestination.zCoord = dest.zCoord;
             			movementTeleportDestinationSideHit = collision.sideHit;
 
@@ -1004,9 +955,7 @@ public class VRPlayer
 	public void setFreeMoveMode(boolean free) { 
 		restrictedViveClient = free;
 	      Minecraft.getMinecraft().getNetHandler().addToSendQueue(new C17PacketCustomPayload("MC|Vive|FreeMove", (byte[]) (restrictedViveClient ?  new byte[]{1} : new byte[]{0} )));
-		if(Minecraft.getMinecraft().thePlayer != null) {
-			Minecraft.getMinecraft().thePlayer.setPosition(Minecraft.getMinecraft().thePlayer.posX, Minecraft.getMinecraft().thePlayer.posY, Minecraft.getMinecraft().thePlayer.posZ); //reset room origin on mode change.
-		}		
+	
 		}
 	
 

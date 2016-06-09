@@ -6,17 +6,16 @@ import java.awt.AWTException;
 import java.awt.Robot;
 
 public class KeyboardSimulator {
-	private Robot robot;
+	private static Robot robot;
 
-    public KeyboardSimulator() throws AWTException {
-        this.robot = new Robot();
-    }
+	static{
+        try {
+			robot = new Robot();
+		} catch (AWTException e) {
+		}		
+	}
 
-    public KeyboardSimulator(Robot robot) {
-        this.robot = robot;
-    }
-
-    public void type(CharSequence characters) {
+    public static void type(CharSequence characters) {
         int length = characters.length();
         for (int i = 0; i < length; i++) {
             char character = characters.charAt(i);
@@ -24,7 +23,7 @@ public class KeyboardSimulator {
         }
     }
 
-    public void type(char character) {
+    public static void type(char character) {
         switch (character) {
 	        case 'a': doType(VK_A); break;
 	        case 'b': doType(VK_B); break;
@@ -93,16 +92,16 @@ public class KeyboardSimulator {
 	        case '=': doType(VK_EQUALS); break;
 	        case '~': doType(VK_SHIFT, VK_BACK_QUOTE); break;
 	        case '!': doType(VK_EXCLAMATION_MARK); break;
-	        case '@': doType(VK_AT); break;
-	        case '#': doType(VK_NUMBER_SIGN); break;
-	        case '$': doType(VK_DOLLAR); break;
+	        case '@': doType(VK_SHIFT,VK_2); break;
+	        case '#': doType(VK_SHIFT,VK_3); break;
+	        case '$': doType(VK_SHIFT,VK_4); break;
 	        case '%': doType(VK_SHIFT, VK_5); break;
-	        case '^': doType(VK_CIRCUMFLEX); break;
-	        case '&': doType(VK_AMPERSAND); break;
-	        case '*': doType(VK_ASTERISK); break;
-	        case '(': doType(VK_LEFT_PARENTHESIS); break;
-	        case ')': doType(VK_RIGHT_PARENTHESIS); break;
-	        case '_': doType(VK_UNDERSCORE); break;
+	        case '^': doType(VK_SHIFT,VK_6); break;
+	        case '&': doType(VK_SHIFT,VK_7); break;
+	        case '*': doType(VK_SHIFT,VK_8); break;
+	        case '(': doType(VK_SHIFT,VK_9); break;
+	        case ')': doType(VK_SHIFT,VK_0); break;
+	        case '_': doType(VK_SHIFT,VK_MINUS); break;
 	        case '+': doType(VK_PLUS); break;
 	        case '\t': doType(VK_TAB); break;
 	        case '\n': doType(VK_ENTER); break;
@@ -113,7 +112,7 @@ public class KeyboardSimulator {
 	        case '}': doType(VK_SHIFT, VK_CLOSE_BRACKET); break;
 	        case '|': doType(VK_SHIFT, VK_BACK_SLASH); break;
 	        case ';': doType(VK_SEMICOLON); break;
-	        case ':': doType(VK_COLON); break;
+	        case ':': doType(VK_SHIFT,VK_SEMICOLON); break;
 	        case '\'': doType(VK_QUOTE); break;
 	        case '"': doType(VK_QUOTEDBL); break;
 	        case ',': doType(VK_COMMA); break;
@@ -130,16 +129,15 @@ public class KeyboardSimulator {
         }
     }
 
-    private void doType(int... keyCodes) {
+    private static void doType(int... keyCodes) {
         doType(keyCodes, 0, keyCodes.length);
     }
 
-    private void doType(int[] keyCodes, int offset, int length) {
+    private static void doType(int[] keyCodes, int offset, int length) {
         if (length == 0) {
             return;
         }
-
-        robot.keyPress(keyCodes[offset]);
+         robot.keyPress(keyCodes[offset]);
         doType(keyCodes, offset + 1, length - 1);
         robot.keyRelease(keyCodes[offset]);
     }

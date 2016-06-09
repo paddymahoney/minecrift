@@ -33,6 +33,8 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             new VROption(209,                                      VROption.Position.POS_LEFT,   2f, VROption.ENABLED, "Locomotion Settings..."),
             new VROption(VRSettings.VrOptions.REVERSE_HANDS,       VROption.Position.POS_LEFT,   3f, VROption.ENABLED, null),
             new VROption(210, 							           VROption.Position.POS_RIGHT,  3f, VROption.ENABLED, "Chat/Crosshair Settings..."),
+            new VROption(220, 							           VROption.Position.POS_LEFT,   4f, VROption.ENABLED, "Controller Buttons..."),
+            
             
             // VIVE END - hide options not relevant to teleport/room scale
         };
@@ -139,6 +141,12 @@ public class GuiMinecriftSettings extends BaseGuiSettings
                 this.guivrSettings.saveOptions();
                 Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(new GuiOtherHUDSettings(this, this.guivrSettings));
+            }
+            else if (par1GuiButton.id == 220)
+            {
+                this.guivrSettings.saveOptions();
+                Minecraft.getMinecraft().lookaimController.saveOptions();
+                this.mc.displayGuiScreen(new GuiVRControls(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == PROFILES_ID)
             {

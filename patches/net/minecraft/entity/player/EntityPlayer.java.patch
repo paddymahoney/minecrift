@@ -1254,7 +1254,7 @@
 +            Reflector.callVoid(Reflector.FMLNetworkHandler_openGui, new Object[]{this, mod, modGuiId, world, x, y, z});
 +        }
 +    }
- 
++
 +    /* ======================================== FORGE START =====================================*/
 +    /**
 +     * interpolated position vector
@@ -1337,7 +1337,7 @@
 +
 +    public float eyeHeight;
 +    private String displayname;
-+
+ 
 +    /**
 +     * Returns the default eye height of the player
 +     * @return player default eye height
@@ -1377,7 +1377,7 @@
      public static enum EnumStatus
      {
          OK("OK", 0),
-@@ -2371,4 +3106,40 @@
+@@ -2371,4 +3106,55 @@
  
          private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
      }
@@ -1388,30 +1388,45 @@
 +public void moveEntity(double x, double y, double z)
 +{
 +
-+	if (VRPlayer.get().getFreeMoveMode())
++	boolean client = this instanceof EntityPlayerSP;
++	boolean freemove = VRPlayer.get().getFreeMoveMode();
++	boolean doY = Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder() && !this.isSneaking();
++	Vec3 roomOrigin = VRPlayer.get().getRoomOrigin();
++	Vec3 camloc = Minecraft.getMinecraft().entityRenderer.getCameraLocation();
++
++	if (freemove && this.moveForward != 0)
 +	{
++		double ox = roomOrigin.xCoord - posX;
++		double oz = roomOrigin.zCoord - posZ;
 +		super.moveEntity(x,y,z);
-+		if (this instanceof EntityPlayerSP){	VRPlayer.get().snapRoomOriginToPlayerEntity((EntityPlayerSP) this);}  
-+		
-+		
++
++		if (client){	
++			VRPlayer.get().setRoomOrigin(
++					posX + ox, 
++					this.boundingBox.minY, 
++					posZ  + oz);
++					}
++		//	VRPlayer.get().snapRoomOriginToPlayerEntity((EntityPlayerSP) this);
++
 +	} else {
-+		//     this.onGround = true;
-+		if(Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder() && !this.isSneaking()) {      	 
++		if(doY) {      	 
 +			super.moveEntity(0,y,0);
-+			
-+			if (this instanceof EntityPlayerSP){VRPlayer.get().setRoomOrigin(VRPlayer.get().getRoomOrigin().xCoord, this.boundingBox.minY, VRPlayer.get().getRoomOrigin().zCoord);
-+			
++			if (client){
++				VRPlayer.get().setRoomOrigin(
++					VRPlayer.get().getRoomOrigin().xCoord, 
++					this.boundingBox.minY, 
++					VRPlayer.get().getRoomOrigin().zCoord);
 +			}
-+			
++
 +		} else {
 +			//do not move player, VRPlayer.moveplayerinroom will move him around.
 +		}
-+		
++
 +
 +	}
 +
-+  		
-+	
++
++
 +}
 +    
 +
