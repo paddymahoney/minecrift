@@ -362,6 +362,10 @@ public class VRPlayer
 
     	if(player.isRiding()) return;
 
+    	if(Math.abs(player.motionX) > 0.01) return;
+    	if(Math.abs(player.motionZ) > 0.01) return;
+    	
+    	
     	Minecraft mc = Minecraft.getMinecraft();
     	float playerHalfWidth = player.width / 2.0F;
 
@@ -962,3 +966,4 @@ public class VRPlayer
 	public float getTeleportEnergy () {return teleportEnergy;}
 	
 }
+

@@ -16,7 +16,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.util.AxisAlignedBB;
-@@ -59,12 +65,39 @@
+@@ -59,12 +65,35 @@
          this.accelerationZ = p_i1760_12_ / var14 * 0.1D;
      }
  
@@ -40,14 +40,10 @@
 +        {
 +       	
 +           Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
-+           Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
-+           //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
-+           //aimRotation = Matrix4f.multiply(aimRotation, tilt);
-+           Vector3f forward = new Vector3f(0,0,1);
-+           Vector3f controllerDirection = aimRotation.transform(forward);
-+           spawnPosition.xCoord = aimSource.xCoord + controllerDirection.x * 0.28f;
-+           spawnPosition.yCoord = aimSource.yCoord - controllerDirection.y * 0.28f;
-+           spawnPosition.zCoord = aimSource.zCoord + controllerDirection.z * 0.28f;
++           Vec3 aimRotation = Minecraft.getMinecraft().lookaimController.getAimVector(0);
++           spawnPosition.xCoord = aimSource.xCoord + aimRotation.xCoord * 0.28f;
++           spawnPosition.yCoord = aimSource.yCoord - aimRotation.yCoord * 0.28f;
++           spawnPosition.zCoord = aimSource.zCoord + aimRotation.zCoord * 0.28f;
 +     	
 +           yaw = Minecraft.getMinecraft().lookaimController.getAimYaw();
 +           pitch = Minecraft.getMinecraft().lookaimController.getAimPitch();

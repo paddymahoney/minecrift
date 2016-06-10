@@ -77,35 +77,11 @@
                  GL11.glEnable(GL11.GL_LIGHTING);
                  GL11.glDepthFunc(GL11.GL_LEQUAL);
              }
-@@ -581,32 +582,58 @@
+@@ -581,32 +582,34 @@
          }
      }
  
-+//    private void renderGlint(int p_77018_1_, int p_77018_2_, int p_77018_3_, int p_77018_4_, int p_77018_5_)
-+//    {
-+//        for (int var6 = 0; var6 < 2; ++var6)
-+//        {
-+//        	
-+//            float var7 = 0.00390625F;
-+//            float var8 = 0.00390625F;
-+//            float var9 = (float)(Minecraft.getSystemTime() % (long)(3000 + var6 * 1873)) / (3000.0F + (float)(var6 * 1873)) * 256.0F;
-+//            float var10 = 0.0F;
-+//            Tessellator var11 = Tessellator.instance;
-+//            float var12 = 4.0F;
-+//
-+//            if (var6 == 1)
-+//            {
-+//                var12 = -1.0F;
-+//            }
-+//
-+//            var11.startDrawingQuads();
-+//            var11.addVertexWithUV((double)(p_77018_2_ + 0), (double)(p_77018_3_ + p_77018_5_), (double)this.zLevel, (double)((var9 + (float)p_77018_5_ * var12) * var7), (double)((var10 + (float)p_77018_5_) * var8));
-+//            var11.addVertexWithUV((double)(p_77018_2_ + p_77018_4_), (double)(p_77018_3_ + p_77018_5_), (double)this.zLevel, (double)((var9 + (float)p_77018_4_ + (float)p_77018_5_ * var12) * var7), (double)((var10 + (float)p_77018_5_) * var8));
-+//            var11.addVertexWithUV((double)(p_77018_2_ + p_77018_4_), (double)(p_77018_3_ + 0), (double)this.zLevel, (double)((var9 + (float)p_77018_4_) * var7), (double)((var10 + 0.0F) * var8));
-+//            var11.addVertexWithUV((double)(p_77018_2_ + 0), (double)(p_77018_3_ + 0), (double)this.zLevel, (double)((var9 + 0.0F) * var7), (double)((var10 + 0.0F) * var8));
-+//            var11.draw();
-+//        }
-+//    }
++
 +
      private void renderGlint(int p_77018_1_, int p_77018_2_, int p_77018_3_, int p_77018_4_, int p_77018_5_)
      {
@@ -152,7 +128,15 @@
      /**
       * Renders the item's overlay information. Examples being stack count or damage on top of the item's image at the
       * specified position.
-@@ -700,4 +727,55 @@
+@@ -673,6 +676,7 @@
+ 
+     public void renderIcon(int p_94149_1_, int p_94149_2_, IIcon p_94149_3_, int p_94149_4_, int p_94149_5_)
+     {
++    	if(p_94149_3_ == null) return; //wtf
+         Tessellator var6 = Tessellator.instance;
+         var6.startDrawingQuads();
+         var6.addVertexWithUV((double)(p_94149_1_ + 0), (double)(p_94149_2_ + p_94149_5_), (double)this.zLevel, (double)p_94149_3_.getMinU(), (double)p_94149_3_.getMaxV());
+@@ -700,4 +704,55 @@
      {
          this.doRender((EntityItem)p_76986_1_, p_76986_2_, p_76986_4_, p_76986_6_, p_76986_8_, p_76986_9_);
      }

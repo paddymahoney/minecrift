@@ -60,6 +60,7 @@ public interface IBodyAimController extends IBasePlugin {
 	public Vec3 getAimSource( int controller );
 	public Vec3 getSmoothedAimVelocity(int controller);
 	public void triggerHapticPulse(int controller, int duration);
+	public Vec3 getAimVector( int controller );
 	public Matrix4f getAimRotation( int controller );
 	public boolean applyGUIModelView( EyeType eyeType );
 	// VIVE END - interact source

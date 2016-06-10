@@ -36,7 +36,10 @@ public class GuiVRControlsList extends GuiListExtended
 		}
     	
     	out.add("keyboard");
-   	 	
+    	out.add("keyboard-shift");
+    	out.add("keyboard-ctrl");
+    	out.add("keyboard-alt");
+    	
     	return out;  	
     }
     
@@ -46,7 +49,7 @@ public class GuiVRControlsList extends GuiListExtended
     		key.FunctionExt = 0;
     		return;
     	}
-    	if(key.FunctionDesc.equals("keyboard")){
+    	if(key.FunctionDesc.startsWith("keyboard")){
     		key.key = null;
     		return;
     	}

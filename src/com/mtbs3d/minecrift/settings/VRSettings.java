@@ -753,9 +753,8 @@ public class VRSettings
 		        vb = new VRControllerButtonMapping(ViveButtons.values()[i],"none");
 		        buttonMappings[i] = vb;
 			}
-			
 			//todo handle unknown binding.
-			if(vb.FunctionDesc.equals("keyboard")){
+			if(vb.FunctionDesc.startsWith("keyboard")){
 				vb.key = null;
 			} else {
 		        KeyBinding[] var3 = mc.gameSettings.keyBindings;

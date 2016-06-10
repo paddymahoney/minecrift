@@ -1,5 +1,7 @@
 package com.mtbs3d.minecrift.control;
 
+import java.awt.event.KeyEvent;
+
 import com.mtbs3d.minecrift.utils.KeyboardSimulator;
 
 import net.minecraft.client.settings.KeyBinding;
@@ -23,14 +25,45 @@ public class VRControllerButtonMapping {
 
 	public void press(){	
 		if(this.FunctionDesc.equals("none")) return;
-		if(key!=null) key.pressKey();
+		if(key!=null){
+			key.pressKey();
+			return;
+		}
 		if(FunctionExt!=0){
 			KeyboardSimulator.type(FunctionExt);
+			return;
 		}	
+		if(FunctionDesc.equals("keyboard-shift")){
+			KeyboardSimulator.robot.keyPress(KeyEvent.VK_SHIFT);
+			return;
+		}
+		if(FunctionDesc.equals("keyboard-ctrl")){
+			KeyboardSimulator.robot.keyPress(KeyEvent.VK_CONTROL);
+			return;
+		}
+		if(FunctionDesc.equals("keyboard-alt")){
+			KeyboardSimulator.robot.keyPress(KeyEvent.VK_ALT);
+			return;
+		}
 	}
 	
 	public void unpress(){
 		if(this.FunctionDesc.equals("none")) return;
-		if(key!=null) key.unpressKey();		
+		if(key!=null) {
+			key.unpressKey();
+			return ;
+		}
+		if(FunctionDesc.equals("keyboard-shift")){
+			KeyboardSimulator.robot.keyRelease(KeyEvent.VK_SHIFT);
+			return;
+		}
+		if(FunctionDesc.equals("keyboard-ctrl")){
+			KeyboardSimulator.robot.keyRelease(KeyEvent.VK_CONTROL);
+			return;
+		}
+		if(FunctionDesc.equals("keyboard-alt")){
+			KeyboardSimulator.robot.keyRelease(KeyEvent.VK_ALT);
+			return;
+		}
 	}
 }

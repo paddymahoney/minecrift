@@ -72,8 +72,10 @@ def create_install(mcp_dir):
             for cur_file in fnmatch.filter(filelist, '*.class'):
                 if cur_file in {'abt.class','abu.class','abv.class', 'abw.class', 'abx.class', 'aby.class', 'abz.class', 'aca.class', 'acb.class', 'acc.class', 'acd.class', 'ace.class', 'acf.class'}: #skip CreativeTabs
 					continue
-                if cur_file in {'bny.class', 'bnz.class', 'boa.class', 'bob.class', 'boc.class'}: #skip Renderitem
-					continue	
+                #if cur_file in {'bny.class', 'bnz.class', 'boa.class', 'bob.class', 'boc.class'}: #skip Renderitem
+					#continue	
+               # if cur_file in {'bee.class'}: #skip Renderitem
+					#continue	
                 in_file= os.path.join(abs_path,cur_file) 
                 arcname =  arc_path + cur_file
                 zipout.write(in_file, arcname)

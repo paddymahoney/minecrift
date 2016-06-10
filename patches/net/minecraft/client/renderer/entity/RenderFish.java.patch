@@ -9,7 +9,7 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.renderer.Tessellator;
  import net.minecraft.entity.Entity;
-@@ -64,6 +67,21 @@
+@@ -64,6 +67,17 @@
              double var27 = p_76986_1_.angler.prevPosZ + (p_76986_1_.angler.posZ - p_76986_1_.angler.prevPosZ) * (double)p_76986_9_ + var22.zCoord;
              double var29 = p_76986_1_.angler == Minecraft.getMinecraft().thePlayer ? 0.0D : (double)p_76986_1_.angler.getEyeHeight();
  
@@ -17,14 +17,10 @@
 +            if (p_76986_1_.angler == Minecraft.getMinecraft().thePlayer)
 +            {
 +                Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
-+                Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
-+                //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
-+                //aimRotation = Matrix4f.multiply(aimRotation, tilt);
-+                Vector3f forward = new Vector3f(0,0,1);
-+                Vector3f controllerDirection = aimRotation.transform(forward);
-+                var23 = aimSource.xCoord + controllerDirection.x * 0.28f;
-+                var25 = aimSource.yCoord - controllerDirection.y * 0.28f;
-+                var27 = aimSource.zCoord + controllerDirection.z * 0.28f;
++                Vec3 aimRotation = Minecraft.getMinecraft().lookaimController.getAimVector(0);
++                var23= aimSource.xCoord + aimRotation.xCoord * 0.28f;
++                var25= aimSource.yCoord - aimRotation.yCoord * 0.28f;
++                var27 = aimSource.zCoord + aimRotation.zCoord * 0.28f;
 +            }
 +            // VIVE END - use controller for fishing rod start point
 +

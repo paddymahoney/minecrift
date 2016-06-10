@@ -291,10 +291,14 @@ IEventNotifier, IEventListener, IBodyAimController
 		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matR, hmdPoseRightEye);
 
 
+
 		this.initialized = true;
 		return true;
 	}
 
+//	KeyBinding rotateLeft = new KeyBinding("Rotate Left", 203, "Movement");
+//	KeyBinding rotateRight = new KeyBinding("Rotate Right", 205, "Movement");
+	final int rotationIncrement = 0;
 
 	private void initializeJOpenVR() throws Exception { 
 		hmdErrorStore = IntBuffer.allocate(1);
@@ -1086,6 +1090,14 @@ IEventNotifier, IEventListener, IBodyAimController
 			}
 		}
 
+//		if(rotateLeft.isPressed()){
+//			this.bodyYaw-=rotationIncrement;
+//		}
+//		
+//		if(rotateRight.isPressed()){
+//			this.bodyYaw+=rotationIncrement;
+//		}
+		
 		// if you start teleporting, close any UI
 		if (gui && !sleeping && mc.gameSettings.keyBindForward.getIsKeyPressed() && !(mc.currentScreen instanceof GuiWinGame))
 		{
@@ -1621,9 +1633,20 @@ IEventNotifier, IEventListener, IBodyAimController
 	public float getAimPitch() {
 		return aimPitch;
 	}
+    Vector3f forward = new Vector3f(0,0,1);
+	@Override
+	public Vec3 getAimVector( int controller ) {
+		Matrix4f aimRotation = controller == 0 ? controllerRotation[0]: controllerRotation[1];
+        Vector3f controllerDirection = aimRotation.transform(forward);
+		Vec3 out = Vec3.createVectorHelper(controllerDirection.x, controllerDirection.y,controllerDirection.z);
+		out.rotateAroundY((float) Math.toRadians(-bodyYaw));
+		return out;
+
+	}
+	
 	@Override
 	public Matrix4f getAimRotation( int controller ) {
-		return controller == 0 ? controllerRotation[0] : controllerRotation[1];
+		return controller == 0 ? controllerRotation[0]: controllerRotation[1];
 	}
 	
 	@Override
@@ -1712,10 +1735,10 @@ IEventNotifier, IEventListener, IBodyAimController
 
 		// grab controller position in tracker space, scaled to minecraft units
 		Vector3f controllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
+		aimSource[0].rotateAroundY((float)Math.toRadians(-bodyYaw));
 		aimSource[0].xCoord = -controllerPos.x;
 		aimSource[0].yCoord = controllerPos.y;
 		aimSource[0].zCoord = -controllerPos.z;
-		aimSource[0].rotateAroundY((float)Math.toRadians(-bodyYaw));
 
 		// translate controller position by player position, giving a final world coordinate
 		Entity player = this.mc.renderViewEntity;
@@ -1762,10 +1785,10 @@ IEventNotifier, IEventListener, IBodyAimController
 
 		// update off hand aim
 		Vector3f leftControllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[1]);
+		aimSource[1].rotateAroundY((float)Math.toRadians(-bodyYaw));
 		aimSource[1].xCoord = -leftControllerPos.x;
 		aimSource[1].yCoord = leftControllerPos.y;
 		aimSource[1].zCoord = -leftControllerPos.z;
-		aimSource[1].rotateAroundY((float)Math.toRadians(-bodyYaw));
 
 		// translate controller position by player position, giving a final world coordinate
 		if (player!=null)

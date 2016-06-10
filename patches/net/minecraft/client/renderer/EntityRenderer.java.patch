@@ -1380,8 +1380,8 @@
 +		Vec3 basePosition = Vec3.createVectorHelper(0f, 0f, 0f);
 +		// VIVE END - remove height adjust
 +		Vec3 EyePos = mc.positionTracker.getEyePosition(eye);  // Get center eye, so it is the same point for each eye render...
-+		EyePos.rotateAroundX(-lookPitchOffset * this.mc.PIOVER180);
-+		EyePos.rotateAroundY(-lookYawOffset   * this.mc.PIOVER180);
++		//EyePos.rotateAroundX(-lookPitchOffset * this.mc.PIOVER180);
++		//EyePos.rotateAroundY(-lookYawOffset   * this.mc.PIOVER180);
 +		Vec3 eyePosOffset = EyePos.addVector(basePosition.xCoord, basePosition.yCoord, basePosition.zCoord);
 +		return Vec3.createVectorHelper(-eyePosOffset.xCoord, -eyePosOffset.yCoord, -eyePosOffset.zCoord); // TODO: Why negated?
 +
@@ -1394,8 +1394,8 @@
 +		Vec3 basePosition = Vec3.createVectorHelper(0f, 0f, 0f);
 +		// VIVE END - remove height adjust
 +		Vec3 centerEyePos = mc.positionTracker.getCenterEyePosition();  // Get center eye, so it is the same point for each eye render...
-+		centerEyePos.rotateAroundX(-lookPitchOffset * this.mc.PIOVER180);
-+		centerEyePos.rotateAroundY(-lookYawOffset   * this.mc.PIOVER180);
++		//centerEyePos.rotateAroundX(-lookPitchOffset * this.mc.PIOVER180);
++		//centerEyePos.rotateAroundY(-lookYawOffset   * this.mc.PIOVER180);
 +		Vec3 centerEyePosOffset = centerEyePos.addVector(basePosition.xCoord, basePosition.yCoord, basePosition.zCoord);
 +		return Vec3.createVectorHelper(-centerEyePosOffset.xCoord, -centerEyePosOffset.yCoord, -centerEyePosOffset.zCoord); // TODO: Why negated?
 +	}
@@ -1860,7 +1860,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1141,4041 @@
+@@ -825,1829 +1141,4024 @@
          {
              clipDistance = 256.0F;
          }
@@ -5670,18 +5670,8 @@
 +					(float) (-aimSource.zCoord + mc.thePlayer.posZ));
 +		}
 +		
-+//		if (aimSource!=null)
-+//		{ //move from head to hand origin.
-+//				GL11.glTranslatef(
-+//					(float) (-aimSource.xCoord + .xCoord),
-+//					(float) (aimSource.yCoord - interpolatedPlayerPos.yCoord),
-+//					(float) (-aimSource.zCoord + interpolatedPlayerPos.zCoord));
-+//		}
-+//		
-+	
 +    	Vec3 renderPos = this.mc.lookaimController.getAimSource(controller);
-+    	if (this.mc.lookaimController.getAimRotation(controller) !=null)
-+    	{
++ 
 +        	Vector3f fore = new Vector3f(0,0,1);       
 +        	Matrix4f rotation = this.mc.lookaimController.getAimRotation(controller);  
 +        	Vector3f aimv3 = rotation.transform(fore);
@@ -5689,13 +5679,6 @@
 +	    	if(!mc.bowTracker.isDrawing || controller == 0){ //doing this elsewhere
 +            	GL11.glMultMatrix(rotation.transposed().toFloatBuffer());        	
 +        	}     
-+	    
-+        	//proper set for tool-grip-in-hand
-+//        	GL11.glTranslatef(-.02f, .03f, .080f);
-+//  		GL11.glRotatef(-90.0F, 0.0F, 1.0F, 0.0F);
-+//   		GL11.glRotatef(45.0F, 0.0F, 0.0F, 1.0F);
-+    	}
-+
 +	}
 +	
 +	// VIVE START - render functions
