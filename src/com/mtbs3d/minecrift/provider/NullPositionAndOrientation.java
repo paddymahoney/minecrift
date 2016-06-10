@@ -80,4 +80,10 @@ public class NullPositionAndOrientation extends BasePlugin implements IOrientati
     public void setPrediction(float delta, boolean enable) {
 
     }
+
+	@Override
+	public boolean endFrame(EyeType eye) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

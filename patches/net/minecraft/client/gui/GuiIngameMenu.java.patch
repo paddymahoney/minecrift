@@ -1,22 +1,40 @@
 --- a/net/minecraft/client/gui/GuiIngameMenu.java
 +++ b/net/minecraft/client/gui/GuiIngameMenu.java
-@@ -29,6 +29,8 @@
+@@ -29,6 +29,7 @@
  
          this.buttonList.add(new GuiButton(4, this.width / 2 - 100, this.height / 4 + 24 + var1, I18n.format("menu.returnToGame", new Object[0])));
          this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height / 4 + 96 + var1, 98, 20, I18n.format("menu.options", new Object[0])));
 +        this.buttonList.add(new GuiButton(100, this.width / 2 -50, this.height / 4 + 72 + var1,98,20, "Chat"));
-+        this.buttonList.add(new GuiButton(110, this.width / 2 -50, this.height / 4 + 72 + var1,98,20, "Chat"));
          GuiButton var3;
          this.buttonList.add(var3 = new GuiButton(7, this.width / 2 + 2, this.height / 4 + 96 + var1, 98, 20, I18n.format("menu.shareToLan", new Object[0])));
          this.buttonList.add(new GuiButton(5, this.width / 2 - 100, this.height / 4 + 48 + var1, 98, 20, I18n.format("gui.achievements", new Object[0])));
-@@ -70,6 +72,10 @@
- 
+@@ -54,22 +55,25 @@
+             case 3:
+             default:
+                 break;
+-
+             case 4:
+                 this.mc.displayGuiScreen((GuiScreen)null);
+                 this.mc.setIngameFocus();
+                 break;
+-
+             case 5:
+                 this.mc.displayGuiScreen(new GuiAchievements(this, this.mc.thePlayer.getStatFileWriter()));
+                 break;
+-
+             case 6:
+                 this.mc.displayGuiScreen(new GuiStats(this, this.mc.thePlayer.getStatFileWriter()));
+                 break;
+-
              case 7:
                  this.mc.displayGuiScreen(new GuiShareToLan(this));
++                break;
 +            case 100:
 +            	this.mc.displayGuiScreen(new GuiChat());
++            	break;
 +            case 110:
 +            	this.mc.displayGuiScreen(new GuiChat());
++            	break;
          }
      }
  

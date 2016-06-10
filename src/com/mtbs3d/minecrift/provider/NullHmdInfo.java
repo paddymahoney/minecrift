@@ -2,6 +2,7 @@ package com.mtbs3d.minecrift.provider;
 
 import com.mtbs3d.minecrift.api.*;
 import de.fruitfly.ovr.UserProfileData;
+import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.HmdParameters;
 
 /**
@@ -33,4 +34,10 @@ public class NullHmdInfo extends BasePlugin implements IBasePlugin, IHMDInfo
     public String getVersion() {
         return null;
     }
+
+	@Override
+	public boolean endFrame(EyeType eye) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

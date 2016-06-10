@@ -8,6 +8,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.fruitfly.ovr.enums.EyeType;
+
 public interface IBasePlugin {
 
 	float PIOVER180 = (float)(Math.PI/180);
@@ -51,4 +53,6 @@ public interface IBasePlugin {
     public void beginFrame(long frameIndex);
 
     public boolean endFrame();
+    
+    public boolean endFrame(EyeType eye);
 }

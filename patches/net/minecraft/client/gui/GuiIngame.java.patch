@@ -148,18 +148,27 @@
              GL11.glDisable(GL11.GL_BLEND);
          }
  
-@@ -312,7 +360,9 @@
+@@ -312,11 +360,14 @@
          {
              this.mc.mcProfiler.startSection("debug");
              GL11.glPushMatrix();
 -            var8.drawStringWithShadow("Minecraft 1.7.10 (" + this.mc.debug + ")", 2, 2, 16777215);
+-            var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 12, 16777215);
+-            var8.drawStringWithShadow(this.mc.getEntityDebug(), 2, 22, 16777215);
+-            var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 32, 16777215);
+-            var8.drawStringWithShadow(this.mc.getWorldProviderName(), 2, 42, 16777215);
 +			/** MINECRIFT **/
-+            var8.drawStringWithShadow(this.mc.minecriftVerString + ", " + "J/OpenVR 1.0.0" + " (" + this.mc.debug + ")", 2, 2, 16777215);
-+			/** END MINECRIFT **/
-             var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 12, 16777215);
-             var8.drawStringWithShadow(this.mc.getEntityDebug(), 2, 22, 16777215);
-             var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 32, 16777215);
-@@ -326,6 +376,21 @@
++            var8.drawStringWithShadow(this.mc.minecriftVerString + ", " + "J/OpenVR 1.0.0" , 2, 2, 16777215);
++			/** END MINECRIFT **/ 
++			var8.drawStringWithShadow(this.mc.debug, 2, 12, 16777215);
++            var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 22, 16777215);
++            var8.drawStringWithShadow(this.mc.getEntityDebug(), 2, 32, 16777215);
++            var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 42, 16777215);
++            var8.drawStringWithShadow(this.mc.getWorldProviderName(), 2, 52, 16777215);
+             long var36 = Runtime.getRuntime().maxMemory();
+             long var41 = Runtime.getRuntime().totalMemory();
+             long var44 = Runtime.getRuntime().freeMemory();
+@@ -326,6 +377,21 @@
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 2, 14737632);
              var20 = "Allocated memory: " + var41 * 100L / var36 + "% (" + var41 / 1024L / 1024L + "MB)";
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 12, 14737632);
@@ -181,7 +190,7 @@
              var22 = MathHelper.floor_double(this.mc.thePlayer.posX);
              var23 = MathHelper.floor_double(this.mc.thePlayer.posY);
              int var24 = MathHelper.floor_double(this.mc.thePlayer.posZ);
-@@ -501,9 +566,10 @@
+@@ -501,9 +567,10 @@
      {
          this.streamIndicator.render((int)(p_152126_1_ - 10.0F), 10);
      }
@@ -195,7 +204,7 @@
          Scoreboard var5 = p_96136_1_.getScoreboard();
          Collection var6 = var5.getSortedScores(p_96136_1_);
  
-@@ -549,9 +615,10 @@
+@@ -549,9 +616,10 @@
              }
          }
      }
@@ -209,7 +218,7 @@
          boolean var3 = this.mc.thePlayer.hurtResistantTime / 3 % 2 == 1;
  
          if (this.mc.thePlayer.hurtResistantTime < 10)
-@@ -830,7 +897,9 @@
+@@ -830,7 +898,9 @@
      /**
       * Renders dragon's (boss) health on the HUD
       */
@@ -220,7 +229,7 @@
      {
          if (BossStatus.bossName != null && BossStatus.statusBarTime > 0)
          {
-@@ -856,9 +925,15 @@
+@@ -856,9 +926,15 @@
              this.mc.getTextureManager().bindTexture(icons);
          }
      }
@@ -238,7 +247,7 @@
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glDepthMask(false);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -881,8 +956,15 @@
+@@ -881,8 +957,15 @@
      /**
       * Renders the vignette. Args: vignetteBrightness, width, height
       */
@@ -255,7 +264,7 @@
          p_73829_1_ = 1.0F - p_73829_1_;
  
          if (p_73829_1_ < 0.0F)
-@@ -913,8 +995,9 @@
+@@ -913,8 +996,9 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
      }
@@ -267,7 +276,7 @@
      {
          if (p_130015_1_ < 1.0F)
          {
-@@ -950,7 +1033,9 @@
+@@ -950,7 +1034,9 @@
      /**
       * Renders the specified item of the inventory slot at the specified location. Args: slot, x, y, partialTick
       */
@@ -278,7 +287,7 @@
      {
          ItemStack var5 = this.mc.thePlayer.inventory.mainInventory[p_73832_1_];
  
-@@ -1039,4 +1124,23 @@
+@@ -1039,4 +1125,23 @@
      {
          return this.updateCounter;
      }

@@ -100,7 +100,7 @@ public class VRSettings
     public boolean useVignette = true;
     public boolean useLowPersistence = true;
     public boolean useDynamicPrediction = true;
-    public float   renderScaleFactor = 1.5f;
+    public float   renderScaleFactor = 1.0f;
     public int displayMirrorMode = MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW;
     public boolean usePositionalTimewarp = true;
     public boolean useDisplayOverdrive = true;

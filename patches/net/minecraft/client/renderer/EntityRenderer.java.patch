@@ -1860,7 +1860,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1141,4122 @@
+@@ -825,1829 +1141,4041 @@
          {
              clipDistance = 256.0F;
          }
@@ -2541,54 +2541,7 @@
 +
 +		hudShowingLastFrame = guiScreenShowingThisFrame;
 +		inGameMenuShowingLastFrame = inWorldGuiScreenShowingThisFrame;
-+		//        this.mc.mcProfiler.startSection("mouse");
-+		//
-+		////        if (this.mc.inGameHasFocus && var21)
-+		////        {
-+		////            this.mc.mouseHelper.mouseXYChange();
-+		////            float var132 = this.mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
-+		////            float var141 = var132 * var132 * var132 * 8.0F;
-+		////            float var15 = (float)this.mc.mouseHelper.deltaX * var141;
-+		////            float var16 = (float)this.mc.mouseHelper.deltaY * var141;
-+		////            byte var17 = 1;
-+		////
-+		////            if (this.mc.gameSettings.invertMouse)
-+		////            {
-+		////                var17 = -1;
-+		////            }
-+		////
-+		////            if (!this.mc.renderStereo)
-+		////            {
-+		////                if (this.mc.gameSettings.smoothCamera)
-+		////                {
-+		////                this.smoothCamYaw += var15;
-+		////                this.smoothCamPitch += var16;
-+		////                float var18 = par1 - this.smoothCamPartialTicks;
-+		////                this.smoothCamPartialTicks = par1;
-+		////                var15 = this.smoothCamFilterX * var18;
-+		////                var16 = this.smoothCamFilterY * var18;
-+		////                this.mc.thePlayer.setAngles(var15, var16 * (float)var17);
-+		////                }
-+		////                else
-+		////                {
-+		////                this.mc.thePlayer.setAngles(var15, var16 * (float)var17);
-+		////                }
-+		////            }
-+		////            else
-+		////            {
-+		////                currentEulerOrientDegrees = OculusRift.getEulerAnglesDeg(this.mc.currentEyePose.Orientation,
-+		////                        1.0f,
-+		////                        Axis.Axis_Y,
-+		////                        Axis.Axis_X,
-+		////                        Axis.Axis_Z,
-+		////                        HandedSystem.Handed_L,
-+		////                        RotateDirection.Rotate_CCW);
-+		////
-+		////                this.mc.thePlayer.rotationYaw = currentEulerOrientDegrees.yaw;
-+		////                this.mc.thePlayer.rotationPitch = currentEulerOrientDegrees.pitch;
-+		////            }
-+		////        }
-+		////    this.mc.mcProfiler.endSection();
++
 +		/** END MINECRIFT */
 +
 +
@@ -2596,14 +2549,7 @@
 +		{
 +			anaglyphEnable = this.mc.gameSettings.anaglyph;
 +			/** MINECRIFT */
-+			this.mc.enableGuiSizeHack();
-+			final ScaledResolution var133 = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
-+			int var142 = var133.getScaledWidth();
-+			int var151 = var133.getScaledHeight();
-+			final int var161 = Mouse.getX() * var142 / this.mc.displayFBWidth;
-+			final int var171 = var151 - Mouse.getY() * var151 / this.mc.displayFBHeight - 1;
-+			this.mc.disableGuiSizeHack();
-+			//int var181 = this.mc.gameSettings.limitFramerate;
++
 +			boolean var12;
 +			/** END MINECRIFT */
 +
@@ -2655,7 +2601,6 @@
 +							Reflector.ForgeGuiIngame_renderHelmet.setValue(false);
 +						}
 +						/** END MINECRIFT FORGE **/
-+						this.mc.enableGuiSizeHack();
 +					
 +						
 +						//why was this called twice per loop??
@@ -2668,7 +2613,6 @@
 +							Config.drawFps();
 +						}
 +
-+						this.mc.disableGuiSizeHack();
 +					}
 +				}
 +				/** END MINECRIFT */
@@ -2681,27 +2625,12 @@
 +				GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer to black
 +				GL11.glDisable(GL11.GL_BLEND);
 +
-+				if (this.mc.stereoProvider.isGuiOrtho())//never for vive
-+				{
-+					this.mc.enableGuiSizeHack();
-+					GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
-+					GL11.glMatrixMode(GL11.GL_PROJECTION);
-+					GL11.glLoadIdentity();
-+					GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+					GL11.glLoadIdentity();
-+					this.setupOverlayRendering();
-+					this.mc.disableGuiSizeHack();
-+				}
-+
 +				/** END MINECRIFT */
 +				this.renderEndNanoTime = System.nanoTime();
 +			}
 +
 +			/** MINECRIFT */ // Minecrift - render fade
 +			renderFadeEffects();
-+
-+			if (!this.mc.stereoProvider.isGuiOrtho())//always for vive
-+			{
 +
 +				GL11.glDisable(GL11.GL_BLEND);
 +				GL11.glDisable(GL11.GL_ALPHA_TEST);
@@ -2716,79 +2645,80 @@
 +					renderMainMenuHands();
 +				}
 +				// VIVE END - render controllers in main menu
-+			}
-+			else if (this.mc.integratedServerLaunchInProgress)
-+			{
-+				this.mc.enableGuiSizeHack();
-+				this.mc.loadingScreen.renderTarget = this.mc.getFramebuffer();
-+				this.mc.loadingScreen.render();
-+				this.mc.disableGuiSizeHack();
-+			}
-+			else if (this.mc.currentScreen != null)
-+			{
-+				this.mc.enableGuiSizeHack();
-+				GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
-+
-+				if (this.mc.showSplashScreen){
-+					//why is this here.
-+			//		this.mc.showSplash(this.mc.getFramebuffer());
-+				}		
-+				else
-+				{
-+					try
-+					{
-+						var12 = false;
-+
-+						if (Reflector.EventBus_post.exists())
-+						{
-+							var12 = Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Pre_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(var161), Integer.valueOf(var171), Float.valueOf(par1)});
-+						}
-+
-+						if (!var12)
-+						{
-+							this.mc.currentScreen.drawScreen(var161, var171, par1);
-+						}
-+
-+						
-+						Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Post_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(var161), Integer.valueOf(var171), Float.valueOf(par1)});
-+					}
-+					catch (Throwable var131)
-+					{
-+						CrashReport var10 = CrashReport.makeCrashReport(var131, "Rendering screen");
-+						CrashReportCategory var11 = var10.makeCategory("Screen render details");
-+						var11.addCrashSectionCallable("Screen name", new Callable()
-+						{
-+							private static final String __OBFID = "CL_00000948";
-+							public String call()
-+							{
-+								return EntityRenderer.this.mc.currentScreen.getClass().getCanonicalName();
-+							}
-+						});
-+						var11.addCrashSectionCallable("Mouse location", new Callable()
-+						{
-+							private static final String __OBFID = "CL_00000950";
-+							public String call()
-+							{
-+								return String.format("Scaled: (%d, %d). Absolute: (%d, %d)", new Object[] {Integer.valueOf(var161), Integer.valueOf(var171), Integer.valueOf(Mouse.getX()), Integer.valueOf(Mouse.getY())});
-+							}
-+						});
-+						var11.addCrashSectionCallable("Screen size", new Callable()
-+						{
-+							private static final String __OBFID = "CL_00000951";
-+							public String call()
-+							{
-+								return String.format("Scaled: (%d, %d). Absolute: (%d, %d). Scale factor of %d", new Object[] {Integer.valueOf(var133.getScaledWidth()), Integer.valueOf(var133.getScaledHeight()), Integer.valueOf(EntityRenderer.this.mc.displayWidth), Integer.valueOf(EntityRenderer.this.mc.displayHeight), Integer.valueOf(var133.getScaleFactor())});
-+							}
-+						});
-+						throw new ReportedException(var10);
-+					}
-+				}
-+			}
++	
++				
++			//begone, foul 2d rendering!
++//			else if (this.mc.integratedServerLaunchInProgress)
++//			{
++//				this.mc.enableGuiSizeHack();
++//				this.mc.loadingScreen.renderTarget = this.mc.getFramebuffer();
++//				this.mc.loadingScreen.render();
++//				this.mc.disableGuiSizeHack();
++//			}
++//			else if (this.mc.currentScreen != null)
++//			{
++//				this.mc.enableGuiSizeHack();
++//				GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
++//
++//				if (this.mc.showSplashScreen){
++//					//why is this here.
++//				this.mc.showSplash(this.mc.getFramebuffer());
++//				}		
++//				else
++//				{
++//					try
++//					{
++//						var12 = false;
++//
++//						if (Reflector.EventBus_post.exists())
++//						{
++//							var12 = Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Pre_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(mouseX), Integer.valueOf(mouseY), Float.valueOf(par1)});
++//						}
++//
++//						if (!var12)
++//						{
++//							this.mc.currentScreen.drawScreen(mouseX, mouseY, par1);
++//						}
++//
++//						
++//						Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Post_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(mouseX), Integer.valueOf(mouseY), Float.valueOf(par1)});
++//					}
++//					catch (Throwable var131)
++//					{
++//						CrashReport var10 = CrashReport.makeCrashReport(var131, "Rendering screen");
++//						CrashReportCategory var11 = var10.makeCategory("Screen render details");
++//						var11.addCrashSectionCallable("Screen name", new Callable()
++//						{
++//							private static final String __OBFID = "CL_00000948";
++//							public String call()
++//							{
++//								return EntityRenderer.this.mc.currentScreen.getClass().getCanonicalName();
++//							}
++//						});
++//						var11.addCrashSectionCallable("Mouse location", new Callable()
++//						{
++//							private static final String __OBFID = "CL_00000950";
++//							public String call()
++//							{
++//								return String.format("Scaled: (%d, %d). Absolute: (%d, %d)", new Object[] {Integer.valueOf(mouseX), Integer.valueOf(mouseY), Integer.valueOf(Mouse.getX()), Integer.valueOf(Mouse.getY())});
++//							}
++//						});
++//						var11.addCrashSectionCallable("Screen size", new Callable()
++//						{
++//							private static final String __OBFID = "CL_00000951";
++//							public String call()
++//							{
++//								return String.format("Scaled: (%d, %d). Absolute: (%d, %d). Scale factor of %d", new Object[] {Integer.valueOf(var133.getScaledWidth()), Integer.valueOf(var133.getScaledHeight()), Integer.valueOf(EntityRenderer.this.mc.displayWidth), Integer.valueOf(EntityRenderer.this.mc.displayHeight), Integer.valueOf(var133.getScaleFactor())});
++//							}
++//						});
++//						throw new ReportedException(var10);
++//					}
++//				}
++//			}
 +
 +			// Minecrift - handle notification text
 +			handleNotificationText();
 +
-+			this.mc.disableGuiSizeHack();
 +			/** END MINECRIFT */    
 +		}
 +
@@ -2827,7 +2757,6 @@
 +		/** MINECRIFT SHADERS MOD **/
 +		boolean shadersMod = Reflector.shadersModExists();
 +		if (shadersMod) {
-+			//Shaders.beginRender(this.mc, par1, par2);
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_beginRender, new Object[] {this.mc, par1, par2});
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
@@ -2854,8 +2783,6 @@
 +		EntityLivingBase player = this.mc.renderViewEntity;
 +		RenderGlobal rg = this.mc.renderGlobal;
 +		EffectRenderer var6 = this.mc.effectRenderer;
-+
-+
 +
 +		/** MINECRIFT */
 +		interpolatedPlayerPos.xCoord = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double)par1;
@@ -2897,14 +2824,14 @@
 +
 +			this.mc.mcProfiler.endStartSection("clear");
 +			/** MINECRIFT SHADERS MOD **/
++			
 +			if (shadersMod) {
 +				//Shaders.setViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_setViewport, new Object[] {0, 0, this.mc.displayWidth, this.mc.displayHeight});
++				Reflector.callVoid(Reflector.ShadersMod_Shaders_setViewport, new Object[] {0, 0, this.mc.displayFBWidth, this.mc.displayFBHeight});
 +			}
 +			else {
-+				GL11.glViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
++				GL11.glViewport(0, 0, this.mc.displayFBWidth, this.mc.displayFBHeight);
 +			}
-+
 +
 +			this.updateFogColor(par1);
 +			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
@@ -5060,11 +4987,11 @@
 +						}
 +						//END JRBUDDA'S AWESOME MAIN MENU ROOM       
 +			
-+			
++						this.mc.guiFramebuffer.bindFramebufferTexture();
++						
 +						GL11.glDisable(GL11.GL_CULL_FACE);
 +						GL11.glEnable(GL11.GL_TEXTURE_2D);
-+						this.mc.guiFramebuffer.bindFramebufferTexture();
-+			
++				
 +						// Prevent black border at top / bottom of GUI
 +						GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
 +						GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
@@ -5098,7 +5025,7 @@
 +						float scale = MCOpenVR.guiScale; // * this.mc.vroptions.hudscale
 +						
 +						GL11.glScalef(scale, scale, scale);
-+						
++											
 +						//Render framebuffer onto world projection
 +						drawSizedQuad(this.mc.guiFramebuffer.framebufferWidth, this.mc.guiFramebuffer.framebufferHeight, 1.5f); //this.mc.vrSettings.hudScale);
 +						
@@ -5113,7 +5040,6 @@
 +				GL11.glMatrixMode(GL11.GL_PROJECTION);
 +			GL11.glPopMatrix(); 
 +	
-+			this.mc.guiFramebuffer.unbindFramebufferTexture();
 +			//mc.checkGLError("GUI");
 +		}
 +	}
@@ -5199,29 +5125,26 @@
 +		this.guiScreenShowingThisFrame = false;
 +		this.inWorldGuiScreenShowingThisFrame = false;
 +
-+		this.mc.enableGuiSizeHack();
-+
 +		int mouseX = 0;
 +		int mouseY = 0;
 +		final ScaledResolution var15 = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
 +
++		
 +		if (this.mc.showSplashScreen)
 +		{
-+			this.mc.showSplash(this.mc.guiFramebuffer);
++    		this.mc.showSplash(this.mc.getFramebuffer());
 +		}
 +		else if (this.mc.isIntegratedServerLaunching())
 +		{
 +			this.guiScreenShowingThisFrame = true;
-+			this.mc.loadingScreen.renderTarget = this.mc.guiFramebuffer;
 +			this.mc.loadingScreen.render();
 +		}
-+		else if (!this.mc.stereoProvider.isGuiOrtho()) //always for vive
++		else if (!this.mc.stereoProvider.isGuiOrtho()) //always for vive, never for mono
 +		{
-+			this.mc.guiFramebuffer.bindFramebuffer(true);
-+
 +			if ((this.mc.theWorld != null && !this.mc.vrSettings.hideGui && this.mc.thePlayer.getSleepTimer() == 0) 
 +					|| this.mc.currentScreen != null)
 +			{
++								
 +				//Render all UI elements into guiFBO
 +				GL11.glClearColor(0, 0, 0, 0);
 +				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
@@ -5272,8 +5195,6 @@
 +					final int mouseX1 = mouseX = this.mc.currentScreen.getMouseX();
 +					final int mouseY1 = mouseY = this.mc.currentScreen.getMouseY();
 +
-+
-+
 +					try
 +					{
 +						boolean drawScreenHandled = false;
@@ -5284,7 +5205,6 @@
 +
 +						if (!drawScreenHandled)
 +						{
-+						 
 +							this.mc.currentScreen.drawScreen(mouseX, mouseY, renderPartialTicks);
 +
 +							if(mc.currentScreen !=null){ //wtf pixelmon?
@@ -5342,11 +5262,10 @@
 +			mc.displayDebugInfo(tickDuration);
 +		}
 +
-+		this.mc.guiFramebuffer.bindFramebufferTexture();
-+		this.mc.guiFramebuffer.genMipMaps();
-+		this.mc.guiFramebuffer.unbindFramebufferTexture();
++		this.mc.getFramebuffer().bindFramebufferTexture();
++		this.mc.getFramebuffer().genMipMaps();
++		this.mc.getFramebuffer().unbindFramebufferTexture();
 +
-+		this.mc.disableGuiSizeHack();
 +	}
 +
 +

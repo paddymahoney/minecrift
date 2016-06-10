@@ -39,7 +39,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
             VRSettings.VrOptions.MIRROR_DISPLAY,      // VIVE removed mirror display option
             VRSettings.VrOptions.FSAA,
-            VRSettings.VrOptions.FSAA_SCALEFACTOR,
             
             /*VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.TIMEWARP,
@@ -129,7 +128,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 }
                 else if (var8 == VRSettings.VrOptions.FSAA_SCALEFACTOR)
                 {
-                    minValue = 1.1f;
+                    minValue = 0.5f;
                     maxValue = 2.0f;
                     increment = 0.1f;
                 }
@@ -186,7 +185,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useVignette = true;
                 minecraft.vrSettings.useLowPersistence = true;
                 minecraft.vrSettings.useDynamicPrediction = true;
-                minecraft.vrSettings.renderScaleFactor = 1.5f;
+                minecraft.vrSettings.renderScaleFactor = 1.0f;
                 minecraft.vrSettings.displayMirrorMode = VRSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE;
                 minecraft.vrSettings.useDisplayOverdrive = true;
                 minecraft.vrSettings.useHighQualityDistortion = true;

@@ -6,7 +6,7 @@ import java.awt.AWTException;
 import java.awt.Robot;
 
 public class KeyboardSimulator {
-	private static Robot robot;
+	public static Robot robot;
 
 	static{
         try {
@@ -90,8 +90,8 @@ public class KeyboardSimulator {
 	        case '9': doType(VK_9); break;
 	        case '-': doType(VK_MINUS); break;
 	        case '=': doType(VK_EQUALS); break;
-	        case '~': doType(VK_SHIFT, VK_BACK_QUOTE); break;
-	        case '!': doType(VK_EXCLAMATION_MARK); break;
+	        case '~': doType(VK_SHIFT,VK_BACK_QUOTE); break;
+	        case '!': doType(VK_SHIFT,VK_1); break;
 	        case '@': doType(VK_SHIFT,VK_2); break;
 	        case '#': doType(VK_SHIFT,VK_3); break;
 	        case '$': doType(VK_SHIFT,VK_4); break;
@@ -102,7 +102,7 @@ public class KeyboardSimulator {
 	        case '(': doType(VK_SHIFT,VK_9); break;
 	        case ')': doType(VK_SHIFT,VK_0); break;
 	        case '_': doType(VK_SHIFT,VK_MINUS); break;
-	        case '+': doType(VK_PLUS); break;
+	        case '+': doType(VK_SHIFT,VK_EQUALS); break;
 	        case '\t': doType(VK_TAB); break;
 	        case '\n': doType(VK_ENTER); break;
 	        case '[': doType(VK_OPEN_BRACKET); break;
@@ -114,7 +114,7 @@ public class KeyboardSimulator {
 	        case ';': doType(VK_SEMICOLON); break;
 	        case ':': doType(VK_SHIFT,VK_SEMICOLON); break;
 	        case '\'': doType(VK_QUOTE); break;
-	        case '"': doType(VK_QUOTEDBL); break;
+	        case '"': doType(VK_SHIFT,VK_QUOTE); break;
 	        case ',': doType(VK_COMMA); break;
 	        case '<': doType(VK_SHIFT, VK_COMMA); break;
 	        case '.': doType(VK_PERIOD); break;

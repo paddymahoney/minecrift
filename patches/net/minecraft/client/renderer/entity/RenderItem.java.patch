@@ -77,16 +77,82 @@
                  GL11.glEnable(GL11.GL_LIGHTING);
                  GL11.glDepthFunc(GL11.GL_LEQUAL);
              }
-@@ -585,7 +586,7 @@
+@@ -581,32 +582,58 @@
+         }
+     }
+ 
++//    private void renderGlint(int p_77018_1_, int p_77018_2_, int p_77018_3_, int p_77018_4_, int p_77018_5_)
++//    {
++//        for (int var6 = 0; var6 < 2; ++var6)
++//        {
++//        	
++//            float var7 = 0.00390625F;
++//            float var8 = 0.00390625F;
++//            float var9 = (float)(Minecraft.getSystemTime() % (long)(3000 + var6 * 1873)) / (3000.0F + (float)(var6 * 1873)) * 256.0F;
++//            float var10 = 0.0F;
++//            Tessellator var11 = Tessellator.instance;
++//            float var12 = 4.0F;
++//
++//            if (var6 == 1)
++//            {
++//                var12 = -1.0F;
++//            }
++//
++//            var11.startDrawingQuads();
++//            var11.addVertexWithUV((double)(p_77018_2_ + 0), (double)(p_77018_3_ + p_77018_5_), (double)this.zLevel, (double)((var9 + (float)p_77018_5_ * var12) * var7), (double)((var10 + (float)p_77018_5_) * var8));
++//            var11.addVertexWithUV((double)(p_77018_2_ + p_77018_4_), (double)(p_77018_3_ + p_77018_5_), (double)this.zLevel, (double)((var9 + (float)p_77018_4_ + (float)p_77018_5_ * var12) * var7), (double)((var10 + (float)p_77018_5_) * var8));
++//            var11.addVertexWithUV((double)(p_77018_2_ + p_77018_4_), (double)(p_77018_3_ + 0), (double)this.zLevel, (double)((var9 + (float)p_77018_4_) * var7), (double)((var10 + 0.0F) * var8));
++//            var11.addVertexWithUV((double)(p_77018_2_ + 0), (double)(p_77018_3_ + 0), (double)this.zLevel, (double)((var9 + 0.0F) * var7), (double)((var10 + 0.0F) * var8));
++//            var11.draw();
++//        }
++//    }
++
+     private void renderGlint(int p_77018_1_, int p_77018_2_, int p_77018_3_, int p_77018_4_, int p_77018_5_)
      {
-         for (int var6 = 0; var6 < 2; ++var6)
+-        for (int var6 = 0; var6 < 2; ++var6)
++        for (int j1 = 0; j1 < 2; ++j1)
          {
--            OpenGlHelper.glBlendFunc(772, 1, 0, 0);
-+        	
-             float var7 = 0.00390625F;
-             float var8 = 0.00390625F;
-             float var9 = (float)(Minecraft.getSystemTime() % (long)(3000 + var6 * 1873)) / (3000.0F + (float)(var6 * 1873)) * 256.0F;
-@@ -700,4 +701,55 @@
+             OpenGlHelper.glBlendFunc(772, 1, 0, 0);
+-            float var7 = 0.00390625F;
+-            float var8 = 0.00390625F;
+-            float var9 = (float)(Minecraft.getSystemTime() % (long)(3000 + var6 * 1873)) / (3000.0F + (float)(var6 * 1873)) * 256.0F;
+-            float var10 = 0.0F;
+-            Tessellator var11 = Tessellator.instance;
+-            float var12 = 4.0F;
++            float f = 0.00390625F;
++            float f1 = 0.00390625F;
++            float f2 = (float)(Minecraft.getSystemTime() % (long)(3000 + j1 * 1873)) / (3000.0F + (float)(j1 * 1873)) * 256.0F;
++            float f3 = 0.0F;
++            Tessellator tessellator = Tessellator.instance;
++            float f4 = 4.0F;
+ 
+-            if (var6 == 1)
++            if (j1 == 1)
+             {
+-                var12 = -1.0F;
++                f4 = -1.0F;
+             }
+ 
+-            var11.startDrawingQuads();
+-            var11.addVertexWithUV((double)(p_77018_2_ + 0), (double)(p_77018_3_ + p_77018_5_), (double)this.zLevel, (double)((var9 + (float)p_77018_5_ * var12) * var7), (double)((var10 + (float)p_77018_5_) * var8));
+-            var11.addVertexWithUV((double)(p_77018_2_ + p_77018_4_), (double)(p_77018_3_ + p_77018_5_), (double)this.zLevel, (double)((var9 + (float)p_77018_4_ + (float)p_77018_5_ * var12) * var7), (double)((var10 + (float)p_77018_5_) * var8));
+-            var11.addVertexWithUV((double)(p_77018_2_ + p_77018_4_), (double)(p_77018_3_ + 0), (double)this.zLevel, (double)((var9 + (float)p_77018_4_) * var7), (double)((var10 + 0.0F) * var8));
+-            var11.addVertexWithUV((double)(p_77018_2_ + 0), (double)(p_77018_3_ + 0), (double)this.zLevel, (double)((var9 + 0.0F) * var7), (double)((var10 + 0.0F) * var8));
+-            var11.draw();
++            tessellator.startDrawingQuads();
++            tessellator.addVertexWithUV((double)(p_77018_2_ + 0), (double)(p_77018_3_ + p_77018_5_), (double)this.zLevel, (double)((f2 + (float)p_77018_5_ * f4) * f), (double)((f3 + (float)p_77018_5_) * f1));
++            tessellator.addVertexWithUV((double)(p_77018_2_ + p_77018_4_), (double)(p_77018_3_ + p_77018_5_), (double)this.zLevel, (double)((f2 + (float)p_77018_4_ + (float)p_77018_5_ * f4) * f), (double)((f3 + (float)p_77018_5_) * f1));
++            tessellator.addVertexWithUV((double)(p_77018_2_ + p_77018_4_), (double)(p_77018_3_ + 0), (double)this.zLevel, (double)((f2 + (float)p_77018_4_) * f), (double)((f3 + 0.0F) * f1));
++            tessellator.addVertexWithUV((double)(p_77018_2_ + 0), (double)(p_77018_3_ + 0), (double)this.zLevel, (double)((f2 + 0.0F) * f), (double)((f3 + 0.0F) * f1));
++            tessellator.draw();
+         }
+     }
+-
++    
+     /**
+      * Renders the item's overlay information. Examples being stack count or damage on top of the item's image at the
+      * specified position.
+@@ -700,4 +727,55 @@
      {
          this.doRender((EntityItem)p_76986_1_, p_76986_2_, p_76986_4_, p_76986_6_, p_76986_8_, p_76986_9_);
      }

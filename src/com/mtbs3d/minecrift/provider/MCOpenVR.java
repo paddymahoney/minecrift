@@ -42,6 +42,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.*;
 import jopenvr.*;
+import jopenvr.JOpenVRLibrary.EGraphicsAPIConvention;
 import jopenvr.JOpenVRLibrary.EVREventType;
 
 import java.awt.AWTException;
@@ -66,6 +67,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	private static VR_IVRSystem_FnTable vrsystem;
 	private static VR_IVRCompositor_FnTable vrCompositor;
 	private static VR_IVROverlay_FnTable vrOverlay;
+	private static VR_IVRSettings_FnTable vrSettings;
 
 	private static IntBuffer hmdErrorStore;
 	private static TrackedDevicePose_t.ByReference hmdTrackedDevicePoseReference;
@@ -97,10 +99,9 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	// TextureIDs of framebuffers for each eye
 	private int LeftEyeTextureId;
-	private int RightEyeTextureId;
 
-	private final VRTextureBounds_t texBoundsLeft = new VRTextureBounds_t(), texBoundsRight = new VRTextureBounds_t();
-	private final Texture_t texTypeLeft = new Texture_t(), texTypeRight = new Texture_t();
+	private final VRTextureBounds_t texBounds = new VRTextureBounds_t();
+	private final Texture_t texType = new Texture_t();
 
 	// aiming
 	private float bodyYaw = 0;
@@ -160,6 +161,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	private int[] touchpadSampleCount = new int[2];
 
 	private float[] inventory_swipe = new float[2];
+	
 
 	private int moveModeSwitchcount = 0;
 
@@ -261,7 +263,8 @@ IEventNotifier, IEventListener, IBodyAimController
 		try {
 			initializeJOpenVR();
 			initOpenVRCompositor(true) ;
-			initOpenVROverlay() ;			
+			initOpenVROverlay() ;	
+			initOpenVROSettings();
 		} catch (Exception e) {
 			initSuccess = false;
 			initStatus = e.getLocalizedMessage();
@@ -365,6 +368,18 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 
+	public void initOpenVROSettings() throws Exception
+	{
+		vrSettings =   new VR_IVRSettings_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRSettings_Version, hmdErrorStore));
+		if (vrSettings != null &&  hmdErrorStore.get(0) == 0) {     		
+			vrSettings.setAutoSynch(false);
+			vrSettings.read();					
+			System.out.println("OpenVR Settings initialized OK");
+		} else {
+			throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));		
+		}
+	}
+	
 	public void initOpenVRCompositor(boolean set) throws Exception
 	{
 		if( set && vrsystem != null ) {
@@ -373,7 +388,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				System.out.println("OpenVR Compositor initialized OK.");
 				vrCompositor.setAutoSynch(false);
 				vrCompositor.read();
-				vrCompositor.SetTrackingSpace.apply(JOpenVRLibrary.ETrackingUniverseOrigin.ETrackingUniverseOrigin_TrackingUniverseStanding);                
+				vrCompositor.SetTrackingSpace.apply(JOpenVRLibrary.ETrackingUniverseOrigin.ETrackingUniverseOrigin_TrackingUniverseStanding);
 			} else {
 				throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));			 
 			}
@@ -388,36 +403,24 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 		// left eye
-		texBoundsLeft.uMax = 1f;
-		texBoundsLeft.uMin = 0f;
-		texBoundsLeft.vMax = 1f;
-		texBoundsLeft.vMin = 0f;
-		texBoundsLeft.setAutoSynch(false);
-		texBoundsLeft.setAutoRead(false);
-		texBoundsLeft.setAutoWrite(false);
-		texBoundsLeft.write();
-		// right eye
-		texBoundsRight.uMax = 1f;
-		texBoundsRight.uMin = 0f;
-		texBoundsRight.vMax = 1f;
-		texBoundsRight.vMin = 0f;
-		texBoundsRight.setAutoSynch(false);
-		texBoundsRight.setAutoRead(false);
-		texBoundsRight.setAutoWrite(false);
-		texBoundsRight.write();
+		texBounds.uMax = 1f;
+		texBounds.uMin = 0f;
+		texBounds.vMax = 1f;
+		texBounds.vMin = 0f;
+		texBounds.setAutoSynch(false);
+		texBounds.setAutoRead(false);
+		texBounds.setAutoWrite(false);
+		texBounds.write();
+
+
 		// texture type
-		texTypeLeft.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
-		texTypeLeft.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
-		texTypeLeft.setAutoSynch(false);
-		texTypeLeft.setAutoRead(false);
-		texTypeLeft.setAutoWrite(false);
-		texTypeLeft.handle = -1;
-		texTypeRight.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
-		texTypeRight.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
-		texTypeRight.setAutoSynch(false);
-		texTypeRight.setAutoRead(false);
-		texTypeRight.setAutoWrite(false);
-		texTypeRight.handle = -1;
+		texType.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
+		texType.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
+		texType.setAutoSynch(false);
+		texType.setAutoRead(false);
+		texType.setAutoWrite(false);
+		texType.handle = -1;
+		texType.write();
 
 		System.out.println("OpenVR Compositor initialized OK.");
 
@@ -705,22 +708,23 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 	@Override
-	public boolean endFrame()
+	public boolean endFrame(EyeType eye)
 	{
 		mc.mcProfiler.startSection("submit");
 
-		//GL11.glFlush();
 		GL11.glFinish();
-		vrCompositor.Submit.apply(
+		int ret = 0;
+		if(eye == EyeType.ovrEye_Left){
+			ret = vrCompositor.Submit.apply(
 				JOpenVRLibrary.EVREye.EVREye_Eye_Left,
-				texTypeLeft, texBoundsLeft,
+				texType, texBounds,
 				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
-
-		vrCompositor.Submit.apply(
+		}else{
+			ret = vrCompositor.Submit.apply(
 				JOpenVRLibrary.EVREye.EVREye_Eye_Right,
-				texTypeRight, texBoundsRight,
+				texType, texBounds,
 				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
-
+		}
 
 		mc.mcProfiler.endSection();
 
@@ -1195,9 +1199,42 @@ IEventNotifier, IEventListener, IBodyAimController
 		if (mc.thePlayer == null)
 			return;
 
-		// left touchpad controls inventory
-		for (int c=1;c<2;c++)
 		{
+		// right touchpad controls mousewheel
+			int c =0;
+			boolean touchpadPressed = (controllerStateReference[c].ulButtonPressed & k_buttonTouchpad) > 0;
+
+			if (touchpadSampleCount[c] > 3 && !touchpadPressed)
+			{
+				int sample = touchpadSampleCount[c] - 5;
+				if (sample < 0)
+					sample = 0;
+				sample = sample % 5;
+				int nextSample = (sample + 1) % 5;
+
+				float deltaY = touchpadSamples[c][nextSample].y - touchpadSamples[c][sample].y;
+				inventory_swipe[c] += deltaY;
+
+				float swipeDistancePerInventorySlot = 0.4f;
+				if (inventory_swipe[c] > swipeDistancePerInventorySlot)
+				{
+					short duration = 225;
+					vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[c], 0, duration);
+					KeyboardSimulator.robot.mouseWheel(-25);
+					inventory_swipe[c] -= swipeDistancePerInventorySlot;
+				} else if (inventory_swipe[c] < -swipeDistancePerInventorySlot)
+				{
+					KeyboardSimulator.robot.mouseWheel(25);
+					short duration = 225;
+					vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[c], 0, duration);
+					inventory_swipe[c] += swipeDistancePerInventorySlot;
+				}
+			}
+		}
+		
+		{
+		// left touchpad controls inventory
+			int c =1;
 			boolean touchpadPressed = (controllerStateReference[c].ulButtonPressed & k_buttonTouchpad) > 0;
 
 			if (touchpadSampleCount[c] > 3 && !touchpadPressed)
@@ -1229,6 +1266,9 @@ IEventNotifier, IEventListener, IBodyAimController
 				}
 			}
 		}
+			
+			
+
 		//TODO: R touchpad up/down scrolls containers
 
 	}
@@ -1409,12 +1449,19 @@ IEventNotifier, IEventListener, IBodyAimController
 		RenderTextureInfo info = new RenderTextureInfo();
 		info.HmdNativeResolution.w = rtx.get(0);
 		info.HmdNativeResolution.h = rty.get(0);
-		info.LeftFovTextureResolution.w = rtx.get(0);
-		info.LeftFovTextureResolution.h = rty.get(0);
-		info.RightFovTextureResolution.w = rtx.get(0);
-		info.RightFovTextureResolution.h = rty.get(0);
+		info.LeftFovTextureResolution.w = (int) (rtx.get(0) * renderScaleFactor);
+		info.LeftFovTextureResolution.h = (int) (rty.get(0) * renderScaleFactor);
+		info.RightFovTextureResolution.w = (int) (rtx.get(0) * renderScaleFactor);
+		info.RightFovTextureResolution.h = (int) (rty.get(0) * renderScaleFactor);
+		
+		if ( info.LeftFovTextureResolution.w % 2 != 0) info.LeftFovTextureResolution.w++;
+		if ( info.LeftFovTextureResolution.h % 2 != 0) info.LeftFovTextureResolution.w++;
+		if ( info.RightFovTextureResolution.w % 2 != 0) info.LeftFovTextureResolution.w++;
+		if ( info.RightFovTextureResolution.h % 2 != 0) info.LeftFovTextureResolution.w++;
+		
 		info.CombinedTextureResolution.w = info.LeftFovTextureResolution.w + info.RightFovTextureResolution.w;
 		info.CombinedTextureResolution.h = info.LeftFovTextureResolution.h;
+				
 		return info;
 	}
 
@@ -1537,11 +1584,11 @@ IEventNotifier, IEventListener, IBodyAimController
 			HmdMatrix44_t mat = vrsystem.GetProjectionMatrix.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Left, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
 			hmdProjectionLeftEye = new Matrix4f();
 			return OpenVRUtil.convertSteamVRMatrix4ToMatrix4f(mat, hmdProjectionLeftEye);
+		}else{
+			HmdMatrix44_t mat = vrsystem.GetProjectionMatrix.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Right, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
+			hmdProjectionRightEye = new Matrix4f();
+			return OpenVRUtil.convertSteamVRMatrix4ToMatrix4f(mat, hmdProjectionRightEye);
 		}
-
-		HmdMatrix44_t mat = vrsystem.GetProjectionMatrix.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Right, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
-		hmdProjectionRightEye = new Matrix4f();
-		return OpenVRUtil.convertSteamVRMatrix4ToMatrix4f(mat, hmdProjectionRightEye);
 	}
 
 
@@ -1918,8 +1965,8 @@ IEventNotifier, IEventListener, IBodyAimController
 	public boolean providesRenderTextures() { return true; }
 
 	@Override
-	public RenderTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight)
-	{
+	public RenderTextureSet createRenderTexture(int lwidth, int lheight)
+	{	
 		// generate left eye texture
 		LeftEyeTextureId = GL11.glGenTextures();
 		int boundTextureId = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
@@ -1929,29 +1976,23 @@ IEventNotifier, IEventListener, IBodyAimController
 		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
 		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT, (java.nio.ByteBuffer) null);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, boundTextureId);
-		texTypeLeft.handle = LeftEyeTextureId;
-		texTypeLeft.write();
-
-		// generate right eye texture
-		RightEyeTextureId = GL11.glGenTextures();
-		int boundTextureId2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, RightEyeTextureId);
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
-		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, rwidth, rheight, 0, GL11.GL_RGBA, GL11.GL_INT, (java.nio.ByteBuffer) null);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, boundTextureId2);
-		texTypeRight.handle = RightEyeTextureId;
-		texTypeRight.write();
-
+	
+		texType.handle = LeftEyeTextureId;
+		texType.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
+		texType.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
+		texType.write();
+				
 		RenderTextureSet textureSet = new RenderTextureSet();
 		textureSet.leftEyeTextureIds.add(LeftEyeTextureId);
-		textureSet.rightEyeTextureIds.add(RightEyeTextureId);
 		return textureSet;
 	}
 
 	@Override
-	public void deleteRenderTextures() { }
+	public void deleteRenderTextures() {
+		
+	if (LeftEyeTextureId > 0)	GL11.glDeleteTextures(LeftEyeTextureId);
+	
+	}
 
 	@Override
 	public String getLastError() { return ""; }
@@ -1978,5 +2019,11 @@ IEventNotifier, IEventListener, IBodyAimController
 	@Override
 	public void configureRenderer(GLConfig cfg) {
 
+	}
+
+	@Override
+	public boolean endFrame() {
+		if(vrCompositor !=null) vrCompositor.PostPresentHandoff.apply();
+		return true;
 	}
 }

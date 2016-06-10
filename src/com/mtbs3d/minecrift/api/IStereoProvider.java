@@ -29,7 +29,7 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean providesRenderTextures();
 
-    public RenderTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight);
+    public RenderTextureSet createRenderTexture(int width, int height);
 
     public void deleteRenderTextures();
 

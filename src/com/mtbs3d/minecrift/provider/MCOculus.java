@@ -477,4 +477,16 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public RenderTextureSet createRenderTexture(int width, int height) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean endFrame(EyeType eye) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

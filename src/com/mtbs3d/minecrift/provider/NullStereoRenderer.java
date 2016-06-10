@@ -128,8 +128,6 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 
     @Override
     public boolean endFrame() {
-        GL11.glFlush();
-        Display.update();
         return true;
     }
 
@@ -155,8 +153,8 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     public boolean providesRenderTextures() { return false; }
 
     @Override
-    public RenderTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight)
-    {
+    public RenderTextureSet createRenderTexture(int lwidth, int lheight)
+    { 
         return null;
     }
 
@@ -177,4 +175,9 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
     // VIVE START
     public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen) { }
     // VIVE END
+
+	@Override
+	public boolean endFrame(EyeType eye) {
+		return this.endFrame();
+	}
 }
