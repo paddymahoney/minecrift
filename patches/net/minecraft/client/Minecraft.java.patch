@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,640 +167,936 @@
+@@ -150,2988 +167,4700 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -746,923 +746,13 @@
 -        GL11.glEnable(GL11.GL_TEXTURE_2D);
 -
 -        try
-+	private static final Logger logger = LogManager.getLogger();
-+	private static final ResourceLocation locationMojangPng = new ResourceLocation("textures/gui/title/mojang.png");
-+	public static final boolean isRunningOnMac = Util.getOSType() == Util.EnumOS.OSX;
-+
-+	/** A 10MiB preallocation to ensure the heap is reasonably sized. */
-+	public static byte[] memoryReserve = new byte[10485760];
-+	private static final List macDisplayModes = Lists.newArrayList(new DisplayMode[] {new DisplayMode(2560, 1600), new DisplayMode(2880, 1800)});
-+	private final File fileResourcepacks;
-+	private final Multimap twitchDetails;
-+	private ServerData currentServerData;
-+
-+	/** The RenderEngine instance used by Minecraft */
-+	/** MINECRIFT FORGE **/
-+	public TextureManager renderEngine;
-+	/** END MINECRIFT FORGE **/
-+	/**
-+	 * Set to 'this' in Minecraft constructor; used by some settings get methods
-+	 */
-+	private static Minecraft theMinecraft;
-+	public PlayerControllerMP playerController;
-+	private boolean fullscreen;
-+	private boolean hasCrashed;
-+
-+	/** Instance of CrashReport. */
-+	private CrashReport crashReporter;
-+	public int displayWidth;
-+	public int displayHeight;
-+	private Timer timer = new Timer(20.0F);
-+
-+	/** Instance of PlayerUsageSnooper. */
-+	private PlayerUsageSnooper usageSnooper = new PlayerUsageSnooper("client", this, MinecraftServer.getCurrentTimeMillis());
-+	public WorldClient theWorld;
-+	public RenderGlobal renderGlobal;
-+	public EntityClientPlayerMP thePlayer;
-+
-+	/**
-+	 * The Entity from which the renderer determines the render viewpoint. Currently is always the parent Minecraft
-+	 * class's 'thePlayer' instance. Modification of its location, rotation, or other settings at render time will
-+	 * modify the camera likewise, with the caveat of triggering chunk rebuilds as it moves, making it unsuitable for
-+	 * changing the viewpoint mid-render.
-+	 */
-+	public EntityLivingBase renderViewEntity;
-+	public Entity pointedEntity;
-+	public EffectRenderer effectRenderer;
-+	private final Session session;
-+	private boolean isGamePaused;
-+
-+	/** The font renderer used for displaying and measuring text */
-+	public FontRenderer fontRendererObj;
-+	public FontRenderer standardGalacticFontRenderer;
-+
-+	/** The GuiScreen that's being displayed at the moment. */
-+	public GuiScreen currentScreen;
-+	public LoadingScreenRenderer loadingScreen;
-+	public EntityRenderer entityRenderer;
-+
-+	/** Mouse left click counter */
-+	private int leftClickCounter;
-+	
-+	/** Drop click counter */
-+	private int dropCounter;
-+
-+	/** Display width */
-+	private int tempDisplayWidth;
-+
-+	/** Display height */
-+	private int tempDisplayHeight;
-+
-+	/** Instance of IntegratedServer. */
-+	private IntegratedServer theIntegratedServer;
-+
-+	/** Gui achievement */
-+	public GuiAchievement guiAchievement;
-+	public GuiIngame ingameGUI;
-+
-+	/** Skip render world */
-+	public boolean skipRenderWorld;
-+
-+	/** The ray trace hit that the mouse is over. */
-+	public MovingObjectPosition objectMouseOver;
-+
-+	// VIVE START - teleport movement
-+	public VRPlayer vrPlayer = new VRPlayer();
-+	// VIVE END - teleport movement
-+
-+	// VIVE START - vive ui debugging
-+	public float guiU;
-+	public float guiV;
-+	public float intersectDist;
-+	public float pointOnPlaneX;
-+	public float pointOnPlaneY;
-+	public float pointOnPlaneZ;
-+	public float guiTopLeftX;
-+	public float guiTopLeftY;
-+	public float guiTopLeftZ;
-+	public float guiTopRightX;
-+	public float guiTopRightY;
-+	public float guiTopRightZ;
-+	public float controllerPosX;
-+	public float controllerPosY;
-+	public float controllerPosZ;
-+	// VIVE END - vive ui debugging
-+
-+	/** The game settings that currently hold effect. */
-+	public GameSettings gameSettings;
-+
-+	/** Mouse helper instance. */
-+	public MouseHelper mouseHelper;
-+	public final File mcDataDir;
-+	private final File fileAssets;
-+	private final String launchedVersion;
-+	private final Proxy proxy;
-+	private ISaveFormat saveLoader;
-+
-+	public BowTracker bowTracker = new BowTracker(); 
-+	
-+	/**
-+	 * This is set to fpsCounter every debug screen update, and is shown on the debug screen. It's also sent as part of
-+	 * the usage snooping.
-+	 */
-+	private static int debugFPS;
-+
-+	/**
-+	 * When you place a block, it's set to 6, decremented once per tick, when it's 0, you can place another block.
-+	 */
-+	private int rightClickDelayTimer;
-+
-+	/**
-+	 * Checked in Minecraft's while(running) loop, if true it's set to false and the textures refreshed.
-+	 */
-+	private boolean refreshTexturePacksScheduled;
-+	private String serverName;
-+	private int serverPort;
-+
-+	/**
-+	 * Does the actual gameplay have focus. If so then mouse and keys will effect the player instead of menus.
-+	 */
-+	public boolean inGameHasFocus;
-+	long systemTime = getSystemTime();
-+
-+	/** Join player counter */
-+	private int joinPlayerCounter;
-+	private final boolean jvm64bit;
-+	private final boolean isDemo;
-+	private NetworkManager myNetworkManager;
-+	private boolean integratedServerIsRunning;
-+
-+	/** The profiler instance */
-+	public final Profiler mcProfiler = new Profiler();
-+
-+	/**
-+	 * Keeps track of how long the debug crash keycombo (F3+C) has been pressed for, in order to crash after 10 seconds.
-+	 */
-+	private long debugCrashKeyPressTime = -1L;
-+	private IReloadableResourceManager mcResourceManager;
-+	private final IMetadataSerializer metadataSerializer_ = new IMetadataSerializer();
-+	private List defaultResourcePacks = Lists.newArrayList();
-+	private DefaultResourcePack mcDefaultResourcePack;
-+	private ResourcePackRepository mcResourcePackRepository;
-+	private LanguageManager mcLanguageManager;
-+	private IStream stream;
-+	private Framebuffer framebufferMc;
-+	private TextureMap textureMapBlocks;
-+	/** MINECRIFT */
-+	public  SoundHandler mcSoundHandler; 
-+	/** END MINECRIFT */
-+	private MusicTicker mcMusicTicker;
-+	public ResourceLocation mojangLogo;
-+	private final MinecraftSessionService sessionService;
-+	private SkinManager skinManager;
-+	private final Queue scheduledTasks = Queues.newArrayDeque();
-+	private final Thread mcThread = Thread.currentThread();
-+
-+	/**
-+	 * Set to true to keep the game loop running. Set to false by shutdown() to allow the game loop to exit cleanly.
-+	 */
-+	volatile boolean running = true;
-+
-+	/** String that shows the debug information */
-+	public String debug = "";
-+
-+	/** Approximate time (in ms) of last update to debug string */
-+	long debugUpdateTime = getSystemTime();
-+
-+	/** holds the current fps */
-+	int fpsCounter;
-+	long prevFrameTime = -1L;
-+
-+	/** Profiler currently displayed in the debug screen pie chart */
-+	private String debugProfilerName = "root";
-+	private static final String __OBFID = "CL_00000631";
-+
-+	/** MINECRIFT */
-+	public boolean minecriftDebug = false;
-+	public final float PIOVER180 = (float)(Math.PI/180);
-+	public boolean reinitFramebuffers = true;
-+	private Framebuffer framebuffer;
-+	public Framebuffer guiFramebuffer = null;
-+	public int lastDisplayFBWidth = 0;
-+	public int lastDisplayFBHeight = 0;
-+	public int displayFBWidth;     /* Actual width of the display buffer */
-+	public int displayFBHeight;    /* Actual height of the display buffer */
-+	public int mirrorFBWidth;     /* Actual width of the display buffer */
-+	public int mirrorFBHeight;    /* Actual height of the display buffer */
-+	public int viewPortCount = 2;
-+	public ShaderGroup shaderGroup;
-+	public int lastShaderIndex = -1;
-+	public Object displayImpl = null;
-+	public Field fieldHwnd = null;
-+	public Field fieldDisplay = null;
-+	public Field fieldWindow = null;
-+	public Field fieldResized = null;
-+	public Method fieldResizedMethod = null;
-+	public IHMDInfo hmdInfo;
-+	public IStereoProvider stereoProvider;
-+	public IOrientationProvider headTracker;
-+	public IEyePositionProvider positionTracker;
-+	public IBodyAimController lookaimController;
-+	public VRSettings vrSettings;
-+	public MumbleLink mumbleLink;
-+	public long lastIntegratedServerLaunchCheck = 0;
-+	public boolean integratedServerLaunchInProgress = false;
-+	public boolean lastEnableVsync = true;
-+	public int lastMirrorSetting = -1;
-+	//public EyeRenderParams eyeRenderParams = null;
-+	public EyeType currentEye = EyeType.ovrEye_Left;
-+	public Posef currentEyePose = null;
-+	public Cursor nativeMouseCursor = null;
-+	public boolean lastShowMouseNative = true;
-+	public Cursor invisibleMouseCursor = null;
-+	public GLConfig glConfig = new GLConfig();
-+	public long lastWindow = 0;
-+	public int lastRenderDistanceChunks = -1;
-+	public boolean lastFogFancy = true;
-+	public boolean lastFogFast = false;
-+	public float lastWorldScale = 0f;
-+	public int lastDimensionId = -1;
-+	public SoundManager sndManager = null;
-+	public Sizei EyeTextureSize;
-+	public boolean hydraLibsAvailable = false;
-+	public double PredictedDisplayTimeSeconds = 0d;
-+	public int _Lanczos_shaderProgramId = -1;
-+	public int _LanczosShader_texelWidthOffsetUniform = -1;
-+	public int _LanczosShader_texelHeightOffsetUniform = -1;
-+	public int _LanczosShader_inputImageTextureUniform = -1;
-+	public FBOParams mirrorFB = null;
-+	public FBOParams fsaaFirstPassResultFBO;
-+	public FBOParams fsaaSecondPassResultFBO;
-+	public Sizei distortionRenderTargetSize;
-+	public final float OCULUS_RED_COLOUR_COMPONENT = (1f/255f)*61f;
-+	public final float OCULUS_GREEN_COLOUR_COMPONENT = (1f/255f)*61f;
-+	public final float OCULUS_BLUE_COLOUR_COMPONENT = (1f/255f)*61f;
-+	public float RED_COLOUR_COMPONENT = OCULUS_RED_COLOUR_COMPONENT;
-+	public float GREEN_COLOUR_COMPONENT = OCULUS_GREEN_COLOUR_COMPONENT;
-+	public float BLUE_COLOUR_COMPONENT = OCULUS_BLUE_COLOUR_COMPONENT;
-+	public boolean firstInit = true;
-+	public boolean showSplashScreen = true;
-+	public long splashTimer1 = 0;
-+	public long splashTimer2 = 0;
-+	public Framebuffer splash;
-+	public float splashFadeAlpha = 0;
-+	public int lastGuiScale = -1;
-+	public Deque<Long> runTickTimeNanos = new ArrayDeque<Long>();
-+	public long medianRunTickTimeNanos = 0;
-+	public long frameIndex = 0;
-+	public TextureSelector renderTexProvider;
-+	public TextureSelector mirrorTexProvider;
-+	public int currentDisplayWidth = 0;
-+	public int currentDisplayHeight = 0;
-+	public boolean visible = true;
-+	public ErrorHelper errorHelper;
-+	public static final String RENDER_SETUP_FAILURE_MESSAGE = "Failed to initialise stereo rendering plugin: ";
-+	public static final int ERROR_DISPLAY_TIME_SECS = 10;
-+
-+	/*
-+	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
-+	 * Modify minecriftversion.py in root minecrift dir.
-+	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda18";
-+	/* end version */
-+	/** END MINECRIFT */
-+
-+	public Minecraft(Session sessionIn, int displayWidth, int displayHeight, boolean fullscreen, boolean isDemo, File dataDir, File assetsDir, File resourcePackDir, Proxy proxy, String version, Multimap twitchDetails, String assetsJsonVersion)
-+	{
-+		theMinecraft = this;
-+		/** MINECRIFT **/
-+		displayWidth = 1280;
-+		displayHeight = 720;
-+		/** END MINECRIFT **/
-+		this.mcDataDir = dataDir;
-+		this.fileAssets = assetsDir;
-+		this.fileResourcepacks = resourcePackDir;
-+		this.launchedVersion = version;
-+		this.twitchDetails = twitchDetails;
-+		this.mcDefaultResourcePack = new DefaultResourcePack((new ResourceIndex(assetsDir, assetsJsonVersion)).func_152782_a());
-+		this.addDefaultResourcePack();
-+		this.proxy = proxy == null ? Proxy.NO_PROXY : proxy;
-+		this.sessionService = (new YggdrasilAuthenticationService(proxy, UUID.randomUUID().toString())).createMinecraftSessionService();
-+		this.startTimerHackThread();
-+		this.session = sessionIn;
-+		logger.info("Setting user: " + sessionIn.getUsername());
-+		logger.info("(Session ID is " + sessionIn.getSessionID() + ")");
-+		this.isDemo = isDemo;
-+		this.displayWidth = displayWidth;
-+		this.displayHeight = displayHeight;
-+		this.tempDisplayWidth = displayWidth;
-+		this.tempDisplayHeight = displayHeight;
-+		this.fullscreen = fullscreen;
-+		this.jvm64bit = isJvm64bit();
-+		ImageIO.setUseCache(false);
-+		Bootstrap.register();
-+		/** MINECRIFT **/
-+		VRSettings.initSettings(this, this.mcDataDir);
-+		renderTexProvider = new TextureSelector();
-+		mirrorTexProvider    = new TextureSelector();
-+		if (!vrSettings.badStereoProviderPluginID.isEmpty()) {
-+			vrSettings.stereoProviderPluginID = vrSettings.badStereoProviderPluginID;
-+			vrSettings.badStereoProviderPluginID = "";
-+			vrSettings.saveOptions();
-+		}
-+		/** END MINECRIFT **/
-+	}
-+
-+	private static boolean isJvm64bit()
-+	{
-+		String[] var0 = new String[] {"sun.arch.data.model", "com.ibm.vm.bitmode", "os.arch"};
-+		String[] var1 = var0;
-+		int var2 = var0.length;
-+
-+		for (int var3 = 0; var3 < var2; ++var3)
-+		{
-+			String var4 = var1[var3];
-+			String var5 = System.getProperty(var4);
-+
-+			if (var5 != null && var5.contains("64"))
-+			{
-+				return true;
-+			}
-+		}
-+
-+		return false;
-+	}
-+
-+	//Returns the 'active' framebuffer if we're doing 2d or 3d
-+	public Framebuffer getFramebuffer()
-+	{
-+		return this.framebufferMc;
-+	}
-+
-+	private void startTimerHackThread()
-+	{
-+		Thread var1 = new Thread("Timer hack thread")
-+		{
-+			private static final String __OBFID = "CL_00000632";
-+			public void run()
-+			{
-+				while (Minecraft.this.running)
-+				{
-+					try
-+					{
-+						Thread.sleep(2147483647L);
-+					}
-+					catch (InterruptedException var2)
-+					{
-+						;
-+					}
-+				}
-+			}
-+		};
-+		var1.setDaemon(true);
-+		var1.start();
-+	}
-+
-+	public void crashed(CrashReport crash)
-+	{
-+		this.hasCrashed = true;
-+		this.crashReporter = crash;
-+	}
-+
-+	/**
-+	 * Wrapper around displayCrashReportInternal
-+	 */
-+	public void displayCrashReport(CrashReport crashReportIn)
-+	{
-+		File var2 = new File(getMinecraft().mcDataDir, "crash-reports");
-+		File var3 = new File(var2, "crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + "-client.txt");
-+		System.out.println(crashReportIn.getCompleteReport());
-+		/** MINECRIFT FORGE **/
-+		int retVal;
-+		if (crashReportIn.getFile() != null)
-+		{
-+			System.out.println("#@!@# Game crashed! Crash report saved to: #@!@# " + crashReportIn.getFile());
-+			retVal = -1;
-+		}
-+		else if (crashReportIn.saveToFile(var3))
-+		{
-+			System.out.println("#@!@# Game crashed! Crash report saved to: #@!@# " + var3.getAbsolutePath());
-+			retVal = -1;
-+		}
-+		else
-+		{
-+			System.out.println("#@?@# Game crashed! Crash report could not be saved. #@?@#");
-+			retVal = -2;
-+		}
-+
-+		Object fmlCommonHandler = null;
-+		if( Reflector.FMLCommonHandler_instance.exists()) {
-+			fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
-+		}
-+		if( fmlCommonHandler != null ) {
-+			Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_handleExit, new Object[]{retVal});
-+		}
-+		else {
-+			System.exit(retVal);
-+		}
-+		/** END MINECRIFT FORGE **/
-+	}
-+
-+	public void setServer(String serverHostname, int serverPort)
-+	{
-+		this.serverName = serverHostname;
-+		this.serverPort = serverPort;
-+	}
-+
-+	/**
-+	 * Starts the game: initializes the canvas, the title, the settings, etcetera.
-+	 */
-+	/** MINECRIFT **/
-+	private void startGame() throws Exception
-+	{
-+		//this.gameSettings = new GameSettings(this, this.mcDataDir);    // All settings initialised in Minecraft.minecriftFirstInit()
-+		/** END MINECRIFT **/
-+
-+		if (this.gameSettings.overrideHeight > 0 && this.gameSettings.overrideWidth > 0)
-+		{
-+			this.displayWidth = this.gameSettings.overrideWidth;
-+			this.displayHeight = this.gameSettings.overrideHeight;
-+		}
-+
-+		if (this.fullscreen)
-+		{
-+			Display.setFullscreen(true);
-+			this.displayWidth = Display.getDisplayMode().getWidth();
-+			this.displayHeight = Display.getDisplayMode().getHeight();
-+
-+			if (this.displayWidth <= 0)
-+			{
-+				this.displayWidth = 1;
-+			}
-+
-+			if (this.displayHeight <= 0)
-+			{
-+				this.displayHeight = 1;
-+			}
-+		}
-+		else
-+		{
-+			Display.setDisplayMode(new DisplayMode(this.displayWidth, this.displayHeight));
-+		}
-+
-+		Display.setResizable(true);
-+		/** MINECRIFT */
-+		Display.setTitle(this.minecriftVerString + " VR");
-+		/** END MINECRIFT */
-+		logger.info("LWJGL Version: " + Sys.getVersion());
-+		Util.EnumOS var1 = Util.getOSType();
-+
-+		if (var1 != Util.EnumOS.OSX)
-+		{
-+			try
-+			{
-+				InputStream var2 = this.mcDefaultResourcePack.func_152780_c(new ResourceLocation("icons/icon_16x16.png"));
-+				InputStream var3 = this.mcDefaultResourcePack.func_152780_c(new ResourceLocation("icons/icon_32x32.png"));
-+
-+				if (var2 != null && var3 != null)
-+				{
-+					Display.setIcon(new ByteBuffer[] {this.readImageToBuffer(var2), this.readImageToBuffer(var3)});
-+				}
-+			}
-+			catch (IOException var8)
-+			{
-+				logger.error("Couldn\'t set icon", var8);
-+			}
-+		}
-+
-+		try
-+		{
-+			/** MINECRIFT FORGE **/
-+			if (Reflector.ForgeHooksClient_createDisplay.exists()) {
-+				Reflector.callVoid(Reflector.ForgeHooksClient_createDisplay, new Object[0]);
-+			}
-+			else {
-+				Display.create((new PixelFormat()).withDepthBits(24));
-+			}
-+			/** END MINECRIFT FORGE **/
-+		}
-+		catch (LWJGLException var7)
-+		{
-+			logger.error("Couldn\'t set pixel format", var7);
-+
-+			try
-+			{
-+				Thread.sleep(1000L);
-+			}
-+			catch (InterruptedException var6)
-+			{
-+				;
-+			}
-+
-+			if (this.fullscreen)
-+			{
-+				this.updateDisplayMode();
-+			}
-+
-+			Display.create();
-+		}
-+
-+		OpenGlHelper.initializeTextures();
-+
-+		try
-+		{
-+			this.stream = new TwitchStream(this, (String)Iterables.getFirst(this.twitchDetails.get("twitch_access_token"), (Object)null));
-+		}
-+		catch (Throwable var5)
-+		{
-+			this.stream = new NullStream(var5);
-+			logger.error("Couldn\'t initialize twitch stream");
-+		}
-+
-+		this.framebufferMc = new Framebuffer(this.displayWidth, this.displayHeight, true);
-+		this.framebufferMc.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
-+		this.guiAchievement = new GuiAchievement(this);
-+		this.metadataSerializer_.registerMetadataSectionType(new TextureMetadataSectionSerializer(), TextureMetadataSection.class);
-+		this.metadataSerializer_.registerMetadataSectionType(new FontMetadataSectionSerializer(), FontMetadataSection.class);
-+		this.metadataSerializer_.registerMetadataSectionType(new AnimationMetadataSectionSerializer(), AnimationMetadataSection.class);
-+		this.metadataSerializer_.registerMetadataSectionType(new PackMetadataSectionSerializer(), PackMetadataSection.class);
-+		this.metadataSerializer_.registerMetadataSectionType(new LanguageMetadataSectionSerializer(), LanguageMetadataSection.class);
-+		this.saveLoader = new AnvilSaveConverter(new File(this.mcDataDir, "saves"));
-+		this.mcResourcePackRepository = new ResourcePackRepository(this.fileResourcepacks, new File(this.mcDataDir, "server-resource-packs"), this.mcDefaultResourcePack, this.metadataSerializer_, this.gameSettings);
-+		this.mcResourceManager = new SimpleReloadableResourceManager(this.metadataSerializer_);
-+		this.mcLanguageManager = new LanguageManager(this.metadataSerializer_, this.gameSettings.language);
-+		this.mcResourceManager.registerReloadListener(this.mcLanguageManager);
-+		/** MINECRIFT FORGE **/
-+		Object fmlClientHandler = null;
-+		if( Reflector.FMLClientHandler_instance.exists())
-+		{
-+			fmlClientHandler = Reflector.call( Reflector.FMLClientHandler_instance, new Object[0]);
-+		}
-+		if( fmlClientHandler != null)
-+		{
-+			Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_beginMinecraftLoading, new Object[] {this, this.defaultResourcePacks, this.mcResourceManager});
-+		}
-+		else {
-+			this.refreshResources();
-+		}
-+		/** END MINECRIFT FORGE **/
-+		this.renderEngine = new TextureManager(this.mcResourceManager);
-+		this.mcResourceManager.registerReloadListener(this.renderEngine);
-+		this.skinManager = new SkinManager(this.renderEngine, new File(this.fileAssets, "skins"), this.sessionService);
-+		/** MINECRIFT FORGE **/
-+		boolean Forge = Reflector.forgeExists();
-+		if (Forge) {
-+			//cpw.mods.fml.client.SplashProgress.drawVanillaScreen();
-+			Reflector.callVoid(Reflector.FMLClientSplashProgress_drawVanillaScreen, new Object[] {});
-+		}
-+		else {
-+			this.loadScreen();
-+		}
-+		/** END MINECRIFT FORGE **/
-+		this.mcSoundHandler = new SoundHandler(this.mcResourceManager, this.gameSettings);
-+		this.mcResourceManager.registerReloadListener(this.mcSoundHandler);
-+		this.mcMusicTicker = new MusicTicker(this);
-+		this.fontRendererObj = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii.png"), this.renderEngine, false);
-+
-+		if (this.gameSettings.language != null)
-+		{
-+			this.fontRendererObj.setUnicodeFlag(this.isUnicode());
-+			this.fontRendererObj.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
-+		}
-+		/** MINECRIFT */
-+		initMinecrift();
-+		/** END MINECRIFT */
-+		this.standardGalacticFontRenderer = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii_sga.png"), this.renderEngine, false);
-+		this.mcResourceManager.registerReloadListener(this.fontRendererObj);
-+		this.mcResourceManager.registerReloadListener(this.standardGalacticFontRenderer);
-+		this.mcResourceManager.registerReloadListener(new GrassColorReloadListener());
-+		this.mcResourceManager.registerReloadListener(new FoliageColorReloadListener());
-+		/** MINECRIFT FORGE **/
-+		Object bar = null;
-+		if (Forge) {
-+			//cpw.mods.fml.common.ProgressManager.ProgressBar bar = cpw.mods.fml.common.ProgressManager.push("Rendering Setup", 9);
-+			//bar.step("Loading Render Manager");
-+			bar = Reflector.call(Reflector.FMLCommonProgressManager_push, new Object[] {"Rendering Setup", 9, true});
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Render Manager"});
-+		}
-+		/** END MINECRIFT FORGE **/
-+		RenderManager.instance.itemRenderer = new ItemRenderer(this);
-+		/** MINECRIFT FORGE **/
-+		if (Forge) {
-+			//bar.step("Loading Entity Renderer");
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Entity Renderer"});
-+		}
-+		/** END MINECRIFT FORGE **/		
-+		this.entityRenderer = new EntityRenderer(this, this.mcResourceManager);
-+		this.mcResourceManager.registerReloadListener(this.entityRenderer);
-+		AchievementList.openInventory.setStatStringFormatter(new IStatStringFormat()
-+		{
-+			private static final String __OBFID = "CL_00000639";
-+			public String formatString(String p_74535_1_)
-+			{
-+				try
-+				{
-+					return String.format(p_74535_1_, new Object[] {GameSettings.getKeyDisplayString(Minecraft.this.gameSettings.keyBindInventory.getKeyCode())});
-+				}
-+				catch (Exception var3)
-+				{
-+					return "Error: " + var3.getLocalizedMessage();
-+				}
-+			}
-+		});
-+		/** MINECRIFT FORGE **/
-+		if (Forge) {
-+			//bar.step("Loading GL properties");
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading GL properties"});
-+		}
-+		/** END MINECRIFT FORGE **/
-+		this.mouseHelper = new MouseHelper();
-+		this.checkGLError("Pre startup");
-+		GL11.glEnable(GL11.GL_TEXTURE_2D);
-+		GL11.glShadeModel(GL11.GL_SMOOTH);
-+		GL11.glClearDepth(1.0D);
-+		GL11.glEnable(GL11.GL_DEPTH_TEST);
-+		GL11.glDepthFunc(GL11.GL_LEQUAL);
-+		GL11.glEnable(GL11.GL_ALPHA_TEST);
-+		GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-+		GL11.glCullFace(GL11.GL_BACK);
-+		GL11.glMatrixMode(GL11.GL_PROJECTION);
-+		GL11.glLoadIdentity();
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		this.checkGLError("Startup");
-+		/** MINECRIFT SHADERS MOD **/
-+		if (Reflector.shadersModExists()) {
-+			//Shaders.startup(this);
-+			Reflector.callVoid(Reflector.ShadersMod_Shaders_startup, new Object[] {this});
-+		}
-+		/** END MINECRIFT SHADERS MOD **/
-+		/** MINECRIFT FORGE **/
-+		if (Forge) {
-+			//bar.step("Render Global instance");
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Render Global instance"});
-+		}
-+
-+		this.renderGlobal = new RenderGlobal(this);
-+		if (Forge) {
-+			//bar.step("Building Blocks Texture");
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Building Blocks Texture"});
-+		}
-+		if (Forge) {
-+			this.textureMapBlocks = new TextureMap(0, "textures/blocks", true);
-+		}
-+		else {
-+			this.textureMapBlocks = new TextureMap(0, "textures/blocks");
-+		}
-+		if (Forge) {
-+			//bar.step("Anisotropy and Mipmaps");
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Anisotropy and Mipmaps"});
-+		}
-+		this.textureMapBlocks.setAnisotropicFiltering(this.gameSettings.anisotropicFiltering);
-+		this.textureMapBlocks.setMipmapLevels(this.gameSettings.mipmapLevels);
-+		if (Forge) {
-+			//bar.step("Loading Blocks Texture");
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Entity Renderer"});
-+		}
-+		this.renderEngine.loadTextureMap(TextureMap.locationBlocksTexture, this.textureMapBlocks);
-+		if (Forge) {
-+			//bar.step("Loading Items Texture");
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Items Texture"});
-+		}
-+		if (Forge) {
-+			this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items", true));
-+		}
-+		else {
-+			this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items"));
-+		}
-+		if (Forge) {
-+			//bar.step("Viewport");
-+			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Viewport"});
-+		}
-+		GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
-+		this.effectRenderer = new EffectRenderer(this.theWorld, this.renderEngine);
-+		if( fmlClientHandler != null )
-+		{
-+			//cpw.mods.fml.common.ProgressManager.pop(bar);
-+			Reflector.callVoid(Reflector.FMLCommonProgressManager_pop, new Object[]{bar});
-+			Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_finishMinecraftLoading, new Object[0]);
-+		}
-+		this.checkGLError("Post startup");
-+		if( Reflector.ForgeGuiIngame.exists())
-+		{
-+			try {
-+				this.ingameGUI = (GuiIngame)Reflector.ForgeGuiIngame_Constructor.getTargetConstructor().newInstance(new Object[]{this});
-+			} catch (IllegalArgumentException e) {
-+				e.printStackTrace();
-+			} catch (InstantiationException e) {
-+				e.printStackTrace();
-+			} catch (IllegalAccessException e) {
-+				e.printStackTrace();
-+			} catch (InvocationTargetException e) {
-+				e.printStackTrace();
-+			}
-+		}
-+		else
-+		{
-+			this.ingameGUI = new GuiIngame(this);
-+		}
-+
-+		if (this.serverName != null)
-+		{
-+			if( fmlClientHandler != null ) {
-+				Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_connectToServerAtStartup, new Object[]{this.serverName, this.serverPort});
-+			}
-+			else {
-+				this.displayGuiScreen(new GuiConnecting(new GuiMainMenu(), this, this.serverName, this.serverPort));
-+			}
-+		}
-+		else if (this.vrSettings.firstLoad) {
-+			// VIVE START - don't force options screen, player should try defaults first
-+			//this.displayGuiScreen(new GuiMinecriftSettings(new GuiMainMenu(), vrSettings, gameSettings) );
-+			this.displayGuiScreen(new GuiMainMenu());
-+			// VIVE END - don't force options screen, player should try defaults first
-+			this.vrSettings.firstLoad = false;
-+		}
-+		else
-+		{
-+			this.displayGuiScreen(new GuiMainMenu());
-+		}
-+
-+		if (Forge) {
-+			//cpw.mods.fml.client.SplashProgress.clearVanillaResources(renderEngine, mojangLogo);
-+			Reflector.callVoid(Reflector.FMLClientSplashProgress_clearVanillaResources, new Object[] {renderEngine, mojangLogo});
-+		}
-+		else {
-+			this.renderEngine.deleteTexture(this.mojangLogo);
-+		}
-+		this.mojangLogo = null;
-+		this.loadingScreen = new LoadingScreenRenderer(this);
-+
-+		if( fmlClientHandler != null ) {
-+			Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_onInitializationComplete, new Object[0]);
-+		}
-+		/** END MINECRIFT FORGE **/
-+		if (this.gameSettings.fullScreen && !this.fullscreen)
-+		{
-+			this.toggleFullscreen();
-+		}
-+
-+		try
-+		{
-+			/** MINECRIFT */
-+			//vsync needs to be false that showing the mirror image doesn't slow down the rendering for the rift.
-+			//Oculus SDK handles vsync internally
-+			Display.setVSyncEnabled(false);
-+			/** END MINECRIFT */
-+		}
-+		catch (OpenGLException var4)
-+		{
-+			this.gameSettings.enableVsync = false;
-+			this.gameSettings.saveOptions();
-+		}
-+	}
-+
-+	public boolean isUnicode()
-+	{
-+		return this.mcLanguageManager.isCurrentLocaleUnicode() || this.gameSettings.forceUnicodeFont;
-+	}
-+
-+	public void refreshResources()
-+	{
-+		ArrayList var1 = Lists.newArrayList(this.defaultResourcePacks);
-+		Iterator var2 = this.mcResourcePackRepository.getRepositoryEntries().iterator();
-+
-+		while (var2.hasNext())
-+		{
-+			ResourcePackRepository.Entry var3 = (ResourcePackRepository.Entry)var2.next();
-+			var1.add(var3.getResourcePack());
-+		}
-+
-+		if (this.mcResourcePackRepository.getResourcePackInstance() != null)
-+		{
-+			var1.add(this.mcResourcePackRepository.getResourcePackInstance());
-+		}
-+
-+		try
-+		{
-+			this.mcResourceManager.reloadResources(var1);
-+		}
-+		catch (RuntimeException var4)
-+		{
-+			logger.info("Caught error stitching, removing all assigned resourcepacks", var4);
-+			var1.clear();
-+			var1.addAll(this.defaultResourcePacks);
-+			this.mcResourcePackRepository.func_148527_a(Collections.emptyList());
-+			this.mcResourceManager.reloadResources(var1);
-+			this.gameSettings.resourcePacks.clear();
-+			this.gameSettings.saveOptions();
-+		}
-+
-+		this.mcLanguageManager.parseLanguageMetadata(var1);
-+
-+		if (this.renderGlobal != null)
-+		{
-+			this.renderGlobal.loadRenderers();
-+		}
-+	}
-+
-+	private void addDefaultResourcePack()
-+	{
-+		this.defaultResourcePacks.add(this.mcDefaultResourcePack);
-+	}
-+
-+	private ByteBuffer readImageToBuffer(InputStream imageStream) throws IOException
-+	{
-+		BufferedImage var2 = ImageIO.read(imageStream);
-+		int[] var3 = var2.getRGB(0, 0, var2.getWidth(), var2.getHeight(), (int[])null, 0, var2.getWidth());
-+		ByteBuffer var4 = ByteBuffer.allocate(4 * var3.length);
-+		int[] var5 = var3;
-+		int var6 = var3.length;
-+
-+		for (int var7 = 0; var7 < var6; ++var7)
-+		{
-+			int var8 = var5[var7];
-+			var4.putInt(var8 << 8 | var8 >> 24 & 255);
-+		}
-+
-+		var4.flip();
-+		return var4;
-+	}
-+
-+	private void updateDisplayMode() throws LWJGLException
-+	{
-+		HashSet var1 = new HashSet();
-+		Collections.addAll(var1, Display.getAvailableDisplayModes());
-+		DisplayMode var2 = Display.getDesktopDisplayMode();
-+
-+		if (!var1.contains(var2) && Util.getOSType() == Util.EnumOS.OSX)
-+		{
-+			Iterator var3 = macDisplayModes.iterator();
-+
-+			while (var3.hasNext())
-+			{
-+				DisplayMode var4 = (DisplayMode)var3.next();
-+				boolean var5 = true;
-+				Iterator var6 = var1.iterator();
-+				DisplayMode var7;
-+
-+				while (var6.hasNext())
-+				{
-+					var7 = (DisplayMode)var6.next();
-+
-+					if (var7.getBitsPerPixel() == 32 && var7.getWidth() == var4.getWidth() && var7.getHeight() == var4.getHeight())
-+					{
-+						var5 = false;
-+						break;
-+					}
-+				}
-+
-+				if (!var5)
-+				{
-+					var6 = var1.iterator();
-+
-+					while (var6.hasNext())
-+					{
-+						var7 = (DisplayMode)var6.next();
-+
-+						if (var7.getBitsPerPixel() == 32 && var7.getWidth() == var4.getWidth() / 2 && var7.getHeight() == var4.getHeight() / 2)
-+						{
-+							var2 = var7;
-+							break;
-+						}
-+					}
-+				}
-+			}
-+		}
-+
-+		Display.setDisplayMode(var2);
-+		this.displayWidth = var2.getWidth();
-+		this.displayHeight = var2.getHeight();
-+	}
-+
-+	/**
-+	 * Displays a new screen.
-+	 */
-+	private void loadScreen() throws LWJGLException
-+	{
-+		ScaledResolution var1 = new ScaledResolution(this, this.displayWidth, this.displayHeight);
-+		int var2 = var1.getScaleFactor();
-+		Framebuffer var3 = new Framebuffer(var1.getScaledWidth() * var2, var1.getScaledHeight() * var2, true);
-+		var3.bindFramebuffer(false);
-+		GL11.glMatrixMode(GL11.GL_PROJECTION);
-+		GL11.glLoadIdentity();
-+		GL11.glOrtho(0.0D, (double)var1.getScaledWidth(), (double)var1.getScaledHeight(), 0.0D, 1000.0D, 3000.0D);
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glLoadIdentity();
-+		GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
-+		GL11.glDisable(GL11.GL_LIGHTING);
-+		GL11.glDisable(GL11.GL_FOG);
-+		GL11.glDisable(GL11.GL_DEPTH_TEST);
-+		GL11.glEnable(GL11.GL_TEXTURE_2D);
-+		/** MINECRIFT */       // TODO REFACTOR! The loadScreen mods here and below are just to clear the screen to white... !
-+		/*      try
-         {
-             this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
-             this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,2347 +1104,3774 @@
-         catch (IOException var7)
-         {
-             logger.error("Unable to load logo: " + locationMojangPng, var7);
+-        {
+-            this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
+-            this.renderEngine.bindTexture(this.mojangLogo);
+-        }
+-        catch (IOException var7)
+-        {
+-            logger.error("Unable to load logo: " + locationMojangPng, var7);
 -        }
 -
 -        Tessellator var4 = Tessellator.instance;
@@ -2536,8 +1626,914 @@
 -    private void updateFramebufferSize()
 -    {
 -        this.framebufferMc.createBindFramebuffer(this.displayWidth, this.displayHeight);
-+        }*/
++	private static final Logger logger = LogManager.getLogger();
++	private static final ResourceLocation locationMojangPng = new ResourceLocation("textures/gui/title/mojang.png");
++	public static final boolean isRunningOnMac = Util.getOSType() == Util.EnumOS.OSX;
++
++	/** A 10MiB preallocation to ensure the heap is reasonably sized. */
++	public static byte[] memoryReserve = new byte[10485760];
++	private static final List macDisplayModes = Lists.newArrayList(new DisplayMode[] {new DisplayMode(2560, 1600), new DisplayMode(2880, 1800)});
++	private final File fileResourcepacks;
++	private final Multimap twitchDetails;
++	private ServerData currentServerData;
++
++	/** The RenderEngine instance used by Minecraft */
++	/** MINECRIFT FORGE **/
++	public TextureManager renderEngine;
++	/** END MINECRIFT FORGE **/
++	/**
++	 * Set to 'this' in Minecraft constructor; used by some settings get methods
++	 */
++	private static Minecraft theMinecraft;
++	public PlayerControllerMP playerController;
++	private boolean fullscreen;
++	private boolean hasCrashed;
++
++	/** Instance of CrashReport. */
++	private CrashReport crashReporter;
++	public int displayWidth;
++	public int displayHeight;
++	private Timer timer = new Timer(20.0F);
++
++	/** Instance of PlayerUsageSnooper. */
++	private PlayerUsageSnooper usageSnooper = new PlayerUsageSnooper("client", this, MinecraftServer.getCurrentTimeMillis());
++	public WorldClient theWorld;
++	public RenderGlobal renderGlobal;
++	public EntityClientPlayerMP thePlayer;
++
++	/**
++	 * The Entity from which the renderer determines the render viewpoint. Currently is always the parent Minecraft
++	 * class's 'thePlayer' instance. Modification of its location, rotation, or other settings at render time will
++	 * modify the camera likewise, with the caveat of triggering chunk rebuilds as it moves, making it unsuitable for
++	 * changing the viewpoint mid-render.
++	 */
++	public EntityLivingBase renderViewEntity;
++	public Entity pointedEntity;
++	public EffectRenderer effectRenderer;
++	private final Session session;
++	private boolean isGamePaused;
++
++	/** The font renderer used for displaying and measuring text */
++	public FontRenderer fontRendererObj;
++	public FontRenderer standardGalacticFontRenderer;
++
++	/** The GuiScreen that's being displayed at the moment. */
++	public GuiScreen currentScreen;
++	public LoadingScreenRenderer loadingScreen;
++	public EntityRenderer entityRenderer;
++
++	/** Mouse left click counter */
++	private int leftClickCounter;
++	
++	/** Drop click counter */
++	private int dropCounter;
++
++	/** Display width */
++	private int tempDisplayWidth;
++
++	/** Display height */
++	private int tempDisplayHeight;
++
++	/** Instance of IntegratedServer. */
++	private IntegratedServer theIntegratedServer;
++
++	/** Gui achievement */
++	public GuiAchievement guiAchievement;
++	public GuiIngame ingameGUI;
++
++	/** Skip render world */
++	public boolean skipRenderWorld;
++
++	/** The ray trace hit that the mouse is over. */
++	public MovingObjectPosition objectMouseOver;
++
++	// VIVE START - teleport movement
++	public VRPlayer vrPlayer = new VRPlayer();
++	// VIVE END - teleport movement
++
++	// VIVE START - vive ui debugging
++	public float guiU;
++	public float guiV;
++	public float intersectDist;
++	public float pointOnPlaneX;
++	public float pointOnPlaneY;
++	public float pointOnPlaneZ;
++	public float guiTopLeftX;
++	public float guiTopLeftY;
++	public float guiTopLeftZ;
++	public float guiTopRightX;
++	public float guiTopRightY;
++	public float guiTopRightZ;
++	public float controllerPosX;
++	public float controllerPosY;
++	public float controllerPosZ;
++	// VIVE END - vive ui debugging
++
++	/** The game settings that currently hold effect. */
++	public GameSettings gameSettings;
++
++	/** Mouse helper instance. */
++	public MouseHelper mouseHelper;
++	public final File mcDataDir;
++	private final File fileAssets;
++	private final String launchedVersion;
++	private final Proxy proxy;
++	private ISaveFormat saveLoader;
++
++	public BowTracker bowTracker = new BowTracker(); 
++	
++	/**
++	 * This is set to fpsCounter every debug screen update, and is shown on the debug screen. It's also sent as part of
++	 * the usage snooping.
++	 */
++	private static int debugFPS;
++
++	/**
++	 * When you place a block, it's set to 6, decremented once per tick, when it's 0, you can place another block.
++	 */
++	private int rightClickDelayTimer;
++
++	/**
++	 * Checked in Minecraft's while(running) loop, if true it's set to false and the textures refreshed.
++	 */
++	private boolean refreshTexturePacksScheduled;
++	private String serverName;
++	private int serverPort;
++
++	/**
++	 * Does the actual gameplay have focus. If so then mouse and keys will effect the player instead of menus.
++	 */
++	public boolean inGameHasFocus;
++	long systemTime = getSystemTime();
++
++	/** Join player counter */
++	private int joinPlayerCounter;
++	private final boolean jvm64bit;
++	private final boolean isDemo;
++	private NetworkManager myNetworkManager;
++	private boolean integratedServerIsRunning;
++
++	/** The profiler instance */
++	public final Profiler mcProfiler = new Profiler();
++
++	/**
++	 * Keeps track of how long the debug crash keycombo (F3+C) has been pressed for, in order to crash after 10 seconds.
++	 */
++	private long debugCrashKeyPressTime = -1L;
++	private IReloadableResourceManager mcResourceManager;
++	private final IMetadataSerializer metadataSerializer_ = new IMetadataSerializer();
++	private List defaultResourcePacks = Lists.newArrayList();
++	private DefaultResourcePack mcDefaultResourcePack;
++	private ResourcePackRepository mcResourcePackRepository;
++	private LanguageManager mcLanguageManager;
++	private IStream stream;
++	private Framebuffer framebufferMc;
++	private TextureMap textureMapBlocks;
++	/** MINECRIFT */
++	public  SoundHandler mcSoundHandler; 
++	/** END MINECRIFT */
++	private MusicTicker mcMusicTicker;
++	public ResourceLocation mojangLogo;
++	private final MinecraftSessionService sessionService;
++	private SkinManager skinManager;
++	private final Queue scheduledTasks = Queues.newArrayDeque();
++	private final Thread mcThread = Thread.currentThread();
++
++	/**
++	 * Set to true to keep the game loop running. Set to false by shutdown() to allow the game loop to exit cleanly.
++	 */
++	volatile boolean running = true;
++
++	/** String that shows the debug information */
++	public String debug = "";
++
++	/** Approximate time (in ms) of last update to debug string */
++	long debugUpdateTime = getSystemTime();
++
++	/** holds the current fps */
++	int fpsCounter;
++	long prevFrameTime = -1L;
++
++	/** Profiler currently displayed in the debug screen pie chart */
++	private String debugProfilerName = "root";
++	private static final String __OBFID = "CL_00000631";
++
++	/** MINECRIFT */
++	public boolean minecriftDebug = false;
++	public final float PIOVER180 = (float)(Math.PI/180);
++	public boolean reinitFramebuffers = true;
++	private Framebuffer framebuffer;
++	public Framebuffer guiFramebuffer = null;
++	public int lastDisplayFBWidth = 0;
++	public int lastDisplayFBHeight = 0;
++	public int displayFBWidth;     /* Actual width of the display buffer */
++	public int displayFBHeight;    /* Actual height of the display buffer */
++	public int mirrorFBWidth;     /* Actual width of the display buffer */
++	public int mirrorFBHeight;    /* Actual height of the display buffer */
++	public int viewPortCount = 2;
++	public ShaderGroup shaderGroup;
++	public int lastShaderIndex = -1;
++	public Object displayImpl = null;
++	public Field fieldHwnd = null;
++	public Field fieldDisplay = null;
++	public Field fieldWindow = null;
++	public Field fieldResized = null;
++	public Method fieldResizedMethod = null;
++	public IHMDInfo hmdInfo;
++	public IStereoProvider stereoProvider;
++	public IOrientationProvider headTracker;
++	public IEyePositionProvider positionTracker;
++	public IBodyAimController lookaimController;
++	public VRSettings vrSettings;
++	public MumbleLink mumbleLink;
++	public long lastIntegratedServerLaunchCheck = 0;
++	public boolean integratedServerLaunchInProgress = false;
++	public boolean lastEnableVsync = true;
++	public int lastMirrorSetting = -1;
++	//public EyeRenderParams eyeRenderParams = null;
++	public EyeType currentEye = EyeType.ovrEye_Left;
++	public Posef currentEyePose = null;
++	public Cursor nativeMouseCursor = null;
++	public boolean lastShowMouseNative = true;
++	public Cursor invisibleMouseCursor = null;
++	public GLConfig glConfig = new GLConfig();
++	public long lastWindow = 0;
++	public int lastRenderDistanceChunks = -1;
++	public boolean lastFogFancy = true;
++	public boolean lastFogFast = false;
++	public float lastWorldScale = 0f;
++	public int lastDimensionId = -1;
++	public SoundManager sndManager = null;
++	public Sizei EyeTextureSize;
++	public boolean hydraLibsAvailable = false;
++	public double PredictedDisplayTimeSeconds = 0d;
++	public int _Lanczos_shaderProgramId = -1;
++	public int _LanczosShader_texelWidthOffsetUniform = -1;
++	public int _LanczosShader_texelHeightOffsetUniform = -1;
++	public int _LanczosShader_inputImageTextureUniform = -1;
++	public FBOParams mirrorFB = null;
++	public FBOParams fsaaFirstPassResultFBO;
++	public FBOParams fsaaSecondPassResultFBO;
++	public Sizei distortionRenderTargetSize;
++	public final float OCULUS_RED_COLOUR_COMPONENT = (1f/255f)*61f;
++	public final float OCULUS_GREEN_COLOUR_COMPONENT = (1f/255f)*61f;
++	public final float OCULUS_BLUE_COLOUR_COMPONENT = (1f/255f)*61f;
++	public float RED_COLOUR_COMPONENT = OCULUS_RED_COLOUR_COMPONENT;
++	public float GREEN_COLOUR_COMPONENT = OCULUS_GREEN_COLOUR_COMPONENT;
++	public float BLUE_COLOUR_COMPONENT = OCULUS_BLUE_COLOUR_COMPONENT;
++	public boolean firstInit = true;
++	public boolean showSplashScreen = true;
++	public long splashTimer1 = 0;
++	public long splashTimer2 = 0;
++	public Framebuffer splash;
++	public float splashFadeAlpha = 0;
++	public int lastGuiScale = -1;
++	public Deque<Long> runTickTimeNanos = new ArrayDeque<Long>();
++	public long medianRunTickTimeNanos = 0;
++	public long frameIndex = 0;
++	public TextureSelector renderTexProvider;
++	public TextureSelector mirrorTexProvider;
++	public int currentDisplayWidth = 0;
++	public int currentDisplayHeight = 0;
++	public boolean visible = true;
++	public ErrorHelper errorHelper;
++	public static final String RENDER_SETUP_FAILURE_MESSAGE = "Failed to initialise stereo rendering plugin: ";
++	public static final int ERROR_DISPLAY_TIME_SECS = 10;
++
++	/*
++	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
++	 * Modify minecriftversion.py in root minecrift dir.
++	 */
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda19";
++	/* end version */
++	/** END MINECRIFT */
++
++	public Minecraft(Session sessionIn, int displayWidth, int displayHeight, boolean fullscreen, boolean isDemo, File dataDir, File assetsDir, File resourcePackDir, Proxy proxy, String version, Multimap twitchDetails, String assetsJsonVersion)
++	{
++		theMinecraft = this;
++		/** MINECRIFT **/
++		displayWidth = 1280;
++		displayHeight = 720;
++		/** END MINECRIFT **/
++		this.mcDataDir = dataDir;
++		this.fileAssets = assetsDir;
++		this.fileResourcepacks = resourcePackDir;
++		this.launchedVersion = version;
++		this.twitchDetails = twitchDetails;
++		this.mcDefaultResourcePack = new DefaultResourcePack((new ResourceIndex(assetsDir, assetsJsonVersion)).func_152782_a());
++		this.addDefaultResourcePack();
++		this.proxy = proxy == null ? Proxy.NO_PROXY : proxy;
++		this.sessionService = (new YggdrasilAuthenticationService(proxy, UUID.randomUUID().toString())).createMinecraftSessionService();
++		this.startTimerHackThread();
++		this.session = sessionIn;
++		logger.info("Setting user: " + sessionIn.getUsername());
++		logger.info("(Session ID is " + sessionIn.getSessionID() + ")");
++		this.isDemo = isDemo;
++		this.displayWidth = displayWidth;
++		this.displayHeight = displayHeight;
++		this.tempDisplayWidth = displayWidth;
++		this.tempDisplayHeight = displayHeight;
++		this.fullscreen = fullscreen;
++		this.jvm64bit = isJvm64bit();
++		ImageIO.setUseCache(false);
++		Bootstrap.register();
++		/** MINECRIFT **/
++		VRSettings.initSettings(this, this.mcDataDir);
++		renderTexProvider = new TextureSelector();
++		mirrorTexProvider    = new TextureSelector();
++		if (!vrSettings.badStereoProviderPluginID.isEmpty()) {
++			vrSettings.stereoProviderPluginID = vrSettings.badStereoProviderPluginID;
++			vrSettings.badStereoProviderPluginID = "";
++			vrSettings.saveOptions();
++		}
++		/** END MINECRIFT **/
++	}
++
++	private static boolean isJvm64bit()
++	{
++		String[] var0 = new String[] {"sun.arch.data.model", "com.ibm.vm.bitmode", "os.arch"};
++		String[] var1 = var0;
++		int var2 = var0.length;
++
++		for (int var3 = 0; var3 < var2; ++var3)
++		{
++			String var4 = var1[var3];
++			String var5 = System.getProperty(var4);
++
++			if (var5 != null && var5.contains("64"))
++			{
++				return true;
++			}
++		}
++
++		return false;
++	}
++
++	//Returns the 'active' framebuffer if we're doing 2d or 3d
++	public Framebuffer getFramebuffer()
++	{
++		return this.framebufferMc;
++	}
++
++	private void startTimerHackThread()
++	{
++		Thread var1 = new Thread("Timer hack thread")
++		{
++			private static final String __OBFID = "CL_00000632";
++			public void run()
++			{
++				while (Minecraft.this.running)
++				{
++					try
++					{
++						Thread.sleep(2147483647L);
++					}
++					catch (InterruptedException var2)
++					{
++						;
++					}
++				}
++			}
++		};
++		var1.setDaemon(true);
++		var1.start();
++	}
++
++	public void crashed(CrashReport crash)
++	{
++		this.hasCrashed = true;
++		this.crashReporter = crash;
++	}
++
++	/**
++	 * Wrapper around displayCrashReportInternal
++	 */
++	public void displayCrashReport(CrashReport crashReportIn)
++	{
++		File var2 = new File(getMinecraft().mcDataDir, "crash-reports");
++		File var3 = new File(var2, "crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + "-client.txt");
++		System.out.println(crashReportIn.getCompleteReport());
++		/** MINECRIFT FORGE **/
++		int retVal;
++		if (crashReportIn.getFile() != null)
++		{
++			System.out.println("#@!@# Game crashed! Crash report saved to: #@!@# " + crashReportIn.getFile());
++			retVal = -1;
++		}
++		else if (crashReportIn.saveToFile(var3))
++		{
++			System.out.println("#@!@# Game crashed! Crash report saved to: #@!@# " + var3.getAbsolutePath());
++			retVal = -1;
++		}
++		else
++		{
++			System.out.println("#@?@# Game crashed! Crash report could not be saved. #@?@#");
++			retVal = -2;
++		}
++
++		Object fmlCommonHandler = null;
++		if( Reflector.FMLCommonHandler_instance.exists()) {
++			fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
++		}
++		if( fmlCommonHandler != null ) {
++			Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_handleExit, new Object[]{retVal});
++		}
++		else {
++			System.exit(retVal);
++		}
++		/** END MINECRIFT FORGE **/
++	}
++
++	public void setServer(String serverHostname, int serverPort)
++	{
++		this.serverName = serverHostname;
++		this.serverPort = serverPort;
++	}
++
++	/**
++	 * Starts the game: initializes the canvas, the title, the settings, etcetera.
++	 */
++	/** MINECRIFT **/
++	private void startGame() throws Exception
++	{
++		//this.gameSettings = new GameSettings(this, this.mcDataDir);    // All settings initialised in Minecraft.minecriftFirstInit()
++		/** END MINECRIFT **/
++
++		if (this.gameSettings.overrideHeight > 0 && this.gameSettings.overrideWidth > 0)
++		{
++			this.displayWidth = this.gameSettings.overrideWidth;
++			this.displayHeight = this.gameSettings.overrideHeight;
++		}
++
++		if (this.fullscreen)
++		{
++			Display.setFullscreen(true);
++			this.displayWidth = Display.getDisplayMode().getWidth();
++			this.displayHeight = Display.getDisplayMode().getHeight();
++
++			if (this.displayWidth <= 0)
++			{
++				this.displayWidth = 1;
++			}
++
++			if (this.displayHeight <= 0)
++			{
++				this.displayHeight = 1;
++			}
++		}
++		else
++		{
++			Display.setDisplayMode(new DisplayMode(this.displayWidth, this.displayHeight));
++		}
++
++		Display.setResizable(true);
++		/** MINECRIFT */
++		Display.setTitle(this.minecriftVerString + " VR");
 +		/** END MINECRIFT */
++		logger.info("LWJGL Version: " + Sys.getVersion());
++		Util.EnumOS var1 = Util.getOSType();
++
++		if (var1 != Util.EnumOS.OSX)
++		{
++			try
++			{
++				InputStream var2 = this.mcDefaultResourcePack.func_152780_c(new ResourceLocation("icons/icon_16x16.png"));
++				InputStream var3 = this.mcDefaultResourcePack.func_152780_c(new ResourceLocation("icons/icon_32x32.png"));
++
++				if (var2 != null && var3 != null)
++				{
++					Display.setIcon(new ByteBuffer[] {this.readImageToBuffer(var2), this.readImageToBuffer(var3)});
++				}
++			}
++			catch (IOException var8)
++			{
++				logger.error("Couldn\'t set icon", var8);
++			}
++		}
++
++		try
++		{
++			/** MINECRIFT FORGE **/
++			if (Reflector.ForgeHooksClient_createDisplay.exists()) {
++				Reflector.callVoid(Reflector.ForgeHooksClient_createDisplay, new Object[0]);
++			}
++			else {
++				Display.create((new PixelFormat()).withDepthBits(24));
++			}
++			/** END MINECRIFT FORGE **/
++		}
++		catch (LWJGLException var7)
++		{
++			logger.error("Couldn\'t set pixel format", var7);
++
++			try
++			{
++				Thread.sleep(1000L);
++			}
++			catch (InterruptedException var6)
++			{
++				;
++			}
++
++			if (this.fullscreen)
++			{
++				this.updateDisplayMode();
++			}
++
++			Display.create();
++		}
++
++		OpenGlHelper.initializeTextures();
++
++		try
++		{
++			this.stream = new TwitchStream(this, (String)Iterables.getFirst(this.twitchDetails.get("twitch_access_token"), (Object)null));
++		}
++		catch (Throwable var5)
++		{
++			this.stream = new NullStream(var5);
++			logger.error("Couldn\'t initialize twitch stream");
++		}
++
++		this.framebufferMc = new Framebuffer(this.displayWidth, this.displayHeight, true);
++		this.framebufferMc.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
++		this.guiAchievement = new GuiAchievement(this);
++		this.metadataSerializer_.registerMetadataSectionType(new TextureMetadataSectionSerializer(), TextureMetadataSection.class);
++		this.metadataSerializer_.registerMetadataSectionType(new FontMetadataSectionSerializer(), FontMetadataSection.class);
++		this.metadataSerializer_.registerMetadataSectionType(new AnimationMetadataSectionSerializer(), AnimationMetadataSection.class);
++		this.metadataSerializer_.registerMetadataSectionType(new PackMetadataSectionSerializer(), PackMetadataSection.class);
++		this.metadataSerializer_.registerMetadataSectionType(new LanguageMetadataSectionSerializer(), LanguageMetadataSection.class);
++		this.saveLoader = new AnvilSaveConverter(new File(this.mcDataDir, "saves"));
++		this.mcResourcePackRepository = new ResourcePackRepository(this.fileResourcepacks, new File(this.mcDataDir, "server-resource-packs"), this.mcDefaultResourcePack, this.metadataSerializer_, this.gameSettings);
++		this.mcResourceManager = new SimpleReloadableResourceManager(this.metadataSerializer_);
++		this.mcLanguageManager = new LanguageManager(this.metadataSerializer_, this.gameSettings.language);
++		this.mcResourceManager.registerReloadListener(this.mcLanguageManager);
++		/** MINECRIFT FORGE **/
++		Object fmlClientHandler = null;
++		if( Reflector.FMLClientHandler_instance.exists())
++		{
++			fmlClientHandler = Reflector.call( Reflector.FMLClientHandler_instance, new Object[0]);
++		}
++		if( fmlClientHandler != null)
++		{
++			Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_beginMinecraftLoading, new Object[] {this, this.defaultResourcePacks, this.mcResourceManager});
++		}
++		else {
++			this.refreshResources();
++		}
++		/** END MINECRIFT FORGE **/
++		this.renderEngine = new TextureManager(this.mcResourceManager);
++		this.mcResourceManager.registerReloadListener(this.renderEngine);
++		this.skinManager = new SkinManager(this.renderEngine, new File(this.fileAssets, "skins"), this.sessionService);
++		/** MINECRIFT FORGE **/
++		boolean Forge = Reflector.forgeExists();
++		if (Forge) {
++			//cpw.mods.fml.client.SplashProgress.drawVanillaScreen();
++			Reflector.callVoid(Reflector.FMLClientSplashProgress_drawVanillaScreen, new Object[] {});
++		}
++		else {
++			this.loadScreen();
++		}
++		/** END MINECRIFT FORGE **/
++		this.mcSoundHandler = new SoundHandler(this.mcResourceManager, this.gameSettings);
++		this.mcResourceManager.registerReloadListener(this.mcSoundHandler);
++		this.mcMusicTicker = new MusicTicker(this);
++		this.fontRendererObj = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii.png"), this.renderEngine, false);
++
++		if (this.gameSettings.language != null)
++		{
++			this.fontRendererObj.setUnicodeFlag(this.isUnicode());
++			this.fontRendererObj.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
++		}
++		/** MINECRIFT */
++		initMinecrift();
++		/** END MINECRIFT */
++		this.standardGalacticFontRenderer = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii_sga.png"), this.renderEngine, false);
++		this.mcResourceManager.registerReloadListener(this.fontRendererObj);
++		this.mcResourceManager.registerReloadListener(this.standardGalacticFontRenderer);
++		this.mcResourceManager.registerReloadListener(new GrassColorReloadListener());
++		this.mcResourceManager.registerReloadListener(new FoliageColorReloadListener());
++		/** MINECRIFT FORGE **/
++		Object bar = null;
++		if (Forge) {
++			//cpw.mods.fml.common.ProgressManager.ProgressBar bar = cpw.mods.fml.common.ProgressManager.push("Rendering Setup", 9);
++			//bar.step("Loading Render Manager");
++			bar = Reflector.call(Reflector.FMLCommonProgressManager_push, new Object[] {"Rendering Setup", 9, true});
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Render Manager"});
++		}
++		/** END MINECRIFT FORGE **/
++		RenderManager.instance.itemRenderer = new ItemRenderer(this);
++		/** MINECRIFT FORGE **/
++		if (Forge) {
++			//bar.step("Loading Entity Renderer");
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Entity Renderer"});
++		}
++		/** END MINECRIFT FORGE **/		
++		this.entityRenderer = new EntityRenderer(this, this.mcResourceManager);
++		this.mcResourceManager.registerReloadListener(this.entityRenderer);
++		AchievementList.openInventory.setStatStringFormatter(new IStatStringFormat()
++		{
++			private static final String __OBFID = "CL_00000639";
++			public String formatString(String p_74535_1_)
++			{
++				try
++				{
++					return String.format(p_74535_1_, new Object[] {GameSettings.getKeyDisplayString(Minecraft.this.gameSettings.keyBindInventory.getKeyCode())});
++				}
++				catch (Exception var3)
++				{
++					return "Error: " + var3.getLocalizedMessage();
++				}
++			}
++		});
++		/** MINECRIFT FORGE **/
++		if (Forge) {
++			//bar.step("Loading GL properties");
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading GL properties"});
++		}
++		/** END MINECRIFT FORGE **/
++		this.mouseHelper = new MouseHelper();
++		this.checkGLError("Pre startup");
++		GL11.glEnable(GL11.GL_TEXTURE_2D);
++		GL11.glShadeModel(GL11.GL_SMOOTH);
++		GL11.glClearDepth(1.0D);
++		GL11.glEnable(GL11.GL_DEPTH_TEST);
++		GL11.glDepthFunc(GL11.GL_LEQUAL);
++		GL11.glEnable(GL11.GL_ALPHA_TEST);
++		GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
++		GL11.glCullFace(GL11.GL_BACK);
++		GL11.glMatrixMode(GL11.GL_PROJECTION);
++		GL11.glLoadIdentity();
++		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++		this.checkGLError("Startup");
++		/** MINECRIFT SHADERS MOD **/
++		if (Reflector.shadersModExists()) {
++			//Shaders.startup(this);
++			Reflector.callVoid(Reflector.ShadersMod_Shaders_startup, new Object[] {this});
++		}
++		/** END MINECRIFT SHADERS MOD **/
++		/** MINECRIFT FORGE **/
++		if (Forge) {
++			//bar.step("Render Global instance");
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Render Global instance"});
++		}
++
++		this.renderGlobal = new RenderGlobal(this);
++		if (Forge) {
++			//bar.step("Building Blocks Texture");
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Building Blocks Texture"});
++		}
++		if (Forge) {
++			this.textureMapBlocks = new TextureMap(0, "textures/blocks", true);
++		}
++		else {
++			this.textureMapBlocks = new TextureMap(0, "textures/blocks");
++		}
++		if (Forge) {
++			//bar.step("Anisotropy and Mipmaps");
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Anisotropy and Mipmaps"});
++		}
++		this.textureMapBlocks.setAnisotropicFiltering(this.gameSettings.anisotropicFiltering);
++		this.textureMapBlocks.setMipmapLevels(this.gameSettings.mipmapLevels);
++		if (Forge) {
++			//bar.step("Loading Blocks Texture");
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Entity Renderer"});
++		}
++		this.renderEngine.loadTextureMap(TextureMap.locationBlocksTexture, this.textureMapBlocks);
++		if (Forge) {
++			//bar.step("Loading Items Texture");
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Items Texture"});
++		}
++		if (Forge) {
++			this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items", true));
++		}
++		else {
++			this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items"));
++		}
++		if (Forge) {
++			//bar.step("Viewport");
++			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Viewport"});
++		}
++		GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
++		this.effectRenderer = new EffectRenderer(this.theWorld, this.renderEngine);
++		if( fmlClientHandler != null )
++		{
++			//cpw.mods.fml.common.ProgressManager.pop(bar);
++			Reflector.callVoid(Reflector.FMLCommonProgressManager_pop, new Object[]{bar});
++			Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_finishMinecraftLoading, new Object[0]);
++		}
++		this.checkGLError("Post startup");
++		if( Reflector.ForgeGuiIngame.exists())
++		{
++			try {
++				this.ingameGUI = (GuiIngame)Reflector.ForgeGuiIngame_Constructor.getTargetConstructor().newInstance(new Object[]{this});
++			} catch (IllegalArgumentException e) {
++				e.printStackTrace();
++			} catch (InstantiationException e) {
++				e.printStackTrace();
++			} catch (IllegalAccessException e) {
++				e.printStackTrace();
++			} catch (InvocationTargetException e) {
++				e.printStackTrace();
++			}
++		}
++		else
++		{
++			this.ingameGUI = new GuiIngame(this);
++		}
++
++		if (this.serverName != null)
++		{
++			if( fmlClientHandler != null ) {
++				Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_connectToServerAtStartup, new Object[]{this.serverName, this.serverPort});
++			}
++			else {
++				this.displayGuiScreen(new GuiConnecting(new GuiMainMenu(), this, this.serverName, this.serverPort));
++			}
++		}
++		else if (this.vrSettings.firstLoad) {
++			// VIVE START - don't force options screen, player should try defaults first
++			//this.displayGuiScreen(new GuiMinecriftSettings(new GuiMainMenu(), vrSettings, gameSettings) );
++			this.displayGuiScreen(new GuiMainMenu());
++			// VIVE END - don't force options screen, player should try defaults first
++			this.vrSettings.firstLoad = false;
++		}
++		else
++		{
++			this.displayGuiScreen(new GuiMainMenu());
++		}
++
++		if (Forge) {
++			//cpw.mods.fml.client.SplashProgress.clearVanillaResources(renderEngine, mojangLogo);
++			Reflector.callVoid(Reflector.FMLClientSplashProgress_clearVanillaResources, new Object[] {renderEngine, mojangLogo});
++		}
++		else {
++			this.renderEngine.deleteTexture(this.mojangLogo);
++		}
++		this.mojangLogo = null;
++		this.loadingScreen = new LoadingScreenRenderer(this);
++
++		if( fmlClientHandler != null ) {
++			Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_onInitializationComplete, new Object[0]);
++		}
++		/** END MINECRIFT FORGE **/
++		if (this.gameSettings.fullScreen && !this.fullscreen)
++		{
++			this.toggleFullscreen();
++		}
++
++		try
++		{
++			/** MINECRIFT */
++			//vsync needs to be false that showing the mirror image doesn't slow down the rendering for the rift.
++			//Oculus SDK handles vsync internally
++			Display.setVSyncEnabled(false);
++			/** END MINECRIFT */
++		}
++		catch (OpenGLException var4)
++		{
++			this.gameSettings.enableVsync = false;
++			this.gameSettings.saveOptions();
++		}
++	}
++
++	public boolean isUnicode()
++	{
++		return this.mcLanguageManager.isCurrentLocaleUnicode() || this.gameSettings.forceUnicodeFont;
++	}
++
++	public void refreshResources()
++	{
++		ArrayList var1 = Lists.newArrayList(this.defaultResourcePacks);
++		Iterator var2 = this.mcResourcePackRepository.getRepositoryEntries().iterator();
++
++		while (var2.hasNext())
++		{
++			ResourcePackRepository.Entry var3 = (ResourcePackRepository.Entry)var2.next();
++			var1.add(var3.getResourcePack());
++		}
++
++		if (this.mcResourcePackRepository.getResourcePackInstance() != null)
++		{
++			var1.add(this.mcResourcePackRepository.getResourcePackInstance());
++		}
++
++		try
++		{
++			this.mcResourceManager.reloadResources(var1);
++		}
++		catch (RuntimeException var4)
++		{
++			logger.info("Caught error stitching, removing all assigned resourcepacks", var4);
++			var1.clear();
++			var1.addAll(this.defaultResourcePacks);
++			this.mcResourcePackRepository.func_148527_a(Collections.emptyList());
++			this.mcResourceManager.reloadResources(var1);
++			this.gameSettings.resourcePacks.clear();
++			this.gameSettings.saveOptions();
++		}
++
++		this.mcLanguageManager.parseLanguageMetadata(var1);
++
++		if (this.renderGlobal != null)
++		{
++			this.renderGlobal.loadRenderers();
++		}
++	}
++
++	private void addDefaultResourcePack()
++	{
++		this.defaultResourcePacks.add(this.mcDefaultResourcePack);
++	}
++
++	private ByteBuffer readImageToBuffer(InputStream imageStream) throws IOException
++	{
++		BufferedImage var2 = ImageIO.read(imageStream);
++		int[] var3 = var2.getRGB(0, 0, var2.getWidth(), var2.getHeight(), (int[])null, 0, var2.getWidth());
++		ByteBuffer var4 = ByteBuffer.allocate(4 * var3.length);
++		int[] var5 = var3;
++		int var6 = var3.length;
++
++		for (int var7 = 0; var7 < var6; ++var7)
++		{
++			int var8 = var5[var7];
++			var4.putInt(var8 << 8 | var8 >> 24 & 255);
++		}
++
++		var4.flip();
++		return var4;
++	}
++
++	private void updateDisplayMode() throws LWJGLException
++	{
++		HashSet var1 = new HashSet();
++		Collections.addAll(var1, Display.getAvailableDisplayModes());
++		DisplayMode var2 = Display.getDesktopDisplayMode();
++
++		if (!var1.contains(var2) && Util.getOSType() == Util.EnumOS.OSX)
++		{
++			Iterator var3 = macDisplayModes.iterator();
++
++			while (var3.hasNext())
++			{
++				DisplayMode var4 = (DisplayMode)var3.next();
++				boolean var5 = true;
++				Iterator var6 = var1.iterator();
++				DisplayMode var7;
++
++				while (var6.hasNext())
++				{
++					var7 = (DisplayMode)var6.next();
++
++					if (var7.getBitsPerPixel() == 32 && var7.getWidth() == var4.getWidth() && var7.getHeight() == var4.getHeight())
++					{
++						var5 = false;
++						break;
++					}
++				}
++
++				if (!var5)
++				{
++					var6 = var1.iterator();
++
++					while (var6.hasNext())
++					{
++						var7 = (DisplayMode)var6.next();
++
++						if (var7.getBitsPerPixel() == 32 && var7.getWidth() == var4.getWidth() / 2 && var7.getHeight() == var4.getHeight() / 2)
++						{
++							var2 = var7;
++							break;
++						}
++					}
++				}
++			}
++		}
++
++		Display.setDisplayMode(var2);
++		this.displayWidth = var2.getWidth();
++		this.displayHeight = var2.getHeight();
++	}
++
++	/**
++	 * Displays a new screen.
++	 */
++	private void loadScreen() throws LWJGLException
++	{
++		ScaledResolution var1 = new ScaledResolution(this, this.displayWidth, this.displayHeight);
++		int var2 = var1.getScaleFactor();
++		Framebuffer var3 = new Framebuffer(var1.getScaledWidth() * var2, var1.getScaledHeight() * var2, true);
++		var3.bindFramebuffer(false);
++		GL11.glMatrixMode(GL11.GL_PROJECTION);
++		GL11.glLoadIdentity();
++		GL11.glOrtho(0.0D, (double)var1.getScaledWidth(), (double)var1.getScaledHeight(), 0.0D, 1000.0D, 3000.0D);
++		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++		GL11.glLoadIdentity();
++		GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
++		GL11.glDisable(GL11.GL_LIGHTING);
++		GL11.glDisable(GL11.GL_FOG);
++		GL11.glDisable(GL11.GL_DEPTH_TEST);
++		GL11.glEnable(GL11.GL_TEXTURE_2D);
 +		Tessellator var4 = Tessellator.instance;
 +		var4.startDrawingQuads();
 +		var4.setColorOpaque_I(16777215);
