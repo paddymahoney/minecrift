@@ -1,5 +1,5 @@
 
-Vivecraft (jrbudda's revision of Minecrift-Vive)
+Minecrift Vive (jrbudda revision)
 ==============
 
 This is a modified version of the Minecrift VR mod that focuses on the Vive and room scale VR. It adds a teleporting method of locomotion and tracked controller support to interact with the world.
@@ -24,9 +24,8 @@ Controls
   - Press touchpad bottom half - jump
   - Menu button - game menu (equivalent of escape key)
   - Grip - Sneak (Shift button)
-  - Grip + Menu - Open SteamVR keyboard
 
-
+You can also swing your right hand at blocks or enemies to hit them.
 
 Moving around:
 ===========
@@ -55,11 +54,6 @@ Flying is extrememly not recommened for those prone to motion sickeness.
 
 rctrl+M will cycle between left controller and HMD directed movement.
 
-Other changes
-==
- - You can hit blocks or mobs with your right controller to break or attack them. Multiple swings are needed to break a block.
- - You can 'crawl' under blocks or duck arrows.
-
 Keyboard Hotkeys:
 ==
 
@@ -78,7 +72,6 @@ Multiplayer
 
 Multiplayer will work if all clients and the server are running this mod. If you connect to a vanilla Minecraft server, it will fall back to a traditional movement scheme with continuous camera movement, which typically causes some amount of nausea for VR users. This is because vanilla servers don't allow clients to teleport as a form of cheat protection. You can also force the traditional movement scheme in singleplayer by pressing Right CTRL+R.
 
-Instructions for running a Minecraft server which allows teleportation, see the [Minecraft for Vive Wiki](https://www.reddit.com/r/Vive/wiki/minecrift_for_vive) on Reddit.
 
 Performance
 ===========
@@ -89,7 +82,7 @@ If you're seeing lots of judder, try lowering your Minecraft video settings. Set
 Building the Installer
 ======================
 
-* Install Java JDK 1.7 or 1.8. The Java JRE will NOT work, it MUST be the JDK.
+* Install Java JDK 1.6, 1.7 or 1.8. The Java JRE will NOT work, it MUST be the JDK. This has been tested with JDK1.6.0_38 x64. [Download from oracle.com](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase6-419409.html#jdk-6u38-oth-JPR)
 * Set the JAVA_HOME environment variable to the JDK directory
 * Add %JAVA_HOME%\bin to your PATH environment variable
 * Install Python 2.7.x (NOT 3.x). Be sure to tick the 'add python to your PATH' option during install. [Download from python.org](https://www.python.org/downloads/)
@@ -166,7 +159,7 @@ Setting up
 Install build prerequisites
 ---------------------------
 
-- Java JDK 1.7 or 1.8 (the Java JRE will NOT work, it MUST be the JDK)
+- Java JDK 1.6, 1.7 or 1.8 (the Java JRE will NOT work, it MUST be the JDK)
 - JAVA_HOME should be set to the JDK directory
 - ${JAVA_HOME}\bin or %JAVA_HOME%/bin must be added to your path
 - Python 2.7.x (NOT 3.x)
