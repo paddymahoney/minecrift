@@ -1,0 +1,130 @@
+--- a/net/minecraft/client/gui/GuiSlot.java
++++ b/net/minecraft/client/gui/GuiSlot.java
+@@ -1,28 +1,31 @@
+ package net.minecraft.client.gui;
+ 
++import com.mtbs3d.minecrift.control.GuiScreenNavigator;
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.OpenGlHelper;
+ import net.minecraft.client.renderer.Tessellator;
++import net.minecraft.src.Reflector;
+ import org.lwjgl.input.Mouse;
+ import org.lwjgl.opengl.GL11;
+ 
+ public abstract class GuiSlot
+ {
+     private final Minecraft mc;
+-    protected int width;
+-    private int height;
++	/** MINECRIFT FORGE **/
++    public int width;
++    public int height;
+ 
+     /** The top of the slot container. Affects the overlays and scrolling. */
+-    protected int top;
++    public int top;
+ 
+     /** The bottom of the slot container. Affects the overlays and scrolling. */
+-    protected int bottom;
+-    protected int right;
+-    protected int left;
++    public int bottom;
++    public int right;
++    public int left;
+ 
+     /** The height of a slot. */
+-    protected final int slotHeight;
+-
++    public final int slotHeight;
++	/** END MINECRIFT FORGE **/
+     /** The buttonID of the button used to scroll up */
+     private int scrollUpButtonID;
+ 
+@@ -55,7 +58,9 @@
+      */
+     private boolean showSelectionBox = true;
+     private boolean hasListHeader;
+-    protected int headerPadding;
++	/** MINECRIFT FORGE **/
++    public int headerPadding;
++	/** END MINECRIFT FORGE **/
+     private boolean enabled = true;
+     private static final String __OBFID = "CL_00000679";
+ 
+@@ -242,7 +247,9 @@
+ 
+         if (p_148128_1_ > this.left && p_148128_1_ < this.right && p_148128_2_ > this.top && p_148128_2_ < this.bottom)
+         {
+-            if (Mouse.isButtonDown(0) && this.getEnabled())
++            /** MINECRIFT */   // Allow gui cursor emulation with clickable scroll bars
++            if (( Mouse.isButtonDown(0) || GuiScreenNavigator.selectDepressed )&& this.getEnabled())
++            /** END MINECRIFT */
+             {
+                 if (this.initialClickY == -1.0F)
+                 {
+@@ -346,16 +353,21 @@
+         GL11.glDisable(GL11.GL_LIGHTING);
+         GL11.glDisable(GL11.GL_FOG);
+         Tessellator var16 = Tessellator.instance;
+-        this.mc.getTextureManager().bindTexture(Gui.optionsBackground);
+-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+-        float var17 = 32.0F;
+-        var16.startDrawingQuads();
+-        var16.setColorOpaque_I(2105376);
+-        var16.addVertexWithUV((double)this.left, (double)this.bottom, 0.0D, (double)((float)this.left / var17), (double)((float)(this.bottom + (int)this.amountScrolled) / var17));
+-        var16.addVertexWithUV((double)this.right, (double)this.bottom, 0.0D, (double)((float)this.right / var17), (double)((float)(this.bottom + (int)this.amountScrolled) / var17));
+-        var16.addVertexWithUV((double)this.right, (double)this.top, 0.0D, (double)((float)this.right / var17), (double)((float)(this.top + (int)this.amountScrolled) / var17));
+-        var16.addVertexWithUV((double)this.left, (double)this.top, 0.0D, (double)((float)this.left / var17), (double)((float)(this.top + (int)this.amountScrolled) / var17));
+-        var16.draw();
++		if (Reflector.forgeExists()) {
++			drawContainerBackground(var16);
++		}
++		else {
++	        this.mc.getTextureManager().bindTexture(Gui.optionsBackground);
++	        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++	        float var17 = 32.0F;
++	        var16.startDrawingQuads();
++	        var16.setColorOpaque_I(2105376);
++	        var16.addVertexWithUV((double)this.left, (double)this.bottom, 0.0D, (double)((float)this.left / var17), (double)((float)(this.bottom + (int)this.amountScrolled) / var17));
++	        var16.addVertexWithUV((double)this.right, (double)this.bottom, 0.0D, (double)((float)this.right / var17), (double)((float)(this.bottom + (int)this.amountScrolled) / var17));
++	        var16.addVertexWithUV((double)this.right, (double)this.top, 0.0D, (double)((float)this.right / var17), (double)((float)(this.top + (int)this.amountScrolled) / var17));
++	        var16.addVertexWithUV((double)this.left, (double)this.top, 0.0D, (double)((float)this.left / var17), (double)((float)(this.top + (int)this.amountScrolled) / var17));
++	        var16.draw();
++		}
+         var9 = this.left + this.width / 2 - this.getListWidth() / 2 + 2;
+         var10 = this.top + 4 - (int)this.amountScrolled;
+ 
+@@ -539,4 +551,33 @@
+     {
+         return this.slotHeight;
+     }
++
++    protected void drawContainerBackground(Tessellator var16)
++    {
++        this.mc.getTextureManager().bindTexture(Gui.optionsBackground);
++        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
++        float var17 = 32.0F;
++        var16.startDrawingQuads();
++        var16.setColorOpaque_I(2105376);
++        var16.addVertexWithUV((double)this.left, (double)this.bottom, 0.0D, (double)((float)this.left / var17), (double)((float)(this.bottom + (int)this.amountScrolled) / var17));
++        var16.addVertexWithUV((double)this.right, (double)this.bottom, 0.0D, (double)((float)this.right / var17), (double)((float)(this.bottom + (int)this.amountScrolled) / var17));
++        var16.addVertexWithUV((double)this.right, (double)this.top, 0.0D, (double)((float)this.right / var17), (double)((float)(this.top + (int)this.amountScrolled) / var17));
++        var16.addVertexWithUV((double)this.left, (double)this.top, 0.0D, (double)((float)this.left / var17), (double)((float)(this.top + (int)this.amountScrolled) / var17));
++        var16.draw();
++    }
++	
++	/** MINECRIFT ADDITIONS BELOW */
++	
++    public int publicGetSize() { return getSize(); }
++    
++    public int select( int item, boolean dblClick) {
++        amountScrolled = item * slotHeight;
++        bindAmountScrolled();
++    	elementClicked(item, dblClick, mouseX, mouseY);
++    	
++    	if( !dblClick ) {
++    		return (int)(this.top + 4 - this.amountScrolled + (item+0.5) * this.slotHeight + this.headerPadding);
++    	}
++    	return 0;
++	};	
+ }

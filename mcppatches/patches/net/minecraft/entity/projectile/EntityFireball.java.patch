@@ -1,0 +1,61 @@
+--- a/net/minecraft/entity/projectile/EntityFireball.java
++++ b/net/minecraft/entity/projectile/EntityFireball.java
+@@ -1,9 +1,15 @@
+ package net.minecraft.entity.projectile;
+ 
+ import java.util.List;
++
++import de.fruitfly.ovr.structs.Matrix4f;
++import de.fruitfly.ovr.structs.Vector3f;
+ import net.minecraft.block.Block;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.entity.EntityPlayerSP;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.entity.EntityLivingBase;
++import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.nbt.NBTTagList;
+ import net.minecraft.util.AxisAlignedBB;
+@@ -59,12 +65,39 @@
+         this.accelerationZ = p_i1760_12_ / var14 * 0.1D;
+     }
+ 
+-    public EntityFireball(World p_i1761_1_, EntityLivingBase p_i1761_2_, double p_i1761_3_, double p_i1761_5_, double p_i1761_7_)
++    public EntityFireball(World p_i1761_1_, EntityLivingBase shooter, double p_i1761_3_, double p_i1761_5_, double p_i1761_7_)
+     {
+         super(p_i1761_1_);
+-        this.shootingEntity = p_i1761_2_;
++        this.shootingEntity = shooter;
+         this.setSize(1.0F, 1.0F);
+-        this.setLocationAndAngles(p_i1761_2_.posX, p_i1761_2_.posY, p_i1761_2_.posZ, p_i1761_2_.rotationYaw, p_i1761_2_.rotationPitch);
++        
++   
++        //JRBUDDA VIVE
++        Vec3 spawnPosition = shooter.getPosition(1);
++        
++        float yaw = shooter.rotationYaw;
++        float pitch = shooter.rotationPitch;
++     
++       if (shooter instanceof EntityPlayerSP)
++        {
++       	
++           Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
++       	Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
++           //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
++           //aimRotation = Matrix4f.multiply(aimRotation, tilt);
++           Vector3f forward = new Vector3f(0,0,1);
++           Vector3f controllerDirection = aimRotation.transform(forward);
++           spawnPosition.xCoord = aimSource.xCoord + controllerDirection.x * 0.28f;
++           spawnPosition.yCoord = aimSource.yCoord - controllerDirection.y * 0.28f;
++           spawnPosition.zCoord = aimSource.zCoord + controllerDirection.z * 0.28f;
++     	
++           yaw = Minecraft.getMinecraft().lookaimController.getAimYaw();
++           pitch = Minecraft.getMinecraft().lookaimController.getAimPitch();
++        }
++    
++        this.setLocationAndAngles(spawnPosition.xCoord, spawnPosition.yCoord ,spawnPosition.zCoord, yaw, pitch);
++        //END VIVE
++        
+         this.setPosition(this.posX, this.posY, this.posZ);
+         this.yOffset = 0.0F;
+         this.motionX = this.motionY = this.motionZ = 0.0D;

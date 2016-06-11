@@ -1,0 +1,1406 @@
+--- a/net/minecraft/entity/player/EntityPlayer.java
++++ b/net/minecraft/entity/player/EntityPlayer.java
+@@ -2,15 +2,22 @@
+ 
+ import com.google.common.base.Charsets;
+ import com.mojang.authlib.GameProfile;
+-import java.util.Collection;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.UUID;
++import java.util.*;
++
++import com.mtbs3d.minecrift.gameplay.VRPlayer;
++import com.mtbs3d.minecrift.settings.VRSettings;
++
++import de.fruitfly.ovr.structs.Matrix4f;
++import de.fruitfly.ovr.structs.Vector3f;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.BlockBed;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.entity.EntityPlayerSP;
+ import net.minecraft.command.ICommandSender;
+ import net.minecraft.command.server.CommandBlockLogic;
++import net.minecraft.crash.CrashReport;
++import net.minecraft.crash.CrashReportCategory;
+ import net.minecraft.enchantment.EnchantmentHelper;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.entity.EntityList;
+@@ -49,6 +56,7 @@
+ import net.minecraft.scoreboard.ScorePlayerTeam;
+ import net.minecraft.scoreboard.Scoreboard;
+ import net.minecraft.scoreboard.Team;
++import net.minecraft.src.Reflector;
+ import net.minecraft.stats.AchievementList;
+ import net.minecraft.stats.StatBase;
+ import net.minecraft.stats.StatList;
+@@ -58,15 +66,7 @@
+ import net.minecraft.tileentity.TileEntityDispenser;
+ import net.minecraft.tileentity.TileEntityFurnace;
+ import net.minecraft.tileentity.TileEntityHopper;
+-import net.minecraft.util.AxisAlignedBB;
+-import net.minecraft.util.ChatComponentText;
+-import net.minecraft.util.ChunkCoordinates;
+-import net.minecraft.util.DamageSource;
+-import net.minecraft.util.FoodStats;
+-import net.minecraft.util.IChatComponent;
+-import net.minecraft.util.IIcon;
+-import net.minecraft.util.MathHelper;
+-import net.minecraft.util.Vec3;
++import net.minecraft.util.*;
+ import net.minecraft.world.EnumDifficulty;
+ import net.minecraft.world.World;
+ import net.minecraft.world.WorldSettings;
+@@ -74,6 +74,11 @@
+ 
+ public abstract class EntityPlayer extends EntityLivingBase implements ICommandSender
+ {
++/** MINECRIFT FORGE **/
++    public static final String PERSISTED_NBT_TAG = "PlayerPersisted";
++    private HashMap<Integer, ChunkCoordinates> spawnChunkMap = new HashMap<Integer, ChunkCoordinates>();
++    private HashMap<Integer, Boolean> spawnForcedMap = new HashMap<Integer, Boolean>();
++/** END MINECRIFT FORGE **/
+     /** Inventory of the player */
+     public InventoryPlayer inventory = new InventoryPlayer(this);
+     private InventoryEnderChest theInventoryEnderChest = new InventoryEnderChest();
+@@ -180,6 +185,12 @@
+         this.setLocationAndAngles((double)var3.posX + 0.5D, (double)(var3.posY + 1), (double)var3.posZ + 0.5D, 0.0F, 0.0F);
+         this.field_70741_aB = 180.0F;
+         this.fireResistance = 20;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++        	this.eyeHeight = this.getDefaultEyeHeight();
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     protected void applyEntityAttributes()
+@@ -232,7 +243,18 @@
+     {
+         if (this.itemInUse != null)
+         {
+-            this.itemInUse.onPlayerStoppedUsing(this.worldObj, this, this.itemInUseCount);
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++            	//if (!ForgeEventFactory.onUseItemStop(this, itemInUse, itemInUseCount))
++                if (!Reflector.callBoolean(Reflector.ForgeEventFactory_onUseItemStop, new Object[] {this, itemInUse, itemInUseCount}))
++                	this.itemInUse.onPlayerStoppedUsing(this.worldObj, this, this.itemInUseCount);			
++			}
++			else 
++			{
++            	this.itemInUse.onPlayerStoppedUsing(this.worldObj, this, this.itemInUseCount);
++			}
++			/** END MINECRIFT FORGE **/
+         }
+ 
+         this.clearItemInUse();
+@@ -259,21 +281,63 @@
+      */
+     public void onUpdate()
+     {
++		/** MINECRIFT FORGE **/
++        boolean Forge = Reflector.forgeExists();
++        Object fmlCommonHandler = null;
++		if (Forge)
++		{
++        	//FMLCommonHandler.instance().onPlayerPreTick(this);
++            if( Reflector.FMLCommonHandler_instance.exists()) {
++                fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
++            }
++            if( fmlCommonHandler != null ) {
++                Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onPlayerPreTick, new Object[]{this});
++            }
++		}
++		/** END MINECRIFT FORGE **/
+         if (this.itemInUse != null)
+         {
+             ItemStack var1 = this.inventory.getCurrentItem();
+ 
+             if (var1 == this.itemInUse)
+             {
+-                if (this.itemInUseCount <= 25 && this.itemInUseCount % 4 == 0)
+-                {
+-                    this.updateItemUse(var1, 5);
+-                }
+-
+-                if (--this.itemInUseCount == 0 && !this.worldObj.isRemote)
+-                {
+-                    this.onItemUseFinish();
+-                }
++				/** MINECRIFT FORGE **/
++				if (Forge)
++				{
++	                //itemInUseCount = ForgeEventFactory.onItemUseTick(this, itemInUse, itemInUseCount);
++                    itemInUseCount = Reflector.callInt(Reflector.ForgeEventFactory_onItemUseTick, new Object[] {this, itemInUse, itemInUseCount});
++	                if (itemInUseCount <= 0)
++	                {
++	                    this.onItemUseFinish();
++	                }
++	                else
++	                {
++	                    //itemInUse.getItem().onUsingTick(itemInUse, this, itemInUseCount);
++                        Reflector.callVoid(itemInUse.getItem(), Reflector.ForgeItem_onUsingTick, new Object[] {itemInUse, this, itemInUseCount});
++	                    if (this.itemInUseCount <= 25 && this.itemInUseCount % 4 == 0)
++	                    {
++	                        this.updateItemUse(var1, 5);
++	                    }
++
++	                    if (--this.itemInUseCount == 0 && !this.worldObj.isRemote)
++	                    {
++	                        this.onItemUseFinish();
++	                    }
++	                }
++				}
++				else
++				{
++	                if (this.itemInUseCount <= 25 && this.itemInUseCount % 4 == 0)
++	                {
++	                    this.updateItemUse(var1, 5);
++	                }
++
++	                if (--this.itemInUseCount == 0 && !this.worldObj.isRemote)
++	                {
++	                    this.onItemUseFinish();
++	                }
++				}
++				/** END MINECRIFT FORGE **/
+             }
+             else
+             {
+@@ -318,12 +382,25 @@
+         }
+ 
+         super.onUpdate();
+-
+-        if (!this.worldObj.isRemote && this.openContainer != null && !this.openContainer.canInteractWith(this))
+-        {
+-            this.closeScreen();
+-            this.openContainer = this.inventoryContainer;
+-        }
++		/** MINECRIFT FORGE **/
++		if (Forge)
++		{
++	        //if (!this.worldObj.isRemote && this.openContainer != null && !ForgeHooks.canInteractWith(this, this.openContainer))
++            if (!this.worldObj.isRemote && this.openContainer != null && !Reflector.callBoolean(Reflector.ForgeHooks_canInteractWith, new Object[] {this, this.openContainer}))
++	        {
++	            this.closeScreen();
++	            this.openContainer = this.inventoryContainer;
++	        }		
++		}
++		else
++		{
++	        if (!this.worldObj.isRemote && this.openContainer != null && !this.openContainer.canInteractWith(this))
++	        {
++	            this.closeScreen();
++	            this.openContainer = this.inventoryContainer;
++	        }
++		}
++		/** END MINECRIFT FORGE **/
+ 
+         if (this.isBurning() && this.capabilities.disableDamage)
+         {
+@@ -382,6 +459,15 @@
+             this.foodStats.onUpdate(this);
+             this.addStat(StatList.minutesPlayedStat, 1);
+         }
++		/** MINECRIFT FORGE **/
++		if (Forge) 
++		{
++			//FMLCommonHandler.instance().onPlayerPostTick(this);
++            if( fmlCommonHandler != null ) {
++                Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onPlayerPostTick, new Object[]{this});
++            }
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -460,12 +546,19 @@
+             this.updateItemUse(this.itemInUse, 16);
+             int var1 = this.itemInUse.stackSize;
+             ItemStack var2 = this.itemInUse.onItemUseFinish(this.worldObj, this);
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++            	//var2 = ForgeEventFactory.onItemUseFinish(this, itemInUse, itemInUseCount, var2);
++                var2 = (ItemStack)Reflector.call(Reflector.ForgeEventFactory_onItemUseFinish, new Object[] {this, itemInUse, itemInUseCount, var2});
++			}
+ 
+             if (var2 != this.itemInUse || var2 != null && var2.stackSize != var1)
+             {
+                 this.inventory.mainInventory[this.inventory.currentItem] = var2;
+ 
+-                if (var2.stackSize == 0)
++                if (var2 != null && var2.stackSize == 0)
++			/** END MINECRIFT FORGE **/
+                 {
+                     this.inventory.mainInventory[this.inventory.currentItem] = null;
+                 }
+@@ -498,7 +591,9 @@
+     /**
+      * set current crafting inventory back to the 2x2 square
+      */
+-    protected void closeScreen()
++	/** MINECRIFT FORGE **/ 
++    public void closeScreen()
++	/** END MINECRIFT FORGE **/
+     {
+         this.openContainer = this.inventoryContainer;
+     }
+@@ -549,13 +644,27 @@
+             this.prevCameraYaw = this.cameraYaw;
+             this.cameraYaw = 0.0F;
+             this.addMountedMovementStat(this.posX - var1, this.posY - var3, this.posZ - var5);
+-
+-            if (this.ridingEntity instanceof EntityPig)
+-            {
+-                this.rotationPitch = var8;
+-                this.rotationYaw = var7;
+-                this.renderYawOffset = ((EntityPig)this.ridingEntity).renderYawOffset;
+-            }
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++	            //if (this.ridingEntity instanceof EntityLivingBase && ((EntityLivingBase)ridingEntity).shouldRiderFaceForward(this))
++                if (this.ridingEntity instanceof EntityLivingBase && Reflector.callBoolean(ridingEntity, Reflector.ForgeEntityLivingBase_shouldRiderFaceForward, new Object[] {this}))
++	            {
++	                this.rotationPitch = var8;
++	                this.rotationYaw = var7;
++	                this.renderYawOffset = ((EntityLivingBase)this.ridingEntity).renderYawOffset;
++	            }			
++			}
++			else
++			{
++	            if (this.ridingEntity instanceof EntityPig)
++	            {
++	                this.rotationPitch = var8;
++	                this.rotationYaw = var7;
++	                this.renderYawOffset = ((EntityPig)this.ridingEntity).renderYawOffset;
++	            }
++			}
++			/** END MINECRIFT FORGE **/
+         }
+     }
+ 
+@@ -654,12 +763,32 @@
+                 {
+                     Entity var7 = (Entity)var5.get(var6);
+ 
++                    // VIVE start - collide with items below
++                    if (!var7.isDead && !(var7 instanceof EntityItem))
++                    //if (!var7.isDead)
++                    // VIVE END
++                    {
++                        this.collideWithPlayer(var7);
++                    }
++                }
++            }
++
++            // VIVE START - find nearby items in a bigger area
++            var4 = this.boundingBox.expand(4.0D, 0.5D, 4.0D);
++            var5 = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, var4);
++
++            for (int var6 = 0; var6 < var5.size(); ++var6)
++            {
++                Entity var7 = (Entity)var5.get(var6);
++                if (var7 instanceof EntityItem)
++                {
+                     if (!var7.isDead)
+                     {
+                         this.collideWithPlayer(var7);
+                     }
+                 }
+             }
++            // VIVE END - find nearby items in a bigger area
+         }
+     }
+ 
+@@ -695,11 +824,25 @@
+      */
+     public void onDeath(DamageSource p_70645_1_)
+     {
++		/** MINECRIFT FORGE **/
++        boolean Forge = Reflector.forgeExists();
++		if (Forge)
++		{
++			//if (ForgeHooks.onLivingDeath(this, p_70645_1_)) return;
++            if (Reflector.callBoolean(Reflector.ForgeHooks_onLivingDeath, new Object[] {this, p_70645_1_})) return;
++		}
++		/** END MINECRIFT FORGE **/
+         super.onDeath(p_70645_1_);
+         this.setSize(0.2F, 0.2F);
+         this.setPosition(this.posX, this.posY, this.posZ);
+         this.motionY = 0.10000000149011612D;
+-
++		/** MINECRIFT FORGE **/
++		if (Forge)
++		{
++	        captureDrops = true;
++	        capturedDrops.clear();		
++		}
++		/** END MINECRIFT FORGE **/
+         if (this.getCommandSenderName().equals("Notch"))
+         {
+             this.func_146097_a(new ItemStack(Items.apple, 1), true, false);
+@@ -708,7 +851,27 @@
+         if (!this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory"))
+         {
+             this.inventory.dropAllItems();
++		}
++		/** MINECRIFT FORGE **/
++		if (Forge)
++		{
++	        captureDrops = false;
++
++	        if (!worldObj.isRemote)
++	        {
++	            //PlayerDropsEvent event = new PlayerDropsEvent(this, p_70645_1_, capturedDrops, recentlyHit > 0);
++	            //if (!MinecraftForge.EVENT_BUS.post(event))
++                Object event = Reflector.newInstance(Reflector.ForgePlayerDropsEvent_Constructor, new Object[] {this, p_70645_1_, capturedDrops, recentlyHit > 0});
++                if (!Reflector.postForgeBusEvent(event))
++	            {
++	                for (EntityItem item : capturedDrops)
++	                {
++	                    joinEntityItemWithWorld(item);
++	                }
++	            }
++	        }
+         }
++		/** END MINECRIFT FORGE **/
+ 
+         if (p_70645_1_ != null)
+         {
+@@ -774,7 +937,31 @@
+      */
+     public EntityItem dropOneItem(boolean p_71040_1_)
+     {
+-        return this.func_146097_a(this.inventory.decrStackSize(this.inventory.currentItem, p_71040_1_ && this.inventory.getCurrentItem() != null ? this.inventory.getCurrentItem().stackSize : 1), false, true);
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++	        ItemStack stack = inventory.getCurrentItem();
++
++	        if (stack == null)
++	        {
++	            return null;
++	        }
++
++	        //if (stack.getItem().onDroppedByPlayer(stack, this))
++            if (Reflector.callBoolean(stack.getItem(), Reflector.ForgeItem_onDroppedByPlayer, new Object[] {stack, this}))
++	        {
++	            int count = p_71040_1_ && this.inventory.getCurrentItem() != null ? this.inventory.getCurrentItem().stackSize : 1;
++	            //return ForgeHooks.onPlayerTossEvent(this, inventory.decrStackSize(inventory.currentItem, count), true);
++                return (EntityItem)Reflector.call(Reflector.ForgeHooks_onPlayerTossEvent, new Object[] {this, inventory.decrStackSize(inventory.currentItem, count), true});
++	        }
++
++	        return null;
++		}
++		else
++		{
++        	return this.func_146097_a(this.inventory.decrStackSize(this.inventory.currentItem, p_71040_1_ && this.inventory.getCurrentItem() != null ? this.inventory.getCurrentItem().stackSize : 1), false, true);
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -782,7 +969,17 @@
+      */
+     public EntityItem dropPlayerItemWithRandomChoice(ItemStack itemStackIn, boolean p_71019_2_)
+     {
+-        return this.func_146097_a(itemStackIn, false, false);
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//return ForgeHooks.onPlayerTossEvent(this, itemStackIn, false);
++            return (EntityItem)Reflector.call(Reflector.ForgeHooks_onPlayerTossEvent, new Object[] {this, itemStackIn, false});
++		}
++		else
++		{
++        	return this.func_146097_a(itemStackIn, false, false);
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     public EntityItem func_146097_a(ItemStack p_146097_1_, boolean p_146097_2_, boolean p_146097_3_)
+@@ -797,7 +994,24 @@
+         }
+         else
+         {
+-            EntityItem var4 = new EntityItem(this.worldObj, this.posX, this.posY - 0.30000001192092896D + (double)this.getEyeHeight(), this.posZ, p_146097_1_);
++        	
++        	Vec3 spawnPosition =this.getPosition(1);
++        	float yaw, pitch;
++        	
++            Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
++        	Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
++            //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
++            //aimRotation = Matrix4f.multiply(aimRotation, tilt);
++            Vector3f forward = new Vector3f(0,0,1);
++            Vector3f controllerDirection = aimRotation.transform(forward);
++            spawnPosition.xCoord = aimSource.xCoord + controllerDirection.x * 0.28f;
++            spawnPosition.yCoord = aimSource.yCoord - controllerDirection.y * 0.28f;
++            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.z * 0.28f;
++      	
++            yaw = Minecraft.getMinecraft().lookaimController.getAimYaw();
++            pitch = Minecraft.getMinecraft().lookaimController.getAimPitch();
++        	       	
++            EntityItem var4 = new EntityItem(this.worldObj, spawnPosition.xCoord, spawnPosition.yCoord, spawnPosition.zCoord, p_146097_1_);
+             var4.delayBeforeCanPickup = 40;
+ 
+             if (p_146097_3_)
+@@ -819,9 +1033,9 @@
+             else
+             {
+                 var5 = 0.3F;
+-                var4.motionX = (double)(-MathHelper.sin(this.rotationYaw / 180.0F * (float)Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float)Math.PI) * var5);
+-                var4.motionZ = (double)(MathHelper.cos(this.rotationYaw / 180.0F * (float)Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float)Math.PI) * var5);
+-                var4.motionY = (double)(-MathHelper.sin(this.rotationPitch / 180.0F * (float)Math.PI) * var5 + 0.1F);
++                var4.motionX = (double)(-MathHelper.sin(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(yaw / 180.0F * (float)Math.PI) * var5);
++                var4.motionZ = (double)(MathHelper.cos(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(yaw / 180.0F * (float)Math.PI) * var5);
++                var4.motionY = (double)(-MathHelper.sin(pitch / 180.0F * (float)Math.PI) * var5 + 0.1F);
+                 var5 = 0.02F;
+                 var6 = this.rand.nextFloat() * (float)Math.PI * 2.0F;
+                 var5 *= this.rand.nextFloat();
+@@ -839,28 +1053,67 @@
+     /**
+      * Joins the passed in entity item with the world. Args: entityItem
+      */
+-    protected void joinEntityItemWithWorld(EntityItem p_71012_1_)
++	/** MINECRIFT FORGE **/
++    public void joinEntityItemWithWorld(EntityItem p_71012_1_)
+     {
++		if (Reflector.forgeExists())
++		{
++	        if (captureDrops)
++	        {
++	            capturedDrops.add(p_71012_1_);
++	            return;
++	        }		
++		}
+         this.worldObj.spawnEntityInWorld(p_71012_1_);
+     }
++	/** END MINECRIFT FORGE **/
+ 
+     /**
+      * Returns how strong the player is against the specified block at this moment
+      */
++/** MINECRIFT FORGE **/
++    @Deprecated //Metadata sensitive version, named getBreakSpeed
+     public float getBreakSpeed(Block p_146096_1_, boolean p_146096_2_)
+     {
++        return getBreakSpeed(p_146096_1_, p_146096_2_, 0, 0, -1, 0);
++    }
++
++    @Deprecated //Location Specifc, one below, remove in 1.8
++    public float getBreakSpeed(Block p_146096_1_, boolean p_146096_2_, int meta)
++    {
++        return getBreakSpeed(p_146096_1_, p_146096_2_, meta, 0, -1, 0);
++    }
++
++    public float getBreakSpeed(Block p_146096_1_, boolean p_146096_2_, int meta, int x, int y, int z)
++    {
++		ItemStack var5 = null;
+         float var3 = this.inventory.getStrVsBlock(p_146096_1_);
+ 
++        boolean Forge = Reflector.forgeExists();
++		if (Forge)
++		{
++			var5 = inventory.getCurrentItem();
++        	//var3 = (var5 == null ? 1.0F : var5.getItem().getDigSpeed(var5, p_146096_1_, meta));
++            var3 = (var5 == null ? 1.0F : Reflector.callFloat(var5.getItem(), Reflector.ForgeItem_getDigSpeed, new Object[] {var5, p_146096_1_, meta}));
++		}
++		
+         if (var3 > 1.0F)
+         {
+             int var4 = EnchantmentHelper.getEfficiencyModifier(this);
+-            ItemStack var5 = this.inventory.getCurrentItem();
++            var5 = this.inventory.getCurrentItem();
+ 
+             if (var4 > 0 && var5 != null)
+             {
+                 float var6 = (float)(var4 * var4 + 1);
+ 
+-                if (!var5.canItemHarvestBlock(p_146096_1_) && var3 <= 1.0F)
++				boolean canHarvest = !var5.canItemHarvestBlock(p_146096_1_);
++				if (Forge)
++				{
++					//canHarvest = ForgeHooks.canToolHarvestBlock(p_146096_1_, meta, var5);
++                    canHarvest = Reflector.callBoolean(Reflector.ForgeHooks_canToolHarvestBlock, new Object[] {p_146096_1_, meta, var5});
++				}
++				
++                if (canHarvest && var3 <= 1.0F)
+                 {
+                     var3 += var6 * 0.08F;
+                 }
+@@ -891,7 +1144,13 @@
+             var3 /= 5.0F;
+         }
+ 
++		if (Forge)
++		{
++			//var3 = ForgeEventFactory.getBreakSpeed(this, p_146096_1_, meta, var3, x, y, z);
++            var3 = Reflector.callFloat(Reflector.ForgeEventFactory_getBreakSpeed, new Object[] {this, p_146096_1_, meta, var3, x, y, z});
++		}
+         return var3;
++/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -899,7 +1158,17 @@
+      */
+     public boolean canHarvestBlock(Block p_146099_1_)
+     {
+-        return this.inventory.func_146025_b(p_146099_1_);
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++        	//return ForgeEventFactory.doPlayerHarvestCheck(this, p_146099_1_, this.inventory.func_146025_b(p_146099_1_));
++            return Reflector.callBoolean(Reflector.ForgeEventFactory_doPlayerHarvestCheck, new Object[] {this, p_146099_1_, this.inventory.func_146025_b(p_146099_1_)});
++		}
++		else
++		{
++        	return this.inventory.func_146025_b(p_146099_1_);
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -930,7 +1199,20 @@
+             this.spawnChunk = new ChunkCoordinates(tagCompund.getInteger("SpawnX"), tagCompund.getInteger("SpawnY"), tagCompund.getInteger("SpawnZ"));
+             this.spawnForced = tagCompund.getBoolean("SpawnForced");
+         }
+-
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++	        NBTTagList spawnlist = null;
++	        spawnlist = tagCompund.getTagList("Spawns", 10);
++	        for (int i = 0; i < spawnlist.tagCount(); i++)
++	        {
++	            NBTTagCompound spawndata = (NBTTagCompound)spawnlist.getCompoundTagAt(i);
++	            int spawndim = spawndata.getInteger("Dim");
++	            this.spawnChunkMap.put(spawndim, new ChunkCoordinates(spawndata.getInteger("SpawnX"), spawndata.getInteger("SpawnY"), spawndata.getInteger("SpawnZ")));
++	            this.spawnForcedMap.put(spawndim, spawndata.getBoolean("SpawnForced"));
++	        }
++		}
++		/** END MINECRIFT FORGE **/
+         this.foodStats.readNBT(tagCompund);
+         this.capabilities.readCapabilitiesFromNBT(tagCompund);
+ 
+@@ -964,6 +1246,28 @@
+             tagCompound.setBoolean("SpawnForced", this.spawnForced);
+         }
+ 
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++	        NBTTagList spawnlist = new NBTTagList();
++	        for (Map.Entry<Integer, ChunkCoordinates> entry : this.spawnChunkMap.entrySet())
++	        {
++	            ChunkCoordinates spawn = entry.getValue();
++	            if (spawn == null) continue;
++	            Boolean forced = spawnForcedMap.get(entry.getKey());
++	            if (forced == null) forced = false;
++	            NBTTagCompound spawndata = new NBTTagCompound();
++	            spawndata.setInteger("Dim", entry.getKey());
++	            spawndata.setInteger("SpawnX", spawn.posX);
++	            spawndata.setInteger("SpawnY", spawn.posY);
++	            spawndata.setInteger("SpawnZ", spawn.posZ);
++	            spawndata.setBoolean("SpawnForced", forced);
++	            spawnlist.appendTag(spawndata);
++	        }
++	        tagCompound.setTag("Spawns", spawnlist);
++		}
++		/** END MINECRIFT FORGE **/
++		
+         this.foodStats.writeNBT(tagCompound);
+         this.capabilities.writeCapabilitiesToNBT(tagCompound);
+         tagCompound.setTag("EnderItems", this.theInventoryEnderChest.saveInventoryToNBT());
+@@ -994,7 +1298,16 @@
+ 
+     public float getEyeHeight()
+     {
+-        return 0.12F;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			return eyeHeight;
++		}
++		else
++		{
++        	return 0.12F;
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -1010,6 +1323,13 @@
+      */
+     public boolean attackEntityFrom(DamageSource source, float amount)
+     {
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//if (ForgeHooks.onLivingAttack(this, source, amount)) return false;
++            if (Reflector.callBoolean(Reflector.ForgeHooks_onLivingAttack, new Object[] {this, source, amount})) return false;
++		}
++		/** END MINECRIFT FORGE **/
+         if (this.isEntityInvulnerable())
+         {
+             return false;
+@@ -1122,12 +1442,31 @@
+     {
+         if (!this.isEntityInvulnerable())
+         {
++			/** MINECRIFT FORGE **/
++            boolean Forge = Reflector.forgeExists();
++			if (Forge)
++			{
++				//p_70665_2_ = ForgeHooks.onLivingHurt(this, p_70665_1_, p_70665_2_);
++                p_70665_2_ = Reflector.callFloat(Reflector.ForgeHooks_onLivingHurt, new Object[] {this, p_70665_1_, p_70665_2_});
++            	if (p_70665_2_ <= 0) return;
++			}
++			/** END MINECRIFT FORGE **/
+             if (!p_70665_1_.isUnblockable() && this.isBlocking() && p_70665_2_ > 0.0F)
+             {
+                 p_70665_2_ = (1.0F + p_70665_2_) * 0.5F;
+             }
+-
+-            p_70665_2_ = this.applyArmorCalculations(p_70665_1_, p_70665_2_);
++			/** MINECRIFT FORGE **/
++			if (Forge)
++			{
++				//p_70665_2_ = ArmorProperties.ApplyArmor(this, inventory.armorInventory, p_70665_1_, p_70665_2_);
++                p_70665_2_ = Reflector.callFloat(Reflector.ForgeArmorProperties_ApplyArmor, new Object[] {this, inventory.armorInventory, p_70665_1_, p_70665_2_});
++            	if (p_70665_2_ <= 0) return;
++			}
++			else
++			{
++            	p_70665_2_ = this.applyArmorCalculations(p_70665_1_, p_70665_2_);			
++			}
++			/** END MINECRIFT FORGE **/
+             p_70665_2_ = this.applyPotionDamageCalculations(p_70665_1_, p_70665_2_);
+             float var3 = p_70665_2_;
+             p_70665_2_ = Math.max(p_70665_2_ - this.getAbsorptionAmount(), 0.0F);
+@@ -1167,6 +1506,13 @@
+ 
+     public boolean interactWith(Entity p_70998_1_)
+     {
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//if (MinecraftForge.EVENT_BUS.post(new EntityInteractEvent(this, p_70998_1_))) return false;
++            if (Reflector.postForgeBusEvent(Reflector.ForgeEntityInteractEvent_Constructor, new Object[] {this, p_70998_1_})) return false;
++		}
++		/** END MINECRIFT FORGE **/
+         ItemStack var2 = this.getCurrentEquippedItem();
+         ItemStack var3 = var2 != null ? var2.copy() : null;
+ 
+@@ -1223,7 +1569,20 @@
+      */
+     public void destroyCurrentEquippedItem()
+     {
++		/** MINECRIFT FORGE **/
++		ItemStack orig = null;
++        boolean Forge = Reflector.forgeExists();
++		if (Forge)
++		{
++			orig = getCurrentEquippedItem();
++		}
+         this.inventory.setInventorySlotContents(this.inventory.currentItem, (ItemStack)null);
++		if (Forge)
++		{
++			//MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(this, orig));
++            Reflector.postForgeBusEvent(Reflector.ForgePlayerDestroyItemEvent_Constructor, new Object[] {this, orig});
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -1240,6 +1599,22 @@
+      */
+     public void attackTargetEntityWithCurrentItem(Entity targetEntity)
+     {
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++	        //if (MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(this, targetEntity)))
++            if (Reflector.postForgeBusEvent(Reflector.ForgeAttackEntityEvent_Constructor, new Object[] {this, targetEntity}))
++	        {
++	            return;
++	        }
++	        ItemStack stack = getCurrentEquippedItem();
++	        //if (stack != null && stack.getItem().onLeftClickEntity(stack, this, targetEntity))
++            if (stack != null && Reflector.callBoolean(stack.getItem(), Reflector.ForgeItem_onLeftClickEntity, new Object[] {stack, this, targetEntity}))
++	        {
++	            return;
++	        }
++		}
++		/** END MINECRIFT FORGE **/
+         if (targetEntity.canAttackWithItem())
+         {
+             if (!targetEntity.hitByEntity(this))
+@@ -1401,6 +1776,25 @@
+      */
+     public EntityPlayer.EnumStatus sleepInBedAt(int x, int y, int z)
+     {
++		/** MINECRIFT FORGE **/
++        boolean Forge = Reflector.forgeExists();
++		if (Forge)
++		{
++//	        PlayerSleepInBedEvent event = new PlayerSleepInBedEvent(this, x, y, z);
++//	        MinecraftForge.EVENT_BUS.post(event);
++//	        if (event.result != null)
++//	        {
++//	            return event.result;
++//	        }
++            Object event = Reflector.newInstance(Reflector.ForgePlayerSleepInBedEvent_Constructor, new Object[] {this, x, y, z});
++            Reflector.postForgeBusEvent(event);
++            EnumStatus result = (EnumStatus)Reflector.getFieldValue(event, Reflector.ForgePlayerSleepInBedEvent_result);
++            if (result != null)
++            {
++                return result;
++            }
++		}
++		/** END MINECRIFT FORGE **/
+         if (!this.worldObj.isRemote)
+         {
+             if (this.isPlayerSleeping() || !this.isEntityAlive())
+@@ -1444,7 +1838,14 @@
+         if (this.worldObj.blockExists(x, y, z))
+         {
+             int var9 = this.worldObj.getBlockMetadata(x, y, z);
+-            int var5 = BlockBed.getDirection(var9);
++			int var5 = BlockBed.getDirection(var9);
++			/** MINECRIFT FORGE **/
++			if (Forge)
++			{
++				//var5 = worldObj.getBlock(x, y, z).getBedDirection(worldObj, x, y, z);
++                var5 = Reflector.callInt(worldObj.getBlock(x, y, z), Reflector.ForgeBlock_getBedDirection, new Object[] {worldObj, x, y, z});
++			}
++            /** END MINECRIFT FORGE **/
+             float var10 = 0.5F;
+             float var7 = 0.5F;
+ 
+@@ -1517,24 +1918,61 @@
+      */
+     public void wakeUpPlayer(boolean p_70999_1_, boolean updateWorldFlag, boolean setSpawn)
+     {
+-        this.setSize(0.6F, 1.8F);
++		/** MINECRIFT FORGE **/
++        boolean Forge = Reflector.forgeExists();
++		if (Forge)
++		{
++			//MinecraftForge.EVENT_BUS.post(new PlayerWakeUpEvent(this, p_70999_1_, updateWorldFlag, setSpawn));
++            Reflector.postForgeBusEvent(Reflector.ForgePlayerWakeUpEvent_Constructor, new Object[] {this, p_70999_1_, updateWorldFlag, setSpawn});
++		}
++		/** END MINECRIFT FORGE **/
++        
++		this.setSize(0.6F, 1.8F);
+         this.resetHeight();
+-        ChunkCoordinates var4 = this.playerLocation;
+-        ChunkCoordinates var5 = this.playerLocation;
+-
+-        if (var4 != null && this.worldObj.getBlock(var4.posX, var4.posY, var4.posZ) == Blocks.bed)
+-        {
+-            BlockBed.setBedOccupied(this.worldObj, var4.posX, var4.posY, var4.posZ, false);
+-            var5 = BlockBed.getSafeExitLocation(this.worldObj, var4.posX, var4.posY, var4.posZ, 0);
+-
+-            if (var5 == null)
+-            {
+-                var5 = new ChunkCoordinates(var4.posX, var4.posY + 1, var4.posZ);
+-            }
+-
+-            this.setPosition((double)((float)var5.posX + 0.5F), (double)((float)var5.posY + this.yOffset + 0.1F), (double)((float)var5.posZ + 0.5F));
+-        }
+-
++        
++		/** MINECRIFT FORGE **/
++		if (Forge)
++		{
++        	ChunkCoordinates chunkcoordinates = this.playerLocation;
++        	ChunkCoordinates chunkcoordinates1 = this.playerLocation;
++			
++	        Block block = (chunkcoordinates == null ? null : worldObj.getBlock(chunkcoordinates.posX, chunkcoordinates.posY, chunkcoordinates.posZ));
++
++	        //if (chunkcoordinates != null && block.isBed(worldObj, chunkcoordinates.posX, chunkcoordinates.posY, chunkcoordinates.posZ, this))
++            if (chunkcoordinates != null && Reflector.callBoolean(block, Reflector.ForgeBlock_isBed, new Object[] {worldObj, chunkcoordinates.posX, chunkcoordinates.posY, chunkcoordinates.posZ, this}))
++	        {
++	            //block.setBedOccupied(this.worldObj, chunkcoordinates.posX, chunkcoordinates.posY, chunkcoordinates.posZ, this, false);
++                //chunkcoordinates1 = block.getBedSpawnPosition(this.worldObj, chunkcoordinates.posX, chunkcoordinates.posY, chunkcoordinates.posZ, this);
++                Reflector.callVoid(block, Reflector.ForgeBlock_setBedOccupied, new Object[] {this.worldObj, chunkcoordinates.posX, chunkcoordinates.posY, chunkcoordinates.posZ, this, false});
++	            chunkcoordinates1 = (ChunkCoordinates)Reflector.call(block, Reflector.ForgeBlock_getBedSpawnPosition, new Object[] {this.worldObj, chunkcoordinates.posX, chunkcoordinates.posY, chunkcoordinates.posZ, this});
++
++	            if (chunkcoordinates1 == null)
++	            {
++	                chunkcoordinates1 = new ChunkCoordinates(chunkcoordinates.posX, chunkcoordinates.posY + 1, chunkcoordinates.posZ);
++	            }
++
++	            this.setPosition((double)((float)chunkcoordinates1.posX + 0.5F), (double)((float)chunkcoordinates1.posY + this.yOffset + 0.1F), (double)((float)chunkcoordinates1.posZ + 0.5F));
++	        }		
++		}
++		else
++		{
++	        ChunkCoordinates var4 = this.playerLocation;
++        	ChunkCoordinates var5 = this.playerLocation;
++		
++	        if (var4 != null && this.worldObj.getBlock(var4.posX, var4.posY, var4.posZ) == Blocks.bed)
++	        {
++	            BlockBed.setBedOccupied(this.worldObj, var4.posX, var4.posY, var4.posZ, false);
++	            var5 = BlockBed.getSafeExitLocation(this.worldObj, var4.posX, var4.posY, var4.posZ, 0);
++
++	            if (var5 == null)
++	            {
++	                var5 = new ChunkCoordinates(var4.posX, var4.posY + 1, var4.posZ);
++	            }
++
++	            this.setPosition((double)((float)var5.posX + 0.5F), (double)((float)var5.posY + this.yOffset + 0.1F), (double)((float)var5.posZ + 0.5F));
++	        }
++		}
++		/** END MINECRIFT FORGE **/
+         this.sleeping = false;
+ 
+         if (!this.worldObj.isRemote && updateWorldFlag)
+@@ -1562,7 +2000,17 @@
+      */
+     private boolean isInBed()
+     {
+-        return this.worldObj.getBlock(this.playerLocation.posX, this.playerLocation.posY, this.playerLocation.posZ) == Blocks.bed;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			//return this.worldObj.getBlock(this.playerLocation.posX, this.playerLocation.posY, this.playerLocation.posZ).isBed(worldObj, playerLocation.posX, playerLocation.posY, playerLocation.posZ, this);
++            return Reflector.callBoolean(this.worldObj.getBlock(this.playerLocation.posX, this.playerLocation.posY, this.playerLocation.posZ), Reflector.ForgeBlock_isBed, new Object[] {worldObj, playerLocation.posX, playerLocation.posY, playerLocation.posZ, this});
++		}
++		else
++		{
++        	return this.worldObj.getBlock(this.playerLocation.posX, this.playerLocation.posY, this.playerLocation.posZ) == Blocks.bed;
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -1571,25 +2019,54 @@
+      */
+     public static ChunkCoordinates verifyRespawnCoordinates(World p_71056_0_, ChunkCoordinates p_71056_1_, boolean p_71056_2_)
+     {
+-        IChunkProvider var3 = p_71056_0_.getChunkProvider();
+-        var3.loadChunk(p_71056_1_.posX - 3 >> 4, p_71056_1_.posZ - 3 >> 4);
+-        var3.loadChunk(p_71056_1_.posX + 3 >> 4, p_71056_1_.posZ - 3 >> 4);
+-        var3.loadChunk(p_71056_1_.posX - 3 >> 4, p_71056_1_.posZ + 3 >> 4);
+-        var3.loadChunk(p_71056_1_.posX + 3 >> 4, p_71056_1_.posZ + 3 >> 4);
+-
+-        if (p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ) == Blocks.bed)
+-        {
+-            ChunkCoordinates var8 = BlockBed.getSafeExitLocation(p_71056_0_, p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ, 0);
+-            return var8;
+-        }
+-        else
+-        {
+-            Material var4 = p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ).getMaterial();
+-            Material var5 = p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY + 1, p_71056_1_.posZ).getMaterial();
+-            boolean var6 = !var4.isSolid() && !var4.isLiquid();
+-            boolean var7 = !var5.isSolid() && !var5.isLiquid();
+-            return p_71056_2_ && var6 && var7 ? p_71056_1_ : null;
+-        }
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++	        IChunkProvider ichunkprovider = p_71056_0_.getChunkProvider();
++	        ichunkprovider.loadChunk(p_71056_1_.posX - 3 >> 4, p_71056_1_.posZ - 3 >> 4);
++	        ichunkprovider.loadChunk(p_71056_1_.posX + 3 >> 4, p_71056_1_.posZ - 3 >> 4);
++	        ichunkprovider.loadChunk(p_71056_1_.posX - 3 >> 4, p_71056_1_.posZ + 3 >> 4);
++	        ichunkprovider.loadChunk(p_71056_1_.posX + 3 >> 4, p_71056_1_.posZ + 3 >> 4);
++
++	        //if (p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ).isBed(p_71056_0_, p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ, null))
++            if (Reflector.callBoolean(p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ), Reflector.ForgeBlock_isBed, new Object[] {p_71056_0_, p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ, null}))
++	        {
++	            //ChunkCoordinates chunkcoordinates1 = p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ).getBedSpawnPosition(p_71056_0_, p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ, null);
++                ChunkCoordinates chunkcoordinates1 = (ChunkCoordinates)Reflector.call(p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ), Reflector.ForgeBlock_getBedSpawnPosition, new Object[] {p_71056_0_, p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ, null});
++	            return chunkcoordinates1;
++	        }
++	        else
++	        {
++	            Material material = p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ).getMaterial();
++	            Material material1 = p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY + 1, p_71056_1_.posZ).getMaterial();
++	            boolean flag1 = !material.isSolid() && !material.isLiquid();
++	            boolean flag2 = !material1.isSolid() && !material1.isLiquid();
++	            return p_71056_2_ && flag1 && flag2 ? p_71056_1_ : null;
++	        }		
++		}
++		else
++		{
++	        IChunkProvider var3 = p_71056_0_.getChunkProvider();
++	        var3.loadChunk(p_71056_1_.posX - 3 >> 4, p_71056_1_.posZ - 3 >> 4);
++	        var3.loadChunk(p_71056_1_.posX + 3 >> 4, p_71056_1_.posZ - 3 >> 4);
++	        var3.loadChunk(p_71056_1_.posX - 3 >> 4, p_71056_1_.posZ + 3 >> 4);
++	        var3.loadChunk(p_71056_1_.posX + 3 >> 4, p_71056_1_.posZ + 3 >> 4);
++
++	        if (p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ) == Blocks.bed)
++	        {
++	            ChunkCoordinates var8 = BlockBed.getSafeExitLocation(p_71056_0_, p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ, 0);
++	            return var8;
++	        }
++	        else
++	        {
++	            Material var4 = p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY, p_71056_1_.posZ).getMaterial();
++	            Material var5 = p_71056_0_.getBlock(p_71056_1_.posX, p_71056_1_.posY + 1, p_71056_1_.posZ).getMaterial();
++	            boolean var6 = !var4.isSolid() && !var4.isLiquid();
++	            boolean var7 = !var5.isSolid() && !var5.isLiquid();
++	            return p_71056_2_ && var6 && var7 ? p_71056_1_ : null;
++	        }
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -1601,7 +2078,16 @@
+         {
+             int var1 = this.worldObj.getBlockMetadata(this.playerLocation.posX, this.playerLocation.posY, this.playerLocation.posZ);
+             int var2 = BlockBed.getDirection(var1);
+-
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++	            int x = playerLocation.posX;
++	            int y = playerLocation.posY;
++	            int z = playerLocation.posZ;
++	            //var2 = worldObj.getBlock(x, y, z).getBedDirection(worldObj, x, y, z);
++                var2 = Reflector.callInt(worldObj.getBlock(x, y, z), Reflector.ForgeBlock_getBedDirection, new Object[]{worldObj, x, y, z});
++			}
++			/** END MINECRIFT FORGE **/
+             switch (var2)
+             {
+                 case 0:
+@@ -1668,12 +2154,30 @@
+      */
+     public ChunkCoordinates getBedLocation()
+     {
+-        return this.spawnChunk;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			return getBedLocation(this.dimension);
++		}
++		else
++		{
++        	return this.spawnChunk;
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     public boolean isSpawnForced()
+     {
+-        return this.spawnForced;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			return isSpawnForced(this.dimension);
++		}
++		else
++		{
++        	return this.spawnForced;
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -1681,6 +2185,16 @@
+      */
+     public void setSpawnChunk(ChunkCoordinates p_71063_1_, boolean p_71063_2_)
+     {
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++			if (this.dimension != 0)
++			{
++	            setSpawnChunk(p_71063_1_, p_71063_2_, this.dimension);
++	            return;
++			}
++		}
++		/** END MINECRIFT FORGE **/
+         if (p_71063_1_ != null)
+         {
+             this.spawnChunk = new ChunkCoordinates(p_71063_1_);
+@@ -1727,7 +2241,7 @@
+     /**
+      * Moves the entity based on the specified heading.  Args: strafe, forward
+      */
+-    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_)
++    public void moveEntityWithHeading(float strafe, float foreward)
+     {
+         double var3 = this.posX;
+         double var5 = this.posY;
+@@ -1738,13 +2252,20 @@
+             double var9 = this.motionY;
+             float var11 = this.jumpMovementFactor;
+             this.jumpMovementFactor = this.capabilities.getFlySpeed();
+-            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+-            this.motionY = var9 * 0.6D;
++            super.moveEntityWithHeading(strafe, foreward);
++            /** MINECRIFT **/
++            if (this instanceof EntityPlayerSP && Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying && this.capabilities.isFlying) {
++                // Do nothing
++            }
++            else {
++                this.motionY = var9 * 0.6D;
++            }
++            /** END MINECRIFT **/
+             this.jumpMovementFactor = var11;
+         }
+         else
+         {
+-            super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
++            super.moveEntityWithHeading(strafe, foreward);
+         }
+ 
+         this.addMovementStat(this.posX - var3, this.posY - var5, this.posZ - var7);
+@@ -1878,6 +2399,13 @@
+ 
+             super.fall(distance);
+         }
++		/** MINECRIFT FORGE **/
++		else if (Reflector.forgeExists())
++		{
++			//MinecraftForge.EVENT_BUS.post(new PlayerFlyableFallEvent(this, distance));
++            Reflector.postForgeBusEvent(Reflector.ForgePlayerFlyableFallEvent_Constructor, new Object[] {this, distance});
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     protected String func_146067_o(int p_146067_1_)
+@@ -1928,11 +2456,16 @@
+         }
+         else
+         {
+-            if (itemStackIn.getItem().requiresMultipleRenderPasses())
+-            {
+-                return itemStackIn.getItem().getIconFromDamageForRenderPass(itemStackIn.getMetadata(), p_70620_2_);
+-            }
+-
++			/** MINECRIFT FORGE **/
++            boolean Forge = Reflector.forgeExists();
++			if (!Forge)
++			{
++	            if (itemStackIn.getItem().requiresMultipleRenderPasses())
++	            {
++	                return itemStackIn.getItem().getIconFromDamageForRenderPass(itemStackIn.getMetadata(), p_70620_2_);
++	            }
++			}
++			/** END MINECRIFT FORGE **/
+             if (this.itemInUse != null && itemStackIn.getItem() == Items.bow)
+             {
+                 int var4 = itemStackIn.getMaxItemUseDuration() - this.itemInUseCount;
+@@ -1952,6 +2485,13 @@
+                     return Items.bow.getItemIconForUseDuration(0);
+                 }
+             }
++			/** MINECRIFT FORGE **/
++			if (Forge)
++			{
++				//var3 = itemStackIn.getItem().getIcon(itemStackIn, p_70620_2_, this, itemInUse, itemInUseCount);
++                var3 = (IIcon)Reflector.call(itemStackIn.getItem(), Reflector.ForgeItem_getIcon, new Object[] {itemStackIn, p_70620_2_, this, itemInUse, itemInUseCount});
++			}
++			/** END MINECRIFT FORGE **/
+         }
+ 
+         return var3;
+@@ -2057,6 +2597,14 @@
+     {
+         if (p_71008_1_ != this.itemInUse)
+         {
++			/** MINECRIFT FORGE **/
++			if (Reflector.forgeExists())
++			{
++				//p_71008_2_ = ForgeEventFactory.onItemUseStart(this, p_71008_1_, p_71008_2_);
++                p_71008_2_ = Reflector.callInt(Reflector.ForgeEventFactory_onItemUseStart, new Object[]{this, p_71008_1_, p_71008_2_});
++            	if (p_71008_2_ <= 0) return;
++			}
++			/** END MINECRIFT FORGE **/			
+             this.itemInUse = p_71008_1_;
+             this.itemInUseCount = p_71008_2_;
+ 
+@@ -2142,6 +2690,9 @@
+      */
+     public void clonePlayer(EntityPlayer p_71049_1_, boolean p_71049_2_)
+     {
++        /** MINECRIFT FORGE **/
++        boolean Forge = Reflector.forgeExists();
++        /** END MINECRIFT FORGE **/
+         if (p_71049_2_)
+         {
+             this.inventory.copyInventory(p_71049_1_.inventory);
+@@ -2152,6 +2703,17 @@
+             this.experience = p_71049_1_.experience;
+             this.setScore(p_71049_1_.getScore());
+             this.teleportDirection = p_71049_1_.teleportDirection;
++			/** MINECRIFT FORGE **/
++			if (Forge)
++			{
++	            //Copy and re-init ExtendedProperties when switching dimensions.
++	            this.extendedProperties = p_71049_1_.extendedProperties;
++//	            for (IExtendedEntityProperties p : this.extendedProperties.values())
++//	                p.init(this, this.worldObj);
++                for (Object p : this.extendedProperties.values())
++                    Reflector.callVoid(p, Reflector.ForgeIExtendedEntityProperties_init, new Object[] {this, this.worldObj});
++			}
++			/** END MINECRIFT FORGE **/
+         }
+         else if (this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory"))
+         {
+@@ -2163,6 +2725,23 @@
+         }
+ 
+         this.theInventoryEnderChest = p_71049_1_.theInventoryEnderChest;
++		/** MINECRIFT FORGE **/
++		if (Forge)
++		{
++		    this.spawnChunkMap = p_71049_1_.spawnChunkMap;
++		    this.spawnForcedMap = p_71049_1_.spawnForcedMap;
++
++		    //Copy over a section of the Entity Data from the old player.
++		    //Allows mods to specify data that persists after players respawn.
++		    NBTTagCompound old = p_71049_1_.getEntityData();
++		    if (old.hasKey(PERSISTED_NBT_TAG))
++		    {
++		        getEntityData().setTag(PERSISTED_NBT_TAG, old.getCompoundTag(PERSISTED_NBT_TAG));
++		    }
++		    //MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.Clone(this, p_71049_1_, !p_71049_2_));
++            Reflector.postForgeBusEvent(Reflector.ForgePlayerEvent_Clone_Constructor, new Object[] {this, p_71049_1_, !p_71049_2_});
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -2226,7 +2805,23 @@
+      */
+     public void setCurrentItemOrArmor(int slotIn, ItemStack itemStackIn)
+     {
+-        this.inventory.armorInventory[slotIn] = itemStackIn;
++		/** MINECRIFT FORGE **/
++		if (Reflector.forgeExists())
++		{
++	        if (slotIn == 0)
++	        {
++	            this.inventory.mainInventory[this.inventory.currentItem] = itemStackIn;
++	        }
++	        else
++	        {
++	            this.inventory.armorInventory[slotIn - 1] = itemStackIn;
++	        }
++		}
++		else
++		{
++	        this.inventory.armorInventory[slotIn] = itemStackIn;			
++		}
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     /**
+@@ -2277,9 +2872,16 @@
+ 
+     public IChatComponent getFormattedCommandSenderName()
+     {
+-        ChatComponentText var1 = new ChatComponentText(ScorePlayerTeam.formatPlayerName(this.getTeam(), this.getCommandSenderName()));
++		/** MINECRIFT FORGE **/
++		String name = this.getCommandSenderName();
++		if (Reflector.forgeExists())
++		{
++			name = this.getDisplayName();
++		}
++        ChatComponentText var1 = new ChatComponentText(ScorePlayerTeam.formatPlayerName(this.getTeam(), name));
+         var1.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/msg " + this.getCommandSenderName() + " "));
+         return var1;
++		/** END MINECRIFT FORGE **/
+     }
+ 
+     public void setAbsorptionAmount(float p_110149_1_)
+@@ -2356,7 +2958,136 @@
+             }
+         }
+     }
++/** MINECRIFT FORGE **/
++
++    public void openGui(Object mod, int modGuiId, World world, int x, int y, int z)
++    {
++		if (Reflector.forgeExists())
++        {
++            //FMLNetworkHandler.openGui(this, mod, modGuiId, world, x, y, z);
++            Reflector.callVoid(Reflector.FMLNetworkHandler_openGui, new Object[]{this, mod, modGuiId, world, x, y, z});
++        }
++    }
+ 
++    /* ======================================== FORGE START =====================================*/
++    /**
++     * interpolated position vector
++     */
++    @Override
++    public Vec3 getPosition(float par1)
++    {
++        if (par1 == 1.0F)
++        {
++            return Vec3.createVectorHelper(this.posX, this.posY + (this.getEyeHeight() - this.getDefaultEyeHeight()), this.posZ);
++        }
++        else
++        {
++            double d0 = this.prevPosX + (this.posX - this.prevPosX) * (double)par1;
++            double d1 = this.prevPosY + (this.posY - this.prevPosY) * (double)par1 + (this.getEyeHeight() - this.getDefaultEyeHeight());
++            double d2 = this.prevPosZ + (this.posZ - this.prevPosZ) * (double)par1;
++            return Vec3.createVectorHelper(d0, d1, d2);
++        }
++    }
++
++    /**
++     * A dimension aware version of getBedLocation.
++     * @param dimension The dimension to get the bed spawn for
++     * @return The player specific spawn location for the dimension.  May be null.
++     */
++    public ChunkCoordinates getBedLocation(int dimension)
++    {
++        return dimension == 0 ? spawnChunk : spawnChunkMap.get(dimension);
++    }
++
++    /**
++     * A dimension aware version of isSpawnForced.
++     * Noramally isSpawnForced is used to determine if the respawn system should check for a bed or not.
++     * This just extends that to be dimension aware.
++     * @param dimension The dimension to get whether to check for a bed before spawning for
++     * @return The player specific spawn location for the dimension.  May be null.
++     */
++    public boolean isSpawnForced(int dimension)
++    {
++        if (dimension == 0) return this.spawnForced;
++        Boolean forced = this.spawnForcedMap.get(dimension);
++        return forced == null ? false : forced;
++    }
++
++    /**
++     * A dimension aware version of setSpawnChunk.
++     * This functions identically, but allows you to specify which dimension to affect, rather than affecting the player's current dimension.
++     * @param chunkCoordinates The spawn point to set as the player-specific spawn point for the dimension
++     * @param forced Whether or not the respawn code should check for a bed at this location (true means it won't check for a bed)
++     * @param dimension Which dimension to apply the player-specific respawn point to
++     */
++    public void setSpawnChunk(ChunkCoordinates chunkCoordinates, boolean forced, int dimension)
++    {
++        if (dimension == 0)
++        {
++            if (chunkCoordinates != null)
++            {
++                spawnChunk = new ChunkCoordinates(chunkCoordinates);
++                spawnForced = forced;
++            }
++            else
++            {
++                spawnChunk = null;
++                spawnForced = false;
++            }
++            return;
++        }
++
++        if (chunkCoordinates != null)
++        {
++            spawnChunkMap.put(dimension, new ChunkCoordinates(chunkCoordinates));
++            spawnForcedMap.put(dimension, forced);
++        }
++        else
++        {
++            spawnChunkMap.remove(dimension);
++            spawnForcedMap.remove(dimension);
++        }
++    }
++
++    public float eyeHeight;
++    private String displayname;
++
++    /**
++     * Returns the default eye height of the player
++     * @return player default eye height
++     */
++    public float getDefaultEyeHeight()
++    {
++        return 0.12F;
++    }
++
++    /**
++     * Get the currently computed display name, cached for efficiency.
++     * @return the current display name
++     */
++    public String getDisplayName()
++    {
++        if(Reflector.forgeExists() && this.displayname == null)
++        {
++            //this.displayname = ForgeEventFactory.getPlayerDisplayName(this, this.getCommandSenderName());
++            this.displayname = Reflector.callString(Reflector.ForgeEventFactory_getPlayerDisplayName, new Object[] {this, this.getCommandSenderName()});
++        }
++        return this.displayname;
++    }
++
++    /**
++     * Force the displayed name to refresh
++     */
++    public void refreshDisplayName()
++    {
++		if (Reflector.forgeExists())
++        {
++            //this.displayname = ForgeEventFactory.getPlayerDisplayName(this, this.getCommandSenderName());
++            this.displayname = Reflector.callString(Reflector.ForgeEventFactory_getPlayerDisplayName, new Object[] {this, this.getCommandSenderName()});
++        }
++    }
++    /* ======================================== FORGE END  =====================================*/
++/** END MINECRIFT FORGE **/
+     public static enum EnumStatus
+     {
+         OK("OK", 0),
+@@ -2371,4 +3102,48 @@
+ 
+         private EnumStatus(String p_i1751_1_, int p_i1751_2_) {}
+     }
++
++//VIVE
++        
++    
++public void moveEntity(double x, double y, double z)
++{
++
++//	    	if(this instanceof EntityPlayerSP) { 		
++//	    		System.out.println("SP: " + x + " " + y+ " " + z);
++//	    	}
++//
++//	       	if(this instanceof EntityPlayerMP) { 		
++//	    		System.out.println("MP: " + x + " " + y+ " " + z);
++//	    	}
++
++	if (VRPlayer.get().getFreeMoveMode())
++	{
++		super.moveEntity(x,y,z);
++		if (this instanceof EntityPlayerSP){	VRPlayer.get().snapRoomOriginToPlayerEntity((EntityPlayerSP) this);}  
++		
++		
++	} else {
++		//     this.onGround = true;
++		if(Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder() && !this.isSneaking()) {      	 
++			super.moveEntity(0,y,0);
++			
++			if (this instanceof EntityPlayerSP){VRPlayer.get().setRoomOrigin(VRPlayer.get().getRoomOrigin().xCoord, this.boundingBox.minY, VRPlayer.get().getRoomOrigin().zCoord);
++			
++			}
++			
++		} else {
++			//do not move player, VRPlayer.moveplayerinroom will move him around.
++		}
++		
++
++	}
++
++  		
++	
++}
++    
++
++
++    // VIVE END 
+ }

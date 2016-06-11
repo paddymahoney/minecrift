@@ -1,0 +1,42 @@
+--- a/net/minecraft/entity/player/EntityPlayerMP.java
++++ b/net/minecraft/entity/player/EntityPlayerMP.java
+@@ -11,6 +11,8 @@
+ import java.util.Iterator;
+ import java.util.LinkedList;
+ import java.util.List;
++
++import net.minecraft.client.Minecraft;
+ import net.minecraft.crash.CrashReport;
+ import net.minecraft.crash.CrashReportCategory;
+ import net.minecraft.entity.Entity;
+@@ -186,7 +188,7 @@
+         this.mcServer = p_i45285_1_;
+         this.field_147103_bO = p_i45285_1_.getConfigurationManager().getPlayerStatsFile(this);
+         this.stepHeight = 0.0F;
+-        this.yOffset = 0.0F;
++        this.yOffset = 0F;
+         this.setLocationAndAngles((double)var6 + 0.5D, (double)var8, (double)var7 + 0.5D, 0.0F, 0.0F);
+ 
+         while (!p_i45285_2_.getCollidingBoundingBoxes(this, this.boundingBox).isEmpty())
+@@ -243,7 +245,7 @@
+      */
+     protected void resetHeight()
+     {
+-        this.yOffset = 0.0F;
++        this.yOffset = 0F;
+     }
+ 
+     public float getEyeHeight()
+@@ -345,8 +347,10 @@
+     {
+         try
+         {
+-            super.onUpdate();
+-
++            this.height = (float) Minecraft.getMinecraft().vrPlayer.topofhead;
++            
++        	super.onUpdate();
++                   	
+             for (int var1 = 0; var1 < this.inventory.getSizeInventory(); ++var1)
+             {
+                 ItemStack var6 = this.inventory.getStackInSlot(var1);

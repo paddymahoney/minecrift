@@ -1,10 +1,23 @@
 --- a/net/minecraft/client/renderer/WorldRenderer.java
 +++ b/net/minecraft/client/renderer/WorldRenderer.java
-@@ -110,7 +110,6 @@
-     public RenderGlobal renderGlobal;
-     public static int globalChunkOffsetX = 0;
-     public static int globalChunkOffsetZ = 0;
--    private static final String __OBFID = "CL_00000942";
- 
-     public WorldRenderer(World par1World, List par2List, int par3, int par4, int par5, int par6)
-     {
+@@ -17,6 +17,7 @@
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.util.AxisAlignedBB;
+ import net.minecraft.util.MathHelper;
++import net.minecraft.util.Vec3;
+ import net.minecraft.world.ChunkCache;
+ import net.minecraft.world.World;
+ import net.minecraft.world.chunk.Chunk;
+@@ -291,8 +292,10 @@
+                                         if (canRender)
+                                         {
+                                             hasRenderedBlocks |= var27.renderBlockByRenderType(block, x, y, z);
+-
+-                                            if (block.getRenderType() == 0 && x == viewEntityPosX && y == viewEntityPosY && z == viewEntityPosZ)
++                                            //Vive
++                                            Vec3 cam =  Minecraft.getMinecraft().entityRenderer.getCameraBlock();
++                                            if (block.getRenderType() == 0 && x ==cam.xCoord && y == cam.yCoord && z == cam.zCoord)
++                                           	//END Vive
+                                             {
+                                                 var27.setRenderFromInside(true);
+                                                 var27.setRenderAllFaces(true);

@@ -1,10 +1,129 @@
 --- a/net/minecraft/client/model/ModelRenderer.java
 +++ b/net/minecraft/client/model/ModelRenderer.java
-@@ -45,7 +45,6 @@
-     private static final String __OBFID = "CL_00000874";
+@@ -1,7 +1,10 @@
+ package net.minecraft.client.model;
+ 
++import java.nio.FloatBuffer;
+ import java.util.ArrayList;
+ import java.util.List;
++
++import com.mtbs3d.minecrift.render.GLUtils;
+ import net.minecraft.client.renderer.GLAllocation;
+ import net.minecraft.client.renderer.Tessellator;
+ import net.minecraft.src.ModelSprite;
+@@ -46,6 +49,12 @@
      public List spriteList;
      public boolean mirrorV;
--    private static final String __OBFID = "CL_00000874";
  
++    /** MINECRIFT **/
++    public boolean renderChildren = true;
++    public boolean useRenderViewMatrix = false;
++    public FloatBuffer modelViewMatrix = GLUtils.createFloatBuffer(16);
++    /** END MINECRIFT **/
++
      public ModelRenderer(ModelBase par1ModelBase, String par2Str)
      {
+         this.spriteList = new ArrayList();
+@@ -129,7 +138,14 @@
+             {
+                 this.compileDisplayList(par1);
+             }
+-
++            /** MINECRIFT **/
++            if (baseModel.initialisedForVr) {
++                if (this.useRenderViewMatrix) {
++                    GL11.glPushMatrix();
++                    GL11.glLoadMatrix(this.modelViewMatrix);
++                }
++            }
++            /** END MINECRIFT **/
+             GL11.glTranslatef(this.offsetX, this.offsetY, this.offsetZ);
+             int var2;
+ 
+@@ -143,7 +159,23 @@
+                     {
+                         for (var2 = 0; var2 < this.childModels.size(); ++var2)
+                         {
+-                            ((ModelRenderer)this.childModels.get(var2)).render(par1);
++                            /** MINECRIFT **/
++                            if (!baseModel.initialisedForVr) {
++                                ((ModelRenderer)this.childModels.get(var2)).render(par1);
++                            }
++                            else
++                            {
++                                ModelRenderer child = ((ModelRenderer) this.childModels.get(var2));
++                                if (this.renderChildren) {
++                                    child.useRenderViewMatrix = false;
++                                    child.render(par1);
++                                }
++                                else {
++                                    child.useRenderViewMatrix = true;
++                                    GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, child.modelViewMatrix);
++                                }
++                            }
++                            /** END MINECRIFT **/
+                         }
+                     }
+                 }
+@@ -156,7 +188,22 @@
+                     {
+                         for (var2 = 0; var2 < this.childModels.size(); ++var2)
+                         {
+-                            ((ModelRenderer)this.childModels.get(var2)).render(par1);
++                            /** MINECRIFT **/
++                            if (!baseModel.initialisedForVr) {
++                                ((ModelRenderer)this.childModels.get(var2)).render(par1);
++                            }
++                            else {
++                                ModelRenderer child = ((ModelRenderer) this.childModels.get(var2));
++                                if (this.renderChildren) {
++                                    child.useRenderViewMatrix = false;
++                                    child.render(par1);
++                                }
++                                else {
++                                    child.useRenderViewMatrix = true;
++                                    GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, child.modelViewMatrix);
++                                }
++                            }
++                            /** END MINECRIFT **/
+                         }
+                     }
+ 
+@@ -189,7 +236,22 @@
+                 {
+                     for (var2 = 0; var2 < this.childModels.size(); ++var2)
+                     {
+-                        ((ModelRenderer)this.childModels.get(var2)).render(par1);
++                        /** MINECRIFT **/
++                        if (!baseModel.initialisedForVr) {
++                            ((ModelRenderer)this.childModels.get(var2)).render(par1);
++                        }
++                        else {
++                            ModelRenderer child = ((ModelRenderer) this.childModels.get(var2));
++                            if (this.renderChildren) {
++                                child.useRenderViewMatrix = false;
++                                child.render(par1);
++                            }
++                            else {
++                                child.useRenderViewMatrix = true;
++                                GL11.glGetFloat(GL11.GL_MODELVIEW_MATRIX, child.modelViewMatrix);
++                            }
++                        }
++                        /** END MINECRIFT **/
+                     }
+                 }
+ 
+@@ -197,6 +259,13 @@
+             }
+ 
+             GL11.glTranslatef(-this.offsetX, -this.offsetY, -this.offsetZ);
++            /** MINECRIFT **/
++            if (baseModel.initialisedForVr) {
++                if (this.useRenderViewMatrix) {
++                    GL11.glPopMatrix();
++                }
++            }
++            /** END MINECRIFT **/
+         }
+     }
+ 

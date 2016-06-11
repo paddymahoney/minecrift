@@ -1,0 +1,69 @@
+--- a/net/minecraft/entity/projectile/EntityArrow.java
++++ b/net/minecraft/entity/projectile/EntityArrow.java
+@@ -1,8 +1,13 @@
+ package net.minecraft.entity.projectile;
+ 
+ import java.util.List;
++
++import de.fruitfly.ovr.structs.Matrix4f;
++import de.fruitfly.ovr.structs.Vector3f;
+ import net.minecraft.block.Block;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.Minecraft;
++import net.minecraft.client.entity.EntityPlayerSP;
+ import net.minecraft.enchantment.EnchantmentHelper;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.entity.EntityLivingBase;
+@@ -92,19 +97,46 @@
+         }
+     }
+ 
+-    public EntityArrow(World p_i1756_1_, EntityLivingBase p_i1756_2_, float p_i1756_3_)
++    public EntityArrow(World p_i1756_1_, EntityLivingBase shooter, float p_i1756_3_)
+     {
+         super(p_i1756_1_);
+         this.renderDistanceWeight = 10.0D;
+-        this.shootingEntity = p_i1756_2_;
++        this.shootingEntity = shooter;
+ 
+-        if (p_i1756_2_ instanceof EntityPlayer)
++        if (shooter instanceof EntityPlayer)
+         {
+             this.canBePickedUp = 1;
+         }
+-
+-        this.setSize(0.5F, 0.5F);
+-        this.setLocationAndAngles(p_i1756_2_.posX, p_i1756_2_.posY + (double)p_i1756_2_.getEyeHeight(), p_i1756_2_.posZ, p_i1756_2_.rotationYaw, p_i1756_2_.rotationPitch);
++  
++        //JRBUDDA VIVE
++        Vec3 spawnPosition = shooter.getPosition(1);
++        spawnPosition.yCoord += shooter.getEyeHeight();
++        
++        float yaw = shooter.rotationYaw;
++        float pitch = shooter.rotationPitch;
++     
++     
++        if (shooter instanceof EntityPlayer)
++        {
++        	
++            Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
++        	Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
++            //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
++            //aimRotation = Matrix4f.multiply(aimRotation, tilt);
++            Vector3f forward = new Vector3f(0,0,1);
++            Vector3f controllerDirection = aimRotation.transform(forward);
++            spawnPosition.xCoord = aimSource.xCoord + controllerDirection.x * 0.28f;
++            spawnPosition.yCoord = aimSource.yCoord - controllerDirection.y * 0.28f;
++            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.z * 0.28f;
++      	
++            yaw = Minecraft.getMinecraft().lookaimController.getAimYaw();
++            pitch = Minecraft.getMinecraft().lookaimController.getAimPitch();
++        }
++    
++        this.setLocationAndAngles(spawnPosition.xCoord, spawnPosition.yCoord ,spawnPosition.zCoord, yaw, pitch);
++        //END VIVE
++        
++        this.setSize(0.5F, 0.5F);    
+         this.posX -= (double)(MathHelper.cos(this.rotationYaw / 180.0F * (float)Math.PI) * 0.16F);
+         this.posY -= 0.10000000149011612D;
+         this.posZ -= (double)(MathHelper.sin(this.rotationYaw / 180.0F * (float)Math.PI) * 0.16F);

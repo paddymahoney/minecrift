@@ -1,0 +1,24 @@
+--- a/net/minecraft/src/WorldRendererSmooth.java
++++ b/net/minecraft/src/WorldRendererSmooth.java
+@@ -15,6 +15,7 @@
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.util.AxisAlignedBB;
+ import net.minecraft.util.MathHelper;
++import net.minecraft.util.Vec3;
+ import net.minecraft.world.ChunkCache;
+ import net.minecraft.world.World;
+ import net.minecraft.world.chunk.Chunk;
+@@ -257,8 +258,12 @@
+                                     {
+                                         hasRenderedBlocks |= renderblocks.renderBlockByRenderType(block, x, y, z);
+ 
+-                                        if (block.getRenderType() == 0 && x == viewEntityPosX && y == viewEntityPosY && z == viewEntityPosZ)
++                                        //Vive
++                                        Vec3 cam =  Minecraft.getMinecraft().entityRenderer.getCameraBlock();
++                                        if (block.getRenderType() == 0 && x ==cam.xCoord && y == cam.yCoord && z == cam.zCoord)
++                                       	//END Vive
+                                         {
++                                        	
+                                             renderblocks.setRenderFromInside(true);
+                                             renderblocks.setRenderAllFaces(true);
+                                             renderblocks.renderBlockByRenderType(block, x, y, z);

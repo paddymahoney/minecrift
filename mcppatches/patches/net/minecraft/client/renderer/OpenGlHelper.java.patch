@@ -1,10 +1,13 @@
 --- a/net/minecraft/client/renderer/OpenGlHelper.java
 +++ b/net/minecraft/client/renderer/OpenGlHelper.java
-@@ -63,7 +63,6 @@
-     private static final String __OBFID = "CL_00001179";
-     public static float lastBrightnessX = 0.0F;
-     public static float lastBrightnessY = 0.0F;
--    private static final String __OBFID = "CL_00001179";
+@@ -766,6 +766,9 @@
  
-     /**
-      * Initializes the texture constants to be used when rendering lightmap values
+     public static boolean isFramebufferEnabled()
+     {
+-        return Config.isFastRender() ? false : framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
++        /** MINECRIFT **/
++        // Disable fast render mod - everything breaks!!
++        return /*Config.isFastRender() ? false :*/ framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
++        /** END MINECRIFT **/
+     }
+ }
