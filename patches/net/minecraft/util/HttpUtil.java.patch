@@ -1,0 +1,178 @@
+--- a/net/minecraft/util/HttpUtil.java
++++ b/net/minecraft/util/HttpUtil.java
+@@ -151,109 +151,105 @@
+ 
+                 try
+                 {
+-                    try
++                    byte[] var4 = new byte[4096];
++                    URL var5 = new URL(packName);
++                    var1 = var5.openConnection(proxy);
++                    float var6 = 0.0F;
++                    float var7 = (float)requestData.entrySet().size();
++                    Iterator var8 = requestData.entrySet().iterator();
++
++                    while (var8.hasNext())
++                    {
++                        Entry var9 = (Entry)var8.next();
++                        var1.setRequestProperty((String)var9.getKey(), (String)var9.getValue());
++
++                        if (loadingScreen != null)
++                        {
++                            loadingScreen.setLoadingProgress((int)(++var6 / var7 * 100.0F));
++                        }
++                    }
++
++                    var2 = var1.getInputStream();
++                    var7 = (float)var1.getContentLength();
++                    int var28 = var1.getContentLength();
++
++                    if (loadingScreen != null)
++                    {
++                        loadingScreen.displayLoadingString(String.format("Downloading file (%.2f MB)...", new Object[] {Float.valueOf(var7 / 1000.0F / 1000.0F)}));
++                    }
++
++                    if (packFile.exists())
+                     {
+-                        byte[] var4 = new byte[4096];
+-                        URL var5 = new URL(packName);
+-                        var1 = var5.openConnection(proxy);
+-                        float var6 = 0.0F;
+-                        float var7 = (float)requestData.entrySet().size();
+-                        Iterator var8 = requestData.entrySet().iterator();
++                        long var29 = packFile.length();
+ 
+-                        while (var8.hasNext())
++                        if (var29 == (long)var28)
+                         {
+-                            Entry var9 = (Entry)var8.next();
+-                            var1.setRequestProperty((String)var9.getKey(), (String)var9.getValue());
++                            completionListener.onDownloadComplete(packFile);
+ 
+                             if (loadingScreen != null)
+                             {
+-                                loadingScreen.setLoadingProgress((int)(++var6 / var7 * 100.0F));
++                                loadingScreen.setDoneWorking();
+                             }
++
++                            return;
+                         }
+ 
+-                        var2 = var1.getInputStream();
+-                        var7 = (float)var1.getContentLength();
+-                        int var28 = var1.getContentLength();
++                        HttpUtil.logger.warn("Deleting " + packFile + " as it does not match what we currently have (" + var28 + " vs our " + var29 + ").");
++                        packFile.delete();
++                    }
++                    else if (packFile.getParentFile() != null)
++                    {
++                        packFile.getParentFile().mkdirs();
++                    }
++
++                    var3 = new DataOutputStream(new FileOutputStream(packFile));
+ 
++                    if (maxSize > 0 && var7 > (float)maxSize)
++                    {
+                         if (loadingScreen != null)
+                         {
+-                            loadingScreen.displayLoadingString(String.format("Downloading file (%.2f MB)...", new Object[] {Float.valueOf(var7 / 1000.0F / 1000.0F)}));
++                            loadingScreen.setDoneWorking();
+                         }
+ 
+-                        if (packFile.exists())
+-                        {
+-                            long var29 = packFile.length();
+-
+-                            if (var29 == (long)var28)
+-                            {
+-                                completionListener.onDownloadComplete(packFile);
++                        throw new IOException("Filesize is bigger than maximum allowed (file is " + var6 + ", limit is " + maxSize + ")");
++                    }
+ 
+-                                if (loadingScreen != null)
+-                                {
+-                                    loadingScreen.setDoneWorking();
+-                                }
++                    boolean var30 = false;
++                    int var31;
+ 
+-                                return;
+-                            }
++                    while ((var31 = var2.read(var4)) >= 0)
++                    {
++                        var6 += (float)var31;
+ 
+-                            HttpUtil.logger.warn("Deleting " + packFile + " as it does not match what we currently have (" + var28 + " vs our " + var29 + ").");
+-                            packFile.delete();
+-                        }
+-                        else if (packFile.getParentFile() != null)
++                        if (loadingScreen != null)
+                         {
+-                            packFile.getParentFile().mkdirs();
++                            loadingScreen.setLoadingProgress((int)(var6 / var7 * 100.0F));
+                         }
+ 
+-                        var3 = new DataOutputStream(new FileOutputStream(packFile));
+-
+-                        if (maxSize > 0 && var7 > (float)maxSize)
++                        if (maxSize > 0 && var6 > (float)maxSize)
+                         {
+                             if (loadingScreen != null)
+                             {
+                                 loadingScreen.setDoneWorking();
+                             }
+ 
+-                            throw new IOException("Filesize is bigger than maximum allowed (file is " + var6 + ", limit is " + maxSize + ")");
++                            throw new IOException("Filesize was bigger than maximum allowed (got >= " + var6 + ", limit was " + maxSize + ")");
+                         }
+ 
+-                        boolean var30 = false;
+-                        int var31;
+-
+-                        while ((var31 = var2.read(var4)) >= 0)
+-                        {
+-                            var6 += (float)var31;
+-
+-                            if (loadingScreen != null)
+-                            {
+-                                loadingScreen.setLoadingProgress((int)(var6 / var7 * 100.0F));
+-                            }
+-
+-                            if (maxSize > 0 && var6 > (float)maxSize)
+-                            {
+-                                if (loadingScreen != null)
+-                                {
+-                                    loadingScreen.setDoneWorking();
+-                                }
+-
+-                                throw new IOException("Filesize was bigger than maximum allowed (got >= " + var6 + ", limit was " + maxSize + ")");
+-                            }
+-
+-                            var3.write(var4, 0, var31);
+-                        }
++                        var3.write(var4, 0, var31);
++                    }
+ 
+-                        completionListener.onDownloadComplete(packFile);
++                    completionListener.onDownloadComplete(packFile);
+ 
+-                        if (loadingScreen != null)
+-                        {
+-                            loadingScreen.setDoneWorking();
+-                            return;
+-                        }
+-                    }
+-                    catch (Throwable var26)
++                    if (loadingScreen != null)
+                     {
+-                        var26.printStackTrace();
++                        loadingScreen.setDoneWorking();
+                     }
+                 }
++                catch (Throwable var26)
++                {
++                    var26.printStackTrace();
++                }
+                 finally
+                 {
+                     try

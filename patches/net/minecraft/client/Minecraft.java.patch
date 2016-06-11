@@ -1659,7 +1659,7 @@
          {
              this.mojangLogo = this.renderEngine.getDynamicTextureLocation("logo", new DynamicTexture(ImageIO.read(this.mcDefaultResourcePack.getInputStream(locationMojangPng))));
              this.renderEngine.bindTexture(this.mojangLogo);
-@@ -791,2348 +1104,3774 @@
+@@ -791,2347 +1104,3774 @@
          catch (IOException var7)
          {
              logger.error("Unable to load logo: " + locationMojangPng, var7);
@@ -1855,11 +1855,12 @@
 -                    }
 -
 -                    this.displayCrashReport(this.crashReporter);
+-                    return;
 -                }
 -            }
 -            catch (MinecraftError var12)
 -            {
--                break;
+-                ;
 -            }
 -            catch (ReportedException var13)
 -            {
@@ -1867,7 +1868,6 @@
 -                this.freeMemory();
 -                logger.fatal("Reported exception thrown!", var13);
 -                this.displayCrashReport(var13.getCrashReport());
--                break;
 -            }
 -            catch (Throwable var14)
 -            {
@@ -1875,7 +1875,6 @@
 -                this.freeMemory();
 -                logger.fatal("Unreported exception thrown!", var14);
 -                this.displayCrashReport(var2);
--                break;
 -            }
 -            finally
 -            {
