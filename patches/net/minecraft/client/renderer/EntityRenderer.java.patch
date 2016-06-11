@@ -64,12 +64,13 @@
  import net.minecraft.enchantment.EnchantmentHelper;
  import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLivingBase;
-@@ -40,16 +68,13 @@
+@@ -40,16 +68,14 @@
  import net.minecraft.entity.item.EntityItemFrame;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.init.Blocks;
 +import net.minecraft.init.Items;
 +import net.minecraft.item.Item;
++import net.minecraft.item.ItemBlock;
 +import net.minecraft.item.ItemBow;
 +import net.minecraft.item.ItemStack;
  import net.minecraft.potion.Potion;
@@ -86,7 +87,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,1024 @@
+@@ -63,736 +89,1027 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1055,6 +1056,7 @@
 +	public float lookPitchOffset = 0;
 +	public int callCount = 0;
 +	public boolean warningsEnabled = false;
++	private Vec3 centerEyePosToCrossDirection;
 +	/** END MINECRIFT */
 +
 +	public EntityRenderer(Minecraft p_i45076_1_, IResourceManager p_i45076_2_)
@@ -1416,7 +1418,9 @@
 +
 +			// Darktemp's crosshair fix
 +			// VIVE START - interact source
-+			Vec3 cameraPos = interpolatedPlayerPos.addVector(centerEyePosOffset.xCoord, centerEyePosOffset.yCoord, centerEyePosOffset.zCoord);
++			Vec3 cameraPos = getCameraLocation();
++			cameraPos.yCoord = interpolatedPlayerPos.yCoord; //to keep server happy we use the 1.62m position.
++			
 +			Vec3 pos1 = mc.lookaimController.getAimSource(0);
 +			if (pos1==null) {
 +				pos1 = Vec3.createVectorHelper(cameraPos.xCoord, cameraPos.yCoord, cameraPos.zCoord);
@@ -1523,7 +1527,7 @@
 +
 +			// Set up crosshair position
 +			float SLIGHTLY_CLOSER = 0.001f;
-+			Vec3 centerEyePosToCrossDirection = cameraPos.subtract(crossVec).normalize();   // VIVE use camerapos
++			centerEyePosToCrossDirection = cameraPos.subtract(crossVec).normalize();   // VIVE use camerapos
 +			crossX = (float)(crossVec.xCoord - (centerEyePosToCrossDirection.xCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.xCoord);
 +			crossY = (float)(crossVec.yCoord - (centerEyePosToCrossDirection.yCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.yCoord);
 +			crossZ = (float)(crossVec.zCoord - (centerEyePosToCrossDirection.zCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.zCoord);
@@ -1832,7 +1836,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +1117,19 @@
+@@ -804,16 +1121,19 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1860,7 +1864,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1141,4024 @@
+@@ -825,1829 +1145,4038 @@
          {
              clipDistance = 256.0F;
          }
@@ -2098,7 +2102,7 @@
 +
 +    	RenderHelper.enableStandardItemLighting();    
 +		GL11.glEnable(GL11.GL_LIGHTING);
-+		
++			
 +		if (this.mc.gameSettings.anaglyph && !this.mc.vrSettings.debugPos)
 +		{
 +			GL11.glTranslatef((float) (analglyphpass * 2 - 1) * 0.1F, 0.0F, 0.0F);
@@ -2127,6 +2131,7 @@
 +			//from player face to HMD
 +			orientModelView(false, false);  // VIVE - don't add minecraft player height to the openVR position data
 +
++			
 +			if (this.mc.gameSettings.thirdPersonView == 0 && !this.mc.renderViewEntity.isPlayerSleeping() /*&& !this.mc.vrSettings.hideGui*/ && !this.mc.playerController.enableEverythingIsScrewedUpMode())
 +			{
 +
@@ -4407,13 +4412,26 @@
 +
 +		if( entity != null )
 +		{		
-+			//set model view direction
-+			entity.rotationYaw = (float)cameraYaw;
-+			entity.headPitch = (float)cameraPitch;	
-+			entity.rotationYawHead = (float)cameraYaw;
-+			entity.rotationPitch = (float)cameraPitch;
 +			
-+			if(entity instanceof EntityPlayerSP){
++			if(false){  //hmm, to use HMD?
++				//set model view direction to camera
++				entity.rotationYaw = (float)cameraYaw;
++				entity.headPitch = (float)cameraPitch;	
++				entity.rotationYawHead = (float)cameraYaw;
++				entity.rotationPitch = (float)cameraPitch;
++			} else {
++				if(centerEyePosToCrossDirection != null){
++					float pitch = - (float)Math.toDegrees(Math.asin(centerEyePosToCrossDirection.yCoord/centerEyePosToCrossDirection.lengthVector()));
++					float yaw = - (float)Math.toDegrees(Math.atan2(centerEyePosToCrossDirection.xCoord, centerEyePosToCrossDirection.zCoord));    
++					entity.rotationYaw = yaw;
++					entity.headPitch = pitch;
++					entity.rotationYawHead = yaw;
++					entity.rotationPitch = pitch;
++				}
++			}
++			
++			
++			if(entity instanceof EntityPlayerSP){ //isnt it always?
 +				
 +				ItemStack i = ((EntityPlayerSP) entity).inventory.getCurrentItem();
 +				
@@ -4429,12 +4447,13 @@
 +						entity.headPitch = (float)pitch;	
 +						entity.rotationYawHead = - (float)yaw;
 +						entity.rotationPitch = (float)pitch;
-+					}	 else if(i.getItem() == Items.snowball ||
++						
++					}	 else if(entity.isRiding() || i.getItem() == Items.snowball ||
 +							i.getItem() == Items.egg  ||
 +							i.getItem() == Items.spawn_egg  ||
 +							i.getItem() == Items.potionitem  
 +							) {
-+
++						//use head aim
 +						entity.rotationYaw = (float)mc.lookaimController.getAimYaw();
 +						entity.headPitch = (float)mc.lookaimController.getAimPitch();
 +						entity.rotationYawHead = (float)mc.lookaimController.getAimYaw();
@@ -4745,56 +4764,56 @@
 +
 +		float fade = isGuiOrtho ? 0.85f : 0.80f;
 +		Color3f rgb = new Color3f(0f, 0f, 0f);
-+		renderFadeBlend(rgb, fade);
++	//	renderFadeBlend(rgb, fade);
 +
 +		// Pass matrici on to OpenGL...
 +		GL11.glMatrixMode(GL11.GL_PROJECTION);
 +		GL11.glPushMatrix();
-+		GL11.glLoadIdentity();
-+		if (isStereo)
-+		{
-+			GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
-+		}
-+		else
-+		{
-+			Project.gluPerspective(90f, (float) displayWidth / (float) displayHeight, minClipDistance, clipDistance);
-+		}
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glPushMatrix();
-+		GL11.glLoadIdentity();
-+
-+		int column = 8;
-+		ArrayList<String> wrapped = new ArrayList<String>();
-+		if (message != null)
-+			Utils.wordWrap(message, TEXT_WORDWRAP_LEN, wrapped);
-+		float rows = wrapped.size();
-+		float shift = rows / 2f;
-+
-+		float x = isGuiOrtho ? 0f : -this.mc.vrSettings.getHalfIPD(this.mc.currentEye);
-+		float y = shift * COLUMN_GAP * 0.003f; // Move up
-+		float z = -0.6f;
-+
-+		GL11.glDisable(GL11.GL_DEPTH_TEST);
-+		GL11.glTranslatef(x, y, z);
-+		GL11.glRotatef(180f, 0.0F, 1.0F, 0.0F);
-+		float textScale = (float) Math.sqrt((x * x + y * y + z * z));
-+		GL11.glScalef(-INITIAL_TEXT_SCALE * textScale, -INITIAL_TEXT_SCALE * textScale, -INITIAL_TEXT_SCALE * textScale);
-+		if (prefix != null)
-+			mc.fontRendererObj.drawStringWithShadow(prefix, -mc.fontRendererObj.getStringWidth(prefix) / 2, -8, /*white*/16777215);
-+
-+		for (String line : wrapped)
-+		{
-+			mc.fontRendererObj.drawStringWithShadow(line, -mc.fontRendererObj.getStringWidth(line) / 2, column, /*white*/16777215);
-+			column += COLUMN_GAP;
-+		}
-+		column += COLUMN_GAP;
-+		if (suffix != null)
-+			mc.fontRendererObj.drawStringWithShadow(suffix, -mc.fontRendererObj.getStringWidth(suffix) / 2, column, /*white*/16777215);
-+
-+		GL11.glEnable(GL11.GL_DEPTH_TEST);
-+		GL11.glMatrixMode(GL11.GL_PROJECTION);
-+		GL11.glPopMatrix();
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++			GL11.glLoadIdentity();
++			if (isStereo)
++			{
++				GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
++			}
++			else
++			{
++				Project.gluPerspective(90f, (float) displayWidth / (float) displayHeight, minClipDistance, clipDistance);
++			}
++			GL11.glMatrixMode(GL11.GL_MODELVIEW);
++			GL11.glPushMatrix();
++				GL11.glLoadIdentity();
++		
++				int column = 8;
++				ArrayList<String> wrapped = new ArrayList<String>();
++				if (message != null)
++					Utils.wordWrap(message, TEXT_WORDWRAP_LEN, wrapped);
++				float rows = wrapped.size();
++				float shift = rows / 2f;
++		
++				float x = isGuiOrtho ? 0f : -this.mc.vrSettings.getHalfIPD(this.mc.currentEye);
++				float y = shift * COLUMN_GAP * 0.003f; // Move up
++				float z = -0.6f;
++		
++				GL11.glDisable(GL11.GL_DEPTH_TEST);
++				GL11.glTranslatef(x, y, z);
++				GL11.glRotatef(180f, 0.0F, 1.0F, 0.0F);
++				float textScale = (float) Math.sqrt((x * x + y * y + z * z));
++				GL11.glScalef(-INITIAL_TEXT_SCALE * textScale, -INITIAL_TEXT_SCALE * textScale, -INITIAL_TEXT_SCALE * textScale);
++				if (prefix != null)
++					mc.fontRendererObj.drawStringWithShadow(prefix, -mc.fontRendererObj.getStringWidth(prefix) / 2, -8, /*white*/16777215);
++		
++				for (String line : wrapped)
++				{
++					mc.fontRendererObj.drawStringWithShadow(line, -mc.fontRendererObj.getStringWidth(line) / 2, column, /*white*/16777215);
++					column += COLUMN_GAP;
++				}
++				column += COLUMN_GAP;
++				if (suffix != null)
++					mc.fontRendererObj.drawStringWithShadow(suffix, -mc.fontRendererObj.getStringWidth(suffix) / 2, column, /*white*/16777215);
++		
++				GL11.glEnable(GL11.GL_DEPTH_TEST);
++				GL11.glMatrixMode(GL11.GL_PROJECTION);
++			GL11.glPopMatrix();
++			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glPopMatrix();
 +	}
 +
@@ -5472,7 +5491,6 @@
 +			GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
 +			float crossDepth = (float)Math.sqrt((crossX*crossX + crossY*crossY + crossZ*crossZ));
 +			float scale = 0.025f*crossDepth*this.mc.vrSettings.crosshairScale;
-+
 +			GL11.glPushMatrix();
 +				GL11.glTranslatef(crossX, crossY, crossZ);
 +				GL11.glRotatef(-this.aimYaw, 0.0F, 1.0F, 0.0F);

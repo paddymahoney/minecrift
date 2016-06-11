@@ -1211,7 +1211,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		if (mc.thePlayer == null)
 			return;
 
-		{
+		if (mc.currentScreen != null){
 		// right touchpad controls mousewheel
 			int c =0;
 			boolean touchpadPressed = (controllerStateReference[c].ulButtonPressed & k_buttonTouchpad) > 0;
@@ -1242,9 +1242,7 @@ IEventNotifier, IEventListener, IBodyAimController
 					inventory_swipe[c] += swipeDistancePerInventorySlot;
 				}
 			}
-		}
-		
-		{
+		} else 	{
 		// left touchpad controls inventory
 			int c =1;
 			boolean touchpadPressed = (controllerStateReference[c].ulButtonPressed & k_buttonTouchpad) > 0;

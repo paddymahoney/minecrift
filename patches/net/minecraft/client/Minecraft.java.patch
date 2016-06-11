@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4700 @@
+@@ -150,2988 +167,4703 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2155,8 +2155,8 @@
 +			logger.error("Couldn\'t initialize twitch stream");
 +		}
 +
-+		this.framebufferMc = new Framebuffer(this.displayWidth, this.displayHeight, true);
-+		this.framebufferMc.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
++		this.guiFramebuffer = new Framebuffer(this.displayWidth, this.displayHeight, true);
++		this.guiFramebuffer.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
 +		this.guiAchievement = new GuiAchievement(this);
 +		this.metadataSerializer_.registerMetadataSectionType(new TextureMetadataSectionSerializer(), TextureMetadataSection.class);
 +		this.metadataSerializer_.registerMetadataSectionType(new FontMetadataSectionSerializer(), FontMetadataSection.class);
@@ -2522,7 +2522,7 @@
 +	{
 +		ScaledResolution var1 = new ScaledResolution(this, this.displayWidth, this.displayHeight);
 +		int var2 = var1.getScaleFactor();
-+		Framebuffer var3 = new Framebuffer(var1.getScaledWidth() * var2, var1.getScaledHeight() * var2, true);
++		Framebuffer var3 = guiFramebuffer;
 +		var3.bindFramebuffer(false);
 +		GL11.glMatrixMode(GL11.GL_PROJECTION);
 +		GL11.glLoadIdentity();
@@ -3002,13 +3002,24 @@
 +				else
 +					this.stereoProvider.endFrame();
 +				
-+				this.framebufferMc.unbindFramebuffer();	//draw directly to window
-+				
-+				copyToMirror(this.currentEye);
++			
++			shouldupdate =	copyToMirror(this.currentEye);
 +										
 +			} //end per eye rendering.
 +
-+			if (shouldupdate) Display.update(true);
++			if(this.stereoProvider.isStereo())
++				if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF && ((MCOpenVR) this.lookaimController).headIsTracking){
++					GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
++					shouldupdate = true;
++					this.framebufferMc.unbindFramebuffer();	//draw directly to window
++					GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
++					entityRenderer.displayNotificationText("Mirror is OFF", "", "", this.displayWidth, this.displayHeight, false, true);
++					GL11.glDisable(GL11.GL_DEPTH_TEST);
++				}
++			
++			Display.processMessages();
++			if (shouldupdate) Display.update(false);
++			
 +			this.stereoProvider.endFrame();
 +			
 +			this.mcProfiler.endSection();
@@ -3024,7 +3035,7 @@
 +			this.stream.func_152922_k();
 +			this.mcProfiler.endSection();
 +			this.mcProfiler.endSection();
-+			//this.checkGLError("Post render");
++			this.checkGLError("Post render");
 +			++this.fpsCounter;
 +			this.isGamePaused = this.isSingleplayer() && this.currentScreen != null && this.currentScreen.doesGuiPauseGame() && !this.theIntegratedServer.getPublic();
 +			/** END MINECRIFT */
@@ -6754,22 +6765,12 @@
 +
 +	private boolean copyToMirror(EyeType eye)
 +	{
-+//TODO: fix
 +		// VIVE start - render eye buffers to the desktop window
 +
 +		if (this.stereoProvider.isStereo() )
 +		{
 +			if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF && ((MCOpenVR) this.lookaimController).headIsTracking){
-+
-+				if(frameIndex % 10 == 0) {
-+					OpenGlHelper.func_153171_g(GL30.GL_DRAW_FRAMEBUFFER, 0);   // GL30.glBindFramebuffer
-+					GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
-+					
-+					if (entityRenderer != null)
-+						entityRenderer.displayNotificationText("Mirror is OFF", "", "", this.displayWidth, this.displayHeight, false, true);
-+						return true;
-+				}
-+
++				return false;
 +			}else {
 +				int every = 1;
 +				int ports = 2;
@@ -6785,13 +6786,14 @@
 +					ports = 1;
 +				}
 +
-+				if(ports == 2 || eye == EyeType.ovrEye_Left){
-+					if((frameIndex % 1) == 0){
++				if(ports == 2 || eye == EyeType.ovrEye_Right){
++					if((frameIndex % every) == 0){
 +
 +						int i = eye == EyeType.ovrEye_Left ? 0 : 1;
-+
++						if(ports==1) i = 0;
++						
 +						float phase = (getSystemTime() % 1000) / 1000.0f;
-+	
++						this.framebufferMc.unbindFramebuffer();	//draw directly to window
 +						framebuffer.framebufferRender((int)(0 + (displayWidth *i)*0.5f),
 +							displayWidth/ports, displayHeight,0 );
 +
@@ -6800,11 +6802,12 @@
 +				}
 +			}
 +		} else { //mono
++			this.framebufferMc.unbindFramebuffer();	//draw directly to window
 +			framebuffer.framebufferRender((int)0,Display.getWidth(), Display.getHeight(),0 );
++			return true;
 +		}
 +
-+		// VIVE end - render eye buffers to the window
-+		return true;
++		return false;
 +	}
 +
 +	private void setupRenderConfiguration() throws Exception 
