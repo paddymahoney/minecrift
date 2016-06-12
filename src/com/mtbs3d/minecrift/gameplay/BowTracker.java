@@ -110,13 +110,13 @@ public class BowTracker {
 			tsNotch = Minecraft.getSystemTime();
 			
 			if(!isDrawing){
-				player.itemInUse = bow;
-				player.itemInUseCount = bow.getMaxItemUseDuration() - 1 ;				
+				player.setItemInUseClient(bow);
+				player.setItemInUseCountClient(bow.getMaxItemUseDuration() - 1 );				
 			}
 
 		} else if((Minecraft.getSystemTime() - tsNotch) > 500) {
 			canDraw = false;
-			player.itemInUse = null; //client draw only
+			player.setItemInUseClient(null);//client draw only
 		}
 			
 		if (!isDrawing && canDraw  && pressed && !lastpressed) {
@@ -152,8 +152,8 @@ public class BowTracker {
 		
 			int use = (int) (bow.getMaxItemUseDuration() - getDrawPercent() * bow.getMaxItemUseDuration());
 			if	(use >= bow.getMaxItemUseDuration()) use = bow.getMaxItemUseDuration() -1;
-			player.itemInUse = bow;;//client draw only
-			player.itemInUseCount = use -1; //do this cause the above doesnt set the counts if same item.
+			player.setItemInUseClient(bow);//client draw only
+			player.setItemInUseCountClient(use -1); //do this cause the above doesnt set the counts if same item.
 			hapcounter ++ ;
 			if (hapcounter % 4 == 0)
 				provider.triggerHapticPulse(0, hap);     

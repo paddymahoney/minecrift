@@ -40,6 +40,14 @@ public interface IBodyAimController extends IBasePlugin {
 	 */
 	public float getAimPitch();
 	
+	
+	public float getOffhandAimYaw();
+	/**
+	 * Gets the "aim" pitch. This is the direction the player will "mine" or attack.
+	 * @return Player Aiming Pitch, in degrees
+	 */
+	public float getOffhandAimPitch();
+	
 	public boolean initBodyAim() throws Exception;
 
 	public void saveOptions();

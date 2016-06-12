@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4703 @@
+@@ -150,2988 +167,4713 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2891,10 +2891,16 @@
 +
 +
 +			this.framebufferMc = this.framebuffer;
++
++			checkGLError("PreLoop");
 +			
 +			/** Minecrift - main stereo render loop **/
 +			for (int i = 0; this.visible && i < viewPortCount; i++)
 +			{
++
++				GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++				checkGLError("PreEye");
++				
 +				this.framebufferMc.bindFramebuffer(true);	//draw to eye texture.
 +				
 +				this.currentEye = this.stereoProvider.eyeRenderOrder(i);
@@ -2916,95 +2922,99 @@
 +				currentEyePose = getEyePose(this.currentEye);
 +				//System.out.println("Posef (" + this.currentEye.toString() + "): " + currentEyePose.toString());
 +
++				
 +				GL11.glPushMatrix();
-+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-+
-+				this.mcProfiler.startSection("display");
-+				GL11.glEnable(GL11.GL_TEXTURE_2D);
++					GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 +	
++					this.mcProfiler.startSection("display");
++					GL11.glEnable(GL11.GL_TEXTURE_2D);
++		
++						
++					if (this.thePlayer != null && this.thePlayer.isEntityInsideOpaqueBlock())
++					{
++						this.gameSettings.thirdPersonView = 0;
++					}
++	
++					// VIVE - comment so endStartSection below works
++					//this.mcProfiler.endSection();
++	
++					// Update our orientation and position variables from the sensor polled data
++					this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
 +					
-+				if (this.thePlayer != null && this.thePlayer.isEntityInsideOpaqueBlock())
-+				{
-+					this.gameSettings.thirdPersonView = 0;
-+				}
 +
-+				// VIVE - comment so endStartSection below works
-+				//this.mcProfiler.endSection();
-+
-+				// Update our orientation and position variables from the sensor polled data
-+				this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
-+
-+				if (!this.skipRenderWorld)
-+				{
-+					/** MINECRIFT FORGE **/
-+					Object fmlCommonHandler = null;
-+					if (Reflector.FMLCommonHandler_instance.exists()) {
-+						fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
-+					}
-+					if (fmlCommonHandler != null) {
-+						Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
-+					}
-+					this.mcProfiler.endStartSection("gameRenderer");
-+
-+					///THIS IS WHERE EVERYTHING IS RENDERED
-+					this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
-+
-+					this.mcProfiler.endSection();
-+					if (fmlCommonHandler != null) {
-+						Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
-+					}
-+					/** END MINECRIFT FORGE **/
-+				}
-+
-+				if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)    // <-- TODO: Move; needs to be overlayed over GUI FBO
-+				{
-+					// VIVE - since we're starting profiling halfway through the game loop, need to start these sections so they can be ended
-+					boolean wasProfiling = this.mcProfiler.profilingEnabled;
-+
-+					if (!this.mcProfiler.profilingEnabled)
++					if (!this.skipRenderWorld)
 +					{
-+						this.mcProfiler.clearProfiling();
++						/** MINECRIFT FORGE **/
++						Object fmlCommonHandler = null;
++						if (Reflector.FMLCommonHandler_instance.exists()) {
++							fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
++						}
++						if (fmlCommonHandler != null) {
++							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
++						}
++						this.mcProfiler.endStartSection("gameRenderer");
++	
++						///THIS IS WHERE EVERYTHING IS RENDERED
++						this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
++						checkGLError("post_ren");
++						this.mcProfiler.endSection();
++						if (fmlCommonHandler != null) {
++							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
++						}
++						/** END MINECRIFT FORGE **/
 +					}
-+
-+					this.mcProfiler.profilingEnabled = true;
-+					// VIVE - commented this out, it's done above in renderVrGUI so it appears in the HUD FBO
-+					//this.displayDebugInfo(var6);
-+
-+					// VIVE - since we're starting profiling halfway through the game loop, need to start these sections so they can be ended
-+					if (!wasProfiling)
++	
++					if (this.gameSettings.showDebugInfo && this.gameSettings.showDebugProfilerChart)    // <-- TODO: Move; needs to be overlayed over GUI FBO
 +					{
-+						this.mcProfiler.startSection("root");
-+						this.mcProfiler.startSection("render");
++						// VIVE - since we're starting profiling halfway through the game loop, need to start these sections so they can be ended
++						boolean wasProfiling = this.mcProfiler.profilingEnabled;
++	
++						if (!this.mcProfiler.profilingEnabled)
++						{
++							this.mcProfiler.clearProfiling();
++						}
++	
++						this.mcProfiler.profilingEnabled = true;
++						// VIVE - commented this out, it's done above in renderVrGUI so it appears in the HUD FBO
++						//this.displayDebugInfo(var6);
++	
++						// VIVE - since we're starting profiling halfway through the game loop, need to start these sections so they can be ended
++						if (!wasProfiling)
++						{
++							this.mcProfiler.startSection("root");
++							this.mcProfiler.startSection("render");
++						}
 +					}
-+				}
-+				else
-+				{
-+					this.mcProfiler.profilingEnabled = false;
-+					this.prevFrameTime = System.nanoTime();
-+				}
-+
-+				//this.guiAchievement.updateAchievementWindow();  // <-- TODO: Move; needs to be overlayed over GUI FBO
-+				//this.framebufferMc.unbindFramebuffer();
-+				GL11.glPopMatrix();
++					else
++					{
++						this.mcProfiler.profilingEnabled = false;
++						this.prevFrameTime = System.nanoTime();
++					}
++	
++					//this.guiAchievement.updateAchievementWindow();  // <-- TODO: Move; needs to be overlayed over GUI FBO
++					//this.framebufferMc.unbindFramebuffer();
++			
 +				GL11.glPushMatrix();
-+				//this.framebufferMc.framebufferRender(this.displayWidth, this.displayHeight);
-+
-+			 	doPostProcessing(frameIndex, this.currentEye);
-+
++					//this.framebufferMc.framebufferRender(this.displayWidth, this.displayHeight);
++					checkGLError("pre_post");
++				 	doPostProcessing(frameIndex, this.currentEye);
 +				GL11.glPopMatrix();
++				
 +				GL11.glPushMatrix();
-+				//this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);   // <-- TODO: What does this do? Some sort of stream status overlay? REENABLE, move to GUI FBO?
++					//this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);   // <-- TODO: What does this do? Some sort of stream status overlay? REENABLE, move to GUI FBO?
 +				GL11.glPopMatrix();
 +								
-+			
 +				if(this.stereoProvider.isStereo())
 +					this.stereoProvider.endFrame(this.currentEye);
 +				else
 +					this.stereoProvider.endFrame();
 +				
++				checkGLError("precopy");
 +			
-+			shouldupdate =	copyToMirror(this.currentEye);
++				shouldupdate =	copyToMirror(this.currentEye);
 +										
++				checkGLError("post_copy");
++			
 +			} //end per eye rendering.
 +
 +			if(this.stereoProvider.isStereo())

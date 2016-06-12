@@ -192,14 +192,14 @@ public class MinecriftClassTransformer implements IClassTransformer
 
     private byte[] performAsmModification(final byte[] origBytecode, String className)
     {
-        if (className.equals("net.minecraft.entity.Entity")) {
-            debug("Further transforming class " + className + " via ASM");
-            ClassReader cr = new ClassReader(origBytecode);
-            ClassWriter cw = new ClassWriter(cr, 0);
-            EntityTransform et = new EntityTransform(cw);
-            cr.accept(et, 0);
-            return cw.toByteArray();
-        }
+//        if (className.equals("net.minecraft.entity.Entity")) {
+//            debug("Further transforming class " + className + " via ASM");
+//            ClassReader cr = new ClassReader(origBytecode);
+//            ClassWriter cw = new ClassWriter(cr, 0);
+//            EntityTransform et = new EntityTransform(cw);
+//            cr.accept(et, 0);
+//            return cw.toByteArray();
+//        }
 
         return origBytecode;
     }

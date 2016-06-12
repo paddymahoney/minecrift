@@ -1,8 +1,10 @@
 --- a/net/minecraft/client/entity/EntityPlayerSP.java
 +++ b/net/minecraft/client/entity/EntityPlayerSP.java
-@@ -1,5 +1,13 @@
+@@ -1,5 +1,15 @@
  package net.minecraft.client.entity;
  
++import java.lang.reflect.Field;
++
 +import com.mtbs3d.minecrift.api.IBodyAimController;
 +import com.mtbs3d.minecrift.gameplay.VRPlayer;
 +import com.mtbs3d.minecrift.provider.MCOpenVR;
@@ -14,7 +16,12 @@
  import net.minecraft.client.Minecraft;
  import net.minecraft.client.audio.PositionedSoundRecord;
  import net.minecraft.client.gui.GuiCommandBlock;
-@@ -30,7 +38,9 @@
+@@ -26,11 +36,14 @@
+ import net.minecraft.entity.ai.attributes.IAttributeInstance;
+ import net.minecraft.entity.item.EntityMinecartHopper;
+ import net.minecraft.entity.passive.EntityHorse;
++import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.init.Items;
  import net.minecraft.inventory.IInventory;
  import net.minecraft.item.Item;
  import net.minecraft.item.ItemStack;
@@ -24,7 +31,13 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.tileentity.TileEntityBeacon;
  import net.minecraft.tileentity.TileEntityBrewingStand;
-@@ -52,7 +62,7 @@
+@@ -47,12 +60,13 @@
+ import net.minecraft.util.MovementInput;
+ import net.minecraft.util.ResourceLocation;
+ import net.minecraft.util.Session;
++import net.minecraft.util.Vec3;
+ import net.minecraft.world.World;
+ 
  public class EntityPlayerSP extends AbstractClientPlayer
  {
      public MovementInput movementInput;
@@ -33,7 +46,7 @@
  
      /**
       * Used to tell if the player pressed forward twice. If this is at 0 and it's pressed (And they are allowed to
-@@ -61,6 +71,10 @@
+@@ -61,6 +75,20 @@
       */
      protected int sprintToggleTimer;
  
@@ -41,10 +54,72 @@
 +    public int movementTeleportTimer;
 +    // VIVE END - teleport movement
 +
++    
++    /** MINECRIFT **/
++    public float headPitch = 0;
++    public double additionX = 0;
++    public double additionZ = 0;
++    public double additionY = 0;
++    public final float PIOVER180 = (float)Math.PI / 180.0F;
++    public Vec3 directionVec = Vec3.createVectorHelper(0, 0, 0);
++    /** END MINECRIFT **/
++    
      /** Ticks left before sprinting is disabled. */
      public int sprintingTicksLeft;
      public float renderArmYaw;
-@@ -182,7 +196,9 @@
+@@ -80,9 +108,23 @@
+     public float prevTimeInPortal;
+     private static final String __OBFID = "CL_00000938";
+ 
++    Field inuse, inusedur;
++    
+     public EntityPlayerSP(Minecraft p_i1238_1_, World p_i1238_2_, Session p_i1238_3_, int p_i1238_4_)
+     {
+         super(p_i1238_2_, p_i1238_3_.getProfile());
++        
++		try {
++			inuse = EntityPlayer.class.getDeclaredField("itemInUse");
++	        inuse.setAccessible(true);
++			inusedur = EntityPlayer.class.getDeclaredField("itemInUseCount");
++			inusedur.setAccessible(true);
++		} catch (NoSuchFieldException e) {
++
++		} catch (SecurityException e) {
++
++		}
++       
+         this.mc = p_i1238_1_;
+         this.dimension = p_i1238_4_;
+     }
+@@ -99,6 +141,27 @@
+         this.renderArmYaw = (float)((double)this.renderArmYaw + (double)(this.rotationYaw - this.renderArmYaw) * 0.5D);
+     }
+ 
++    
++    public void setItemInUseClient(ItemStack item){
++    	
++    	try {
++			this.inuse.set(this, item);
++		} catch (IllegalArgumentException e) {
++		} catch (IllegalAccessException e) {
++		}
++    	
++    }
++    
++   public void setItemInUseCountClient(int count){
++    	
++    	try {
++			this.inusedur.set(this, count);
++		} catch (IllegalArgumentException e) {
++		} catch (IllegalAccessException e) {
++		}
++    	
++    }
++    
+     /**
+      * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
+      * use this to react to sunlight and start to burn.
+@@ -182,7 +245,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -55,7 +130,7 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -195,20 +211,26 @@
+@@ -195,20 +260,26 @@
  
              if (this.movementInput.sneak && this.yOffset2 < 0.2F)
              {
@@ -88,7 +163,7 @@
                  }
                  else
                  {
-@@ -240,18 +262,24 @@
+@@ -240,18 +311,24 @@
                  }
              }
  
@@ -115,7 +190,7 @@
  
              if (this.isRidingHorse())
              {
-@@ -296,6 +324,10 @@
+@@ -296,6 +373,10 @@
  
              super.onLivingUpdate();
  
@@ -126,7 +201,7 @@
              if (this.onGround && this.capabilities.isFlying)
              {
                  this.capabilities.isFlying = false;
-@@ -341,7 +373,15 @@
+@@ -341,7 +422,15 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -143,7 +218,7 @@
      }
  
      /**
-@@ -524,70 +564,170 @@
+@@ -524,70 +613,170 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -291,22 +366,23 @@
 +            int var9 = MathHelper.floor_double(z);
 +            double var10 = x - (double)var7;
 +            double var12 = z - (double)var9;
- 
--            if (var18 == 5)
++
 +            //CRAWLING
 +            boolean tall = Math.floor(this.height) > 0;
 +            //
 +                        
 +            if ((tall && this.isBlockNormal(var7, var8 - 1 , var9)) || this.isBlockNormal(var7, var8, var9))
-             {
--                this.motionZ = (double)var21;
++            {
 +                boolean var14 = !this.isBlockNormal(var7 - 1, var8, var9) && !this.isBlockNormal(var7 - 1, var8 + 1, var9);
 +                boolean var15 = !this.isBlockNormal(var7 + 1, var8, var9) && !this.isBlockNormal(var7 + 1, var8 + 1, var9);
 +                boolean var16 = !this.isBlockNormal(var7, var8, var9 - 1) && !this.isBlockNormal(var7, var8 + 1, var9 - 1);
 +                boolean var17 = !this.isBlockNormal(var7, var8, var9 + 1) && !this.isBlockNormal(var7, var8 + 1, var9 + 1);
 +                byte var18 = -1;
 +                double var19 = 9999.0D;
-+
+ 
+-            if (var18 == 5)
+-            {
+-                this.motionZ = (double)var21;
 +                if (var14 && var10 < var19)
 +                {
 +                    var19 = var10;
@@ -359,7 +435,7 @@
  
          return false;
      }
-@@ -640,6 +780,20 @@
+@@ -640,6 +829,20 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -380,19 +456,67 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +816,138 @@
+@@ -662,4 +865,224 @@
      }
  
      protected void sendHorseJump() {}
 +
 +    /**** MINECRIFT ADDITIONS BELOW ****/
 +    
++    
++    /** MINECRIFT **/
++    public void doDrag(float var3, boolean isFlying)
++    {
++        double xFactor = var3;
++        double zFactor = var3;
++        double yFactor = 0.9800000190734863D;
++
++        if (this instanceof EntityPlayer)
++        {
++        	int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
++        	double addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
++
++        	double boundedAdditionX = getBoundedAddition(additionX);
++        	double targetLimitX = (var3 * boundedAdditionX) / (1f - var3);
++        	double multiFactorX = targetLimitX / (var3 * (targetLimitX + (boundedAdditionX * addFactor)));
++        	xFactor *= multiFactorX;
++
++        	double boundedAdditionZ = getBoundedAddition(additionZ);
++        	double targetLimitZ = (var3 * boundedAdditionZ) / (1f - var3);
++        	double multiFactorZ = targetLimitZ / (var3 * (targetLimitZ + (boundedAdditionZ * addFactor)));
++        	zFactor *= multiFactorZ;
++
++        	yFactor = var3;
++        	double boundedAdditionY = getBoundedAddition(additionY);
++        	double targetLimitY = (var3 * boundedAdditionY) / (1f - var3);
++        	double multiFactorY = targetLimitY / (var3 * (targetLimitY + (boundedAdditionY * addFactor)));
++        	yFactor *= multiFactorY;
++        }
++
++        this.motionY *= yFactor;
++        this.motionX *= xFactor;
++        this.motionZ *= zFactor;
++    }
++    
++    public double getBoundedAddition(double orig)
++    {
++        if (orig >= -1.0E-6D && orig <= 1.0E-6D) {
++            return 1.0E-6D;
++        }
++        else {
++            return orig;
++        }
++    }
++    
++    
 +    /**
 +     * Used in both water and by flying objects
 +     */
-+    public void moveFlying(float strafe, float forward, float friction, boolean allowYAdjust)
++    @Override
++    public void moveFlying(float strafe, float forward, float friction)
 +    {
 +  //  	super.moveFlying(strafe, forward, friction, allowYAdjust);;
++    	
 +    	VRPlayer vr = mc.vrPlayer;		
 +    	if (!vr.getFreeMoveMode()) {return;}
 +		
@@ -426,12 +550,11 @@
 +
 +    		IBodyAimController con = mc.lookaimController;
 +    		
-+
 +    	   // Modify acceleration sequence (each tick)
 +            addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
 +    				
 +            // Account for pitch if required
-+            if (allowYAdjust & Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
++            if (Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
 +                yAddFactor = addFactor;
 +    			if (vr.useLControllerForRestricedMovement) {
 +    	
@@ -457,7 +580,7 @@
 +            mX = directionVec.xCoord;
 +            mY = directionVec.yCoord;
 +            mZ = directionVec.zCoord;
-+
++           
 +            this.motionX = this.motionX + (mX * addFactor);
 +            this.motionZ = this.motionZ + (mZ * addFactor);
 +            this.motionY = this.motionY + (mY * yAddFactor);
@@ -515,6 +638,45 @@
 +    {
 +        super.setPosition(x, y, z);
 +        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
++    }
++    
++    @Override
++    public void moveEntity(double x, double y, double z)
++    {
++    	boolean client = this instanceof EntityPlayerSP;
++    	boolean freemove = VRPlayer.get().getFreeMoveMode();
++    	boolean doY = freemove || (Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder()) && !this.isSneaking();
++    	Vec3 roomOrigin = VRPlayer.get().getRoomOrigin();
++    	Vec3 camloc = Minecraft.getMinecraft().entityRenderer.getCameraLocation();
++
++    	if (freemove && (this.moveForward != 0 || Math.abs(this.motionX) > 0.01 || Math.abs(this.motionZ) > 0.01))
++    	{
++    		double ox = roomOrigin.xCoord - posX;
++    		double oz = roomOrigin.zCoord - posZ;
++    		super.moveEntity(x,y,z);
++
++    		if (client){	
++    			VRPlayer.get().setRoomOrigin(
++    					posX + ox, 
++    					this.boundingBox.minY, 
++    					posZ  + oz);
++    					}
++    		//	VRPlayer.get().snapRoomOriginToPlayerEntity((EntityPlayerSP) this);
++
++    	} else {
++    		if(doY) {      	 
++    			super.moveEntity(0,y,0);
++    			if (client){
++    				VRPlayer.get().setRoomOrigin(
++    					VRPlayer.get().getRoomOrigin().xCoord, 
++    					this.boundingBox.minY, 
++    					VRPlayer.get().getRoomOrigin().zCoord);
++    			}
++
++    		} else {
++    			//do not move player, VRPlayer.moveplayerinroom will move him around.
++    		}
++    	}
 +    }
 +    
 +    

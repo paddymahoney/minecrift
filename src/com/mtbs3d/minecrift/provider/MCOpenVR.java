@@ -2047,4 +2047,14 @@ IEventNotifier, IEventListener, IBodyAimController
 		if(vrCompositor !=null) vrCompositor.PostPresentHandoff.apply();
 		return true;
 	}
+
+	@Override
+	public float getOffhandAimYaw() {
+		return laimYaw;
+	}
+
+	@Override
+	public float getOffhandAimPitch() {
+		return laimPitch;
+	}
 }
