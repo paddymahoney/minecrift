@@ -131,6 +131,9 @@ public class VRPlayer
            player.height = (float) topofhead - 0.05f;
            player.spEyeHeight = player.height - 1.62f;
            player.boundingBox.maxY = player.boundingBox.minY +  topofhead;  	   
+       } else {
+    	   player.height = 1.8f;
+    	   player.spEyeHeight = 0.12f;
        }
 
       

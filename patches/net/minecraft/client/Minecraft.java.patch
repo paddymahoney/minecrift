@@ -100,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4738 @@
+@@ -150,2988 +168,4750 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2668,6 +2668,12 @@
 +		}
 +	}
 +
++	public void clearGLError() //bad bad bad
++	/** END MINECRIFT */
++	{
++		int var2 = GL11.glGetError();
++	}
++	
 +	/**
 +	 * Shuts down the minecraft applet by stopping the resource downloads, and clearing up GL stuff; called when the
 +	 * application (or web page) is exited.
@@ -2899,6 +2905,7 @@
 +				if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
 +				x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
 +				if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++				clearGLError();
 +				
 +				this.framebufferMc.bindFramebuffer(true);	//draw to eye texture.
 +				
@@ -3007,8 +3014,13 @@
 +				
 +					
 +				shouldupdate =	copyToMirror(this.currentEye);
-+										
-+			
++				
++				
++				x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
++				if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++				x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
++				if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++				clearGLError();
 +			} //end per eye rendering.
 +
 +			if(this.stereoProvider.isStereo())

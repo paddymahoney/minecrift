@@ -44,7 +44,7 @@
                  this.playerEntity.onUpdateEntity();
                  this.playerEntity.yOffset2 = 0.0F;
 +                //JRBUDDA VIVE FOR CRAWLING
-+                this.playerEntity.height = (float) ((float) packetIn.getStance() - packetIn.getPositionY());
++                this.playerEntity.height = (float) ((float) packetIn.getStance() - packetIn.getPositionY() + 0.18f);
 +                //END JRBUDDA
                  this.playerEntity.setPositionAndRotation(this.lastPosX, this.lastPosY, this.lastPosZ, var11, var12);
  

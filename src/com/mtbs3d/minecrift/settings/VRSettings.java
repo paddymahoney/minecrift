@@ -173,7 +173,7 @@ public class VRSettings
     public boolean vrFreeMove = false;
     public boolean vrAllowLocoModeSwotch = true;
     public boolean vrLimitedSurvivalTeleport = true;
-    public boolean vrAllowCrawling = true;
+    public boolean vrAllowCrawling = false;
     public boolean vrReverseHands = false;
     public boolean vrReverseShootingEye = false;
     public VRControllerButtonMapping[] buttonMappings;
