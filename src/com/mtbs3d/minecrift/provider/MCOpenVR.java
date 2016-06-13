@@ -26,6 +26,7 @@ import net.minecraft.client.gui.GuiHopper;
 import net.minecraft.client.gui.GuiKeyBindingList;
 import net.minecraft.client.gui.GuiRepair;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiScreenBook;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.GuiWinGame;
 import net.minecraft.client.gui.inventory.*;
@@ -1578,8 +1579,11 @@ IEventNotifier, IEventListener, IBodyAimController
 				Vector3f forward = new Vector3f(-0.3f,-.4f,1f);
 				Vector3f controllerForward = hmdPose.transform(forward).subtract(guiPos);
 				guiPos = guiPos.subtract(controllerForward.divide(0.8f));
-			}
-			else {
+			} else if (newScreen instanceof GuiScreenBook || newScreen instanceof GuiEditSign) {
+				Vector3f forward = new Vector3f(0,-.4f,1f);
+				Vector3f controllerForward = hmdPose.transform(forward).subtract(guiPos);
+				guiPos = guiPos.subtract(controllerForward.divide(1f));
+			} else {
 				Vector3f forward = new Vector3f(0,0,1f).normalised();
 				Vector3f controllerForward = hmdPose.transform(forward).subtract(guiPos);
 				guiPos = guiPos.subtract(controllerForward.divide(1f));
