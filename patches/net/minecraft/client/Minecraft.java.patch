@@ -100,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4754 @@
+@@ -150,2988 +168,4768 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2868,10 +2868,24 @@
 +			this.mcProfiler.endSection();
 +			this.mcProfiler.startSection("render");
 +
++			Object fmlCommonHandler = null;
++			if (Reflector.FMLCommonHandler_instance.exists()) {
++				fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
++			}
++			if (!this.stereoProvider.isGuiOrtho()) {
++				if (fmlCommonHandler != null) { // Not sure how this event is even useful, so we'll just fire it before binding the GUI framebuffer.
++					Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
++				}
++			}
 +			// Render GUI to FBO if necessary
 +			this.framebufferMc = this.guiFramebuffer; //draw to 2d gui.
 +			this.framebufferMc.bindFramebuffer(true);
 +			this.entityRenderer.drawFramebuffer(this.timer.renderPartialTicks, var6);   // VIVE - added param for debug info
++			//if (!this.stereoProvider.isGuiOrtho()) { // Useless here
++			//	if (fmlCommonHandler != null) {
++			//		Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
++			//	}
++			//}
 +				
 +			// Mark beginning of frame AFTER any GUI rendering to allow maximum
 +			// latency reduction
@@ -2954,12 +2968,10 @@
 +					if (!this.skipRenderWorld)
 +					{
 +						/** MINECRIFT FORGE **/
-+						Object fmlCommonHandler = null;
-+						if (Reflector.FMLCommonHandler_instance.exists()) {
-+							fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
-+						}
-+						if (fmlCommonHandler != null) {
-+							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
++						if (this.stereoProvider.isGuiOrtho()) {
++							if (fmlCommonHandler != null) {
++								Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
++							}
 +						}
 +						this.mcProfiler.endStartSection("gameRenderer");
 +	
@@ -2967,8 +2979,10 @@
 +						this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
 +						
 +						this.mcProfiler.endSection();
-+						if (fmlCommonHandler != null) {
-+							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
++						if (this.stereoProvider.isGuiOrtho()) {
++							if (fmlCommonHandler != null) {
++								Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
++							}
 +						}
 +						/** END MINECRIFT FORGE **/
 +					}
