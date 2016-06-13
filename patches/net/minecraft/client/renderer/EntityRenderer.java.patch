@@ -1861,7 +1861,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1142,4033 @@
+@@ -825,1829 +1142,4041 @@
          {
              clipDistance = 256.0F;
          }
@@ -5198,6 +5198,14 @@
 +					this.mc.ingameGUI.renderGameOverlay(renderPartialTicks, this.mc.currentScreen != null, 0, 0);
 +
 +					mc.guiAchievement.updateAchievementWindow();
++					/** MINECRIFT FORGE **/
++					if (Reflector.FMLCommonHandler_instance.exists()) {
++						Object fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
++						if (fmlCommonHandler != null) {
++							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{renderPartialTicks});
++						}
++					}
++					/** END MINECRIFT FORGE **/
 +					GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
 +				}
 +
