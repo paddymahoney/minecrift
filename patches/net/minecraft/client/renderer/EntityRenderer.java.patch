@@ -1185,7 +1185,7 @@
 +			try
 +			{
 +				this.theShaderGroup = new ShaderGroup(this.mc.getTextureManager(), par1ResourceManager, this.mc.getFramebuffer(), shaderResourceLocations[this.mc.vrSettings.shaderIndex]);
-+				this.theShaderGroup.createBindFramebuffers(this.mc.displayWidth, this.mc.displayHeight);
++				this.theShaderGroup.createBindFramebuffers(this.mc.getFramebuffer().framebufferWidth, this.mc.getFramebuffer().framebufferHeight);
 +			}
 +			catch (IOException var3)
 +			{

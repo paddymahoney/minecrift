@@ -100,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4768 @@
+@@ -150,2988 +168,4769 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2157,6 +2157,7 @@
 +
 +		this.guiFramebuffer = new Framebuffer(this.displayWidth, this.displayHeight, true);
 +		this.guiFramebuffer.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
++		this.framebufferMc = guiFramebuffer; //temp
 +		this.guiAchievement = new GuiAchievement(this);
 +		this.metadataSerializer_.registerMetadataSectionType(new TextureMetadataSectionSerializer(), TextureMetadataSection.class);
 +		this.metadataSerializer_.registerMetadataSectionType(new FontMetadataSectionSerializer(), FontMetadataSection.class);

@@ -67,7 +67,7 @@
      /** Ticks left before sprinting is disabled. */
      public int sprintingTicksLeft;
      public float renderArmYaw;
-@@ -80,9 +108,23 @@
+@@ -80,13 +108,53 @@
      public float prevTimeInPortal;
      private static final String __OBFID = "CL_00000938";
  
@@ -77,49 +77,85 @@
      {
          super(p_i1238_2_, p_i1238_3_.getProfile());
 +        
-+		try {
-+			inuse = EntityPlayer.class.getDeclaredField("itemInUse");
-+	        inuse.setAccessible(true);
-+			inusedur = EntityPlayer.class.getDeclaredField("itemInUseCount");
-+			inusedur.setAccessible(true);
-+		} catch (NoSuchFieldException e) {
-+
-+		} catch (SecurityException e) {
-+
-+		}
-+       
++        hackSuperFields();
++      
          this.mc = p_i1238_1_;
          this.dimension = p_i1238_4_;
      }
-@@ -99,6 +141,27 @@
+ 
++    private void hackSuperFields(){ //this will work, damnit.
++    	Class c = this.getClass();
++    	try {
++    		while (c != EntityPlayer.class){
++    			c = c.getSuperclass(); //its up there somewhere.
++    		}
++    		//vanilla
++    		inuse = c.getDeclaredField("f");
++    		inusedur = c.getDeclaredField("g");
++    	} catch (NoSuchFieldException e) {
++    		try{
++    			//forge?
++    			inuse = c.getDeclaredField("field_71074_e");
++    			inusedur = c.getDeclaredField("field_71072_f");
++    		} catch (NoSuchFieldException e1) {
++    			try {
++    				//deobf
++    				inuse = c.getDeclaredField("itemInUse");
++    				inusedur = c.getDeclaredField("itemInUseCount");
++    			} catch (NoSuchFieldException e3) {
++    				System.out.println("REPORT TO JRBUDDA " + e3.toString() + " " +c.getName());
++    				e.printStackTrace();
++    			}			
++    		}
++    	}
++    	catch (SecurityException e2) {
++
++    	}
++    	
++    	if(inuse!=null){
++			inuse.setAccessible(true);
++    		inusedur.setAccessible(true);
++    	}
++    }
++    
+     public void updateEntityActionState()
+     {
+         super.updateEntityActionState();
+@@ -99,6 +167,33 @@
          this.renderArmYaw = (float)((double)this.renderArmYaw + (double)(this.rotationYaw - this.renderArmYaw) * 0.5D);
      }
  
 +    
 +    public void setItemInUseClient(ItemStack item){
-+    	
++    	if(this.inuse==null){
++    		return;
++    	} 
++
 +    	try {
-+			this.inuse.set(this, item);
-+		} catch (IllegalArgumentException e) {
-+		} catch (IllegalAccessException e) {
-+		}
-+    	
++    		this.inuse.set(this, item);
++    	} catch (IllegalArgumentException e) {
++    	} catch (Exception e) {
++    	}
 +    }
 +    
-+   public void setItemInUseCountClient(int count){
-+    	
++    
++    public void setItemInUseCountClient(int count){
++    	if(this.inusedur==null){
++    		return;
++    	} 
++
 +    	try {
-+			this.inusedur.set(this, count);
-+		} catch (IllegalArgumentException e) {
-+		} catch (IllegalAccessException e) {
-+		}
-+    	
++    		this.inusedur.set(this, count);
++    	} catch (IllegalArgumentException e) {
++    	} catch (Exception e) {
++    	}
 +    }
++
 +    
      /**
       * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
       * use this to react to sunlight and start to burn.
-@@ -182,7 +245,9 @@
+@@ -182,7 +277,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -130,7 +166,7 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -195,20 +260,26 @@
+@@ -195,20 +292,26 @@
  
              if (this.movementInput.sneak && this.yOffset2 < 0.2F)
              {
@@ -163,7 +199,7 @@
                  }
                  else
                  {
-@@ -244,15 +315,15 @@
+@@ -244,15 +347,15 @@
              {
                  if (this.movementInput.sneak)
                  {
@@ -182,7 +218,7 @@
              if (this.isRidingHorse())
              {
                  if (this.horseJumpPowerCounter < 0)
-@@ -296,6 +367,10 @@
+@@ -296,6 +399,10 @@
  
              super.onLivingUpdate();
  
@@ -193,7 +229,7 @@
              if (this.onGround && this.capabilities.isFlying)
              {
                  this.capabilities.isFlying = false;
-@@ -341,7 +416,15 @@
+@@ -341,7 +448,15 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -210,7 +246,7 @@
      }
  
      /**
-@@ -524,70 +607,170 @@
+@@ -524,70 +639,170 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -427,7 +463,7 @@
  
          return false;
      }
-@@ -640,6 +823,20 @@
+@@ -640,6 +855,20 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -448,7 +484,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +859,233 @@
+@@ -662,4 +891,233 @@
      }
  
      protected void sendHorseJump() {}
