@@ -63,7 +63,7 @@
      }
  
      public void updateController()
-@@ -401,7 +417,16 @@
+@@ -401,7 +428,16 @@
          }
          else
          {
@@ -81,7 +81,7 @@
          }
      }
  
-@@ -423,9 +448,15 @@
+@@ -423,9 +459,15 @@
          {
              player.inventory.mainInventory[player.inventory.currentItem] = var5;
  
