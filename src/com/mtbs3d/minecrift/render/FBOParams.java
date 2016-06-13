@@ -160,6 +160,7 @@ public class FBOParams
             {
                 EXTFramebufferObject.glFramebufferTexture2DEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT, _textureType, _colorTextureId, 0);
             }
+            mc.clearGLError(); //ugh, forge why.
             mc.checkGLError("FBO bind texture framebuffer");
          }
     }

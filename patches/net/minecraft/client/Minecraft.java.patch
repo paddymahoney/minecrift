@@ -100,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4750 @@
+@@ -150,2988 +168,4754 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2901,11 +2901,15 @@
 +			for (int i = 0; this.visible && i < viewPortCount; i++)
 +			{
 +
-+				int x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
-+				if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
-+				x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
-+				if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++				int x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);				
++				while (x >1){
++					GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++					x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);	
++				}
 +				clearGLError();
++
++
++
 +				
 +				this.framebufferMc.bindFramebuffer(true);	//draw to eye texture.
 +				
