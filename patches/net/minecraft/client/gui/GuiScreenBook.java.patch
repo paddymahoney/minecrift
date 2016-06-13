@@ -1,0 +1,41 @@
+--- a/net/minecraft/client/gui/GuiScreenBook.java
++++ b/net/minecraft/client/gui/GuiScreenBook.java
+@@ -19,6 +19,8 @@
+ import org.apache.logging.log4j.Logger;
+ import org.lwjgl.input.Keyboard;
+ import org.lwjgl.opengl.GL11;
++import net.minecraft.client.Minecraft;
++import com.mtbs3d.minecrift.provider.MCOpenVR;
+ 
+ public class GuiScreenBook extends GuiScreen
+ {
+@@ -112,6 +114,9 @@
+             this.buttonList.add(this.buttonDone = new GuiButton(0, this.width / 2 + 2, 4 + this.bookImageHeight, 98, 20, I18n.format("gui.done", new Object[0])));
+             this.buttonList.add(this.buttonFinalize = new GuiButton(5, this.width / 2 - 100, 4 + this.bookImageHeight, 98, 20, I18n.format("book.finalizeButton", new Object[0])));
+             this.buttonList.add(this.buttonCancel = new GuiButton(4, this.width / 2 + 2, 4 + this.bookImageHeight, 98, 20, I18n.format("gui.cancel", new Object[0])));
++            // VIVE START - show keyboard
++            ((MCOpenVR)Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, null);
++            // VIVE END - show keyboard
+         }
+         else
+         {
+@@ -219,6 +224,9 @@
+             else if (button.id == 3 && this.bookIsUnsigned)
+             {
+                 this.bookGettingSigned = true;
++                // VIVE START - show keyboard
++                ((MCOpenVR)Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, null);
++                // VIVE END - show keyboard
+             }
+             else if (button.id == 1)
+             {
+@@ -251,6 +259,9 @@
+             else if (button.id == 4 && this.bookGettingSigned)
+             {
+                 this.bookGettingSigned = false;
++                // VIVE START - show keyboard
++                ((MCOpenVR)Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, null);
++                // VIVE END - show keyboard
+             }
+ 
+             this.updateButtons();
