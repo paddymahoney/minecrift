@@ -144,7 +144,7 @@
                  }
              }
 +            // VIVE START - client querying if server is running this mod too
-+            else if ("MC|Vive".equals(packetIn.getChannel()))
++            else if ("MC|Vive|Version".equals(packetIn.getChannel()))
 +            {
 +                String ok = "ok";
 +                sendPacket(new S3FPacketCustomPayload("MC|ViveOK", ok.getBytes(Charsets.UTF_8)));

@@ -100,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4769 @@
+@@ -150,2988 +168,4758 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2835,13 +2835,11 @@
 +			{
 +				this.mcProfiler.startSection("tick");
 +
-+
 +				for (int var3 = 0; var3 < this.timer.elapsedTicks; ++var3)
 +				{
 +					this.runTick();
 +					ticks++;
 +				}
-+
 +
 +				var6 = System.nanoTime() - var5;
 +
@@ -2861,8 +2859,6 @@
 +
 +			var6 = System.nanoTime() - var5;
 +			this.mcProfiler.endStartSection("preRenderErrors");
-+			//long var6 = System.nanoTime() - var5;
-+			//this.checkGLError("Pre render");
 +			RenderBlocks.fancyGrass = this.gameSettings.fancyGraphics;
 +			this.mcProfiler.endStartSection("sound");
 +			this.mcSoundHandler.setListener(this.thePlayer, this.timer.renderPartialTicks);
@@ -2909,7 +2905,6 @@
 +		
 +			boolean shouldupdate = true;
 +
-+
 +			this.framebufferMc = this.framebuffer;
 +
 +			/** Minecrift - main stereo render loop **/
@@ -2922,9 +2917,6 @@
 +					x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);	
 +				}
 +				clearGLError();
-+
-+
-+
 +				
 +				this.framebufferMc.bindFramebuffer(true);	//draw to eye texture.
 +				
@@ -3012,10 +3004,8 @@
 +						this.mcProfiler.profilingEnabled = false;
 +						this.prevFrameTime = System.nanoTime();
 +					}
-+	
 +		
 +				GL11.glPushMatrix();
-+					//this.framebufferMc.framebufferRender(this.displayWidth, this.displayHeight);
 +				 	doPostProcessing(frameIndex, this.currentEye);
 +				GL11.glPopMatrix();
 +				
@@ -3033,7 +3023,6 @@
 +				
 +					
 +				shouldupdate =	copyToMirror(this.currentEye);
-+				
 +				
 +				x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
 +				if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
