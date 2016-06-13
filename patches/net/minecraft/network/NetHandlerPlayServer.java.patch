@@ -1,6 +1,14 @@
 --- a/net/minecraft/network/NetHandlerPlayServer.java
 +++ b/net/minecraft/network/NetHandlerPlayServer.java
-@@ -58,14 +58,7 @@
+@@ -14,6 +14,7 @@
+ import java.util.Random;
+ import java.util.concurrent.Callable;
+ import net.minecraft.block.material.Material;
++import net.minecraft.client.Minecraft;
+ import net.minecraft.command.server.CommandBlockLogic;
+ import net.minecraft.crash.CrashReport;
+ import net.minecraft.crash.CrashReportCategory;
+@@ -58,14 +59,7 @@
  import net.minecraft.network.play.client.C15PacketClientSettings;
  import net.minecraft.network.play.client.C16PacketClientStatus;
  import net.minecraft.network.play.client.C17PacketCustomPayload;
@@ -16,32 +24,32 @@
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.management.UserListBansEntry;
  import net.minecraft.stats.AchievementList;
-@@ -293,9 +286,11 @@
+@@ -291,11 +285,13 @@
+                     var9 = packetIn.getPositionZ();
+                     var13 = packetIn.getStance() - packetIn.getPositionY();
  
-                     if (!this.playerEntity.isPlayerSleeping() && (var13 > 1.65D || var13 < 0.1D))
+-                    if (!this.playerEntity.isPlayerSleeping() && (var13 > 1.65D || var13 < 0.1D))
++                    if (!Minecraft.getMinecraft().vrSettings.vrAllowCrawling && !this.playerEntity.isPlayerSleeping() && (var13 > 1.65D || var13 < 0.1D))
                      {
--                        this.kickPlayerFromServer("Illegal stance");
--                        logger.warn(this.playerEntity.getCommandSenderName() + " had an illegal stance: " + var13);
--                        return;
 +                        // VIVE START - don't check for stance changes
-+                        //this.kickPlayerFromServer("Illegal stance");
-+                        //logger.warn(this.playerEntity.getCommandSenderName() + " had an illegal stance: " + var13);
-+                        //return;
+                         this.kickPlayerFromServer("Illegal stance");
+                         logger.warn(this.playerEntity.getCommandSenderName() + " had an illegal stance: " + var13);
+                         return;
 +                        // VIVE END - don't check for stance changes
                      }
  
                      if (Math.abs(packetIn.getPositionX()) > 3.2E7D || Math.abs(packetIn.getPositionZ()) > 3.2E7D)
-@@ -313,6 +308,9 @@
+@@ -313,6 +309,9 @@
  
                  this.playerEntity.onUpdateEntity();
                  this.playerEntity.yOffset2 = 0.0F;
 +                //JRBUDDA VIVE FOR CRAWLING
-+                this.playerEntity.height = (float) packetIn.getStance();
++                this.playerEntity.height = (float) ((float) packetIn.getStance() - packetIn.getPositionY());
 +                //END JRBUDDA
                  this.playerEntity.setPositionAndRotation(this.lastPosX, this.lastPosY, this.lastPosZ, var11, var12);
  
                  if (!this.hasMoved)
-@@ -345,6 +343,7 @@
+@@ -345,6 +344,7 @@
  
                  this.playerEntity.moveEntity(var13, var15, var17);
                  this.playerEntity.onGround = packetIn.func_149465_i();
@@ -49,7 +57,7 @@
                  this.playerEntity.addMovementStat(var13, var15, var17);
                  double var29 = var15;
                  var13 = var5 - this.playerEntity.posX;
-@@ -362,7 +361,9 @@
+@@ -362,7 +362,9 @@
                  if (var25 > 0.0625D && !this.playerEntity.isPlayerSleeping() && !this.playerEntity.theItemInWorldManager.isCreative())
                  {
                      var31 = true;
@@ -60,7 +68,7 @@
                  }
  
                  this.playerEntity.setPositionAndRotation(var5, var7, var9, var11, var12);
-@@ -370,7 +371,9 @@
+@@ -370,7 +372,9 @@
  
                  if (var28 && (var31 || !var32) && !this.playerEntity.isPlayerSleeping())
                  {
@@ -71,7 +79,7 @@
                      return;
                  }
  
-@@ -404,6 +407,11 @@
+@@ -404,6 +408,11 @@
                  this.setPlayerLocation(this.lastPosX, this.lastPosY, this.lastPosZ, this.playerEntity.rotationYaw, this.playerEntity.rotationPitch);
              }
          }
@@ -83,7 +91,7 @@
      }
  
      public void setPlayerLocation(double x, double y, double z, float yaw, float pitch)
-@@ -414,6 +422,7 @@
+@@ -414,6 +423,7 @@
          this.lastPosZ = z;
          this.playerEntity.setPositionAndRotation(x, y, z, yaw, pitch);
          this.playerEntity.playerNetServerHandler.sendPacket(new S08PacketPlayerPosLook(x, y + 1.6200000047683716D, z, yaw, pitch, false));
@@ -91,7 +99,7 @@
      }
  
      /**
-@@ -421,6 +430,8 @@
+@@ -421,6 +431,8 @@
       * initiated, 1: reinitiated, 2? , 3-4 drop item (respectively without or with player control), 5: stopped; x,y,z,
       * side clicked on;)
       */
@@ -100,7 +108,7 @@
      public void processPlayerDigging(C07PacketPlayerDigging packetIn)
      {
          WorldServer var2 = this.serverController.worldServerForDimension(this.playerEntity.dimension);
-@@ -1129,20 +1140,20 @@
+@@ -1129,20 +1141,20 @@
              {
                  var3 = var2.readItemStackFromBuffer();
  
@@ -131,7 +139,7 @@
                      if (var3.getItem() == Items.writable_book && var3.getItem() == var4.getItem())
                      {
                          var4.setTagInfo("pages", var3.getTagCompound().getTagList("pages", 8));
-@@ -1333,6 +1344,13 @@
+@@ -1333,6 +1345,13 @@
                      var41.updateItemName("");
                  }
              }

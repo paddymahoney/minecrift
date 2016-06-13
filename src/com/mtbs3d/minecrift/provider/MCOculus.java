@@ -489,4 +489,10 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	@Override
+	public boolean isHMDTracking() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

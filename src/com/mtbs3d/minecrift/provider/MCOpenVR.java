@@ -3,11 +3,13 @@ package com.mtbs3d.minecrift.provider;
 import com.mtbs3d.minecrift.api.*;
 import com.mtbs3d.minecrift.control.ViveButtons;
 import com.mtbs3d.minecrift.render.QuaternionHelper;
+import com.mtbs3d.minecrift.settings.VRSettings;
 import com.mtbs3d.minecrift.utils.KeyboardSimulator;
 import com.sun.jna.Memory;
 import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.ByteByReference;
+import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 
 import de.fruitfly.ovr.UserProfileData;
@@ -108,8 +110,8 @@ IEventNotifier, IEventListener, IBodyAimController
 	private float aimYaw = 0;
 	private float aimPitch = 0;
 
-	public float laimPitch = 0;
-	public float laimYaw = 0;
+	private float laimPitch = 0;
+	private float laimYaw = 0;
 
 	private Vec3[] aimSource = new Vec3[2];
 
@@ -162,6 +164,11 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	private float[] inventory_swipe = new float[2];
 	
+	
+	public HiddenAreaMesh_t[] hiddenMeshes = new HiddenAreaMesh_t[2];
+	public float[][] hiddenMesheVertecies = new float[2][];
+	
+
 
 	private int moveModeSwitchcount = 0;
 
@@ -184,7 +191,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	@Override
 	public String getVersion() { return "Version TODO"; }
 
-	public boolean headIsTracking;
+	private boolean headIsTracking;
 	
 	public MCOpenVR()
 	{
@@ -1459,10 +1466,10 @@ IEventNotifier, IEventListener, IBodyAimController
 		RenderTextureInfo info = new RenderTextureInfo();
 		info.HmdNativeResolution.w = rtx.get(0);
 		info.HmdNativeResolution.h = rty.get(0);
-		info.LeftFovTextureResolution.w = (int) (rtx.get(0) * renderScaleFactor);
-		info.LeftFovTextureResolution.h = (int) (rty.get(0) * renderScaleFactor);
-		info.RightFovTextureResolution.w = (int) (rtx.get(0) * renderScaleFactor);
-		info.RightFovTextureResolution.h = (int) (rty.get(0) * renderScaleFactor);
+		info.LeftFovTextureResolution.w = (int) (rtx.get(0) );
+		info.LeftFovTextureResolution.h = (int) (rty.get(0) );
+		info.RightFovTextureResolution.w = (int) (rtx.get(0) );
+		info.RightFovTextureResolution.h = (int) (rty.get(0) );
 		
 		if ( info.LeftFovTextureResolution.w % 2 != 0) info.LeftFovTextureResolution.w++;
 		if ( info.LeftFovTextureResolution.h % 2 != 0) info.LeftFovTextureResolution.w++;
@@ -1472,9 +1479,36 @@ IEventNotifier, IEventListener, IBodyAimController
 		info.CombinedTextureResolution.w = info.LeftFovTextureResolution.w + info.RightFovTextureResolution.w;
 		info.CombinedTextureResolution.h = info.LeftFovTextureResolution.h;
 				
+		
+		for (int i = 0; i < 2; i++) {
+			hiddenMeshes[i] = vrsystem.GetHiddenAreaMesh.apply(i);
+			hiddenMeshes[i].read();
+
+			hiddenMesheVertecies[i] = new float[hiddenMeshes[i].unTriangleCount * 3 * 2];
+			Pointer arrptr = new Memory(hiddenMeshes[i].unTriangleCount * 3 * 2);
+			hiddenMeshes[i].pVertexData.getPointer().read(0, hiddenMesheVertecies[i], 0, hiddenMesheVertecies[i].length);
+			
+			for (int ix = 0;ix < hiddenMesheVertecies[i].length;ix+=2) {
+				hiddenMesheVertecies[i][ix] = hiddenMesheVertecies[i][ix] * info.LeftFovTextureResolution.w * renderScaleFactor;
+				hiddenMesheVertecies[i][ix + 1] = hiddenMesheVertecies[i][ix +1] * info.LeftFovTextureResolution.h * renderScaleFactor;
+			}
+		}
+		
+		
+//		Pointer pointers = new Memory(k_pch_SteamVR_Section.length()+1);
+//		pointers.setString(0, k_pch_SteamVR_Section);
+//		Pointer pointerk = new Memory(k_pch_SteamVR_RenderTargetMultiplier_Float.length()+1);
+//		pointerk.setString(0, k_pch_SteamVR_RenderTargetMultiplier_Float);
+//		IntByReference err = new IntByReference();
+//		float test = vrSettings.GetFloat.apply(pointers, pointerk, 99.9f, err);
+//		vrSettings.SetFloat.apply(pointers, pointerk, renderScaleFactor, err);
+//		float test2 = vrSettings.GetFloat.apply(pointers, pointerk, 99.9f, err);
+
 		return info;
 	}
-
+	final String k_pch_SteamVR_Section = "steamvr";
+	final String k_pch_SteamVR_RenderTargetMultiplier_Float = "renderTargetMultiplier";
+	
 	@Override
 	public EyeType eyeRenderOrder(int index)
 	{
@@ -1647,16 +1681,6 @@ IEventNotifier, IEventListener, IBodyAimController
 		return controller == 0 ? controllerRotation[0]: controllerRotation[1];
 	}
 	
-	@Override
-	public double ratchetingYawTransitionPercent()
-	{
-		return -1d;//this.discreteYaw._percent;
-	}
-	@Override
-	public double ratchetingPitchTransitionPercent()
-	{
-		return -1d;//this.discretePitch._percent;
-	}
 	@Override
 	public boolean initBodyAim() throws Exception
 	{
@@ -2056,5 +2080,10 @@ IEventNotifier, IEventListener, IBodyAimController
 	@Override
 	public float getOffhandAimPitch() {
 		return laimPitch;
+	}
+
+	@Override
+	public boolean isHMDTracking() {
+		return headIsTracking;
 	}
 }

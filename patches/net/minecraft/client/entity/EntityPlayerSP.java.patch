@@ -163,34 +163,26 @@
                  }
                  else
                  {
-@@ -240,18 +311,24 @@
-                 }
-             }
- 
-+            /** MINECRIFT **/
-             if (this.capabilities.isFlying)
+@@ -244,15 +315,15 @@
              {
-+                // Account for inertia factor
-+                int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
-+                double addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
-+
                  if (this.movementInput.sneak)
                  {
 -                    this.motionY -= 0.15D;
-+                    this.motionY -= 0.15D * addFactor;
++                    this.motionY -= 0.15D ;
                  }
  
                  if (this.movementInput.jump)
                  {
 -                    this.motionY += 0.15D;
-+                    this.motionY += 0.15D * addFactor;
++                    this.motionY += 0.15D ;
                  }
              }
-+            /** END MINECRIFT **/
- 
+-
++            
              if (this.isRidingHorse())
              {
-@@ -296,6 +373,10 @@
+                 if (this.horseJumpPowerCounter < 0)
+@@ -296,6 +367,10 @@
  
              super.onLivingUpdate();
  
@@ -201,7 +193,7 @@
              if (this.onGround && this.capabilities.isFlying)
              {
                  this.capabilities.isFlying = false;
-@@ -341,7 +422,15 @@
+@@ -341,7 +416,15 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -218,7 +210,7 @@
      }
  
      /**
-@@ -524,70 +613,170 @@
+@@ -524,70 +607,170 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -435,7 +427,7 @@
  
          return false;
      }
-@@ -640,6 +829,20 @@
+@@ -640,6 +823,20 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -456,7 +448,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +865,224 @@
+@@ -662,4 +859,233 @@
      }
  
      protected void sendHorseJump() {}
@@ -465,37 +457,41 @@
 +    
 +    
 +    /** MINECRIFT **/
-+    public void doDrag(float var3, boolean isFlying)
++    public void doDrag()
 +    {
-+        double xFactor = var3;
-+        double zFactor = var3;
-+        double yFactor = 0.9800000190734863D;
 +
-+        if (this instanceof EntityPlayer)
-+        {
-+        	int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
-+        	double addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
++   	
++    	float var3 = 0.91F;
 +
-+        	double boundedAdditionX = getBoundedAddition(additionX);
-+        	double targetLimitX = (var3 * boundedAdditionX) / (1f - var3);
-+        	double multiFactorX = targetLimitX / (var3 * (targetLimitX + (boundedAdditionX * addFactor)));
-+        	xFactor *= multiFactorX;
++    	if (this.onGround)
++    	{
++    		var3 = this.worldObj.getBlock(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.boundingBox.minY) - 1, MathHelper.floor_double(this.posZ)).slipperiness * 0.91F;
++    	}
 +
-+        	double boundedAdditionZ = getBoundedAddition(additionZ);
-+        	double targetLimitZ = (var3 * boundedAdditionZ) / (1f - var3);
-+        	double multiFactorZ = targetLimitZ / (var3 * (targetLimitZ + (boundedAdditionZ * addFactor)));
-+        	zFactor *= multiFactorZ;
++    	double xFactor = var3;
++    	double zFactor = var3;
 +
-+        	yFactor = var3;
-+        	double boundedAdditionY = getBoundedAddition(additionY);
-+        	double targetLimitY = (var3 * boundedAdditionY) / (1f - var3);
-+        	double multiFactorY = targetLimitY / (var3 * (targetLimitY + (boundedAdditionY * addFactor)));
-+        	yFactor *= multiFactorY;
-+        }
++    	//account for stock drag code we can't change in EntityLivingBase
++    	this.motionX /= xFactor;
++    	this.motionZ /= zFactor;
++    	//
 +
-+        this.motionY *= yFactor;
-+        this.motionX *= xFactor;
-+        this.motionZ *= zFactor;
++    	int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
++    	double addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
++
++    	double boundedAdditionX = getBoundedAddition(additionX);
++    	double targetLimitX = (var3 * boundedAdditionX) / (1f - var3);
++    	double multiFactorX = targetLimitX / (var3 * (targetLimitX + (boundedAdditionX * addFactor)));
++    	xFactor *= multiFactorX;
++
++    	double boundedAdditionZ = getBoundedAddition(additionZ);
++    	double targetLimitZ = (var3 * boundedAdditionZ) / (1f - var3);
++    	double multiFactorZ = targetLimitZ / (var3 * (targetLimitZ + (boundedAdditionZ * addFactor)));
++    	zFactor *= multiFactorZ;
++
++
++    	this.motionX *= xFactor;
++    	this.motionZ *= zFactor;
 +    }
 +    
 +    public double getBoundedAddition(double orig)
@@ -515,32 +511,31 @@
 +    @Override
 +    public void moveFlying(float strafe, float forward, float friction)
 +    {
-+  //  	super.moveFlying(strafe, forward, friction, allowYAdjust);;
++//   	super.moveFlying(strafe, forward, friction);;
 +    	
 +    	VRPlayer vr = mc.vrPlayer;		
 +    	if (!vr.getFreeMoveMode()) {return;}
 +		
 +        int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
-+        float var4 = strafe * strafe + forward * forward;
++        float speed = strafe * strafe + forward * forward;
 +
 +        double mX = 0d;
 +        double mZ = 0d;
 +        double mY = 0d;
 +        double addFactor = 1f;
-+        double yAddFactor = 0f;
 +
-+        if (var4 >= 1.0E-4F)
++        if (speed >= 1.0E-4F)
 +        {
-+            var4 = MathHelper.sqrt_float(var4);
++            speed = MathHelper.sqrt_float(speed);
 +
-+            if (var4 < 1.0F)
++            if (speed < 1.0F)
 +            {
-+                var4 = 1.0F;
++                speed = 1.0F;
 +            }
 +
-+            var4 = friction / var4;
-+            strafe *= var4;
-+            forward *= var4;
++            speed = friction / speed;
++            strafe *= speed;
++            forward *= speed;
 +
 +            directionVec.xCoord = strafe;
 +            directionVec.yCoord = 0;
@@ -550,52 +545,58 @@
 +
 +    		IBodyAimController con = mc.lookaimController;
 +    		
-+    	   // Modify acceleration sequence (each tick)
-+            addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
-+    				
 +            // Account for pitch if required
++    		if(this.capabilities.isFlying || this.inWater)
 +            if (Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
-+                yAddFactor = addFactor;
-+    			if (vr.useLControllerForRestricedMovement) {
-+    	
-+    				if (con instanceof MCOpenVR) {
-+    				  directionVec.rotateAroundX(-(((MCOpenVR)con).laimPitch) * PIOVER180);		   
-+    				}
-+    					 
-+    			} else {
-+    		       directionVec.rotateAroundX(-this.headPitch * PIOVER180);	
-+    			}		
++            	if (vr.useLControllerForRestricedMovement) {
++            		directionVec.rotateAroundX(-con.getOffhandAimPitch() * PIOVER180);		      					 
++            	} else {
++            		directionVec.rotateAroundX(-this.headPitch * PIOVER180);	
++            	}		
 +            }
 +    		
 +    		// Account for yaw
-+    		if (vr.useLControllerForRestricedMovement) {
-+    				if (con instanceof MCOpenVR) {
-+    				  directionVec.rotateAroundY(-(((MCOpenVR)con).laimYaw) * PIOVER180);		   
-+    				}
-+    		} else {
++            if (vr.useLControllerForRestricedMovement) {
++            	directionVec.rotateAroundY(-con.getOffhandAimYaw() * PIOVER180);		   
++            } else {
 +    			directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
 +    		}
 +    	
-+		
 +            mX = directionVec.xCoord;
 +            mY = directionVec.yCoord;
 +            mZ = directionVec.zCoord;
-+           
++
++     	   // Modify acceleration sequence (each tick)
++            if(!this.capabilities.isFlying && !this.inWater) addFactor = VRSettings.getInertiaAddFactor(inertiaFactor);
++            
++            float yAdd = 1f;
++            if(this.capabilities.isFlying) yAdd = 3f; //HACK
++            
 +            this.motionX = this.motionX + (mX * addFactor);
 +            this.motionZ = this.motionZ + (mZ * addFactor);
-+            this.motionY = this.motionY + (mY * yAddFactor);
++            this.motionY = this.motionY + (mY * yAdd);
 +      
++            this.additionX = mX;
++            this.additionZ = mZ;
 +        }
++        
 +        //if (this instanceof EntityPlayerSP) {
 +        //    System.out.println(String.format("FLYING: %B, forward: %.4f, strafe: %.4f, pitch: %.4f, yaw: %.4f, mx: %.4f, mz: %.4f, my: %.4f", allowYAdjust, forward, strafe, this.headPitch, this.rotationYaw, mX, mZ, mY));
 +        //}
 +
-+        this.additionX = mX;
-+        this.additionZ = mZ;
-+        this.additionY = mY;
++        
++     if(!this.capabilities.isFlying && !this.inWater) doDrag();       //TODO put back intertia while flying.. doesnt work for some reason. 
++
++        
++        
 +/** END MINECRIFT **/
 +   
 +    }
++    
++    public float spEyeHeight;
++    
++    @Override
++    public float getEyeHeight() {return spEyeHeight;}
 +    
 +    /**
 +     * Checks if the current block the entity is within of the specified material type

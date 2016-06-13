@@ -51,6 +51,7 @@ public class GuiVRControlsList extends GuiListExtended
     	}
     	if(key.FunctionDesc.startsWith("keyboard")){
     		key.key = null;
+    		if(key.FunctionDesc.contains("-")) key.FunctionExt = 0;
     		return;
     	}
         KeyBinding[] var3 = mc.gameSettings.keyBindings;

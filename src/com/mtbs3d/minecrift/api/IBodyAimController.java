@@ -54,13 +54,6 @@ public interface IBodyAimController extends IBasePlugin {
 
 	public void loadDefaults();
 
-    /**
-     * Get the percentage through a transition of the ratcheting control
-     * @return Percentage through the ratcheting transition; or -1 if not
-     * transitioning
-     */
-	public double ratchetingYawTransitionPercent();
-    public double ratchetingPitchTransitionPercent();
 
 	public void triggerYawTransition(boolean isPositive);
 

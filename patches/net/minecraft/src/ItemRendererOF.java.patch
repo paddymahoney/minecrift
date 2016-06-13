@@ -21,7 +21,7 @@
  import org.lwjgl.opengl.GL11;
  import org.lwjgl.opengl.GL12;
  
-@@ -50,126 +54,130 @@
+@@ -50,125 +54,126 @@
       */
      public void renderItem(EntityLivingBase par1EntityLivingBase, ItemStack par2ItemStack, int par3)
      {
@@ -145,7 +145,6 @@
 -            GL11.glDisable(GL11.GL_BLEND);
 -        }
 +         GL11.glPushMatrix();
-+         	mc.checkGLError("RenderItemOF start");
 +	        TextureManager var4 = this.mc.getTextureManager();
 +	        Item var5 = par2ItemStack.getItem();
 +	        Block var6 = Block.getBlockFromItem(var5);
@@ -195,7 +194,6 @@
 +	                GL11.glPopMatrix();
 +	                return;
 +	            }
-+	          	mc.checkGLError("RenderItemOF thing");
 +	            var4.bindTexture(var4.getResourceLocation(par2ItemStack.getItemSpriteNumber()));
 +	            TextureUtil.func_152777_a(false, false, 1.0F);
 +	            Tessellator var8 = Tessellator.instance;
@@ -268,6 +266,4 @@
 +	        }
  
          GL11.glPopMatrix();
-+      	mc.checkGLError("RenderItemOF");
      }
- }

@@ -713,7 +713,8 @@ public class VRSettings
                        String[] pts = optionTokens[1].split("_");
                       
                        if (pts.length == 1) {
-                           vb.FunctionDesc = optionTokens[1];                   	   
+                           vb.FunctionDesc = optionTokens[1];
+                           vb.FunctionExt = 0;
                        } else {
                            vb.FunctionDesc = pts[0];
                            vb.FunctionExt = (char) pts[1].getBytes()[0];
@@ -731,9 +732,7 @@ public class VRSettings
                     var7.printStackTrace();
                 }
             }
-                    
             processBindings();
-            
             
             optionsVRReader.close();
         }
@@ -756,6 +755,7 @@ public class VRSettings
 			//todo handle unknown binding.
 			if(vb.FunctionDesc.startsWith("keyboard")){
 				vb.key = null;
+	    		if(vb.FunctionDesc.contains("-")) vb.FunctionExt = 0;
 			} else {
 		        KeyBinding[] var3 = mc.gameSettings.keyBindings;
 		        for (final KeyBinding keyBinding : var3) {	

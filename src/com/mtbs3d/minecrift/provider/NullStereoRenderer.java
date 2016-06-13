@@ -180,4 +180,10 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 	public boolean endFrame(EyeType eye) {
 		return this.endFrame();
 	}
+
+	@Override
+	public boolean isHMDTracking() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

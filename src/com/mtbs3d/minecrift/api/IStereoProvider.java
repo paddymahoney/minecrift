@@ -58,5 +58,6 @@ public interface IStereoProvider extends IBasePlugin
 
     // VIVE START - new stereo provider functions
     public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen);
+    public boolean isHMDTracking();
     // VIVE END - new stereo provider functions
 }

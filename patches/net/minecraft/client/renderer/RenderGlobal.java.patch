@@ -28,18 +28,16 @@
      private int renderChunksWide;
      private int renderChunksTall;
      private int renderChunksDeep;
-@@ -550,8 +555,9 @@
+@@ -550,7 +555,7 @@
      /**
       * Renders all entities within range and within the frustrum. Args: pos, frustrum, partialTickTime
       */
 -    public void renderEntities(EntityLivingBase p_147589_1_, ICamera p_147589_2_, float p_147589_3_)
 +    public void renderEntities(EntityLivingBase p_147589_1_, ICamera p_147589_2_, float nano)
      {
-+		mc.checkGLError("renderEntittesStart");
          int pass = 0;
  
-         if (Reflector.MinecraftForgeClient_getRenderPass.exists())
-@@ -573,12 +579,12 @@
+@@ -573,12 +578,12 @@
          }
          else
          {
@@ -57,7 +55,7 @@
  
              if (pass == 0)
              {
-@@ -587,9 +593,9 @@
+@@ -587,9 +592,9 @@
                  this.countEntitiesHidden = 0;
                  this.countTileEntitiesRendered = 0;
                  EntityLivingBase var17 = this.mc.renderViewEntity;
@@ -70,7 +68,7 @@
                  TileEntityRendererDispatcher.staticPlayerX = var18;
                  TileEntityRendererDispatcher.staticPlayerY = oldFancyGraphics;
                  TileEntityRendererDispatcher.staticPlayerZ = aabb;
-@@ -613,7 +619,7 @@
+@@ -613,7 +618,7 @@
                  RenderManager.renderPosZ = aabb;
              }
  
@@ -79,7 +77,7 @@
              this.theWorld.theProfiler.endStartSection("global");
              List var24 = this.theWorld.getLoadedEntityList();
  
-@@ -640,15 +646,24 @@
+@@ -640,15 +645,23 @@
  
                      if (var19.isInRangeToRender3d(var4, var6, var8))
                      {
@@ -89,7 +87,6 @@
                  }
              }
 -
-+    		mc.checkGLError("entitiesend");
              this.theWorld.theProfiler.endStartSection("entities");
 +            /** MINECRIFT SHADERS MOD **/
 +            boolean shadersMod = Reflector.shadersModExists();
@@ -106,7 +103,7 @@
              for (var25 = 0; var25 < var24.size(); ++var25)
              {
                  var19 = (Entity)var24.get(var25);
-@@ -668,24 +683,52 @@
+@@ -668,24 +681,51 @@
                          }
                      }
  
@@ -153,7 +150,6 @@
  
              this.mc.gameSettings.fancyGraphics = var26;
              this.theWorld.theProfiler.endStartSection("blockentities");
-+     		mc.checkGLError("blockentities");
 +            if (shadersMod) {
 +                //Shaders.endEntities();
 +                //Shaders.beginBlockEntities();
@@ -164,7 +160,7 @@
              RenderHelper.enableStandardItemLighting();
  
              for (var25 = 0; var25 < this.tileEntities.size(); ++var25)
-@@ -709,7 +752,7 @@
+@@ -709,7 +749,7 @@
                              {
                                  FontRenderer fr = TileEntityRendererDispatcher.instance.getFontRenderer();
                                  fr.enabled = false;
@@ -173,7 +169,7 @@
                                  ++this.countTileEntitiesRendered;
                                  fr.enabled = true;
                                  continue;
-@@ -726,14 +769,58 @@
+@@ -726,14 +766,58 @@
                              }
                          }
  
@@ -234,7 +230,7 @@
          }
      }
  
-@@ -1075,11 +1162,21 @@
+@@ -1075,11 +1159,21 @@
                  {
                      endIndex = this.countSortedWorldRenderers;
                  }
@@ -257,7 +253,7 @@
                  GL11.glColorMask(false, false, false, false);
                  GL11.glDepthMask(false);
                  profiler.startSection("check");
-@@ -1177,12 +1274,21 @@
+@@ -1177,12 +1271,21 @@
                  {
                      GL11.glColorMask(true, true, true, true);
                  }
@@ -280,7 +276,7 @@
              }
          }
          else
-@@ -1422,13 +1528,13 @@
+@@ -1422,13 +1525,13 @@
  
              this.glListBuffer.flip();
              EntityLivingBase var18 = this.mc.renderViewEntity;
@@ -297,7 +293,7 @@
              this.mc.entityRenderer.disableLightmap(partialTicks);
              return l;
          }
-@@ -1475,6 +1581,9 @@
+@@ -1475,6 +1578,9 @@
       */
      public void renderSky(float par1)
      {
@@ -307,7 +303,7 @@
          if (Reflector.ForgeWorldProvider_getSkyRenderer.exists())
          {
              WorldProvider var2 = this.mc.theWorld.provider;
-@@ -1495,6 +1604,11 @@
+@@ -1495,6 +1601,11 @@
              }
  
              GL11.glDisable(GL11.GL_FOG);
@@ -319,7 +315,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_BLEND);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1544,13 +1658,27 @@
+@@ -1544,13 +1655,27 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -347,7 +343,7 @@
              float var231 = (float)var21.xCoord;
              float var4 = (float)var21.yCoord;
              float var5 = (float)var21.zCoord;
-@@ -1570,14 +1698,26 @@
+@@ -1570,14 +1695,26 @@
              Tessellator var241 = Tessellator.instance;
              GL11.glDepthMask(false);
              GL11.glEnable(GL11.GL_FOG);
@@ -374,7 +370,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_BLEND);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1595,6 +1735,10 @@
+@@ -1595,6 +1732,10 @@
              if (var251 != null && Config.isSunMoonEnabled())
              {
                  GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -385,7 +381,7 @@
                  GL11.glShadeModel(GL11.GL_SMOOTH);
                  GL11.glPushMatrix();
                  GL11.glRotatef(90.0F, 1.0F, 0.0F, 0.0F);
-@@ -1634,6 +1778,10 @@
+@@ -1634,6 +1775,10 @@
              }
  
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -396,7 +392,7 @@
              OpenGlHelper.glBlendFunc(770, 1, 1, 0);
              GL11.glPushMatrix();
              var8 = 1.0F - this.theWorld.getRainStrength(par1);
-@@ -1643,8 +1791,16 @@
+@@ -1643,8 +1788,16 @@
              GL11.glColor4f(1.0F, 1.0F, 1.0F, var8);
              GL11.glTranslatef(var9, var10, var11);
              GL11.glRotatef(-90.0F, 0.0F, 1.0F, 0.0F);
@@ -413,7 +409,7 @@
  
              if (Config.isSunMoonEnabled())
              {
-@@ -1674,6 +1830,10 @@
+@@ -1674,6 +1827,10 @@
              }
  
              GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -424,7 +420,7 @@
              var20 = this.theWorld.getStarBrightness(par1) * var8;
  
              if (var20 > 0.0F && Config.isStarsEnabled() && !CustomSky.hasSkyLayers(this.theWorld))
-@@ -1686,8 +1846,16 @@
+@@ -1686,8 +1843,16 @@
              GL11.glDisable(GL11.GL_BLEND);
              GL11.glEnable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_FOG);
@@ -441,7 +437,7 @@
              GL11.glColor3f(0.0F, 0.0F, 0.0F);
              double var28 = this.mc.thePlayer.getPosition(par1).yCoord - this.theWorld.getHorizon();
  
-@@ -1749,7 +1917,12 @@
+@@ -1749,7 +1914,12 @@
  
              GL11.glPopMatrix();
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -454,7 +450,7 @@
          }
      }
  
-@@ -2202,6 +2375,8 @@
+@@ -2202,6 +2372,8 @@
  
      public void drawBlockDamageTexture(Tessellator par1Tessellator, EntityLivingBase par2EntityPlayer, float par3)
      {
@@ -463,7 +459,7 @@
          double var4 = par2EntityPlayer.lastTickPosX + (par2EntityPlayer.posX - par2EntityPlayer.lastTickPosX) * (double)par3;
          double var6 = par2EntityPlayer.lastTickPosY + (par2EntityPlayer.posY - par2EntityPlayer.lastTickPosY) * (double)par3;
          double var8 = par2EntityPlayer.lastTickPosZ + (par2EntityPlayer.posZ - par2EntityPlayer.lastTickPosZ) * (double)par3;
-@@ -2216,6 +2391,10 @@
+@@ -2216,6 +2388,10 @@
              GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
              GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
              GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -474,7 +470,7 @@
              par1Tessellator.startDrawingQuads();
              par1Tessellator.setTranslation(-var4, -var6, -var8);
              par1Tessellator.disableColor();
-@@ -2245,6 +2424,10 @@
+@@ -2245,6 +2421,10 @@
  
              par1Tessellator.draw();
              par1Tessellator.setTranslation(0.0D, 0.0D, 0.0D);
@@ -485,7 +481,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glPolygonOffset(0.0F, 0.0F);
              GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
-@@ -2252,6 +2435,7 @@
+@@ -2252,6 +2432,7 @@
              GL11.glDepthMask(true);
              GL11.glPopMatrix();
          }
@@ -493,7 +489,7 @@
      }
  
      /**
-@@ -2259,6 +2443,8 @@
+@@ -2259,6 +2440,8 @@
       */
      public void drawSelectionBox(EntityPlayer par1EntityPlayer, MovingObjectPosition par2MovingObjectPosition, int par3, float par4)
      {
@@ -502,7 +498,7 @@
          if (par3 == 0 && par2MovingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
          {
              GL11.glEnable(GL11.GL_BLEND);
-@@ -2266,6 +2452,10 @@
+@@ -2266,6 +2449,10 @@
              GL11.glColor4f(0.0F, 0.0F, 0.0F, 0.4F);
              GL11.glLineWidth(2.0F);
              GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -513,7 +509,7 @@
              GL11.glDepthMask(false);
              float var5 = 0.002F;
              Block var6 = this.theWorld.getBlock(par2MovingObjectPosition.blockX, par2MovingObjectPosition.blockY, par2MovingObjectPosition.blockZ);
-@@ -2281,8 +2471,13 @@
+@@ -2281,8 +2468,13 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -527,7 +523,7 @@
      }
  
      /**
-@@ -2933,6 +3128,9 @@
+@@ -2933,6 +3125,9 @@
                      this.theWorld.playSound((double)par3 + 0.5D, (double)par4 + 0.5D, (double)par5 + 0.5D, "random.door_close", 1.0F, this.theWorld.rand.nextFloat() * 0.1F + 0.9F, false);
                  }
  
@@ -537,7 +533,7 @@
                  break;
  
              case 1004:
-@@ -3026,12 +3224,13 @@
+@@ -3026,12 +3221,13 @@
  
              case 2001:
                  var8 = Block.getBlockById(par6 & 4095);
@@ -553,7 +549,7 @@
                  this.mc.effectRenderer.addBlockDestroyEffects(par3, par4, par5, var8, par6 >> 12 & 255);
                  break;
  
-@@ -3128,6 +3327,9 @@
+@@ -3128,6 +3324,9 @@
  
                      for (int var24 = 0; var24 < var23; ++var24)
                      {

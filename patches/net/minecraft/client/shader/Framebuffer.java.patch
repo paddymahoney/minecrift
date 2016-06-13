@@ -128,7 +128,7 @@
          this.framebufferWidth = p_147605_1_;
          this.framebufferHeight = p_147605_2_;
          this.framebufferTextureWidth = p_147605_1_;
-@@ -97,43 +160,93 @@
+@@ -97,43 +160,86 @@
          }
          else
          {
@@ -183,19 +183,14 @@
              {
 -                OpenGlHelper.func_153176_h(OpenGlHelper.field_153199_f, this.depthBuffer);
 -                OpenGlHelper.func_153186_a(OpenGlHelper.field_153199_f, 33190, this.framebufferTextureWidth, this.framebufferTextureHeight);
+-                OpenGlHelper.func_153190_b(OpenGlHelper.field_153198_e, OpenGlHelper.field_153201_h, OpenGlHelper.field_153199_f, this.depthBuffer);
 +                OpenGlHelper.func_153176_h(OpenGlHelper.field_153199_f, this.depthBuffer);   // GL30.glBindRenderbuffer
-+                /** MINECRIFT FORGE **/
-+				if (!Reflector.MinecraftForgeClient_getStencilBits.exists() || Reflector.callInt(Reflector.MinecraftForgeClient_getStencilBits, new Object[0]) == 0)
-+                {
-+                func_153186_a(OpenGlHelper.field_153199_f, 33190, this.framebufferTextureWidth, this.framebufferTextureHeight); // GL30.glRenderbufferStorage
-                 OpenGlHelper.func_153190_b(OpenGlHelper.field_153198_e, OpenGlHelper.field_153201_h, OpenGlHelper.field_153199_f, this.depthBuffer);
-+                }
-+                else
-+                {
++                
++                //VIVE ALWAYS ATTACH STENCIL
 +                    func_153186_a(OpenGlHelper.field_153199_f, org.lwjgl.opengl.EXTPackedDepthStencil.GL_DEPTH24_STENCIL8_EXT, this.framebufferTextureWidth, this.framebufferTextureHeight); // GL30.glRenderbufferStorage
 +                    OpenGlHelper.func_153190_b(OpenGlHelper.field_153198_e, org.lwjgl.opengl.EXTFramebufferObject.GL_DEPTH_ATTACHMENT_EXT, OpenGlHelper.field_153199_f, this.depthBuffer); // GL30.glFramebufferRenderbuffer
 +                    OpenGlHelper.func_153190_b(OpenGlHelper.field_153198_e, org.lwjgl.opengl.EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT, OpenGlHelper.field_153199_f, this.depthBuffer);  // GL30.glFramebufferRenderbuffer
-+                }
++                
 +				/** END MINECRIFT FORGE **/
              }
  
@@ -204,16 +199,15 @@
              this.unbindFramebufferTexture();
 +			/** END MINECRIFT */
          }
-+		
-+    }
-+
+     }
+ 
 +	/** MINECRIFT */
 +    public void genMipMaps()
 +    {
 +        GL30.glGenerateMipmap(this.textureType);    // TODO: Minecrift - Check GLContext capabilities
-     }
++    }
 +	/** END MINECRIFT */
- 
++
      public void setFramebufferFilter(int p_147607_1_)
      {
          if (OpenGlHelper.isFramebufferEnabled())
@@ -238,7 +232,7 @@
          }
      }
  
-@@ -159,6 +272,12 @@
+@@ -159,6 +265,12 @@
              {
                  throw new RuntimeException("GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER");
              }
@@ -251,7 +245,7 @@
              else
              {
                  throw new RuntimeException("glCheckFramebufferStatus returned unknown status:" + var1);
-@@ -168,18 +287,22 @@
+@@ -168,18 +280,22 @@
  
      public void bindFramebufferTexture()
      {
@@ -276,7 +270,7 @@
      }
  
      public void bindFramebuffer(boolean p_147610_1_)
-@@ -213,6 +336,13 @@
+@@ -213,6 +329,13 @@
  
      public void framebufferRender(int p_147615_1_, int p_147615_2_)
      {
@@ -290,7 +284,7 @@
          if (OpenGlHelper.isFramebufferEnabled())
          {
              GL11.glColorMask(true, true, true, false);
-@@ -223,30 +353,34 @@
+@@ -223,30 +346,34 @@
              GL11.glOrtho(0.0D, (double)p_147615_1_, (double)p_147615_2_, 0.0D, 1000.0D, 3000.0D);
              GL11.glMatrixMode(GL11.GL_MODELVIEW);
              GL11.glLoadIdentity();
@@ -349,7 +343,7 @@
          }
      }
  
-@@ -265,4 +399,80 @@
+@@ -265,4 +392,80 @@
          GL11.glClear(var1);
          this.unbindFramebuffer();
      }

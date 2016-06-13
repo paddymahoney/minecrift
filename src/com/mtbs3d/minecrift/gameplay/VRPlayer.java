@@ -17,7 +17,9 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C17PacketCustomPayload;
@@ -127,7 +129,7 @@ public class VRPlayer
            if(topofhead > 1.8) {topofhead = 1.8f;}
            
            player.height = (float) topofhead - 0.05f;
-
+           player.spEyeHeight = player.height - 1.62f;
            player.boundingBox.maxY = player.boundingBox.minY +  topofhead;  	   
        }
 
@@ -360,8 +362,8 @@ public class VRPlayer
 
     	if(player.isSneaking()) {return;} //jrbudda : prevent falling off things or walking up blocks while moving in room scale.
 
-    	if(player.isRiding()) return;
-
+    	if(player.isRiding()) return; //dont fall off the tracks man
+    	
     	if(Math.abs(player.motionX) > 0.01) return;
     	if(Math.abs(player.motionZ) > 0.01) return;
     	
@@ -395,13 +397,20 @@ public class VRPlayer
     	if (emptySpot)
     	{
     		// don't call setPosition style functions to avoid shifting room origin
-    		player.lastTickPosX = player.prevPosX = player.posX = x;
-
+    		player.lastTickPosX = player.prevPosX =  player.posX = x;
     		if (!mc.vrSettings.simulateFalling)	{
-    			player.lastTickPosY = player.prevPosY = player.posY = y;                	
+    			player.lastTickPosY = player.prevPosY =  player.posY = y;                	
     		}
-
-    		player.lastTickPosZ = player.prevPosZ = player.posZ = z;
+    		player.lastTickPosZ = player.prevPosZ = 	 player.posZ = z;
+    
+    		 if(player.ridingEntity!=null){ //you're coming with me, horse! //TODO: use mount's bounding box.
+    				player.ridingEntity.lastTickPosX = player.ridingEntity.prevPosX =  player.ridingEntity.posX = x;
+    				if (!mc.vrSettings.simulateFalling)	{
+    					player.ridingEntity.lastTickPosY = player.ridingEntity.prevPosY =  	 player.ridingEntity.posY = y;                	
+    	    		}
+    				player.ridingEntity.lastTickPosZ = player.ridingEntity.prevPosZ =  	 player.ridingEntity.posZ = z;
+    		 }
+    		 
     		player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.minY + player.height, bb.maxZ);
     		player.fallDistance = 0.0F;
 

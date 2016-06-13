@@ -123,7 +123,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 if (var8 == VRSettings.VrOptions.RENDER_SCALEFACTOR)
                 {
                     minValue = 0.5f;
-                    maxValue = 2.5f;
+                    maxValue = 4.0f;
                     increment = 0.1f;
                 }
                 else if (var8 == VRSettings.VrOptions.FSAA_SCALEFACTOR)
@@ -138,7 +138,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                     maxValue = 110f;
                     increment = 1f;
                 }
-
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.setEventHandler(this);
                 slider.enabled = getEnabledState(var8);
@@ -304,18 +303,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     	{
         case FSAA:
             return new String[] {
-                    "Full-Scene AntiAliasing (supersampling)",
-                    "  Recommended: ON; greatly improves visual quality at",
-                    "  the expense of greatly increased rendering cost.",
-                    "  ON:  game is rendered at a higher resolution internally.",
-                    "  OFF: game is rendered at the native resolution.",
-                    "Will only be available if supported by your graphics",
-                    "driver."};
-        case FSAA_SCALEFACTOR:
-            return new String[] {
-                    "Full-Screen AntiAliasing Render Scale",
-                    "  What multiple of native resolution should be rendered?",
-                    "  Recommended value: 4X"};
+                    "Uses a fancier method of resampling the",
+                    "game before sending it to the HMD. Works best",
+                    "at high render scales. "};
     	case CHROM_AB_CORRECTION:
     		return new String[] {
     				"Chromatic aberration correction", 
@@ -345,9 +335,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 };
             case RENDER_SCALEFACTOR:
                 return new String[] {
-                        "Determines quality of rendered image. Higher values",
-                        "increase quality but increase rendering load.",
-                        "Defaults to 1.1X."
+                        "The internal rendering scale of the game, relative",
+                        "to the native HMD display. Higher values improve visual",
+                        "quality, espeically with FSAA on, at the cost of performance"
                 };
             case MIRROR_DISPLAY:
                 return new String[] {

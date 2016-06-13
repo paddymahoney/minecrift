@@ -57,7 +57,7 @@
      /**
       * How far the current item has been equipped (0 disequipped and 1 fully up)
       */
-@@ -55,105 +64,106 @@
+@@ -55,103 +64,103 @@
      /**
       * Renders the item stack for being in an entity's hand Args: itemStack
       */
@@ -255,11 +255,8 @@
 +	        }
  
          GL11.glPopMatrix();
-+ 	  	mc.checkGLError("RenderItem");
      }
- 
-     /**
-@@ -240,364 +250,511 @@
+@@ -240,364 +249,505 @@
  
          p_78439_0_.draw();
      }
@@ -634,7 +631,6 @@
 +	    		}
 +	    		
 +	    	}
-+	    	mc.checkGLError("1st person preitem");
 +	    	
 +	    	if (renderitem8 != null) //most items
 +	    	{
@@ -812,7 +808,6 @@
 +		    			var22 = 0.8f;
 +		    			GL11.glTranslatef(0.7F * var22, -0.65F * var22 - (1.0F - equippingprogress) * 0.6F, -0.9F * var22);
 +		    		}
-+		    	  	mc.checkGLError("1st person something");
 +		    		// VIVE END - adjust item position based on type
 +		
 +		    		GL11.glEnable(GL12.GL_RESCALE_NORMAL); //TODO: figure out what this does.
@@ -842,7 +837,6 @@
 +		    			GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
 +		    		}
 +		
-+		    	 	mc.checkGLError("1st person prerenderitem");
 +		    		
 +		    		if (renderitem8.getItem().requiresMultipleRenderPasses())
 +		    		{
@@ -861,14 +855,12 @@
 +		    			this.renderItem(player, renderitem8, 0);
 +		    		}
 +		
-+		    	  	mc.checkGLError("1st person renderitem");
 +		    		
 +	    		GL11.glPopMatrix();
 +	
 +	    	}
 +	
-+			mc.checkGLError("1st person hand");
-+	    	
++   	
 +	    	if (shouldrenderhand && !player.isInvisible()) //render empty hand
 +	    	{
 +	    		GL11.glPushMatrix();
@@ -972,7 +964,6 @@
 -        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 -        RenderHelper.disableStandardItemLighting();
 +    	GL11.glPopMatrix(); 
-+		mc.checkGLError("1st person");
      }
  
 +
@@ -1099,7 +1090,7 @@
          var3.startDrawingQuads();
          var3.addVertexWithUV((double)var5, (double)var7, (double)var9, (double)var11, (double)var13);
          var3.addVertexWithUV((double)var6, (double)var7, (double)var9, (double)var10, (double)var13);
-@@ -606,6 +763,7 @@
+@@ -606,6 +756,7 @@
          var3.draw();
          GL11.glPopMatrix();
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1107,7 +1098,7 @@
      }
  
      /**
-@@ -621,13 +779,13 @@
+@@ -621,13 +772,13 @@
          GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();

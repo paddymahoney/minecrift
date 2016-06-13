@@ -82,8 +82,7 @@ public class FBOParams
             _depthRenderBufferId = GL30.glGenRenderbuffers();
 
             GL30.glBindFramebuffer(_FBOBindPoint, _frameBufferId);
-            mc.checkGLError("FBO bind framebuffer");
-
+            
             GL11.glBindTexture(textureType, _colorTextureId);
             mc.checkGLError("FBO bind texture");
 
