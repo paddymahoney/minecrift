@@ -1,14 +1,15 @@
 --- a/net/minecraft/client/network/NetHandlerPlayClient.java
 +++ b/net/minecraft/client/network/NetHandlerPlayClient.java
-@@ -2,6 +2,7 @@
+@@ -2,6 +2,8 @@
  
  import com.google.common.base.Charsets;
  import com.mojang.authlib.GameProfile;
 +import com.mtbs3d.minecrift.gameplay.VRPlayer;
++import net.minecraft.src.Reflector;
  import io.netty.buffer.ByteBuf;
  import io.netty.buffer.Unpooled;
  import io.netty.util.concurrent.GenericFutureListener;
-@@ -290,6 +291,11 @@
+@@ -290,6 +292,11 @@
          this.gameController.playerController.setGameType(packetIn.func_149198_e());
          this.gameController.gameSettings.sendSettingsToServer();
          this.netManager.scheduleOutboundPacket(new C17PacketCustomPayload("MC|Brand", ClientBrandRetriever.getClientModName().getBytes(Charsets.UTF_8)), new GenericFutureListener[0]);
@@ -20,7 +21,7 @@
      }
  
      /**
-@@ -739,6 +745,9 @@
+@@ -739,6 +746,9 @@
      public void handleDisconnect(S40PacketDisconnect packetIn)
      {
          this.netManager.closeChannel(packetIn.func_149165_c());
@@ -30,7 +31,19 @@
      }
  
      /**
-@@ -1663,6 +1672,12 @@
+@@ -1297,6 +1307,11 @@
+                 {
+                     var2.readFromNBT(packetIn.getNbtCompound());
+                 }
++                /** MINECRIFT FORGE **/
++                else if (Reflector.forgeExists()) {
++                    Reflector.callVoid(var2, Reflector.ForgeTileEntity_onDataPacket, netManager, packetIn);
++                }
++                /** END MINECRIFT FORGE **/
+             }
+         }
+     }
+@@ -1663,6 +1678,12 @@
                  }, I18n.format("multiplayer.texturePrompt.line1", new Object[0]), I18n.format("multiplayer.texturePrompt.line2", new Object[0]), 0));
              }
          }

@@ -1,6 +1,41 @@
 --- a/net/minecraft/client/renderer/entity/RenderItem.java
 +++ b/net/minecraft/client/renderer/entity/RenderItem.java
-@@ -438,28 +438,27 @@
+@@ -25,6 +25,7 @@
+ import net.minecraft.util.ResourceLocation;
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL12;
++import net.minecraft.src.Reflector;
+ 
+ public class RenderItem extends Render
+ {
+@@ -95,6 +96,13 @@
+             float var19;
+             int var25;
+ 
++            /** MINECRIFT FORGE **/
++            if (Reflector.forgeExists() && Reflector.callBoolean(Reflector.ForgeHooksClient_renderEntityItem, p_76986_1_, var10, var11, var12, random, renderManager.renderEngine, field_147909_c, var13) /*ForgeHooksClient.renderEntityItem(p_76986_1_, var10, var11, var12, random, renderManager.renderEngine, field_147909_c, var13)*/)
++            {
++                ;
++            }
++            else // Code Style break here to prevent the patch from editing this line
++            /** END MINECRIFT FORGE **/
+             if (var10.getItemSpriteNumber() == 0 && var10.getItem() instanceof ItemBlock && RenderBlocks.renderItemIn3d(Block.getBlockFromItem(var10.getItem()).getRenderType()))
+             {
+                 Block var22 = Block.getBlockFromItem(var10.getItem());
+@@ -380,7 +388,11 @@
+     /**
+      * Renders the item's icon or block into the UI at the specified position.
+      */
+-    public void renderItemIntoGUI(FontRenderer p_77015_1_, TextureManager p_77015_2_, ItemStack p_77015_3_, int p_77015_4_, int p_77015_5_)
++    public void renderItemIntoGUI(FontRenderer p_77015_1_, TextureManager p_77015_2_, ItemStack p_77015_3_, int p_77015_4_, int p_77015_5_) {
++        this.renderItemIntoGUI(p_77015_1_, p_77015_2_, p_77015_3_, p_77015_4_, p_77015_5_, false);
++    }
++
++    public void renderItemIntoGUI(FontRenderer p_77015_1_, TextureManager p_77015_2_, ItemStack p_77015_3_, int p_77015_4_, int p_77015_5_, boolean renderEffect /* Not implemented yet, it's just a bugfix anyways */)
+     {
+         int var6 = p_77015_3_.getMetadata();
+         Object var7 = p_77015_3_.getIconIndex();
+@@ -438,28 +450,27 @@
          }
          else if (p_77015_3_.getItem().requiresMultipleRenderPasses())
          {
@@ -50,7 +85,7 @@
              for (var9 = 0; var9 <= 1; ++var9)
              {
                  IIcon var10 = p_77015_3_.getItem().getIconFromDamageForRenderPass(var6, var9);
-@@ -475,7 +474,6 @@
+@@ -475,7 +486,6 @@
  
                  this.renderIcon(p_77015_4_, p_77015_5_, var10, 16, 16);
              }
@@ -58,7 +93,20 @@
              GL11.glEnable(GL11.GL_LIGHTING);
          }
          else
-@@ -566,13 +564,16 @@
+@@ -520,7 +531,11 @@
+ 
+             try
+             {
+-                this.renderItemIntoGUI(p_82406_1_, p_82406_2_, p_82406_3_, p_82406_4_, p_82406_5_);
++                /** MINECRIFT FORGE **/
++                if (!Reflector.forgeExists() || !Reflector.callBoolean(Reflector.ForgeHooksClient_renderInventoryItem, this.field_147909_c, p_82406_2_, p_82406_3_, renderWithColor, zLevel, (float)p_82406_4_, (float)p_82406_5_) /*!ForgeHooksClient.renderInventoryItem(this.field_147909_c, p_82406_2_, p_82406_3_, renderWithColor, zLevel, (float)p_82406_4_, (float)p_82406_5_)*/) {
++                    this.renderItemIntoGUI(p_82406_1_, p_82406_2_, p_82406_3_, p_82406_4_, p_82406_5_, true);
++                }
++                /** END MINECRIFT FORGE **/
+             }
+             catch (Throwable var9)
+             {
+@@ -566,13 +580,16 @@
                  GL11.glDepthFunc(GL11.GL_EQUAL);
                  GL11.glDisable(GL11.GL_LIGHTING);
                  GL11.glDepthMask(false);
@@ -77,7 +125,7 @@
                  GL11.glEnable(GL11.GL_LIGHTING);
                  GL11.glDepthFunc(GL11.GL_LEQUAL);
              }
-@@ -581,32 +582,34 @@
+@@ -581,32 +598,34 @@
          }
      }
  
@@ -128,7 +176,7 @@
      /**
       * Renders the item's overlay information. Examples being stack count or damage on top of the item's image at the
       * specified position.
-@@ -673,6 +676,7 @@
+@@ -673,6 +692,7 @@
  
      public void renderIcon(int p_94149_1_, int p_94149_2_, IIcon p_94149_3_, int p_94149_4_, int p_94149_5_)
      {
@@ -136,7 +184,7 @@
          Tessellator var6 = Tessellator.instance;
          var6.startDrawingQuads();
          var6.addVertexWithUV((double)(p_94149_1_ + 0), (double)(p_94149_2_ + p_94149_5_), (double)this.zLevel, (double)p_94149_3_.getMinU(), (double)p_94149_3_.getMaxV());
-@@ -700,4 +704,55 @@
+@@ -700,4 +720,55 @@
      {
          this.doRender((EntityItem)p_76986_1_, p_76986_2_, p_76986_4_, p_76986_6_, p_76986_8_, p_76986_9_);
      }
