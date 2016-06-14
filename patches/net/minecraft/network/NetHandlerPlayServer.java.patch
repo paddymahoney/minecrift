@@ -24,22 +24,24 @@
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.management.UserListBansEntry;
  import net.minecraft.stats.AchievementList;
-@@ -291,11 +285,13 @@
+@@ -291,12 +285,15 @@
                      var9 = packetIn.getPositionZ();
                      var13 = packetIn.getStance() - packetIn.getPositionY();
  
 -                    if (!this.playerEntity.isPlayerSleeping() && (var13 > 1.65D || var13 < 0.1D))
++                    // VIVE START - don't check for stance changes
 +                    if (!Minecraft.getMinecraft().vrSettings.vrAllowCrawling && !this.playerEntity.isPlayerSleeping() && (var13 > 1.65D || var13 < 0.1D))
                      {
-+                        // VIVE START - don't check for stance changes
                          this.kickPlayerFromServer("Illegal stance");
                          logger.warn(this.playerEntity.getCommandSenderName() + " had an illegal stance: " + var13);
                          return;
-+                        // VIVE END - don't check for stance changes
                      }
++                    // VIVE END - don't check for stance changes
++
  
                      if (Math.abs(packetIn.getPositionX()) > 3.2E7D || Math.abs(packetIn.getPositionZ()) > 3.2E7D)
-@@ -313,6 +309,9 @@
+                     {
+@@ -313,6 +310,9 @@
  
                  this.playerEntity.onUpdateEntity();
                  this.playerEntity.yOffset2 = 0.0F;
@@ -49,7 +51,7 @@
                  this.playerEntity.setPositionAndRotation(this.lastPosX, this.lastPosY, this.lastPosZ, var11, var12);
  
                  if (!this.hasMoved)
-@@ -345,6 +344,7 @@
+@@ -345,6 +345,7 @@
  
                  this.playerEntity.moveEntity(var13, var15, var17);
                  this.playerEntity.onGround = packetIn.func_149465_i();
@@ -57,7 +59,7 @@
                  this.playerEntity.addMovementStat(var13, var15, var17);
                  double var29 = var15;
                  var13 = var5 - this.playerEntity.posX;
-@@ -362,7 +362,9 @@
+@@ -362,7 +363,9 @@
                  if (var25 > 0.0625D && !this.playerEntity.isPlayerSleeping() && !this.playerEntity.theItemInWorldManager.isCreative())
                  {
                      var31 = true;
@@ -68,7 +70,7 @@
                  }
  
                  this.playerEntity.setPositionAndRotation(var5, var7, var9, var11, var12);
-@@ -370,7 +372,9 @@
+@@ -370,7 +373,9 @@
  
                  if (var28 && (var31 || !var32) && !this.playerEntity.isPlayerSleeping())
                  {
@@ -79,36 +81,7 @@
                      return;
                  }
  
-@@ -404,6 +408,11 @@
-                 this.setPlayerLocation(this.lastPosX, this.lastPosY, this.lastPosZ, this.playerEntity.rotationYaw, this.playerEntity.rotationPitch);
-             }
-         }
-+        
-+        if(Math.floor(playerEntity.posY) != playerEntity.posY ){
-+
-+        }
-+        
-     }
- 
-     public void setPlayerLocation(double x, double y, double z, float yaw, float pitch)
-@@ -414,6 +423,7 @@
-         this.lastPosZ = z;
-         this.playerEntity.setPositionAndRotation(x, y, z, yaw, pitch);
-         this.playerEntity.playerNetServerHandler.sendPacket(new S08PacketPlayerPosLook(x, y + 1.6200000047683716D, z, yaw, pitch, false));
-+        //hard coded height, really?
-     }
- 
-     /**
-@@ -421,6 +431,8 @@
-      * initiated, 1: reinitiated, 2? , 3-4 drop item (respectively without or with player control), 5: stopped; x,y,z,
-      * side clicked on;)
-      */
-+    
-+    //VIVE TODO: Investigate if this is where phantom blocks come from.
-     public void processPlayerDigging(C07PacketPlayerDigging packetIn)
-     {
-         WorldServer var2 = this.serverController.worldServerForDimension(this.playerEntity.dimension);
-@@ -1129,20 +1141,20 @@
+@@ -1129,20 +1134,20 @@
              {
                  var3 = var2.readItemStackFromBuffer();
  
@@ -139,7 +112,7 @@
                      if (var3.getItem() == Items.writable_book && var3.getItem() == var4.getItem())
                      {
                          var4.setTagInfo("pages", var3.getTagCompound().getTagList("pages", 8));
-@@ -1333,6 +1345,13 @@
+@@ -1333,6 +1338,13 @@
                      var41.updateItemName("");
                  }
              }

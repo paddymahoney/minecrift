@@ -8,21 +8,7 @@
  
  public class PlayerControllerMP
  {
-@@ -111,6 +112,13 @@
-     {
-         this.currentGameType = p_78746_1_;
-         this.currentGameType.configurePlayerCapabilities(this.mc.thePlayer.capabilities);
-+		if (this.currentGameType == WorldSettings.GameType.SURVIVAL) {
-+				mc.vrPlayer.vrMovementStyle.setStyle("Arc");
-+				mc.vrSettings.allowPitchAffectsHeightWhileFlying = false;
-+		} else {
-+				mc.vrPlayer.vrMovementStyle.setStyle("Arc");
-+				mc.vrSettings.allowPitchAffectsHeightWhileFlying = true;
-+		}
-     }
- 
-     /**
-@@ -152,7 +160,15 @@
+@@ -152,7 +153,15 @@
              {
                  var5.playAuxSFX(2001, x, y, z, Block.getIdFromBlock(var6) + (var5.getBlockMetadata(x, y, z) << 12));
                  int var7 = var5.getBlockMetadata(x, y, z);
@@ -39,31 +25,19 @@
  
                  if (var8)
                  {
-@@ -301,12 +317,23 @@
+@@ -300,6 +309,11 @@
+             }
          }
      }
- 
++ 
++    //JRBUDDA: This is the only thing this file does, necessary? Use reflection to modify field directly from elsewhere?
 +    // VIVE START - function to allow damaging blocks immediately
 +    public void clearBlockHitDelay() { this.blockHitDelay = 0; }
 +    // VIVE END - function to allow damaging blocks immediately
-+
+ 
      /**
       * player reach distance = 4F
-      */
-     public float getBlockReachDistance()
-     {
-+        // VIVE START - more reach in VR to reduce movement
-+//        if (!mc.vrPlayer.getFreeMoveMode())
-+//        {
-+//            return 6.0F;
-+//        }
-+//       
-         return this.currentGameType.isCreative() ? 5.0F : 4.5F;
-+        // VIVE END - more reach in VR to reduce movement
-     }
- 
-     public void updateController()
-@@ -401,7 +428,16 @@
+@@ -401,7 +415,16 @@
          }
          else
          {
@@ -81,7 +55,7 @@
          }
      }
  
-@@ -423,9 +459,15 @@
+@@ -423,9 +446,15 @@
          {
              player.inventory.mainInventory[player.inventory.currentItem] = var5;
  

@@ -31,7 +31,7 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.tileentity.TileEntityBeacon;
  import net.minecraft.tileentity.TileEntityBrewingStand;
-@@ -47,12 +60,13 @@
+@@ -47,6 +60,7 @@
  import net.minecraft.util.MovementInput;
  import net.minecraft.util.ResourceLocation;
  import net.minecraft.util.Session;
@@ -39,13 +39,6 @@
  import net.minecraft.world.World;
  
  public class EntityPlayerSP extends AbstractClientPlayer
- {
-     public MovementInput movementInput;
--    protected Minecraft mc;
-+    protected Minecraft mc; 
- 
-     /**
-      * Used to tell if the player pressed forward twice. If this is at 0 and it's pressed (And they are allowed to
 @@ -61,6 +75,20 @@
       */
      protected int sprintToggleTimer;
@@ -67,22 +60,25 @@
      /** Ticks left before sprinting is disabled. */
      public int sprintingTicksLeft;
      public float renderArmYaw;
-@@ -80,13 +108,53 @@
+@@ -80,13 +108,85 @@
      public float prevTimeInPortal;
      private static final String __OBFID = "CL_00000938";
  
-+    Field inuse, inusedur;
-+    
++   
      public EntityPlayerSP(Minecraft p_i1238_1_, World p_i1238_2_, Session p_i1238_3_, int p_i1238_4_)
      {
          super(p_i1238_2_, p_i1238_3_.getProfile());
-+        
++
++      //VIVECRAFT
 +        hackSuperFields();
-+      
++      //END VIVECRAFT
++        
          this.mc = p_i1238_1_;
          this.dimension = p_i1238_4_;
      }
  
++    //VIVECRAFT
++    Field inuse, inusedur;
 +    private void hackSuperFields(){ //this will work, damnit.
 +    	Class c = this.getClass();
 +    	try {
@@ -117,14 +113,7 @@
 +    		inusedur.setAccessible(true);
 +    	}
 +    }
-+    
-     public void updateEntityActionState()
-     {
-         super.updateEntityActionState();
-@@ -99,6 +167,33 @@
-         this.renderArmYaw = (float)((double)this.renderArmYaw + (double)(this.rotationYaw - this.renderArmYaw) * 0.5D);
-     }
- 
++
 +    
 +    public void setItemInUseClient(ItemStack item){
 +    	if(this.inuse==null){
@@ -150,12 +139,22 @@
 +    	} catch (Exception e) {
 +    	}
 +    }
-+
++    
++    //END VIVECRAFT
++    
++    
+     public void updateEntityActionState()
+     {
+         super.updateEntityActionState();
+@@ -99,6 +199,7 @@
+         this.renderArmYaw = (float)((double)this.renderArmYaw + (double)(this.rotationYaw - this.renderArmYaw) * 0.5D);
+     }
+ 
 +    
      /**
       * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
       * use this to react to sunlight and start to burn.
-@@ -182,7 +277,9 @@
+@@ -182,7 +283,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -166,7 +165,7 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -195,20 +292,26 @@
+@@ -195,20 +298,28 @@
  
              if (this.movementInput.sneak && this.yOffset2 < 0.2F)
              {
@@ -195,22 +194,14 @@
                  if (this.sprintToggleTimer <= 0 && !this.mc.gameSettings.keyBindSprint.getIsKeyPressed())
                  {
 -                    this.sprintToggleTimer = 7;
++                	//VIVECRAFT
 +                    this.sprintToggleTimer = 14;
++                    //END VIVECRAFT
                  }
                  else
                  {
-@@ -244,15 +347,15 @@
-             {
-                 if (this.movementInput.sneak)
-                 {
--                    this.motionY -= 0.15D;
-+                    this.motionY -= 0.15D ;
-                 }
- 
-                 if (this.movementInput.jump)
-                 {
--                    this.motionY += 0.15D;
-+                    this.motionY += 0.15D ;
+@@ -252,7 +363,7 @@
+                     this.motionY += 0.15D;
                  }
              }
 -
@@ -218,7 +209,7 @@
              if (this.isRidingHorse())
              {
                  if (this.horseJumpPowerCounter < 0)
-@@ -296,6 +399,10 @@
+@@ -296,6 +407,10 @@
  
              super.onLivingUpdate();
  
@@ -229,14 +220,13 @@
              if (this.onGround && this.capabilities.isFlying)
              {
                  this.capabilities.isFlying = false;
-@@ -341,7 +448,15 @@
+@@ -341,7 +456,14 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
 -        return var1;
 +        /** MINECRIFT FORGE **/
 +        if (Reflector.forgeExists()) {
-+            //return ForgeHooksClient.getOffsetFOV(this, var1);
 +            return (Float)Reflector.call(Reflector.ForgeHooksClient_getOffsetFov, new Object[] {this, var1});
 +        }
 +        else {
@@ -246,7 +236,7 @@
      }
  
      /**
-@@ -524,70 +639,170 @@
+@@ -524,70 +646,168 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -388,7 +378,6 @@
              }
 +        }
 +        else {
-+            /** END MINECRIFT FORGE **/
 +            int var7 = MathHelper.floor_double(x);
 +            int var8 = MathHelper.floor_double(y);
 +            int var9 = MathHelper.floor_double(z);
@@ -457,13 +446,12 @@
 +                    this.motionZ = (double)var21;
 +                }
              }
-+            /** MINECRIFT FORGE **/
          }
 +        /** END MINECRIFT FORGE **/
  
          return false;
      }
-@@ -640,6 +855,20 @@
+@@ -640,6 +860,15 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -474,21 +462,17 @@
 +                return;
 +            }
 +            name = (String)Reflector.getFieldValue(event, Reflector.ForgePlaySoundAtEntityEvent_name);
-+//            net.minecraftforge.event.entity.PlaySoundAtEntityEvent event = new net.minecraftforge.event.entity.PlaySoundAtEntityEvent(this, name, volume, pitch);
-+//            if (MinecraftForge.EVENT_BUS.post(event)) {
-+//                return;
-+//            }
-+//            name = event.name;
 +        }
 +        /** END MINECRIFT FORGE **/
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +891,233 @@
+@@ -662,4 +891,232 @@
      }
  
      protected void sendHorseJump() {}
 +
++    
 +    /**** MINECRIFT ADDITIONS BELOW ****/
 +    
 +    
@@ -507,7 +491,7 @@
 +    	double xFactor = var3;
 +    	double zFactor = var3;
 +
-+    	//account for stock drag code we can't change in EntityLivingBase
++    	//VIVECRAFT account for stock drag code we can't change in EntityLivingBase
 +    	this.motionX /= xFactor;
 +    	this.motionZ /= zFactor;
 +    	//
@@ -622,8 +606,6 @@
 +
 +        
 +     if(!this.capabilities.isFlying && !this.inWater) doDrag();       //TODO put back intertia while flying.. doesnt work for some reason. 
-+
-+        
 +        
 +/** END MINECRIFT **/
 +   
