@@ -5072,7 +5072,7 @@
 +		GL11.glEnable(GL11.GL_LIGHT0);
 +		GL11.glEnable(GL11.GL_CULL_FACE);
 +
-+		Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("textures/gui/options_background.png"));
++		Minecraft.getMinecraft().renderEngine.bindTexture(Gui.optionsBackground);
 +
 +		float yo = -camRelY;
 +		float s = 3f;
