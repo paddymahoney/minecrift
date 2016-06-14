@@ -20,7 +20,7 @@ public class VRControllerButtonMapping {
 	
 	@Override
 	public String toString() {
-		return Button.toString() + ":" + FunctionDesc + ( FunctionExt!=0  ? "_" + FunctionExt:"");
+		return Button.toString() + ":" + FunctionDesc + ( FunctionExt !=0  ? "_" + FunctionExt:"");
 	};
 
 	public void press(){	

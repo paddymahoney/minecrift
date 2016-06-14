@@ -1861,7 +1861,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1142,4041 @@
+@@ -825,1829 +1142,4039 @@
          {
              clipDistance = 256.0F;
          }
@@ -2038,14 +2038,15 @@
 +		/** END MINECRIFT */
 +	}
 +
-+	
++	//VIVE
 +	public void renderDebugAxes(){
-+renderCircle(Vec3.createVectorHelper(0, 0, 0), (float) .05, 32, 255, 255, 255	, 255, 0);
-+renderCircle(Vec3.createVectorHelper(0, .01, 0), (float) .03, 32, 255, 255, 255	, 255, 0);
-+renderCircle(Vec3.createVectorHelper(0,0.02, 0), (float) .01, 32, 255, 255, 255	, 255, 0);
-+renderCircle(Vec3.createVectorHelper(0, 0, .15), (float) .02, 32, 255, 255, 255	, 255, 2);
-+	    	
++		renderCircle(Vec3.createVectorHelper(0, 0, 0), (float) .05, 32, 255, 255, 255	, 255, 0);
++		renderCircle(Vec3.createVectorHelper(0, .01, 0), (float) .03, 32, 255, 255, 255	, 255, 0);
++		renderCircle(Vec3.createVectorHelper(0,0.02, 0), (float) .01, 32, 255, 255, 255	, 255, 0);
++		renderCircle(Vec3.createVectorHelper(0, 0, .15), (float) .02, 32, 255, 255, 255	, 255, 2);
++
 +	}
++	//END VIVE
 +	
 +	/**
 +	 * Render player (right) hand
@@ -2074,7 +2075,6 @@
 +		/** MINECRIFT SHADERS MOD **/
 +		boolean shadersMod = Reflector.shadersModExists();
 +		if (shadersMod) {
-+			//Shaders.applyHandDepth();
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_applyHandDepth, new Object[] {});
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
@@ -2109,7 +2109,6 @@
 +			/** MINECRIFT SHADERS MOD */
 +			boolean render = true;
 +			if (shadersMod) {
-+				//render = !Shaders.isHandRendered;
 +				render = (Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isHandRendered);
 +			}
 +			
@@ -2140,7 +2139,6 @@
 +					this.enableLightmap((double) par1);
 +	
 +					if (shadersMod) {
-+						//ShadersRender.renderItemFP(this.itemRenderer, par1);
 +						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_renderItemFP, new Object[] {this.itemRenderer, par1});
 +					}
 +					else {
@@ -2192,11 +2190,11 @@
 +				if(eyeCollision ){
 +					int was = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
 +					GL11.glDepthFunc(GL11.GL_ALWAYS);
-+					renderCircle(mc.thePlayer.getPosition(par1).addVector(-interpolatedPlayerPos.xCoord, - mc.thePlayer.yOffset+ mc.thePlayer.yOffset2 -interpolatedPlayerPos.yCoord + 0.02f, -interpolatedPlayerPos.zCoord), 0.08f, 32, 0, 255, 255, 64, 1);
++					renderCircle(mc.thePlayer.getPosition(par1).addVector(-interpolatedPlayerPos.xCoord, - mc.thePlayer.yOffset+ mc.thePlayer.yOffset2 -interpolatedPlayerPos.yCoord + 0.02f, -interpolatedPlayerPos.zCoord), 0.05f, 32, 0, 255, 255, 128, 1);
 +					GL11.glDepthFunc(was);
 +	
 +				}  else {
-+					renderCircle(mc.thePlayer.getPosition(par1).addVector(-interpolatedPlayerPos.xCoord, - mc.thePlayer.yOffset + mc.thePlayer.yOffset2 -interpolatedPlayerPos.yCoord + 0.02f, -interpolatedPlayerPos.zCoord), 0.08f, 32, 0, 255, 255, 64, 1);            		
++					renderCircle(mc.thePlayer.getPosition(par1).addVector(-interpolatedPlayerPos.xCoord, - mc.thePlayer.yOffset + mc.thePlayer.yOffset2 -interpolatedPlayerPos.yCoord + 0.02f, -interpolatedPlayerPos.zCoord), 0.05f, 32, 0, 255, 255, 48, 1);            		
 +				}
 +	
 +				if (!this.mc.vrSettings.debugPos) {

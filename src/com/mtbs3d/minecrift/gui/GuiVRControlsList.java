@@ -155,9 +155,7 @@ public class GuiVRControlsList extends GuiListExtended
     public class MappingEntry implements GuiListExtended.IGuiListEntry
     {
         private final VRControllerButtonMapping myKey;
-        private final String myKeyDescription;
         private final GuiButton btnChangeKeyBinding;
-     //   private final GuiButton btnReset;
         private final GuiButton btnKey;
         private final ArrayList<String> possibilites;
         private int myi;
@@ -167,9 +165,7 @@ public class GuiVRControlsList extends GuiListExtended
         private MappingEntry(VRControllerButtonMapping key)
         {
             this.myKey = key;
-            this.myKeyDescription = I18n.format(key.FunctionDesc, new Object[0]);
             this.btnChangeKeyBinding = new GuiButton(0, 0, 0, 150, 18, I18n.format(key.FunctionDesc, new Object[0]));
-     //       this.btnReset = new GuiButton(0, 0, 0, 50, 18, I18n.format("controls.reset", new Object[0]));
             this.possibilites = GuiVRControlsList.this.getPossibleFunctions();
             myi = this.possibilites.indexOf(myKey.FunctionDesc);    
             btnKey =new GuiButton(0, 0, 0, 18, 18, "");
@@ -187,25 +183,6 @@ public class GuiVRControlsList extends GuiListExtended
         	this.btnKey.yPosition = y;
         	this.btnKey.visible = (myKey.FunctionDesc.equalsIgnoreCase("keyboard"));
             this.btnKey.displayString = String.valueOf((myKey.FunctionExt));        		
-
-//        	boolean var11 = false;
-//
-//        	if (this.myKey.FunctionDesc != "none")
-//        	{
-//        		VRControllerButtonMapping[] var12 = GuiVRControlsList.this.mc.vrSettings.buttonMappings;
-//        		int var13 = var12.length;
-//
-//        		for (int var14 = 0; var14 < var13; ++var14)
-//        		{
-//        			VRControllerButtonMapping var15 = var12[var14];
-//
-//        			if (var15 != this.myKey && var15.FunctionDesc == this.myKey.FunctionDesc)
-//        			{
-//        				var11 = true;
-//        				break;
-//        			}
-//        		}
-//        	}
 
         	boolean var10 = GuiVRControlsList.this.parent.buttonId == myKey;
         	

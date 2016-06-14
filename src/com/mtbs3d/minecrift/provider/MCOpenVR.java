@@ -63,8 +63,8 @@ import java.nio.charset.StandardCharsets;
 public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBasePlugin, IHMDInfo, IStereoProvider,
 IEventNotifier, IEventListener, IBodyAimController
 {
-	public static String initStatus;
-	public boolean initialized;
+	private static String initStatus;
+	private boolean initialized;
 	private Minecraft mc;
 
 	private static VR_IVRSystem_FnTable vrsystem;
@@ -117,8 +117,8 @@ IEventNotifier, IEventListener, IBodyAimController
 	private Vec3[] aimSource = new Vec3[2];
 
 	// Controllers
-	public static int RIGHT_CONTROLLER = 0;
-	public static int LEFT_CONTROLLER = 1;
+	private static int RIGHT_CONTROLLER = 0;
+	private static int LEFT_CONTROLLER = 1;
 	private static Matrix4f[] controllerPose = new Matrix4f[2];
 	private static Matrix4f[] controllerRotation = new Matrix4f[2];
 	private static int[] controllerDeviceIndex = new int[2];
@@ -165,12 +165,11 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	private float[] inventory_swipe = new float[2];
 	
+	private boolean headIsTracking;
 	
-	public HiddenAreaMesh_t[] hiddenMeshes = new HiddenAreaMesh_t[2];
+	private HiddenAreaMesh_t[] hiddenMeshes = new HiddenAreaMesh_t[2];
 	public float[][] hiddenMesheVertecies = new float[2][];
 	
-
-
 	private int moveModeSwitchcount = 0;
 
 	@Override
@@ -192,8 +191,6 @@ IEventNotifier, IEventListener, IBodyAimController
 	@Override
 	public String getVersion() { return "Version TODO"; }
 
-	private boolean headIsTracking;
-	
 	public MCOpenVR()
 	{
 		super();

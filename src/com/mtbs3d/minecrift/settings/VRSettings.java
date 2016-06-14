@@ -712,7 +712,7 @@ public class VRSettings
                                                
                        String[] pts = optionTokens[1].split("_");
                       
-                       if (pts.length == 1) {
+                       if (pts.length == 1 || !optionTokens[1].startsWith("keyboard")) {
                            vb.FunctionDesc = optionTokens[1];
                            vb.FunctionExt = 0;
                        } else {
@@ -731,9 +731,7 @@ public class VRSettings
                     logger.warn("Skipping bad VR option: " + var2);
                     var7.printStackTrace();
                 }
-            }
-            processBindings();
-            
+            }           
             optionsVRReader.close();
         }
         catch (Exception var8)
@@ -743,17 +741,20 @@ public class VRSettings
         }
     }
 
-	private void processBindings() {
+	public void processBindings() {
 		//process button mappings           
 		for (int i = 0; i < 16;i++){
 			VRControllerButtonMapping vb = buttonMappings[i];
-			
+
 			if(vb==null) { //shouldnt
 		        vb = new VRControllerButtonMapping(ViveButtons.values()[i],"none");
 		        buttonMappings[i] = vb;
 			}
-			//todo handle unknown binding.
-			if(vb.FunctionDesc.startsWith("keyboard")){
+			
+			if(vb.FunctionDesc.equals("none")){
+				vb.key = null;
+				vb.FunctionExt = 0;
+			} else 	if(vb.FunctionDesc.startsWith("keyboard")){
 				vb.key = null;
 	    		if(vb.FunctionDesc.contains("-")) vb.FunctionExt = 0;
 			} else {
@@ -766,6 +767,8 @@ public class VRSettings
 		        	}
 				}					
 			}
+			if(vb.key == null && !vb.FunctionDesc.startsWith("keyboard"))
+				System.out.println("Unknown key binding: " + vb.FunctionDesc);
 		}
 	}
 

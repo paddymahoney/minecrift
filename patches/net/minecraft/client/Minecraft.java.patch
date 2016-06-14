@@ -100,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4758 @@
+@@ -150,2988 +168,4762 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2395,6 +2395,10 @@
 +			this.gameSettings.enableVsync = false;
 +			this.gameSettings.saveOptions();
 +		}
++		
++		//VIVE
++        vrSettings.processBindings();
++		//END VIVE
 +	}
 +
 +	public boolean isUnicode()
