@@ -967,7 +967,7 @@ public class VRPlayer
         			{
         				if(canact){
         					float hardness = block.getPlayerRelativeBlockHardness(mc.thePlayer, mc.thePlayer.worldObj, col.blockX, col.blockY, col.blockZ);
-        					System.out.println("hardness=" + hardness);
+        				//	System.out.println("hardness=" + hardness);
         					if (hardness * 4.0f > 1.0f)
         					{
         						mc.playerController.onPlayerDestroyBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
@@ -980,7 +980,7 @@ public class VRPlayer
         						}
         					}
              				mc.lookaimController.triggerHapticPulse(0, 1000);
-            				System.out.println("Hit block speed =" + speed);            				
+            		//		System.out.println("Hit block speed =" + speed);            				
             				lastWeaponSolid = true;
         				}
            				insolidBlock = true;
