@@ -21,7 +21,13 @@ import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemHoe;
+import net.minecraft.item.ItemSpade;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraft.item.ItemTool;
 import net.minecraft.network.play.client.C17PacketCustomPayload;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
@@ -45,14 +51,12 @@ public class VRPlayer
     public VRMovementStyle vrMovementStyle = new VRMovementStyle();
     public Vec3[] movementTeleportArc = new Vec3[50];
     public int movementTeleportArcSteps = 0;
-    private boolean restrictedViveClient = true;        // true when connected to another server that doesn't have this mod
+    private boolean freeMoveMode = true;        // true when connected to another server that doesn't have this mod
 	public boolean useLControllerForRestricedMovement = true;
     public double lastTeleportArcDisplayOffset = 0;
-    public double fallTime = 0;
-
+    public boolean noTeleportClient = true;
+    
     private float teleportEnergy;
-    
-    
     
     public static VRPlayer get()
     {
@@ -88,7 +92,7 @@ public class VRPlayer
         
         Minecraft mc = Minecraft.getMinecraft();
         boolean bStartingUp = (roomOrigin.xCoord==0 && roomOrigin.yCoord==0 && roomOrigin.zCoord==0);
-        boolean bRestricted = !bStartingUp && restrictedViveClient;
+        boolean bRestricted = !bStartingUp && getFreeMoveMode();
 
         if (mc.positionTracker == null || !mc.positionTracker.isInitialized() || bRestricted)
         { // set room origin exactly to x,y,z since in restricted mode the room origin is always the players feet
@@ -135,10 +139,9 @@ public class VRPlayer
     	   player.height = 1.8f;
     	   player.spEyeHeight = 0.12f;
        }
-
       
         // don't do teleport movement if on a server that doesn't have this mod installed
-        if (restrictedViveClient) {
+        if (getFreeMoveMode()) {
         	
         		if(player.movementInput.moveForward ==0) doPlayerMoveInRoom(player);
         	
@@ -323,6 +326,8 @@ public class VRPlayer
             //execute teleport      
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
           
+            this.weaponEndlast = null;
+            
             if(mc.vrSettings.vrLimitedSurvivalTeleport){
               player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));    
               
@@ -625,7 +630,7 @@ public class VRPlayer
         mc.mcProfiler.startSection("updateTeleportDestinations");
 
         // no teleporting if on a server that disallows teleporting
-        if (restrictedViveClient)
+        if (getFreeMoveMode())
         {
             movementTeleportDestination.xCoord = 0.0;
             movementTeleportDestination.yCoord = 0.0;
@@ -853,6 +858,12 @@ public class VRPlayer
     private Vec3 lastWeaponEndAir = Vec3.createVectorHelper(0,0,0);
     private boolean lastWeaponSolid = false;
 
+    public float weapongSwingLen;
+	public Vec3 weaponEnd;
+	public Vec3 weaponEndlast;
+    
+	
+	
     public void updateSwingAttack()
     {
         Minecraft mc = Minecraft.getMinecraft();
@@ -867,96 +878,118 @@ public class VRPlayer
         Matrix4f handRotation = mc.lookaimController.getAimRotation(0);
         Vector3f forward = new Vector3f(0,0,1);
         Vector3f handDirection = handRotation.transform(forward);
+        
+        float speedthresh = 3.5f;
+        
         float weaponLength = 0.3f;
-        Vec3 weaponEnd = Vec3.createVectorHelper(
+
+		weapongSwingLen = weaponLength;
+        weaponEnd = Vec3.createVectorHelper(
                 handPos.xCoord + handDirection.x * weaponLength,
                 handPos.yCoord - handDirection.y * weaponLength,
-                handPos.zCoord + handDirection.z * weaponLength);
-
-        Vec3 velocity = mc.lookaimController.getSmoothedAimVelocity(0);
-        float speed = (float)velocity.lengthVector();
-        Vec3 dir = velocity.normalize();
-        Vec3 traceTo = Vec3.createVectorHelper(
-                weaponEnd.xCoord + dir.xCoord * 0.1f,
-                weaponEnd.yCoord + dir.yCoord * 0.1f,
-                weaponEnd.zCoord + dir.zCoord * 0.1f);
-
+                handPos.zCoord + handDirection.z * weaponLength);     
+        
+        if (weaponEndlast == null ) weaponEndlast = weaponEnd;
+        
+        float speed = (float) (weaponEnd.subtract(weaponEndlast).lengthVector() * 20);
+        
+        weaponEndlast = weaponEnd;
+        
         int bx = (int) MathHelper.floor_double(weaponEnd.xCoord);
         int by = (int) MathHelper.floor_double(weaponEnd.yCoord);
         int bz = (int) MathHelper.floor_double(weaponEnd.zCoord);
 
-        boolean hitAnEntity = false;
-        Material material = mc.theWorld.getBlock(bx, by, bz).getMaterial();
-        if (material != Material.air)
-        {
-            // every time end of weapon enters a solid for the first time, trace from our previous air position
-            // and damage the block it collides with
-            if (speed >= 1.5f && !lastWeaponSolid)
-            {
-                MovingObjectPosition col = mc.theWorld.rayTraceBlocks(lastWeaponEndAir, weaponEnd, false, true, true);
-                if (col != null && col.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
-                {
-                    Block block = mc.theWorld.getBlock(col.blockX, col.blockY, col.blockZ);
-                    if (block.getMaterial() != Material.air)
-                    {
-                        float hardness = block.getPlayerRelativeBlockHardness(mc.thePlayer, mc.thePlayer.worldObj, col.blockX, col.blockY, col.blockZ);
-                        System.out.println("hardness=" + hardness);
-                        if (hardness * 4.0f > 1.0f)
-                        {
-                            mc.playerController.onPlayerDestroyBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
-                        } else
-                        {
-                            mc.playerController.clearBlockHitDelay();
-                            for (int i = 0; i < 4; i++)
-                            {
-                                mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
-                            }
-                        }
-                        lastWeaponSolid = true;
-                        mc.lookaimController.triggerHapticPulse(0, 1000);
-                        System.out.println("Hit block speed =" + speed);
-                    }
-                }
-            }
+        boolean inAnEntity = false;
+        boolean insolidBlock = false;
+        boolean canact = speed > speedthresh && !lastWeaponSolid;
+        
+        float attackadd =0f;
+        
+        ItemStack is = player.inventory.getCurrentItem();
+        Item item = null;
+        if(is!=null )item = is.getItem();
+        
+        if (item instanceof ItemSword){
+        		attackadd = 2.5f;
+        } else if (item instanceof ItemTool ||
+        		item instanceof ItemHoe
+        		){
+        	attackadd = 1.8f;
+        } else {
+        	attackadd = 0f;
         }
-        else
-        {
-            float bbSize = 0.1f;
-            AxisAlignedBB weaponBB = AxisAlignedBB.getBoundingBox(
-                    weaponEnd.xCoord - bbSize,
-                    weaponEnd.yCoord - bbSize,
-                    weaponEnd.zCoord - bbSize,
-                    weaponEnd.xCoord + bbSize,
-                    weaponEnd.yCoord + bbSize,
-                    weaponEnd.zCoord + bbSize
-            );
-            List entities = mc.theWorld.getEntitiesWithinAABBExcludingEntity(
-                    mc.renderViewEntity, weaponBB);
-            for (int e = 0; e < entities.size(); ++e)
-            {
-                Entity hitEntity = (Entity) entities.get(e);
-                if (hitEntity.canBeCollidedWith())
-                {
-                    float speedThreshold = 1.5f;
-                    boolean monster = (hitEntity instanceof EntityMob);
-                    if (!monster)
-                        speedThreshold = 2.5f;
-                    if (speed>=speedThreshold && !lastWeaponSolid)
-                    {
-                        //player.worldObj.spawnParticle("reddust", weaponEnd.xCoord, weaponEnd.yCoord, weaponEnd.zCoord, 0, 0.1, 0);
+        
+        Vec3 extWeapon = Vec3.createVectorHelper(
+                handPos.xCoord + handDirection.x * (weaponLength + attackadd),
+                handPos.yCoord - handDirection.y * (weaponLength + attackadd),
+                handPos.zCoord + handDirection.z * (weaponLength + attackadd));
+        
+        	//Check EntityCollisions first
+        	{
 
-  //                      System.out.println("Sword hit entity " + hitEntity);
-                        mc.playerController.attackEntity(player, hitEntity);
-                        mc.lookaimController.triggerHapticPulse(0, 1000);
-                        lastWeaponSolid = true;
-                    }
+        		//experiment.
+        		AxisAlignedBB weaponBB = AxisAlignedBB.getBoundingBox(
+        				handPos.xCoord < extWeapon.xCoord ? handPos.xCoord : extWeapon.xCoord  ,
+        						handPos.yCoord < extWeapon.yCoord ? handPos.yCoord : extWeapon.yCoord  ,
+        								handPos.zCoord < extWeapon.zCoord ? handPos.zCoord : extWeapon.zCoord  ,
+        										handPos.xCoord > extWeapon.xCoord ? handPos.xCoord : extWeapon.xCoord  ,
+        												handPos.yCoord > extWeapon.yCoord ? handPos.yCoord : extWeapon.yCoord  ,
+        														handPos.zCoord > extWeapon.zCoord ? handPos.zCoord : extWeapon.zCoord  
+        				);
 
-                }
-                hitAnEntity = true;
-            }
+        		List entities = mc.theWorld.getEntitiesWithinAABBExcludingEntity(
+        				mc.renderViewEntity, weaponBB);
+        		for (int e = 0; e < entities.size(); ++e)
+        		{
+        			Entity hitEntity = (Entity) entities.get(e);
+        			if (hitEntity.canBeCollidedWith())
+        			{
+        				if(canact){
+        					mc.playerController.attackEntity(player, hitEntity);
+        					mc.lookaimController.triggerHapticPulse(0, 1000);
+           					lastWeaponSolid = true;
+        				}
+         				inAnEntity = true;
+         			}
+        		}
+
+        	if(!inAnEntity){
+        		Block block = mc.theWorld.getBlock(bx, by, bz);
+        		Material material = block.getMaterial();
+
+        		// every time end of weapon enters a solid for the first time, trace from our previous air position
+        		// and damage the block it collides with... 
+
+        		MovingObjectPosition col = mc.theWorld.rayTraceBlocks(lastWeaponEndAir, weaponEnd, false, false, true);
+        		if (col != null && col.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
+        		{
+        			if (!(block.getMaterial() == material.air) && !block.getMaterial().isLiquid())
+        			{
+        				if(canact){
+        					float hardness = block.getPlayerRelativeBlockHardness(mc.thePlayer, mc.thePlayer.worldObj, col.blockX, col.blockY, col.blockZ);
+        					System.out.println("hardness=" + hardness);
+        					if (hardness * 4.0f > 1.0f)
+        					{
+        						mc.playerController.onPlayerDestroyBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
+        					} else
+        					{
+        						mc.playerController.clearBlockHitDelay();
+        						for (int i = 0; i < 4; i++)
+        						{
+        							mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
+        						}
+        					}
+             				mc.lookaimController.triggerHapticPulse(0, 1000);
+            				System.out.println("Hit block speed =" + speed);            				
+            				lastWeaponSolid = true;
+        				}
+           				insolidBlock = true;
+        			}
+        		}
+        	}
         }
 
-        if (!hitAnEntity && material == Material.air)
+        if (!inAnEntity && !insolidBlock)
         {
             lastWeaponEndAir.xCoord = weaponEnd.xCoord;
             lastWeaponEndAir.yCoord = weaponEnd.yCoord;
@@ -966,14 +999,18 @@ public class VRPlayer
         mc.mcProfiler.endSection();
     }
 	
-	public boolean getFreeMoveMode() { return restrictedViveClient; }
+	public boolean getFreeMoveMode() { return freeMoveMode; }
 	
 	public void setFreeMoveMode(boolean free) { 
-		restrictedViveClient = free;
-	      Minecraft.getMinecraft().getNetHandler().addToSendQueue(new C17PacketCustomPayload("MC|Vive|FreeMove", (byte[]) (restrictedViveClient ?  new byte[]{1} : new byte[]{0} )));
-	
+		boolean was = freeMoveMode;
+		if(noTeleportClient){
+			freeMoveMode = true;
+		} else {
+			freeMoveMode = free;
 		}
-	
+		if(free != was)
+			Minecraft.getMinecraft().getNetHandler().addToSendQueue(new C17PacketCustomPayload("MC|Vive|FreeMove", (byte[]) (freeMoveMode ?  new byte[]{1} : new byte[]{0} )));	
+	}
 
 	public float getTeleportEnergy () {return teleportEnergy;}
 	

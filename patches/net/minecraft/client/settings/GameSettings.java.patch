@@ -31,7 +31,13 @@
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
  import org.lwjgl.opengl.Display;
-@@ -80,7 +84,9 @@
+@@ -75,12 +79,14 @@
+     public boolean invertMouse;
+     public int renderDistanceChunks = -1;
+     public boolean viewBobbing = true;
+-    public boolean anaglyph;
++    public boolean anaglyph = false;
+ 
      /** Advanced OpenGL */
      public boolean advancedOpengl;
      public boolean fboEnable = true;
@@ -186,7 +192,18 @@
          }
  
          if (par1EnumOptions == GameSettings.Options.TRANSLUCENT_BLOCKS)
-@@ -1257,8 +1213,11 @@
+@@ -1164,7 +1120,9 @@
+ 
+         if (par1EnumOptions == GameSettings.Options.ANAGLYPH)
+         {
+-            this.anaglyph = !this.anaglyph;
++        	//VIVE NOPE
++            this.anaglyph = false;
++            //NOPE
+             this.mc.refreshResources();
+         }
+ 
+@@ -1257,8 +1215,11 @@
  
          if (par1EnumOptions == GameSettings.Options.ENABLE_VSYNC)
          {
@@ -200,7 +217,7 @@
          }
  
          this.saveOptions();
-@@ -1874,16 +1833,24 @@
+@@ -1874,16 +1835,24 @@
      /**
       * Loads the options from the options file. It appears that this has replaced the previous 'loadOptions'
       */
@@ -229,7 +246,7 @@
              String var2 = "";
              this.mapSoundLevels.clear();
  
-@@ -1955,14 +1922,16 @@
+@@ -1955,14 +1924,16 @@
  
                      if (var8[0].equals("maxFps"))
                      {
@@ -248,7 +265,7 @@
  
                          this.updateVSync();
                      }
-@@ -2060,8 +2029,10 @@
+@@ -2060,8 +2031,10 @@
  
                      if (var8[0].equals("enableVsync"))
                      {
@@ -260,7 +277,7 @@
                      }
  
                      if (var8[0].equals("hideServerAddress"))
-@@ -2255,21 +2226,28 @@
+@@ -2255,21 +2228,28 @@
      /**
       * Saves the options to the options file.
       */
@@ -291,7 +308,7 @@
              var81.println("invertYMouse:" + this.invertMouse);
              var81.println("mouseSensitivity:" + this.mouseSensitivity);
              var81.println("fov:" + (this.fovSetting - 70.0F) / 40.0F);
-@@ -2385,23 +2363,29 @@
+@@ -2385,23 +2365,29 @@
          return this.renderDistanceChunks >= 4 && this.clouds;
      }
  
@@ -328,7 +345,7 @@
              String s = "";
  
              while ((s = bufferedreader.readLine()) != null)
-@@ -2802,11 +2786,20 @@
+@@ -2802,11 +2788,20 @@
          }
      }
  
@@ -350,7 +367,7 @@
              exception.println("ofRenderDistanceChunks:" + this.renderDistanceChunks);
              exception.println("ofFogType:" + this.ofFogType);
              exception.println("ofFogStart:" + this.ofFogStart);
-@@ -2882,8 +2875,15 @@
+@@ -2882,8 +2877,15 @@
          }
      }
  
@@ -366,7 +383,7 @@
          this.renderDistanceChunks = 8;
          this.viewBobbing = true;
          this.anaglyph = false;
-@@ -2966,17 +2966,39 @@
+@@ -2966,17 +2968,39 @@
          this.ofAnimatedTerrain = true;
          this.ofAnimatedItems = true;
          this.ofAnimatedTextures = true;
@@ -413,7 +430,7 @@
  
      private void updateWaterOpacity()
      {
-@@ -3181,12 +3203,12 @@
+@@ -3181,12 +3205,12 @@
              return null;
          }
  
@@ -429,7 +446,7 @@
          {
              this.enumString = p_i45004_3_;
              this.enumFloat = p_i45004_4_;
-@@ -3252,9 +3274,9 @@
+@@ -3252,9 +3276,9 @@
              return p_148264_1_;
          }
  

@@ -27,6 +27,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.FREE_MOVE_DEFAULT,
             VRSettings.VrOptions.LIMIT_TELEPORT,
             VRSettings.VrOptions.ALLOW_MODE_SWITCH,
+            VRSettings.VrOptions.BCB_ON,
             
             //END JRBUDDA
             
@@ -181,6 +182,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                 vr.vrAllowLocoModeSwotch = true;
                 vr.vrFreeMove = true;
                 vr.vrLimitedSurvivalTeleport = true;
+                vr.vrShowBlueCircleBuddy = true;
                 //end jrbudda
                 
                 Minecraft.getMinecraft().gameSettings.viewBobbing = true;
@@ -381,6 +383,12 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "of blocks, it will consume food, and it will have an energy",
                             "bar that refills over time."
                     } ;
+                case BCB_ON:
+                    return new String[] {
+                            "Shows your body position as a blue dot on the gound.",
+                            "This is your Blue Circle Buddy (tm).",
+                            "Do not lose your Blue Circle Buddy."
+                    };
                 default:
                     return null;
             }

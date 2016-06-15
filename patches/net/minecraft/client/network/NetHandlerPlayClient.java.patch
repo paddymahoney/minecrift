@@ -21,17 +21,18 @@
      }
  
      /**
-@@ -739,6 +746,9 @@
+@@ -739,6 +746,10 @@
      public void handleDisconnect(S40PacketDisconnect packetIn)
      {
          this.netManager.closeChannel(packetIn.func_149165_c());
 +        // VIVE START - no longer on a vanilla server, reset restricted state
-+        VRPlayer.get().setFreeMoveMode(false);
++    	this.gameController.vrPlayer.noTeleportClient = true;
++        VRPlayer.get().setFreeMoveMode(true);
 +        // VIVE END - no longer on a vanilla server, reset restricted state
      }
  
      /**
-@@ -1297,6 +1307,11 @@
+@@ -1297,6 +1308,11 @@
                  {
                      var2.readFromNBT(packetIn.getNbtCompound());
                  }
@@ -43,13 +44,14 @@
              }
          }
      }
-@@ -1663,6 +1678,12 @@
+@@ -1663,6 +1679,13 @@
                  }, I18n.format("multiplayer.texturePrompt.line1", new Object[0]), I18n.format("multiplayer.texturePrompt.line2", new Object[0]), 0));
              }
          }
 +        // VIVE START - server told us that it has this mod too, allow extended reach, etc.
 +        else if ("MC|ViveOK".equals(packetIn.func_149169_c()))
 +        { //allowed, set to user preference.
++        	this.gameController.vrPlayer.noTeleportClient = false;
 +            this.gameController.vrPlayer.setFreeMoveMode(Minecraft.getMinecraft().vrSettings.vrFreeMove);
 +        }
 +        // VIVE END

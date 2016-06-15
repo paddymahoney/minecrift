@@ -54,7 +54,6 @@ public interface IBodyAimController extends IBasePlugin {
 
 	public void loadDefaults();
 
-
 	public void triggerYawTransition(boolean isPositive);
 
 	// VIVE START - interact source
@@ -64,5 +63,6 @@ public interface IBodyAimController extends IBasePlugin {
 	public Vec3 getAimVector( int controller );
 	public Matrix4f getAimRotation( int controller );
 	public boolean applyGUIModelView( EyeType eyeType );
+	public Vec3 getHeadVector();
 	// VIVE END - interact source
 }

@@ -11,6 +11,7 @@ import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.provider.MCOpenVR;
 import com.mtbs3d.minecrift.settings.VRSettings;
+import com.mtbs3d.minecrift.settings.VRSettings.VrOptions;
 
 import de.fruitfly.ovr.structs.HmdParameters;
 import net.minecraft.client.Minecraft;
@@ -37,8 +38,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.HMD_NAME_PLACEHOLDER,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
-            VRSettings.VrOptions.MIRROR_DISPLAY,      // VIVE removed mirror display option
+            VRSettings.VrOptions.MIRROR_DISPLAY,     
             VRSettings.VrOptions.FSAA,
+            VRSettings.VrOptions.STENCIL_ON
             
             /*VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.TIMEWARP,
@@ -190,7 +192,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useHighQualityDistortion = true;
                 minecraft.vrSettings.useFsaa = false;
                 minecraft.vrSettings.fsaaScaleFactor = 1.4f;
-
+                minecraft.vrSettings.vrUseStencil = true;
+                
                 minecraft.reinitFramebuffers = true;
 			    this.guivrSettings.saveOptions();
             }
@@ -397,6 +400,11 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             case OTHER_RENDER_SETTINGS:
                 return new String[] {
                         "Configure IPD and FOV border settings."
+                };
+            case STENCIL_ON:
+                return new String[] {
+                        "Mask out areas of the screen outside the FOV.",
+                        "Improves performance."
                 };
     	default:
     		return null;

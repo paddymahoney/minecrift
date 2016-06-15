@@ -177,7 +177,8 @@ public class VRSettings
     public boolean vrReverseHands = false;
     public boolean vrReverseShootingEye = false;
     public VRControllerButtonMapping[] buttonMappings;
-    
+    public boolean vrUseStencil = true;
+    public boolean vrShowBlueCircleBuddy = true;
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -704,6 +705,14 @@ public class VRSettings
                     {
                         this.vrReverseHands = optionTokens[1].equals("true");
                     }
+                    if (optionTokens[0].equals("stencilOn"))
+                    {
+                        this.vrUseStencil = optionTokens[1].equals("true");
+                    }
+                    if (optionTokens[0].equals("bcbOn"))
+                    {
+                        this.vrShowBlueCircleBuddy = optionTokens[1].equals("true");
+                    }
     
                     if (optionTokens[0].startsWith("BUTTON_"))
                     {
@@ -1034,6 +1043,10 @@ public class VRSettings
                 return this.vrLimitedSurvivalTeleport ? var4 + "ON" : var4 + "OFF";
             case REVERSE_HANDS:
             	return this.vrReverseHands ? var4 + "ON" : var4 + "OFF";
+            case STENCIL_ON:
+            	return this.vrUseStencil ? var4 + "ON" : var4 + "OFF";
+            case BCB_ON:
+            	return this.vrShowBlueCircleBuddy ? var4 + "ON" : var4 + "OFF";
 
                 //END JRBUDDA
  	        default:
@@ -1286,6 +1299,12 @@ public class VRSettings
             case REVERSE_HANDS:
                 this.vrReverseHands = !this.vrReverseHands;
                 break;
+            case STENCIL_ON:
+                this.vrUseStencil = !this.vrUseStencil;
+                break;
+            case BCB_ON:
+                this.vrShowBlueCircleBuddy = !this.vrShowBlueCircleBuddy;
+                break;
                 //JRBUDDA
                 
             default:
@@ -1506,6 +1525,8 @@ public class VRSettings
             var5.println("freeMoveDefault:" + this.vrFreeMove);
             var5.println("limitedTeleport:" + this.vrLimitedSurvivalTeleport);
             var5.println("reverseHands:" + this.vrReverseHands);
+            var5.println("stencilOn:" + this.vrUseStencil);
+            var5.println("bcbOn:" + this.vrShowBlueCircleBuddy);
            
             if (buttonMappings == null) resetBindings(); //defaults
             
@@ -1818,13 +1839,16 @@ public class VRSettings
         FREE_MOVE_DEFAULT("Default to Free Move",false, true),
         LIMIT_TELEPORT("Limit TP in Survival",false, true),
         REVERSE_HANDS("Reverse Hands",false, true),
+        STENCIL_ON("Use Eye Stencil", false, true), 
+        BCB_ON("Show Body Position", false, true),    
         
         //END JRBUDDA
         
         // OTher buttons
         OTHER_HUD_SETTINGS("Overlay/Crosshair/Chat...", false, true),
         OTHER_RENDER_SETTINGS("IPD / FOV...", false, true),
-        LOCOMOTION_SETTINGS("Locomotion Settings...", false, true);
+        LOCOMOTION_SETTINGS("Locomotion Settings...", false, true); 
+
 
 //        ANISOTROPIC_FILTERING("options.anisotropicFiltering", true, false, 1.0F, 16.0F, 0.0F)
 //                {

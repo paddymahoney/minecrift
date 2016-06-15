@@ -264,7 +264,6 @@ IEventNotifier, IEventListener, IBodyAimController
 			return false;
 		}
 
-
 		try {
 			initializeJOpenVR();
 			initOpenVRCompositor(true) ;
@@ -312,7 +311,6 @@ IEventNotifier, IEventListener, IBodyAimController
 		if( hmdErrorStore.get(0) == 0 ) {
 			// ok, try and get the vrsystem pointer..
 			vrsystem = new VR_IVRSystem_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRSystem_Version, hmdErrorStore));
-			
 		}
 		if( vrsystem == null || hmdErrorStore.get(0) != 0 ) {
 			throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));		
@@ -1115,11 +1113,15 @@ IEventNotifier, IEventListener, IBodyAimController
 				moveModeSwitchcount++;
 				if (moveModeSwitchcount >= 20 * 4) {
 					moveModeSwitchcount = 0;
+					if(mc.vrPlayer.noTeleportClient && mc.vrPlayer.getFreeMoveMode()){
+						mc.printChatMessage("Cannot change move mode: This server does not allow teleporting.");
+					}else {
 					mc.vrPlayer.setFreeMoveMode(!mc.vrPlayer.getFreeMoveMode());
-					mc.printChatMessage("Free movement mode set to: " + mc.vrPlayer.getFreeMoveMode());
+					mc.printChatMessage("Movement mode set to: " + (mc.vrPlayer.getFreeMoveMode() ? "Free Move" : "Teleport"));
+					}
 				}				
 			}
-		}else {
+		} else {
 			moveModeSwitchcount = 0;
 		}
 
@@ -1750,6 +1752,8 @@ IEventNotifier, IEventListener, IBodyAimController
 		vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[controller], 0, (short)strength);
 	}
 
+	private Vector3f headDirection;
+	
 	private void updateAim() {
 		if (this.mc==null)
 			return;
@@ -1805,7 +1809,8 @@ IEventNotifier, IEventListener, IBodyAimController
 		laimPitch = (float)Math.toDegrees(Math.asin(lcontrollerDirection.y/lcontrollerDirection.length()));
 		laimYaw = -(float)Math.toDegrees(Math.atan2(lcontrollerDirection.x, lcontrollerDirection.z));
 
-
+		headDirection = hmdPose.transform(forward);
+		
 		// update off hand aim
 		Vector3f leftControllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[1]);
 		aimSource[1].rotateAroundY((float)Math.toRadians(-bodyYaw));
@@ -2086,5 +2091,10 @@ IEventNotifier, IEventListener, IBodyAimController
 	@Override
 	public boolean isHMDTracking() {
 		return headIsTracking;
+	}
+
+	@Override
+	public Vec3 getHeadVector() {
+		return Vec3.createVectorHelper(headDirection.x, headDirection.y, headDirection.z);
 	}
 }
