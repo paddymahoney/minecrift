@@ -1527,11 +1527,6 @@ IEventNotifier, IEventListener, IBodyAimController
 		return true;
 	}
 
-	@Override
-	public boolean isGuiOrtho()
-	{
-		return false;
-	}
 
 	@Override
 	public double getFrameTiming() {

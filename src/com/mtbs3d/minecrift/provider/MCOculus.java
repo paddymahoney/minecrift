@@ -79,12 +79,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         return true;
     }
 
-    @Override
-    public boolean isGuiOrtho()
-    {
-        return false;
-    }
-
     public double getFrameTiming() { return PredictedDisplayTime; };
 
     public static UserProfileData theProfileData = null;
