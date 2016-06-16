@@ -1,4 +1,4 @@
-package com.mtbs3d.minecrift.gameplay;
+package com.mtbs3d.minecrift.provider;
 
 
 import de.fruitfly.ovr.structs.EulerOrient;
@@ -36,18 +36,21 @@ import java.util.List;
 import java.util.Random;
 
 import com.google.common.base.Charsets;
+import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
+import com.mtbs3d.minecrift.gameplay.EntityVRTeleportFX;
+import com.mtbs3d.minecrift.gameplay.VRMovementStyle;
 
 // VIVE
-public class VRPlayer
+public class OpenVRPlayer implements IRoomscaleAdapter
 {
     public double lastRoomUpdateTime = 0;
     public Vec3 movementTeleportDestination = Vec3.createVectorHelper(0.0,0.0,0.0);
     public int movementTeleportDestinationSideHit;
     public double movementTeleportProgress;
     public double movementTeleportDistance;
+        
     private Vec3 roomOrigin = Vec3.createVectorHelper(0,0,0);
-    public Vec3 teleportSlide = Vec3.createVectorHelper(0,0,0);
-    public long teleportSlideStartTime = 0;
+    
     public VRMovementStyle vrMovementStyle = new VRMovementStyle();
     public Vec3[] movementTeleportArc = new Vec3[50];
     public int movementTeleportArcSteps = 0;
@@ -58,12 +61,12 @@ public class VRPlayer
     
     private float teleportEnergy;
     
-    public static VRPlayer get()
+    public static OpenVRPlayer get()
     {
         return Minecraft.getMinecraft().vrPlayer;
     }
 
-    public VRPlayer()
+    public OpenVRPlayer()
     {
         for (int i=0;i<50;i++)
         {
@@ -100,20 +103,15 @@ public class VRPlayer
         }
         else
         { //set room origin to underneath the headset... which is where the player entity should be already? shouldnt be already anyway? maybe cause collosion?
-            teleportSlide.xCoord = 0;
-            teleportSlide.yCoord = 0;
-            teleportSlide.zCoord = 0;
+
             Vec3 hmdOffset = mc.positionTracker.getCenterEyePosition();
             double newX = x + hmdOffset.xCoord;
             double newY = y;
             double newZ = z + hmdOffset.zCoord;
-            teleportSlide.xCoord = roomOrigin.xCoord - newX;
-            teleportSlide.yCoord = roomOrigin.yCoord - newY;
-            teleportSlide.zCoord = roomOrigin.zCoord - newZ;
-            
+
             setRoomOrigin(newX, newY, newZ);
 
-            teleportSlideStartTime = System.nanoTime();
+
         }
     }
     
@@ -182,12 +180,11 @@ public class VRPlayer
 
                     if (dest.xCoord != 0 || dest.yCoord != 0 || dest.zCoord != 0)
                     {
-                        Vec3 teleportSlide = mc.vrPlayer.getTeleportSlide();
                         Vec3 eyeCenterPos = mc.positionTracker.getCenterEyePosition();
 
-                        eyeCenterPos.xCoord = roomOrigin.xCoord + teleportSlide.xCoord - eyeCenterPos.xCoord;
-                        eyeCenterPos.yCoord = roomOrigin.yCoord + teleportSlide.yCoord - eyeCenterPos.yCoord;
-                        eyeCenterPos.zCoord = roomOrigin.zCoord + teleportSlide.zCoord - eyeCenterPos.zCoord;
+                        eyeCenterPos.xCoord = roomOrigin.xCoord + eyeCenterPos.xCoord;
+                        eyeCenterPos.yCoord = roomOrigin.yCoord + eyeCenterPos.yCoord;
+                        eyeCenterPos.zCoord = roomOrigin.zCoord - eyeCenterPos.zCoord;
 
                         // cloud of sparks moving past you
                         Vec3 motionDir = dest.addVector(-eyeCenterPos.xCoord, -eyeCenterPos.yCoord, -eyeCenterPos.zCoord).normalize();
@@ -834,27 +831,6 @@ public class VRPlayer
     }
 
 
-    public Vec3 getTeleportSlide()
-    {
-        if (!vrMovementStyle.cameraSlide)
-        {
-            return Vec3.createVectorHelper(0,0,0);
-        }
-        long delta = System.nanoTime() - this.teleportSlideStartTime;
-        float speed = 400.0f;
-        double slideTime = (double)delta / (double)1000000000L;
-
-        Vec3 dir = teleportSlide.normalize();
-        dir.xCoord = -dir.xCoord * slideTime * speed + teleportSlide.xCoord;
-        dir.yCoord = -dir.yCoord * slideTime * speed + teleportSlide.yCoord;
-        dir.zCoord = -dir.zCoord * slideTime * speed + teleportSlide.zCoord;
-        if (dir.dotProduct(teleportSlide)<=0)
-        {
-            dir.xCoord = dir.yCoord = dir.zCoord = 0;
-        }
-        return dir;
-    }
-
     private Vec3 lastWeaponEndAir = Vec3.createVectorHelper(0,0,0);
     private boolean lastWeaponSolid = false;
 
@@ -1013,6 +989,114 @@ public class VRPlayer
 	}
 
 	public float getTeleportEnergy () {return teleportEnergy;}
+
+	@Override
+	public boolean isHMDTracking() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Vec3 getHMDPos_World() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Vec3 getHMDDir_World() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public float getHMDYaw_World() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public float getHMDPitch_World() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isControllerMainTracking() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Vec3 getControllerMainPos_World() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Vec3 getControllerMainDir_World() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public float getControllerMainYaw_World() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public float getControllerMainPitch_World() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isControllerOffhandTracking() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Vec3 getControllerOffhandPos_World() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Vec3 getControllerOffhandDir_World() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public float getControllerOffhandYaw_World() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public float getControllerOffhandPitch_World() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public Vec3 getRoomOriginPos_World() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Vec3 getRoomOriginUpDir_World() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void triggerHapticPulse(int controller, int duration) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }
 

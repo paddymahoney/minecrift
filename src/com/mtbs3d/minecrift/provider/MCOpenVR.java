@@ -60,14 +60,14 @@ import java.nio.LongBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBasePlugin, IHMDInfo, IStereoProvider,
+public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBasePlugin, IHMDInfo, 
 IEventNotifier, IEventListener, IBodyAimController
 {
 	private static String initStatus;
 	private boolean initialized;
 	private Minecraft mc;
 
-	private static VR_IVRSystem_FnTable vrsystem;
+	static VR_IVRSystem_FnTable vrsystem;
 	private static VR_IVRCompositor_FnTable vrCompositor;
 	private static VR_IVROverlay_FnTable vrOverlay;
 	private static VR_IVRSettings_FnTable vrSettings;
@@ -84,12 +84,12 @@ IEventNotifier, IEventListener, IBodyAimController
 	private LongByReference oHandle = new LongByReference();
 
 	// position/orientation of headset and eye offsets
-	private static final Matrix4f hmdPose = new Matrix4f();
-	private static Matrix4f hmdProjectionLeftEye;
-	private static Matrix4f hmdProjectionRightEye;
-	private static Matrix4f hmdPoseLeftEye = new Matrix4f();
-	private static Matrix4f hmdPoseRightEye = new Matrix4f();
-	private static boolean initSuccess = false, flipEyes = false;
+	static final Matrix4f hmdPose = new Matrix4f();
+	static Matrix4f hmdProjectionLeftEye;
+	static Matrix4f hmdProjectionRightEye;
+	static Matrix4f hmdPoseLeftEye = new Matrix4f();
+	static Matrix4f hmdPoseRightEye = new Matrix4f();
+	static boolean initSuccess = false, flipEyes = false;
 
 	private static IntBuffer hmdDisplayFrequency;
 
@@ -166,9 +166,6 @@ IEventNotifier, IEventListener, IBodyAimController
 	private float[] inventory_swipe = new float[2];
 	
 	private boolean headIsTracking;
-	
-	private HiddenAreaMesh_t[] hiddenMeshes = new HiddenAreaMesh_t[2];
-	public float[][] hiddenMesheVertecies = new float[2][];
 	
 	private int moveModeSwitchcount = 0;
 
@@ -689,18 +686,6 @@ IEventNotifier, IEventListener, IBodyAimController
 			this.initialized = false;
 		}
 	}
-
-	@Override
-	public boolean isCalibrated(PluginType type) { return true; }
-
-	@Override
-	public void beginCalibration(PluginType type) { }
-
-	@Override
-	public void updateCalibration(PluginType type) { }
-
-	@Override
-	public String getCalibrationStep(PluginType type) { return "No calibration required"; }
 
 	@Override
 	public void beginFrame()
@@ -1454,90 +1439,11 @@ IEventNotifier, IEventListener, IBodyAimController
 		return new Quaternion(orient.x, orient.y, orient.z, orient.w);
 	}
 
-	@Override
-	public RenderTextureInfo getRenderTextureSizes(FovPort leftFov,
-			FovPort rightFov,
-			float renderScaleFactor)
-	{
-		IntBuffer rtx = IntBuffer.allocate(1);
-		IntBuffer rty = IntBuffer.allocate(1);
-		vrsystem.GetRecommendedRenderTargetSize.apply(rtx, rty);
 
-		RenderTextureInfo info = new RenderTextureInfo();
-		info.HmdNativeResolution.w = rtx.get(0);
-		info.HmdNativeResolution.h = rty.get(0);
-		info.LeftFovTextureResolution.w = (int) (rtx.get(0) );
-		info.LeftFovTextureResolution.h = (int) (rty.get(0) );
-		info.RightFovTextureResolution.w = (int) (rtx.get(0) );
-		info.RightFovTextureResolution.h = (int) (rty.get(0) );
 		
-		if ( info.LeftFovTextureResolution.w % 2 != 0) info.LeftFovTextureResolution.w++;
-		if ( info.LeftFovTextureResolution.h % 2 != 0) info.LeftFovTextureResolution.w++;
-		if ( info.RightFovTextureResolution.w % 2 != 0) info.LeftFovTextureResolution.w++;
-		if ( info.RightFovTextureResolution.h % 2 != 0) info.LeftFovTextureResolution.w++;
-		
-		info.CombinedTextureResolution.w = info.LeftFovTextureResolution.w + info.RightFovTextureResolution.w;
-		info.CombinedTextureResolution.h = info.LeftFovTextureResolution.h;
-				
-		
-		for (int i = 0; i < 2; i++) {
-			hiddenMeshes[i] = vrsystem.GetHiddenAreaMesh.apply(i);
-			hiddenMeshes[i].read();
-
-			hiddenMesheVertecies[i] = new float[hiddenMeshes[i].unTriangleCount * 3 * 2];
-			Pointer arrptr = new Memory(hiddenMeshes[i].unTriangleCount * 3 * 2);
-			hiddenMeshes[i].pVertexData.getPointer().read(0, hiddenMesheVertecies[i], 0, hiddenMesheVertecies[i].length);
-			
-			for (int ix = 0;ix < hiddenMesheVertecies[i].length;ix+=2) {
-				hiddenMesheVertecies[i][ix] = hiddenMesheVertecies[i][ix] * info.LeftFovTextureResolution.w * renderScaleFactor;
-				hiddenMesheVertecies[i][ix + 1] = hiddenMesheVertecies[i][ix +1] * info.LeftFovTextureResolution.h * renderScaleFactor;
-			}
-		}
-		
-		
-//		Pointer pointers = new Memory(k_pch_SteamVR_Section.length()+1);
-//		pointers.setString(0, k_pch_SteamVR_Section);
-//		Pointer pointerk = new Memory(k_pch_SteamVR_RenderTargetMultiplier_Float.length()+1);
-//		pointerk.setString(0, k_pch_SteamVR_RenderTargetMultiplier_Float);
-//		IntByReference err = new IntByReference();
-//		float test = vrSettings.GetFloat.apply(pointers, pointerk, 99.9f, err);
-//		vrSettings.SetFloat.apply(pointers, pointerk, renderScaleFactor, err);
-//		float test2 = vrSettings.GetFloat.apply(pointers, pointerk, 99.9f, err);
-
-		return info;
-	}
 	final String k_pch_SteamVR_Section = "steamvr";
 	final String k_pch_SteamVR_RenderTargetMultiplier_Float = "renderTargetMultiplier";
 	
-	@Override
-	public EyeType eyeRenderOrder(int index)
-	{
-		return ( index == 1 ) ? EyeType.ovrEye_Right : EyeType.ovrEye_Left;
-	}
-
-	@Override
-	public boolean usesDistortion()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean isStereo()
-	{
-		return true;
-	}
-
-	@Override
-	public boolean isGuiOrtho()
-	{
-		return false;
-	}
-
-	@Override
-	public double getFrameTiming() {
-		return getCurrentTimeSecs();
-	}
-
 	public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen)
 	{
 		if (previousScreen==null && newScreen != null
@@ -1554,7 +1460,6 @@ IEventNotifier, IEventListener, IBodyAimController
 					|| (newScreen instanceof GuiEnchantment)
 					|| (newScreen instanceof GuiRepair)
 					;
-
 
 			//set default position for inventory and chat screens.
 			guiPos = OpenVRUtil.convertMatrix4ftoTranslationVector(hmdPose);
@@ -1600,8 +1505,7 @@ IEventNotifier, IEventListener, IBodyAimController
 				{
 					//Vec3 playerPos = player.getPositionVector();
 					Minecraft mc = Minecraft.getMinecraft();
-					Vec3 teleportSlide = mc.vrPlayer.getTeleportSlide();
-					Vec3 playerPos = mc.vrPlayer.getRoomOrigin().addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
+					Vec3 playerPos = mc.vrPlayer.getRoomOrigin();
 					blockTop.xCoord -= playerPos.xCoord;
 					blockTop.yCoord -= playerPos.yCoord;
 					blockTop.zCoord -= playerPos.zCoord;
@@ -1618,31 +1522,6 @@ IEventNotifier, IEventListener, IBodyAimController
 			if(mc.theWorld == null) guiScale = 2.0f;
 
 		}
-	}
-
-	@Override
-	public Matrix4f getProjectionMatrix(FovPort fov,
-			EyeType eyeType,
-			float nearClip,
-			float farClip)
-	{
-		if ( eyeType == EyeType.ovrEye_Left )
-		{
-			HmdMatrix44_t mat = vrsystem.GetProjectionMatrix.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Left, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
-			hmdProjectionLeftEye = new Matrix4f();
-			return OpenVRUtil.convertSteamVRMatrix4ToMatrix4f(mat, hmdProjectionLeftEye);
-		}else{
-			HmdMatrix44_t mat = vrsystem.GetProjectionMatrix.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Right, nearClip, farClip, JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL);
-			hmdProjectionRightEye = new Matrix4f();
-			return OpenVRUtil.convertSteamVRMatrix4ToMatrix4f(mat, hmdProjectionRightEye);
-		}
-	}
-
-
-	@Override
-	public double getCurrentTimeSecs()
-	{
-		return System.nanoTime() / 1000000000d;
 	}
 
 	//-------------------------------------------------------
@@ -1773,11 +1652,10 @@ IEventNotifier, IEventListener, IBodyAimController
 		{
 			//Vec3 playerPos = player.getPositionVector();
 			Minecraft mc = Minecraft.getMinecraft();
-			Vec3 teleportSlide = mc.vrPlayer.getTeleportSlide();
-			Vec3 playerPos = mc.vrPlayer.getRoomOrigin().addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
-			aimSource[0].xCoord += playerPos.xCoord;
-			aimSource[0].yCoord += playerPos.yCoord;
-			aimSource[0].zCoord += playerPos.zCoord;
+			Vec3 origin = mc.vrPlayer.getRoomOrigin();
+			aimSource[0].xCoord += origin.xCoord;
+			aimSource[0].yCoord += origin.yCoord;
+			aimSource[0].zCoord += origin.zCoord;
 		}
 
 		// build matrix describing controller rotation
@@ -1822,11 +1700,10 @@ IEventNotifier, IEventListener, IBodyAimController
 		if (player!=null)
 		{
 			Minecraft mc = Minecraft.getMinecraft();
-			Vec3 teleportSlide = mc.vrPlayer.getTeleportSlide();
-			Vec3 playerPos = mc.vrPlayer.getRoomOrigin().addVector(teleportSlide.xCoord, teleportSlide.yCoord, teleportSlide.zCoord);
-			aimSource[1].xCoord += playerPos.xCoord;
-			aimSource[1].yCoord += playerPos.yCoord;
-			aimSource[1].zCoord += playerPos.zCoord;
+			Vec3 origin = mc.vrPlayer.getRoomOrigin();
+			aimSource[1].xCoord += origin.xCoord;
+			aimSource[1].yCoord += origin.yCoord;
+			aimSource[1].zCoord += origin.zCoord;
 		}
 
 		// build matrix describing controller rotation
@@ -1981,6 +1858,11 @@ IEventNotifier, IEventListener, IBodyAimController
 	//-------------------------------------------------------
 	// EventNotifier/IEventListener
 
+	public double getCurrentTimeSecs()
+	{
+		return System.nanoTime() / 1000000000d;
+	}
+	
 	@Override
 	public synchronized void registerListener(IEventListener listener)
 	{
@@ -2003,57 +1885,9 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	}
 
-	@Override
-	public boolean providesMirrorTexture() { return false; }
 
-	@Override
-	public int createMirrorTexture(int width, int height) { return -1; }
 
-	@Override
-	public void deleteMirrorTexture() { }
-
-	@Override
-	public boolean providesRenderTextures() { return true; }
-
-	@Override
-	public RenderTextureSet createRenderTexture(int lwidth, int lheight)
-	{	
-		// generate left eye texture
-		LeftEyeTextureId = GL11.glGenTextures();
-		int boundTextureId = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, LeftEyeTextureId);
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
-		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-		GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT, (java.nio.ByteBuffer) null);
-		GL11.glBindTexture(GL11.GL_TEXTURE_2D, boundTextureId);
 	
-		texType.handle = LeftEyeTextureId;
-		texType.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
-		texType.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
-		texType.write();
-				
-		RenderTextureSet textureSet = new RenderTextureSet();
-		textureSet.leftEyeTextureIds.add(LeftEyeTextureId);
-		return textureSet;
-	}
-
-	@Override
-	public void deleteRenderTextures() {
-		
-	if (LeftEyeTextureId > 0)	GL11.glDeleteTextures(LeftEyeTextureId);
-	
-	}
-
-	@Override
-	public String getLastError() { return ""; }
-
-	@Override
-	public boolean setCurrentRenderTextureInfo(int index, int textureIdx, int depthId, int depthWidth, int depthHeight)
-	{
-		return true;
-	}
-
 	@Override
 	public void triggerYawTransition(boolean isPositive) { }
 
@@ -2067,10 +1901,6 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	}
 
-	@Override
-	public void configureRenderer(GLConfig cfg) {
-
-	}
 
 	@Override
 	public boolean endFrame() {
@@ -2086,11 +1916,6 @@ IEventNotifier, IEventListener, IBodyAimController
 	@Override
 	public float getOffhandAimPitch() {
 		return laimPitch;
-	}
-
-	@Override
-	public boolean isHMDTracking() {
-		return headIsTracking;
 	}
 
 	@Override

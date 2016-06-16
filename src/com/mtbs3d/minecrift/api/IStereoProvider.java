@@ -29,6 +29,10 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean providesRenderTextures();
 
+    public boolean providesStencilMask();
+    
+    public float[] getStencilMask(EyeType eye);
+    
     public RenderTextureSet createRenderTexture(int width, int height);
 
     public void deleteRenderTextures();
@@ -58,6 +62,5 @@ public interface IStereoProvider extends IBasePlugin
 
     // VIVE START - new stereo provider functions
     public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen);
-    public boolean isHMDTracking();
     // VIVE END - new stereo provider functions
 }

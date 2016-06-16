@@ -61,15 +61,5 @@ public abstract class BasePlugin implements IBasePlugin, IEventListener
 		return true;
 	}
 
-	public boolean isCalibrated(PluginType type) {
-		return true;
-	}
 
-	public void beginCalibration(PluginType type) {}
-
-	public void updateCalibration(PluginType type) {}
-
-	public String getCalibrationStep(PluginType type) {
-		return null;
-	}
 }

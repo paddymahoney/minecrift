@@ -40,14 +40,6 @@ public interface IBasePlugin {
 
 	public void destroy();
 
-	public boolean isCalibrated(PluginType type);
-
-    void beginCalibration(PluginType type);
-
-    void updateCalibration(PluginType type);
-	
-	public String getCalibrationStep(PluginType type);
-
     public void beginFrame();
 
     public void beginFrame(long frameIndex);

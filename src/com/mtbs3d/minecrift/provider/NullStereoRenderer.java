@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11;
 /**
  * Created by StellaArtois on 26/6/2014.
  */
-public class NullStereoRenderer extends BasePlugin implements IStereoProvider
+public class NullStereoRenderer implements IStereoProvider
 {
     @Override
     public String getID() {
@@ -24,12 +24,7 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
         return "Mono";
     }
 
-    @Override
-    public void eventNotification(int eventId) {
-
-    }
-
-    @Override
+     @Override
     public RenderTextureInfo getRenderTextureSizes(FovPort LeftFov,
                                                    FovPort RightFov,
                                                    float renderScaleFactor)
@@ -98,21 +93,6 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 
     }
 
-    @Override
-    public boolean isCalibrated(PluginType type) {
-        return true;
-    }
-
-    @Override
-    public void beginCalibration(PluginType type) {}
-
-    @Override
-    public void updateCalibration(PluginType type) {}
-
-    @Override
-    public String getCalibrationStep(PluginType type) {
-        return null;
-    }
 
     @Override
     public void beginFrame()
@@ -182,8 +162,15 @@ public class NullStereoRenderer extends BasePlugin implements IStereoProvider
 	}
 
 	@Override
-	public boolean isHMDTracking() {
+	public boolean providesStencilMask() {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+	@Override
+	public float[] getStencilMask(EyeType eye) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -18,8 +18,7 @@ import org.lwjgl.opengl.*;
 import org.lwjgl.util.vector.Quaternion;
 
 public class MCOculus extends OculusRift //OculusRift does most of the heavy lifting
-	implements IEyePositionProvider, IOrientationProvider, IBasePlugin, IHMDInfo, IStereoProvider, IEventNotifier, IEventListener {
-
+{
     public static final int NOT_CALIBRATING = 0;
     public static final int CALIBRATE_AWAITING_FIRST_ORIGIN = 1;
     public static final int CALIBRATE_AT_FIRST_ORIGIN = 2;
@@ -48,7 +47,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     public MCOculus()
     {
         super();
-        PluginManager.register(this);
         eyePose[0] = new Posef();
         eyePose[1] = new Posef();
         eyePose[2] = new Posef();
@@ -57,29 +55,29 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         eulerOrient[2] = new EulerOrient();
     }
 
-    @Override
+    
     public EyeType eyeRenderOrder(int index)
     {
         return EyeType.fromInteger(index);
     }
 
-    @Override
+    
     public String getVersion()
     {
         return OculusRift.getVersionString();
     }
 
-    @Override
+    
     public boolean usesDistortion() {
         return true;
     }
 
-    @Override
+    
     public boolean isStereo() {
         return true;
     }
 
-    @Override
+    
     public boolean isGuiOrtho()
     {
         return false;
@@ -89,19 +87,19 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 
     public static UserProfileData theProfileData = null;
 
-    @Override
+    
     public void beginFrame()
     {
         beginFrame(0);
     }
 
-    @Override
+    
     public void beginFrame(long frameIndex)
     {
 
     }
 
-    @Override
+    
     public FullPoseState getTrackedPoses(long frameIndex)
     {
         return fullPoseState;
@@ -128,7 +126,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         return result.unqualifiedSuccess;
     }
 
-    @Override
+    
     public HmdParameters getHMDInfo()
     {
         HmdParameters hmdDesc = new HmdParameters();
@@ -138,17 +136,17 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         return hmdDesc;
     }
 
-	@Override
+	
 	public String getName() {
 		return "Oculus Rift";
 	}
 
-	@Override
+	
 	public String getID() {
 		return "oculus";
 	}
 
-    @Override
+    
     public void update(float ipd,
                        float yawHeadDegrees,
                        float pitchHeadDegrees,
@@ -164,13 +162,13 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         pitchOffsetRad = (float)Math.toRadians(worldPitchOffsetDegrees);
     }
 
-    @Override
+    
     public Vec3 getCenterEyePosition()
     {
         return getEyePosition(EyeType.ovrEye_Center);
     }
 
-//    @Override
+//    
 //    public Vec3 getEyePosition(EyeType eye)
 //   {
 //        VRSettings vr = Minecraft.getMinecraft().vrSettings;
@@ -190,83 +188,24 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
 //        return eyePosition;
 //    }
 
-    @Override
+    
 	public void resetOrigin() {
         super.resetTracking();
     }
 
-    @Override
+    
     public void resetOriginRotation() {
         // TODO:
     }
 
-    @Override
+    
     public void setPrediction(float delta, boolean enable) {
         // Now ignored
     }
 
-    @Override
-    public void beginCalibration(PluginType type)
-    {
-        if (isInitialized()) {
-            isCalibrating = true;
-            processCalibration();
-        }
-    }
 
-    @Override
-    public void updateCalibration(PluginType type)
-    {
-        if (isInitialized())
-            processCalibration();
-    }
 
-    @Override
-    public boolean isCalibrated(PluginType type) {
-        if (!isInitialized())
-            return true;  // Return true if not initialised
-
-        if (!getHMDInfo().isReal())
-            return true;  // Return true if debug (fake) Rift...
-
-        if (type != PluginType.PLUGIN_POSITION)   // Only position provider needs calibrating
-            return true;
-
-        return isCalibrated;
-    }
-
-	@Override
-	public String getCalibrationStep(PluginType type)
-    {
-        String step = "";
-        String newline = "\n";
-
-        switch (calibrationStep)
-        {
-            case CALIBRATE_AWAITING_FIRST_ORIGIN:
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Look ahead and press SPACEBAR to reset origin.");
-                step = sb.toString();
-                break;
-            }
-            case CALIBRATE_AT_FIRST_ORIGIN:
-            case CALIBRATE_COOLDOWN:
-            {
-                step = "Done!";
-                break;
-            }
-            case CALIBRATE_ABORTED_COOLDOWN:
-            {
-                step = "Aborted!";
-                break;
-            }
-        }
-
-        return step;
-	}
-
-    @Override
+    
     public void eventNotification(int eventId)
     {
         switch (eventId)
@@ -297,22 +236,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         }
     }
 
-    @Override
-    public synchronized void registerListener(IEventListener listener)
-    {
-        listeners.add(listener);
-    }
-
-    @Override
-    public synchronized void notifyListeners(int eventId)
-    {
-        for (IEventListener listener : listeners)
-        {
-            if (listener != null)
-                listener.eventNotification(eventId);
-        }
-    }
-
+    
     private void processCalibration()
     {
         switch (calibrationStep)
@@ -333,7 +257,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
                 coolDownStart = System.currentTimeMillis();
                 calibrationStep = CALIBRATE_COOLDOWN;
                 resetOrigin();
-                notifyListeners(IBasePlugin.EVENT_SET_ORIGIN);
 
                 break;
             }
@@ -361,7 +284,7 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         }
     }
 
-    @Override
+    
     public void poll(long frameIndex)
     {
         //System.out.println("lastIndex: " + lastIndex);
@@ -414,32 +337,32 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
 
-	@Override
+	
 	public float getHeadYawDegrees(EyeType eye)
     {
         return this.eulerOrient[eye.value()].yaw;
 	}
 
-	@Override
+	
 	public float getHeadPitchDegrees(EyeType eye)
     {
         return this.eulerOrient[eye.value()].pitch;
 	}
 
-	@Override
+	
 	public float getHeadRollDegrees(EyeType eye)
     {
         return this.eulerOrient[eye.value()].roll;
 	}
 
-    @Override
+    
     public Quaternion getOrientationQuaternion(EyeType eye)
     {
         Quatf orient = this.eyePose[eye.value()].Orientation;
         return new Quaternion(orient.x, orient.y, orient.z, orient.w);
     }
 
-    @Override
+    
     public UserProfileData getProfileData()
     {
         UserProfileData userProfile = null;
@@ -456,41 +379,41 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
         return userProfile;
     }
 
-    @Override
+    
     public double getCurrentTimeSecs()
     {
         return getCurrentTimeSeconds();
     }
 
-    @Override
+    
     public boolean providesRenderTextures() { return true; }
 
-    @Override
+    
     public boolean providesMirrorTexture() { return true; }
 
     // VIVE START
     public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen) { }
     // VIVE END
 
-	@Override
+	
 	public Vec3 getEyePosition(EyeType eye) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
+	
 	public RenderTextureSet createRenderTexture(int width, int height) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
+	
 	public boolean endFrame(EyeType eye) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	@Override
+	
 	public boolean isHMDTracking() {
 		// TODO Auto-generated method stub
 		return false;

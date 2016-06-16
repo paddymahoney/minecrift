@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/EntityRenderer.java
-@@ -4,19 +4,44 @@
+@@ -4,19 +4,43 @@
  import java.io.IOException;
  import java.lang.reflect.Field;
  import java.nio.FloatBuffer;
@@ -11,9 +11,8 @@
  import java.util.Random;
  import java.util.concurrent.Callable;
 +
-+import com.mtbs3d.minecrift.api.CalibrationHelper;
-+import com.mtbs3d.minecrift.gameplay.VRPlayer;
 +import com.mtbs3d.minecrift.provider.MCOpenVR;
++import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 +import com.mtbs3d.minecrift.render.OpenGLdebugging;
 +import com.mtbs3d.minecrift.render.QuaternionHelper;
 +import com.mtbs3d.minecrift.settings.VRSettings;
@@ -45,7 +44,7 @@
  import net.minecraft.client.multiplayer.WorldClient;
  import net.minecraft.client.particle.EffectRenderer;
  import net.minecraft.client.particle.EntityRainFX;
-@@ -24,15 +49,18 @@
+@@ -24,15 +48,18 @@
  import net.minecraft.client.renderer.culling.ClippingHelperImpl;
  import net.minecraft.client.renderer.culling.Frustrum;
  import net.minecraft.client.renderer.entity.RenderManager;
@@ -64,7 +63,7 @@
  import net.minecraft.enchantment.EnchantmentHelper;
  import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLivingBase;
-@@ -40,16 +68,14 @@
+@@ -40,16 +67,14 @@
  import net.minecraft.entity.item.EntityItemFrame;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.init.Blocks;
@@ -87,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +89,1024 @@
+@@ -63,736 +88,1023 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1040,7 +1039,6 @@
 +	
 +	public float aimYaw;
 +	public float aimPitch;
-+	public CalibrationHelper calibrationHelper;
 +	private boolean eyeCollision = false;
 +	Block eyeCollisionBlock;
 +	Vec3 eyeCollisionBlockPosLoc;
@@ -1833,7 +1831,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +1118,14 @@
+@@ -804,16 +1116,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1856,7 +1854,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1137,4021 @@
+@@ -825,1829 +1135,4002 @@
          {
              clipDistance = 256.0F;
          }
@@ -2816,7 +2814,7 @@
 +
 +		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 +
-+		if(mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.stereoProvider.isHMDTracking())	
++		if(mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.vrPlayer.isHMDTracking())	
 +			mc.doStencilForEye(mc.currentEye == EyeType.ovrEye_Left ? 0 : 1); //TODO: dont render this every damn frame.
 +		else GL11.glDisable(GL11.GL_STENCIL_TEST);
 +
@@ -4308,11 +4306,6 @@
 +		float PIOVER180 = (float)(Math.PI/180);
 +		EntityLivingBase entity = this.mc.renderViewEntity;
 +
-+		//runs a step of calibration
-+		if(calibrationHelper != null && calibrationHelper.allPluginsCalibrated())
-+		{
-+			calibrationHelper = null;
-+		}
 +
 +		lookYawOffset   = mc.lookaimController.getBodyYawDegrees();
 +		lookPitchOffset = mc.lookaimController.getBodyPitchDegrees();
@@ -4394,7 +4387,7 @@
 +			if(false){  //hmm, to use HMD?
 +				//set model view direction to camera
 +				entity.rotationYaw = (float)cameraYaw;
-+				entity.rotationYawHead = (float)cameraYaw;
++					entity.rotationYawHead = (float)cameraYaw;
 +				entity.rotationPitch = (float)cameraPitch;
 +			} else { //default to looking 'at' the crosshair position.
 +				if(centerEyePosToCrossDirection != null){
@@ -4473,11 +4466,9 @@
 +			py = entity.posY;
 +			pz = entity.posZ;
 +
-+
-+			Vec3 teleportSlide = this.mc.vrPlayer.getTeleportSlide();
-+			camRelX += (mc.vrPlayer.getRoomOrigin().xCoord - px + teleportSlide.xCoord);
-+			camRelY -= (mc.vrPlayer.getRoomOrigin().yCoord - py + teleportSlide.yCoord);
-+			camRelZ += (mc.vrPlayer.getRoomOrigin().zCoord - pz + teleportSlide.zCoord);
++			camRelX += (mc.vrPlayer.getRoomOrigin().xCoord - px);
++			camRelY -= (mc.vrPlayer.getRoomOrigin().yCoord - py);
++			camRelZ += (mc.vrPlayer.getRoomOrigin().zCoord - pz);
 +		}
 +
 +
@@ -4693,11 +4684,6 @@
 +		}
 +	}
 +
-+	public void startCalibration()
-+	{
-+		calibrationHelper = new CalibrationHelper(mc);
-+	}
-+
 +	public void handleNotificationText()
 +	{
 +		String prefix = "";
@@ -4721,13 +4707,6 @@
 +			}
 +		}
 +		// otherwise display any calibration info
-+		if (mc.errorHelper == null && calibrationHelper != null)
-+		{
-+			message = calibrationHelper.calibrationStep;
-+			prefix = /* set bold */ "\u00a7l" + "Calibrating " + calibrationHelper.currentPlugin.getName() + "...";
-+			renderTxt = true;
-+		}
-+
 +		if (renderTxt)
 +			displayNotificationText(prefix, message, suffix,
 +					this.mc.displayWidth, this.mc.displayHeight, this.mc.stereoProvider.isStereo(), this.mc.stereoProvider.isGuiOrtho());
@@ -5270,7 +5249,7 @@
 +	}
 +
 +
-+	private void renderTeleportLine(VRPlayer vrPlayer){
++	private void renderTeleportLine(OpenVRPlayer vrPlayer){
 +		// VIVE START - render teleport line
 +
 +		boolean renderTeleportLine = vrPlayer.movementTeleportDestination.xCoord != 0
@@ -5295,7 +5274,7 @@
 +			Tessellator tes = Tessellator.instance;
 +			tes.startDrawingQuads();
 +
-+			Vec3 start = VRPlayer.getTeleportTraceStart(mc);
++			Vec3 start = OpenVRPlayer.getTeleportTraceStart(mc);
 +			start.xCoord -= interpolatedPlayerPos.xCoord;
 +			start.yCoord -= interpolatedPlayerPos.yCoord;
 +			start.zCoord -= interpolatedPlayerPos.zCoord;
@@ -5525,7 +5504,7 @@
 +
 +	}
 +
-+	private void renderTeleportArc(VRPlayer vrPlayer) {
++	private void renderTeleportArc(OpenVRPlayer vrPlayer) {
 +
 +		if ( vrPlayer.vrMovementStyle.showBeam && vrPlayer.movementTeleportProgress > 0.0f
 +				&& vrPlayer.movementTeleportArcSteps > 1)

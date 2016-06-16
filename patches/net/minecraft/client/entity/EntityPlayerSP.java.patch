@@ -6,8 +6,8 @@
 +import java.lang.reflect.Field;
 +
 +import com.mtbs3d.minecrift.api.IBodyAimController;
-+import com.mtbs3d.minecrift.gameplay.VRPlayer;
 +import com.mtbs3d.minecrift.provider.MCOpenVR;
++import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 +
 +import net.minecraft.block.Block;
 +import net.minecraft.block.BlockLiquid;
@@ -533,7 +533,7 @@
 +    {
 +//   	super.moveFlying(strafe, forward, friction);;
 +    	
-+    	VRPlayer vr = mc.vrPlayer;		
++    	OpenVRPlayer vr = mc.vrPlayer;		
 +    	if (!vr.getFreeMoveMode()) {return;}
 +		
 +        int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
@@ -644,28 +644,28 @@
 +    public void setPositionAndRotation(double x, double y, double z, float yaw, float pitch)
 +    {
 +        super.setPositionAndRotation(x, y, z, yaw, pitch);
-+        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
++        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
 +
 +    public void readFromNBT(NBTTagCompound tagCompund)
 +    {
 +        super.readFromNBT(tagCompund);
-+        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
++        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
 +
 +    public void setPosition(double x, double y, double z)
 +    {
 +        super.setPosition(x, y, z);
-+        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
++        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
 +    
 +    @Override
 +    public void moveEntity(double x, double y, double z)
 +    {
 +    	boolean client = this instanceof EntityPlayerSP;
-+    	boolean freemove = VRPlayer.get().getFreeMoveMode();
++    	boolean freemove = OpenVRPlayer.get().getFreeMoveMode();
 +    	boolean doY = freemove || (Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder()) && !this.isSneaking();
-+    	Vec3 roomOrigin = VRPlayer.get().getRoomOrigin();
++    	Vec3 roomOrigin = OpenVRPlayer.get().getRoomOrigin();
 +    	Vec3 camloc = Minecraft.getMinecraft().entityRenderer.getCameraLocation();
 +
 +    	if (freemove && (this.moveForward != 0 || Math.abs(this.motionX) > 0.01 || Math.abs(this.motionZ) > 0.01))
@@ -675,7 +675,7 @@
 +    		super.moveEntity(x,y,z);
 +
 +    		if (client){	
-+    			VRPlayer.get().setRoomOrigin(
++    			OpenVRPlayer.get().setRoomOrigin(
 +    					posX + ox, 
 +    					this.boundingBox.minY, 
 +    					posZ  + oz);
@@ -686,10 +686,10 @@
 +    		if(doY) {      	 
 +    			super.moveEntity(0,y,0);
 +    			if (client){
-+    				VRPlayer.get().setRoomOrigin(
-+    					VRPlayer.get().getRoomOrigin().xCoord, 
++    				OpenVRPlayer.get().setRoomOrigin(
++    					OpenVRPlayer.get().getRoomOrigin().xCoord, 
 +    					this.boundingBox.minY, 
-+    					VRPlayer.get().getRoomOrigin().zCoord);
++    					OpenVRPlayer.get().getRoomOrigin().zCoord);
 +    			}
 +
 +    		} else {

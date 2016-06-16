@@ -6,7 +6,7 @@ package com.mtbs3d.minecrift.settings;
 
 import com.mtbs3d.minecrift.api.IBasePlugin;
 import com.mtbs3d.minecrift.api.PluginManager;
-import com.mtbs3d.minecrift.gameplay.VRPlayer;
+import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiWinGame;
@@ -146,7 +146,7 @@ public class VRHotkeys {
 				}
 			} else {
 				
-				VRPlayer vrp = mc.vrPlayer;
+				OpenVRPlayer vrp = mc.vrPlayer;
 				
 				// cycle VR movement styles
 				if (vrp.vrMovementStyle.name == "Minimal") vrp.vrMovementStyle.setStyle("Beam");
