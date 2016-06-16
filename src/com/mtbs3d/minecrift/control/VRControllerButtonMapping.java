@@ -30,7 +30,11 @@ public class VRControllerButtonMapping {
 			return;
 		}
 		if(FunctionExt!=0){
-			KeyboardSimulator.type(FunctionExt);
+			if(FunctionDesc.contains("(hold)")){
+				KeyboardSimulator.press(FunctionExt);
+			} else {
+				KeyboardSimulator.type(FunctionExt);	
+			}		
 			return;
 		}	
 		if(FunctionDesc.equals("keyboard-shift")){
@@ -53,6 +57,14 @@ public class VRControllerButtonMapping {
 			key.unpressKey();
 			return ;
 		}
+		if(FunctionExt!=0){
+			if(FunctionDesc.contains("(hold)")){
+				KeyboardSimulator.unpress(FunctionExt);
+			} else {
+				//nothing
+			}		
+			return;
+		}	
 		if(FunctionDesc.equals("keyboard-shift")){
 			KeyboardSimulator.robot.keyRelease(KeyEvent.VK_SHIFT);
 			return;

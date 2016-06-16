@@ -35,7 +35,8 @@ public class GuiVRControlsList extends GuiListExtended
 			out.add(key.getKeyDescription());
 		}
     	
-    	out.add("keyboard");
+    	out.add("keyboard(press)");
+    	out.add("keyboard(hold)");
     	out.add("keyboard-shift");
     	out.add("keyboard-ctrl");
     	out.add("keyboard-alt");

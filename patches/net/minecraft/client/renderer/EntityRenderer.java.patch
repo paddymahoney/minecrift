@@ -1856,7 +1856,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1137,4022 @@
+@@ -825,1829 +1137,4021 @@
          {
              clipDistance = 256.0F;
          }
@@ -4394,7 +4394,7 @@
 +			if(false){  //hmm, to use HMD?
 +				//set model view direction to camera
 +				entity.rotationYaw = (float)cameraYaw;
-+					entity.rotationYawHead = (float)cameraYaw;
++				entity.rotationYawHead = (float)cameraYaw;
 +				entity.rotationPitch = (float)cameraPitch;
 +			} else { //default to looking 'at' the crosshair position.
 +				if(centerEyePosToCrossDirection != null){
@@ -4405,7 +4405,6 @@
 +					entity.rotationPitch = pitch;
 +				}
 +			}
-+
 +
 +			if(entity instanceof EntityPlayerSP){ //isnt it always?
 +
