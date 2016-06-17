@@ -134,12 +134,6 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	}
 
 	@Override
-	public boolean isGuiOrtho()
-	{
-		return false;
-	}
-
-	@Override
 	public double getFrameTiming() {
 		return getCurrentTimeSecs();
 	}
