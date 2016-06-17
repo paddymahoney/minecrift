@@ -879,9 +879,36 @@ public class VRPlayer
         Vector3f forward = new Vector3f(0,0,1);
         Vector3f handDirection = handRotation.transform(forward);
         
-        float speedthresh = 3.5f;
+        double mot = Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
         
-        float weaponLength = 0.3f;
+       
+        ItemStack is = player.inventory.getCurrentItem();
+        Item item = null;
+
+        double speedthresh = (float) (is==null ? 3.5f + mot: 4.2f + mot); //account for lower apparent speed due to shorter fulcrum.         
+        float weaponLength = is == null ?  0 : 0.3f; //no reach for hand
+        float attackadd =0f;
+        
+        if(is!=null )item = is.getItem();
+        
+        if (item instanceof ItemSword){
+        		attackadd = 2.5f;
+        		weaponLength = 0.3f;
+               	speedthresh = 4.2f + mot;
+        } else if (item instanceof ItemTool ||
+        		item instanceof ItemHoe
+        		){
+        	attackadd = 1.8f;
+        	weaponLength = 0.3f;
+        	speedthresh = 4.2f + mot;
+        } else {
+        	weaponLength = 0.0f;
+        	attackadd = 0.3f;
+        	speedthresh = 3.7f + mot;
+        }
+        
+        
+
 
 		weapongSwingLen = weaponLength;
         weaponEnd = Vec3.createVectorHelper(
@@ -903,21 +930,7 @@ public class VRPlayer
         boolean insolidBlock = false;
         boolean canact = speed > speedthresh && !lastWeaponSolid;
         
-        float attackadd =0f;
-        
-        ItemStack is = player.inventory.getCurrentItem();
-        Item item = null;
-        if(is!=null )item = is.getItem();
-        
-        if (item instanceof ItemSword){
-        		attackadd = 2.5f;
-        } else if (item instanceof ItemTool ||
-        		item instanceof ItemHoe
-        		){
-        	attackadd = 1.8f;
-        } else {
-        	attackadd = 0f;
-        }
+
         
         Vec3 extWeapon = Vec3.createVectorHelper(
                 handPos.xCoord + handDirection.x * (weaponLength + attackadd),
@@ -973,6 +986,7 @@ public class VRPlayer
         						mc.playerController.onPlayerDestroyBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
         					} else
         					{
+        						//is this viable?
         						mc.playerController.clearBlockHitDelay();
         						for (int i = 0; i < 4; i++)
         						{
@@ -980,7 +994,7 @@ public class VRPlayer
         						}
         					}
              				mc.lookaimController.triggerHapticPulse(0, 1000);
-            		//		System.out.println("Hit block speed =" + speed);            				
+            				System.out.println("Hit block speed =" + speed);            				
             				lastWeaponSolid = true;
         				}
            				insolidBlock = true;

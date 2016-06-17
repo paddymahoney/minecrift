@@ -24,21 +24,21 @@ public class KeyboardSimulator {
     }
 
     public static void press(char character){
-        int[] chars = codes(character);
+        int[] chars = getCodes(character);
         for (int i : chars) {
         	  robot.keyPress(chars[i]);
 		}
     }
     
     public static void unpress(char character){
-        int[] chars = codes(character);
+        int[] chars = getCodes(character);
         for (int i : chars) {
         	  robot.keyRelease(chars[i]);
 		}
     }
     
 	public static void type(char character) {
-        int[] chars = codes(character);
+        int[] chars = getCodes(character);
         doType(chars, 0, chars.length);
 	}
     
