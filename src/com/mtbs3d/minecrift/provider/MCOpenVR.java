@@ -102,19 +102,24 @@ public class MCOpenVR
 	// TextureIDs of framebuffers for each eye
 	private int LeftEyeTextureId;
 
-	private final VRTextureBounds_t texBounds = new VRTextureBounds_t();
-	private final Texture_t texType = new Texture_t();
+	private final static VRTextureBounds_t texBounds = new VRTextureBounds_t();
+	private final static Texture_t texType = new Texture_t();
 
 	// aiming
-	private static float bodyYaw = 0;
-	private static float aimYaw = 0;
-	private static float aimPitch = 0;
+	static float aimYaw = 0;
+	static float aimPitch = 0;
 
-	private static float laimPitch = 0;
-	private static float laimYaw = 0;
+	static float laimPitch = 0;
+	static float laimYaw = 0;
 
-	private static Vec3[] aimSource = new Vec3[2];
+	static Vec3[] aimSource = new Vec3[2];
 
+	static Vector3f headDirection;
+	static Vector3f controllerDirection;
+	static Vector3f lcontrollerDirection;
+	
+	static boolean[] controllerTracking = new boolean[2];
+	
 	// Controllers
 	private static int RIGHT_CONTROLLER = 0;
 	private static int LEFT_CONTROLLER = 1;
@@ -164,11 +169,10 @@ public class MCOpenVR
 
 	private static float[] inventory_swipe = new float[2];
 	
-	private static boolean headIsTracking;
+	static boolean headIsTracking;
 	
 	private static int moveModeSwitchcount = 0;
 
-	
 	public String getName() {
 		return "OpenVR";
 	}
@@ -225,13 +229,13 @@ public class MCOpenVR
 		}
 	}
 
-	private boolean tried;
+	private static boolean tried;
 
 	
-	public boolean init()  throws Exception
+	public static boolean init()  throws Exception
 	{
 
-		if ( this.initialized )
+		if ( initialized )
 			return true;
 
 		if ( tried )
@@ -272,7 +276,6 @@ public class MCOpenVR
 
 		System.out.println( "OpenVR initialized & VR connected." );
 
-
 		deviceVelocity = new Vec3[JOpenVRLibrary.k_unMaxTrackedDeviceCount];
 
 		for(int i=0;i<poseMatrices.length;i++)
@@ -280,8 +283,6 @@ public class MCOpenVR
 			poseMatrices[i] = new Matrix4f();
 			deviceVelocity[i] = Vec3.createVectorHelper(0,0,0);
 		}
-
-
 
 		HmdMatrix34_t matL = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Left);
 		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matL, hmdPoseLeftEye);
@@ -291,7 +292,7 @@ public class MCOpenVR
 
 
 
-		this.initialized = true;
+		initialized = true;
 		return true;
 	}
 
@@ -299,7 +300,7 @@ public class MCOpenVR
 //	KeyBinding rotateRight = new KeyBinding("Rotate Right", 205, "Movement");
 	final int rotationIncrement = 0;
 
-	private void initializeJOpenVR() throws Exception { 
+	private static void initializeJOpenVR() throws Exception { 
 		hmdErrorStore = IntBuffer.allocate(1);
 		vrsystem = null;
 		JOpenVRLibrary.VR_InitInternal(hmdErrorStore, JOpenVRLibrary.EVRApplicationType.EVRApplicationType_VRApplication_Scene);
@@ -357,7 +358,7 @@ public class MCOpenVR
 
 
 	// needed for in-game keyboard
-	public void initOpenVROverlay() throws Exception
+	public static void initOpenVROverlay() throws Exception
 	{
 		vrOverlay =   new VR_IVROverlay_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVROverlay_Version, hmdErrorStore));
 		if (vrOverlay != null &&  hmdErrorStore.get(0) == 0) {     		
@@ -370,7 +371,7 @@ public class MCOpenVR
 	}
 
 
-	public void initOpenVROSettings() throws Exception
+	public static void initOpenVROSettings() throws Exception
 	{
 		vrSettings =   new VR_IVRSettings_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRSettings_Version, hmdErrorStore));
 		if (vrSettings != null &&  hmdErrorStore.get(0) == 0) {     		
@@ -382,7 +383,7 @@ public class MCOpenVR
 		}
 	}
 	
-	public void initOpenVRCompositor(boolean set) throws Exception
+	public static void initOpenVRCompositor(boolean set) throws Exception
 	{
 		if( set && vrsystem != null ) {
 			vrCompositor = new VR_IVRCompositor_FnTable(JOpenVRLibrary.VR_GetGenericInterface(JOpenVRLibrary.IVRCompositor_Version, hmdErrorStore));
@@ -447,7 +448,6 @@ public class MCOpenVR
 	public static void poll(long frameIndex)
 	{
 		mc.mcProfiler.startSection("poll");
-
 
 		pollInputEvents();
 
@@ -698,30 +698,6 @@ public class MCOpenVR
 	}
 
 	
-	public boolean endFrame(EyeType eye)
-	{
-		mc.mcProfiler.startSection("submit");
-
-		GL11.glFinish();
-		int ret = 0;
-		if(eye == EyeType.ovrEye_Left){
-			ret = vrCompositor.Submit.apply(
-				JOpenVRLibrary.EVREye.EVREye_Eye_Left,
-				texType, texBounds,
-				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
-		}else{
-			ret = vrCompositor.Submit.apply(
-				JOpenVRLibrary.EVREye.EVREye_Eye_Right,
-				texType, texBounds,
-				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
-		}
-
-		mc.mcProfiler.endSection();
-
-		//System.out.println("vsync="+JOpenVRLibrary.VR_IVRCompositor_GetVSync(vrCompositor));
-		return true;
-	}
-
 	
 	public HmdParameters getHMDInfo()
 	{
@@ -1272,7 +1248,7 @@ public class MCOpenVR
 
 	}
 
-	public static void updatePose()
+	private static void updatePose()
 	{
 		if ( vrsystem == null || vrCompositor == null )
 			return;
@@ -1310,10 +1286,12 @@ public class MCOpenVR
 		{
 			if (controllerDeviceIndex[c] != -1)
 			{
+				controllerTracking[c] = true;
 				OpenVRUtil.Matrix4fCopy(poseMatrices[controllerDeviceIndex[c]], controllerPose[c]);
 			}
 			else
 			{
+				controllerTracking[c] = false;
 				OpenVRUtil.Matrix4fSetIdentity(controllerPose[c]);
 			}
 		}
@@ -1385,7 +1363,7 @@ public class MCOpenVR
 	 * @return The Head Yaw, in degrees
 	 */
 	
-	public float getHeadYawDegrees(EyeType eye)
+	static float getHeadYawDegrees(EyeType eye)
 	{
 		Quatf quat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
 
@@ -1400,7 +1378,7 @@ public class MCOpenVR
 	 * @return The Head Pitch, in degrees
 	 */
 	
-	public float getHeadPitchDegrees(EyeType eye)
+	static float getHeadPitchDegrees(EyeType eye)
 	{
 		Quatf quat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
 
@@ -1529,20 +1507,13 @@ public class MCOpenVR
 	// IBodyAimController
 
 	
-	public float getBodyYawDegrees() {
-		return bodyYaw;
-	}
-	
-	public void setBodyYawDegrees(float yawOffset) {
-		bodyYaw = yawOffset;
-	}
-	
+
 	public float getBodyPitchDegrees() {
 		return 0; //Always return 0 for body pitch
 	}
 	
 	public float getAimYaw() {
-		return aimYaw + bodyYaw;
+		return aimYaw;
 	}
 	
 	public float getAimPitch() {
@@ -1554,7 +1525,6 @@ public class MCOpenVR
 		Matrix4f aimRotation = controller == 0 ? controllerRotation[0]: controllerRotation[1];
         Vector3f controllerDirection = aimRotation.transform(forward);
 		Vec3 out = Vec3.createVectorHelper(controllerDirection.x, controllerDirection.y,controllerDirection.z);
-		out.rotateAroundY((float) Math.toRadians(-bodyYaw));
 		return out;
 
 	}
@@ -1626,13 +1596,12 @@ public class MCOpenVR
 		return Vec3.createVectorHelper(aimSource[controller].xCoord, aimSource[controller].yCoord, aimSource[controller].zCoord);
 	}
 	
-	public void triggerHapticPulse(int controller, int strength) {
+	static void triggerHapticPulse(int controller, int strength) {
 		if (controllerDeviceIndex[controller]==-1)
 			return;
 		vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[controller], 0, (short)strength);
 	}
 
-	private static Vector3f headDirection;
 	
 	private static void updateAim() {
 		if (mc==null)
@@ -1642,22 +1611,21 @@ public class MCOpenVR
 
 		// grab controller position in tracker space, scaled to minecraft units
 		Vector3f controllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
-		aimSource[0].rotateAroundY((float)Math.toRadians(-bodyYaw));
 		aimSource[0].xCoord = -controllerPos.x;
 		aimSource[0].yCoord = controllerPos.y;
 		aimSource[0].zCoord = -controllerPos.z;
 
-		// translate controller position by player position, giving a final world coordinate
-		Entity player = mc.renderViewEntity;
-		if (player!=null)
-		{
-			//Vec3 playerPos = player.getPositionVector();
-			Minecraft mc = Minecraft.getMinecraft();
-			Vec3 origin = mc.vrPlayer.getRoomOrigin();
-			aimSource[0].xCoord += origin.xCoord;
-			aimSource[0].yCoord += origin.yCoord;
-			aimSource[0].zCoord += origin.zCoord;
-		}
+//		// translate controller position by player position, giving a final world coordinate
+//		Entity player = mc.renderViewEntity;
+//		if (player!=null)
+//		{
+//			//Vec3 playerPos = player.getPositionVector();
+//			Minecraft mc = Minecraft.getMinecraft();
+//			Vec3 origin = mc.vrPlayer.getRoomOrigin();
+//			aimSource[0].xCoord += origin.xCoord;
+//			aimSource[0].yCoord += origin.yCoord;
+//			aimSource[0].zCoord += origin.zCoord;
+//		}
 
 		// build matrix describing controller rotation
 		Vector3f forward = new Vector3f(0,0,1);
@@ -1680,11 +1648,11 @@ public class MCOpenVR
 
 		// Calculate aim angles from controller orientation
 		// Minecraft entities don't have a roll, so just base it on a direction
-		Vector3f controllerDirection = controllerRotation[0].transform(forward);
+		controllerDirection = controllerRotation[0].transform(forward);
 		aimPitch = (float)Math.toDegrees(Math.asin(controllerDirection.y/controllerDirection.length()));
 		aimYaw = -(float)Math.toDegrees(Math.atan2(controllerDirection.x, controllerDirection.z));
 
-		Vector3f lcontrollerDirection = controllerRotation[1].transform(forward);
+		lcontrollerDirection = controllerRotation[1].transform(forward);
 		laimPitch = (float)Math.toDegrees(Math.asin(lcontrollerDirection.y/lcontrollerDirection.length()));
 		laimYaw = -(float)Math.toDegrees(Math.atan2(lcontrollerDirection.x, lcontrollerDirection.z));
 
@@ -1692,20 +1660,19 @@ public class MCOpenVR
 		
 		// update off hand aim
 		Vector3f leftControllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[1]);
-		aimSource[1].rotateAroundY((float)Math.toRadians(-bodyYaw));
 		aimSource[1].xCoord = -leftControllerPos.x;
 		aimSource[1].yCoord = leftControllerPos.y;
 		aimSource[1].zCoord = -leftControllerPos.z;
 
-		// translate controller position by player position, giving a final world coordinate
-		if (player!=null)
-		{
-			Minecraft mc = Minecraft.getMinecraft();
-			Vec3 origin = mc.vrPlayer.getRoomOrigin();
-			aimSource[1].xCoord += origin.xCoord;
-			aimSource[1].yCoord += origin.yCoord;
-			aimSource[1].zCoord += origin.zCoord;
-		}
+//		// translate controller position by player position, giving a final world coordinate
+//		if (player!=null)
+//		{
+//			Minecraft mc = Minecraft.getMinecraft();
+//			Vec3 origin = mc.vrPlayer.getRoomOrigin();
+//			aimSource[1].xCoord += origin.xCoord;
+//			aimSource[1].yCoord += origin.yCoord;
+//			aimSource[1].zCoord += origin.zCoord;
+//		}
 
 		// build matrix describing controller rotation
 		controllerRotation[1].M[0][0] = controllerPose[1].M[0][0];
@@ -1865,43 +1832,17 @@ public class MCOpenVR
 	}
 	
 	
-
-	
-	public void eventNotification(int eventId)
-	{
-
-	}
-
-
-
-	
-	
-	public void triggerYawTransition(boolean isPositive) { }
-
-	
-	public void saveOptions() {
-
-	}
-
-	
-	public void loadDefaults() {
-
-	}
-
-
-
-	
-	public float getOffhandAimYaw() {
+	float getOffhandAimYaw() {
 		return laimYaw;
 	}
 
 	
-	public float getOffhandAimPitch() {
+	float getOffhandAimPitch() {
 		return laimPitch;
 	}
 
 	
-	public Vec3 getHeadVector() {
+	Vec3 getHeadVector() {
 		return Vec3.createVectorHelper(headDirection.x, headDirection.y, headDirection.z);
 	}
 }

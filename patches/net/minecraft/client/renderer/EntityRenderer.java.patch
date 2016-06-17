@@ -86,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,977 @@
+@@ -63,736 +88,976 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1029,6 +1029,8 @@
 +	public float crossY;
 +	public float crossZ;
 +
++	public FloatBuffer[] eyeproj = new FloatBuffer[2]; //i dislike you.
++	
 +	private boolean eyeCollision = false;
 +	Block eyeCollisionBlock;
 +	Vec3 eyeCollisionBlockPosLoc;
@@ -1037,7 +1039,6 @@
 +	public Field _soundManagerSndSystemField = null;
 +	public float clipDistance = 0f;
 +	public float minClipDistance = 0.05f;
-+	public Matrix4f[] eyeproj = new Matrix4f[2];
 +	public boolean trySoundSystemReflect = true;
 +	public float lookYawOffset = 0;
 +	public float lookPitchOffset = 0;
@@ -1063,8 +1064,6 @@
 +		this.lightmapColors = this.lightmapTexture.getTextureData();
 +		this.theShaderGroup = null;
 +
-+		eyeproj[0] = new Matrix4f();
-+		eyeproj[1] = new Matrix4f();
 +		/** END MINECRIFT */
 +	}
 +
@@ -1785,7 +1784,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +1070,14 @@
+@@ -804,16 +1069,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1808,7 +1807,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1089,3937 @@
+@@ -825,1829 +1088,3937 @@
          {
              clipDistance = 256.0F;
          }
@@ -1901,7 +1900,7 @@
 +
 +		if (this.mc.stereoProvider.isStereo())
 +		{
-+			GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
++			GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
 +		}
 +		else
 +		{
@@ -2028,7 +2027,7 @@
 +		// Minecrift - use correct projection
 +		if (this.mc.stereoProvider.isStereo())
 +		{
-+			GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());			
++			GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
 +		}
 +		else
 +		{
@@ -4604,7 +4603,7 @@
 +			GL11.glLoadIdentity();
 +			if (isStereo)
 +			{
-+				GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
++				GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
 +			}
 +			else
 +			{
@@ -4820,7 +4819,7 @@
 +				// Minecrift - use correct projection
 +				if (this.mc.stereoProvider.isStereo())
 +				{
-+					GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
++					GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
 +				}
 +				else
 +				{
@@ -5652,7 +5651,7 @@
 +			GL11.glLoadIdentity();
 +			if (this.mc.stereoProvider.isStereo())
 +			{
-+				GL11.glMultMatrix(eyeproj[this.mc.currentEye.value()].transposed().toFloatBuffer());
++				GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
 +			}
 +			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +			GL11.glPushMatrix();

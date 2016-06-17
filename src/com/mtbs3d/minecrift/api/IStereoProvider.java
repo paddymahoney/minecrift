@@ -66,4 +66,6 @@ public interface IStereoProvider
 	public void endFrame();
 
 	public String getName();
+
+	public boolean isInitialized();
 }

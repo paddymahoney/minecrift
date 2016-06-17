@@ -1004,106 +1004,94 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	public float getTeleportEnergy () {return teleportEnergy;}
 
+	//================= IROOMSCALEADAPTER =============================
+	
 	@Override
 	public boolean isHMDTracking() {
-		// TODO Auto-generated method stub
-		return false;
+		return MCOpenVR.headIsTracking;
 	}
 
 	@Override
-	public Vec3 getHMDPos_World() {
-		// TODO Auto-generated method stub
-		return null;
+	public Vec3 getHMDPos_World() {	
+		return MCOpenVR.getCenterEyePosition().addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
 	}
 
 	@Override
 	public Vec3 getHMDDir_World() {
-		// TODO Auto-generated method stub
-		return null;
+		Vector3f v3 = MCOpenVR.headDirection;
+		return Vec3.createVectorHelper(v3.x, v3.y, v3.z);
 	}
 
 	@Override
 	public float getHMDYaw_World() {
-		// TODO Auto-generated method stub
-		return 0;
+		return MCOpenVR.getHeadPitchDegrees(EyeType.ovrEye_Center);
 	}
 
 	@Override
 	public float getHMDPitch_World() {
-		// TODO Auto-generated method stub
-		return 0;
+		return MCOpenVR.getHeadPitchDegrees(EyeType.ovrEye_Center);
 	}
 
 	@Override
 	public boolean isControllerMainTracking() {
-		// TODO Auto-generated method stub
-		return false;
+		return MCOpenVR.controllerTracking[0];
 	}
 
 	@Override
 	public Vec3 getControllerMainPos_World() {
-		// TODO Auto-generated method stub
-		return null;
+		return MCOpenVR.getAimSource(0);
 	}
 
 	@Override
 	public Vec3 getControllerMainDir_World() {
-		// TODO Auto-generated method stub
-		return null;
+		Vector3f v3 = MCOpenVR.controllerDirection;
+		return Vec3.createVectorHelper(v3.x, v3.y, v3.z);
 	}
 
 	@Override
 	public float getControllerMainYaw_World() {
-		// TODO Auto-generated method stub
-		return 0;
+		return MCOpenVR.aimYaw;
 	}
 
 	@Override
 	public float getControllerMainPitch_World() {
-		// TODO Auto-generated method stub
-		return 0;
+		return MCOpenVR.aimPitch;
 	}
 
 	@Override
 	public boolean isControllerOffhandTracking() {
-		// TODO Auto-generated method stub
-		return false;
+		return MCOpenVR.controllerTracking[1];
 	}
 
 	@Override
 	public Vec3 getControllerOffhandPos_World() {
-		// TODO Auto-generated method stub
-		return null;
+		return MCOpenVR.getAimSource(1).addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
 	}
 
 	@Override
 	public Vec3 getControllerOffhandDir_World() {
-		// TODO Auto-generated method stub
-		return null;
+		Vector3f v3 = MCOpenVR.lcontrollerDirection;
+		return Vec3.createVectorHelper(v3.x, v3.y, v3.z);
 	}
 
 	@Override
 	public float getControllerOffhandYaw_World() {
-		// TODO Auto-generated method stub
-		return 0;
+		return MCOpenVR.laimYaw;
 	}
 
 	@Override
 	public float getControllerOffhandPitch_World() {
-		// TODO Auto-generated method stub
-		return 0;
+		return MCOpenVR.laimPitch;
 	}
 
 	@Override
 	public Vec3 getRoomOriginPos_World() {
-		// TODO Auto-generated method stub
-		return null;
+		return MCOpenVR.getAimSource(1).addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
 	}
 
 	@Override
-	public Vec3 getRoomOriginUpDir_World() {
-		// TODO Auto-generated method stub
-		return null;
+	public Vec3 getRoomOriginUpDir_World() { //ummmm
+		return Vec3.createVectorHelper(0, 1, 0);
 	}
 	
 	public EulerOrient getHMDEuler_World(){ //TOTO: important place to add user rotation.
@@ -1112,9 +1100,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	
 
 	@Override
-	public void triggerHapticPulse(int controller, int duration) {
-		// TODO Auto-generated method stub
-		
+	public void triggerHapticPulse(int controller, int strength) {
+		MCOpenVR.triggerHapticPulse(controller, strength);
 	}
 
 	@Override
@@ -1127,22 +1114,21 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 		return buf;		
 	}
 
+	
 	@Override
 	public Vec3 getEyePos_World(EyeType eye) {
-		// TODO Auto-generated method stub
-		return null;
+		return MCOpenVR.getEyePosition(eye).addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
 	}
 
 	@Override
-	public FloatBuffer getControllerMatrix_World(int conttroller) {
-		// TODO Auto-generated method stub
-		return null;
+	public FloatBuffer getControllerMatrix_World(int controller) {
+		return MCOpenVR.getAimRotation(controller).transposed().toFloatBuffer();
 	}
 
 	@Override
 	public Vec3 getCustomControllerVector(int controller, Vec3 axis) {
-		// TODO Auto-generated method stub
-		return null;
+		Vector3f v3 = MCOpenVR.getAimRotation(controller).transform(new Vector3f((float)axis.xCoord, (float)axis.yCoord,(float) axis.zCoord));
+		return Vec3.createVectorHelper(v3.x, v3.y, v3.z);
 	}
 	
 }

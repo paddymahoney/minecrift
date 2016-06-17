@@ -125,4 +125,10 @@ public class NullStereoRenderer implements IStereoProvider
 		
 	}
 
+
+	@Override
+	public boolean isInitialized() {
+		return true;
+	}
+
 }

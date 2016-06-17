@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4692 @@
+@@ -150,2988 +167,4695 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -6887,9 +6887,9 @@
 +			FovPort leftFov = null;
 +			FovPort rightFov = null;
 +
-+//			if (!this.stereoProvider.isInitialized()) {
-+//				throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), this.stereoProvider.getInitializationStatus());
-+//			}
++			if (!this.stereoProvider.isInitialized()) {
++				throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), " " + this.stereoProvider.isInitialized());
++			}
 +
 +			// Scale up the FBO to allow for the distortion
 +			if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
@@ -6897,8 +6897,8 @@
 +//				leftFov = hmdInfo.getHMDInfo().DefaultEyeFov[0];
 +//				rightFov = hmdInfo.getHMDInfo().DefaultEyeFov[1];
 +
-+				System.out.println("L Fov:           " + leftFov.toString());
-+				System.out.println("R Fov:           " + rightFov.toString());
++//				System.out.println("L Fov:           " + leftFov.toString());
++//				System.out.println("R Fov:           " + rightFov.toString());
 +
 +				RenderTextureInfo renderTextureInfo = this.stereoProvider.getRenderTextureSizes(this.vrSettings.renderScaleFactor);
 +
@@ -7022,11 +7022,11 @@
 +			
 +			setupClipPlanes();
 +
-+//			if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
-+//			{
-+//				this.entityRenderer.eyeproj[EyeType.ovrEye_Left.value()] = this.stereoProvider.getProjectionMatrix(hmdInfo.getHMDInfo().DefaultEyeFov[0], EyeType.ovrEye_Left, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
-+//				this.entityRenderer.eyeproj[EyeType.ovrEye_Right.value()] = this.stereoProvider.getProjectionMatrix(hmdInfo.getHMDInfo().DefaultEyeFov[1], EyeType.ovrEye_Right, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
-+//			}
++			if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
++			{
++				this.entityRenderer.eyeproj[EyeType.ovrEye_Left.value()] = this.stereoProvider.getProjectionMatrix(null, EyeType.ovrEye_Left, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance).transposed().toFloatBuffer();
++				this.entityRenderer.eyeproj[EyeType.ovrEye_Right.value()] = this.stereoProvider.getProjectionMatrix(null, EyeType.ovrEye_Right, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance).transposed().toFloatBuffer();
++			}
 +
 +			try
 +			{
@@ -7364,6 +7364,9 @@
 +		}
 +
 +		new MCOpenVR();
++		MCOpenVR.init();
++		this.stereoProvider = new OpenVRStereoRenderer();
++		
 +		//hmdInfo = PluginManager.configureHMD("oculus");
 +
 +		//TODO: init new steroerenderer

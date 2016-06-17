@@ -126,9 +126,7 @@ public class OpenVRStereoRenderer implements IStereoProvider
 
 	@Override
 	public void deleteRenderTextures() {
-
 		if (LeftEyeTextureId > 0)	GL11.glDeleteTextures(LeftEyeTextureId);
-
 	}
 
 	@Override
@@ -191,8 +189,26 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	// VIVE END
 
 	@Override
-	public boolean endFrame(EyeType eye) {
-		this.endFrame();
+	public boolean endFrame(EyeType eye)
+	{
+
+		GL11.glFinish();
+		int ret = 0;
+		if(eye == EyeType.ovrEye_Left){
+			ret = MCOpenVR.vrCompositor.Submit.apply(
+				JOpenVRLibrary.EVREye.EVREye_Eye_Left,
+				texType, texBounds,
+				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
+		}else{
+			ret = MCOpenVR.vrCompositor.Submit.apply(
+				JOpenVRLibrary.EVREye.EVREye_Eye_Right,
+				texType, texBounds,
+				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
+		}
+
+
+
+		//System.out.println("vsync="+JOpenVRLibrary.VR_IVRCompositor_GetVSync(vrCompositor));
 		return true;
 	}
 
@@ -215,6 +231,11 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	@Override
 	public String getName() {
 		return "OpenVR";
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return MCOpenVR.initSuccess;
 	}
 
 }
