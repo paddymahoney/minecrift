@@ -15,11 +15,8 @@ import net.minecraft.client.gui.GuiScreen;
  * @author StellaArtois
  *
  */
-public interface IStereoProvider extends IBasePlugin
+public interface IStereoProvider 
 {
-    public RenderTextureInfo getRenderTextureSizes(FovPort LeftFov,
-                                                   FovPort RightFov,
-                                                   float renderScaleFactor);
 
     public boolean providesMirrorTexture();
 
@@ -61,4 +58,12 @@ public interface IStereoProvider extends IBasePlugin
     // VIVE START - new stereo provider functions
     public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen);
     // VIVE END - new stereo provider functions
+
+	boolean endFrame(EyeType eye);
+
+	RenderTextureInfo getRenderTextureSizes(float renderScaleFactor);
+
+	public void endFrame();
+
+	public String getName();
 }

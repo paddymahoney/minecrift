@@ -86,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,1023 @@
+@@ -63,736 +88,977 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1024,21 +1024,11 @@
 +	public float prevHeadYaw = 0.0F;
 +	public float prevHeadPitch = 0.0F;
 +	public float prevHeadRoll = 0.0F;
-+	public float camRelX;
-+	public float camRelY;
-+	public float camRelZ;
++
 +	public float crossX;
 +	public float crossY;
 +	public float crossZ;
-+	public float lookX; //In world coordinates
-+	public float lookY;
-+	public float lookZ;
-+	public float aimX; //In world coordinates
-+	public float aimY;
-+	public float aimZ;
-+	
-+	public float aimYaw;
-+	public float aimPitch;
++
 +	private boolean eyeCollision = false;
 +	Block eyeCollisionBlock;
 +	Vec3 eyeCollisionBlockPosLoc;
@@ -1280,14 +1270,12 @@
 +	}
 +
 +	public Vec3 getCameraLocation(){
-+
-+		Vec3 cam = getEyeCentrePosInWorldFrame();
-+		return mc.vrPlayer.getRoomOrigin().addVector(cam.xCoord, cam.yCoord, cam.zCoord); 	
++		return mc.vrPlayer.getHMDPos_World();
 +	}
 +
 +	//checks around the eye position for an opaque block or water block so we can render fog and overlays for that eye
 +	public Block getEyeCollisionBlock(EyeType eye){
-+		Vec3 exact = getEyePosition(eye);
++		Vec3 exact = mc.roomScale.getEyePos_World(eye);
 +		int var2 = (int) Math.floor(exact.xCoord);
 +		int var3 = (int) Math.floor(exact.yCoord);
 +		int var4 = (int) Math.floor(exact.zCoord);
@@ -1328,19 +1316,13 @@
 +
 +	}
 +
-+	public Vec3 getEyePosition(EyeType eye){
-+		Vec3 cam = getEyePostionInWorldFrame(eye);
-+		return mc.vrPlayer.getRoomOrigin().addVector(cam.xCoord, cam.yCoord, cam.zCoord);
-+
-+	}
-+
 +	public Vec3 getCameraBlock(){
 +		Vec3 cam = getCameraLocation();
 +		return Vec3.createVectorHelper(Math.floor(cam.xCoord), Math.floor(cam.yCoord), Math.floor(cam.zCoord));
 +	}
 +
 +	public Vec3 getEyeBlock(EyeType eye){
-+		Vec3 cam = getEyePosition(eye);
++		Vec3 cam = mc.roomScale.getEyePos_World(eye);
 +		return Vec3.createVectorHelper(Math.floor(cam.xCoord), Math.floor(cam.yCoord), Math.floor(cam.zCoord));
 +	}
 +
@@ -1371,32 +1353,6 @@
 +	}
 +
 +
-+	private Vec3 getEyePostionInWorldFrame(EyeType eye){
-+		// VIVE START - remove height adjust
-+		//Vec3 basePosition = Vec3.createVectorHelper(0f, -(Minecraft.getMinecraft().vrSettings.getPlayerEyeHeight() - 1.62f), 0f);
-+		Vec3 basePosition = Vec3.createVectorHelper(0f, 0f, 0f);
-+		// VIVE END - remove height adjust
-+		Vec3 EyePos = mc.positionTracker.getEyePosition(eye);  // Get center eye, so it is the same point for each eye render...
-+		//EyePos.rotateAroundX(-lookPitchOffset * this.mc.PIOVER180);
-+		//EyePos.rotateAroundY(-lookYawOffset   * this.mc.PIOVER180);
-+		Vec3 eyePosOffset = EyePos.addVector(basePosition.xCoord, basePosition.yCoord, basePosition.zCoord);
-+		return Vec3.createVectorHelper(-eyePosOffset.xCoord, -eyePosOffset.yCoord, -eyePosOffset.zCoord); // TODO: Why negated?
-+
-+	}
-+
-+	private Vec3 getEyeCentrePosInWorldFrame()
-+	{
-+		// VIVE START - remove height adjust
-+		//Vec3 basePosition = Vec3.createVectorHelper(0f, -(Minecraft.getMinecraft().vrSettings.getPlayerEyeHeight() - 1.62f), 0f);
-+		Vec3 basePosition = Vec3.createVectorHelper(0f, 0f, 0f);
-+		// VIVE END - remove height adjust
-+		Vec3 centerEyePos = mc.positionTracker.getCenterEyePosition();  // Get center eye, so it is the same point for each eye render...
-+		//centerEyePos.rotateAroundX(-lookPitchOffset * this.mc.PIOVER180);
-+		//centerEyePos.rotateAroundY(-lookYawOffset   * this.mc.PIOVER180);
-+		Vec3 centerEyePosOffset = centerEyePos.addVector(basePosition.xCoord, basePosition.yCoord, basePosition.zCoord);
-+		return Vec3.createVectorHelper(-centerEyePosOffset.xCoord, -centerEyePosOffset.yCoord, -centerEyePosOffset.zCoord); // TODO: Why negated?
-+	}
-+
 +	public void getPointedBlock(float par1)
 +	{
 +		/** END MINECRIFT */    
@@ -1409,14 +1365,12 @@
 +			this.mc.pointedEntity = null;
 +			double blockReachDistance = (double)this.mc.playerController.getBlockReachDistance();
 +			double entityReachDistance = blockReachDistance;
-+			Vec3 centerEyePosOffset = getEyeCentrePosInWorldFrame();
-+
 +			// Darktemp's crosshair fix
 +			// VIVE START - interact source
 +			Vec3 cameraPos = getCameraLocation();
 +			cameraPos.yCoord = interpolatedPlayerPos.yCoord; //to keep server happy we use the 1.62m position.
 +			
-+			Vec3 pos1 = mc.lookaimController.getAimSource(0);
++			Vec3 pos1 = mc.roomScale.getControllerMainPos_World();
 +			if (pos1==null) {
 +				pos1 = Vec3.createVectorHelper(cameraPos.xCoord, cameraPos.yCoord, cameraPos.zCoord);
 +			}
@@ -1424,7 +1378,7 @@
 +			Vec3 pos3 = Vec3.createVectorHelper(pos1.xCoord, pos1.yCoord, pos1.zCoord);
 +			// VIVE END - interact source
 +
-+			Vec3 aim = Vec3.createVectorHelper(aimX, aimY, aimZ);
++			Vec3 aim = mc.roomScale.getControllerMainDir_World();
 +			Vec3 endPos = pos1.addVector(aim.xCoord*blockReachDistance,aim.yCoord*blockReachDistance ,aim.zCoord*blockReachDistance );
 +			Vec3 crossVec=pos1.addVector(aim.xCoord*blockReachDistance,aim.yCoord*blockReachDistance ,aim.zCoord*blockReachDistance );
 +
@@ -1831,7 +1785,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +1116,14 @@
+@@ -804,16 +1070,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1854,7 +1808,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1135,4013 @@
+@@ -825,1829 +1089,3937 @@
          {
              clipDistance = 256.0F;
          }
@@ -2535,7 +2489,7 @@
 +
 +		// update in-game menu yaw
 +		if( inWorldGuiScreenShowingThisFrame && !inGameMenuShowingLastFrame)
-+			inGameMenuHeadYaw = this.mc.lookaimController.getBodyYawDegrees() - (float)this.cameraYaw;
++			inGameMenuHeadYaw = this.mc.roomScale.getHMDYaw_World() - (float)this.cameraYaw;
 +
 +		hudShowingLastFrame = guiScreenShowingThisFrame;
 +		inGameMenuShowingLastFrame = inWorldGuiScreenShowingThisFrame;
@@ -3617,7 +3571,9 @@
 +		if (this.mc.gameSettings.renderDistanceChunks >= 4)
 +		{
 +			Vec3 var19 = MathHelper.sin(var2.getCelestialAngleRadians(par1)) > 0.0F ? Vec3.createVectorHelper(-1.0D, 0.0D, 0.0D) : Vec3.createVectorHelper(1.0D, 0.0D, 0.0D);
-+			Vec3 look = mc.lookaimController.getHeadVector();
++			
++			Vec3 look = mc.roomScale.getHMDDir_World();
++			
 +			var11 = (float)look.dotProduct(var19);
 +
 +			if (var11 < 0.0F)
@@ -4303,82 +4259,23 @@
 +		//int millis = (int)(System.currentTimeMillis() - start);
 +		//System.out.println("Update camera! " + millis + "ms");
 +
++		EulerOrient o = mc.vrPlayer.getHMDEuler_World();
++
++		cameraYaw    = o.yaw;
++		cameraPitch  = o.pitch;
++		cameraRoll   = o.roll;
++
++		if (this.mc.vrSettings.debugPose)
++		{
++			System.out.println(String.format("headYaw:   %.2f, headPitch:   %.2f, headRoll:   %.2f", new Object[] {Float.valueOf(headYaw), Float.valueOf(headPitch), Float.valueOf(headRoll)}));
++			System.out.println(String.format("cameraYaw: %.2f, cameraPitch: %.2f, cameraRoll: %.2f", new Object[] {Float.valueOf((float)cameraYaw), Float.valueOf((float)cameraPitch), Float.valueOf((float)cameraRoll)}));
++		}
++
++		this.mc.mcProfiler.endSection();
++
 +		float PIOVER180 = (float)(Math.PI/180);
 +		EntityLivingBase entity = this.mc.renderViewEntity;
 +
-+
-+		lookYawOffset   = mc.lookaimController.getBodyYawDegrees();
-+		lookPitchOffset = mc.lookaimController.getBodyPitchDegrees();
-+
-+		if (mc.headTracker.isInitialized())
-+		{
-+			this.mc.mcProfiler.startSection("oculus");
-+
-+			prevHeadYaw   = headYaw;
-+			prevHeadPitch = headPitch;
-+			prevHeadRoll  = headRoll;
-+
-+			// Get 'raw' tracker orientation
-+			Quaternion orientation = new Quaternion(this.mc.currentEyePose.Orientation.x,
-+					this.mc.currentEyePose.Orientation.y,
-+					this.mc.currentEyePose.Orientation.z,
-+					this.mc.currentEyePose.Orientation.w);
-+
-+			// VIVE START - use function from OpenVRUtil instead of OculusRift
-+			currentEulerOrientDegrees = OpenVRUtil.getEulerAnglesDegYXZ(this.mc.currentEyePose.Orientation);
-+			// VIVE end - use function from OpenVRUtil instead of OculusRift
-+			//
-+			//            this.mc.thePlayer.rotationYaw = currentEulerOrientDegrees.yaw;
-+			//            this.mc.thePlayer.rotationPitch = currentEulerOrientDegrees.pitch;
-+
-+			Quaternion orient = new Quaternion(this.mc.currentEyePose.Orientation.x,
-+					this.mc.currentEyePose.Orientation.y,
-+					this.mc.currentEyePose.Orientation.z,
-+					this.mc.currentEyePose.Orientation.w);
-+
-+			headYaw    = currentEulerOrientDegrees.yaw;
-+			headPitch  = currentEulerOrientDegrees.pitch;
-+			headRoll   = currentEulerOrientDegrees.roll;
-+
-+			// Pitch offset
-+			Quaternion pitchCorrection = new Quaternion();
-+			Vector4f vecAxisPitchAngle = new Vector4f(1f, 0f, 0f, -lookPitchOffset * PIOVER180);
-+			pitchCorrection.setFromAxisAngle(vecAxisPitchAngle);
-+
-+			// Yaw offset
-+			Quaternion yawCorrection   = new Quaternion();
-+			Vector4f vecAxisYawAngle   = new Vector4f(0f, 1f, 0f, (-lookYawOffset * PIOVER180));
-+			yawCorrection.setFromAxisAngle(vecAxisYawAngle);
-+
-+			Quaternion correctedOrient = QuaternionHelper.mul(yawCorrection,   QuaternionHelper.mul(pitchCorrection, orient));
-+			Quatf corOrient = new Quatf(correctedOrient.x,
-+					correctedOrient.y,
-+					correctedOrient.z,
-+					correctedOrient.w);
-+
-+			// Euler
-+			// VIVE start - use function from OpenVRUtil instead of OculusRift
-+			EulerOrient correctedEulerOrientDegrees = OpenVRUtil.getEulerAnglesDegYXZ(corOrient);
-+			// VIVE end - use function from OpenVRUtil instead of OculusRift
-+
-+			cameraYaw    = correctedEulerOrientDegrees.yaw;
-+			cameraPitch  = correctedEulerOrientDegrees.pitch;
-+			cameraRoll   = correctedEulerOrientDegrees.roll;
-+
-+			if (this.mc.vrSettings.debugPose)
-+			{
-+				System.out.println(String.format("headYaw:   %.2f, headPitch:   %.2f, headRoll:   %.2f", new Object[] {Float.valueOf(headYaw), Float.valueOf(headPitch), Float.valueOf(headRoll)}));
-+				System.out.println(String.format("cameraYaw: %.2f, cameraPitch: %.2f, cameraRoll: %.2f", new Object[] {Float.valueOf((float)cameraYaw), Float.valueOf((float)cameraPitch), Float.valueOf((float)cameraRoll)}));
-+			}
-+
-+			this.mc.mcProfiler.endSection();
-+		}
-+		else
-+		{
-+			cameraRoll = 0;
-+			cameraPitch = lookPitchOffset;
-+			cameraYaw = lookYawOffset;
-+		}
 +
 +		if( entity != null )
 +		{		//now we decide what direction vector to set our 'entity' at.
@@ -4387,7 +4284,7 @@
 +			if(false){  //hmm, to use HMD?
 +				//set model view direction to camera
 +				entity.rotationYaw = (float)cameraYaw;
-+					entity.rotationYawHead = (float)cameraYaw;
++				entity.rotationYawHead = (float)cameraYaw;
 +				entity.rotationPitch = (float)cameraPitch;
 +			} else { //default to looking 'at' the crosshair position.
 +				if(centerEyePosToCrossDirection != null){
@@ -4403,9 +4300,8 @@
 +
 +				if(entity.moveForward > 0 && (mc.vrPlayer.getFreeMoveMode() || entity.isRiding())){
 +					//us laim, needed for server side movement.
-+					entity.rotationYaw = (float)mc.lookaimController.getOffhandAimYaw();
-+					entity.rotationYawHead = (float)mc.lookaimController.getOffhandAimYaw();
-+					entity.rotationPitch = (float)mc.lookaimController.getOffhandAimPitch();
++					entity.rotationYaw = entity.rotationYawHead = mc.roomScale.getControllerOffhandYaw_World();
++					entity.rotationPitch = mc.roomScale.getControllerOffhandPitch_World();
 +				} else {
 +					ItemStack i = ((EntityPlayerSP) entity).inventory.getCurrentItem();
 +					if(i !=null){
@@ -4426,74 +4322,53 @@
 +								i.getItem() == Items.potionitem  
 +								) {
 +							//use r_hand aim
-+							entity.rotationYaw = (float)mc.lookaimController.getAimYaw();
-+							entity.rotationYawHead = (float)mc.lookaimController.getAimYaw();
-+							entity.rotationPitch = (float)mc.lookaimController.getAimPitch();
++							entity.rotationYaw = entity.rotationYawHead = mc.roomScale.getControllerMainYaw_World();
++							entity.rotationPitch = mc.roomScale.getControllerMainPitch_World();
 +						}
 +					}
 +				}
 +			}
 +		}
 +
-+
-+		aimYaw = mc.lookaimController.getAimYaw();
-+		aimPitch = mc.lookaimController.getAimPitch();
-+		aimPitch -= this.mc.vrSettings.aimPitchOffset;
-+
-+		//TODO: not sure if headPitch or cameraPitch is better here... they really should be the same; silly
-+		//people with their "pitch affects camera" settings.
-+		//At any rate, using cameraPitch makes the UI look less silly
-+		float halfIpd = this.mc.vrSettings.getHalfIPD(this.mc.stereoProvider.isStereo() ? this.mc.currentEye : EyeType.ovrEye_Center);
-+		mc.positionTracker.update(halfIpd, headYaw, (float)headPitch, (float)headRoll, lookYawOffset, 0.0f, 0.0f);
-+
-+		//Do head/neck model in non-GL math so we can use camera location(between eyes)
-+		Vec3 cameraOffset = mc.positionTracker.getEyePosition(this.mc.stereoProvider.isStereo() ? this.mc.currentEye : EyeType.ovrEye_Center);
-+		cameraOffset.rotateAroundY((float)Math.PI);
-+
-+		//The worldOrigin is at player "eye height" (1.62) above foot position
-+		camRelX = (float)cameraOffset.xCoord; camRelY = (float)cameraOffset.yCoord; camRelZ = (float)cameraOffset.zCoord;
-+
-+		// VIVE START - render camera from tracking origin, not player pos
-+		// apply offset
-+		if (entity!=null)
-+		{
-+			double px = entity.prevPosX + (entity.posX - entity.prevPosX) * (double)renderPartialTicks;
-+			double py = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)renderPartialTicks;
-+			double pz = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)renderPartialTicks;
-+
-+			//				interpolate elsewhere
-+			px = entity.posX;
-+			py = entity.posY;
-+			pz = entity.posZ;
-+
-+			camRelX += (mc.vrPlayer.getRoomOrigin().xCoord - px);
-+			camRelY -= (mc.vrPlayer.getRoomOrigin().yCoord - py);
-+			camRelZ += (mc.vrPlayer.getRoomOrigin().zCoord - pz);
-+		}
++		
++//		//TODO: not sure if headPitch or cameraPitch is better here... they really should be the same; silly
++//		//people with their "pitch affects camera" settings.
++//		//At any rate, using cameraPitch makes the UI look less silly
++//		float halfIpd = this.mc.vrSettings.getHalfIPD(this.mc.stereoProvider.isStereo() ? this.mc.currentEye : EyeType.ovrEye_Center);
++//		mc.positionTracker.update(halfIpd, headYaw, (float)headPitch, (float)headRoll, lookYawOffset, 0.0f, 0.0f);
++//
++//		//Do head/neck model in non-GL math so we can use camera location(between eyes)
++//		Vec3 cameraOffset = mc.positionTracker.getEyePosition(this.mc.stereoProvider.isStereo() ? this.mc.currentEye : EyeType.ovrEye_Center);
++//		cameraOffset.rotateAroundY((float)Math.PI);
++//
++//		//The worldOrigin is at player "eye height" (1.62) above foot position
++//		camRelX = (float)cameraOffset.xCoord; camRelY = (float)cameraOffset.yCoord; camRelZ = (float)cameraOffset.zCoord;
++//
++//		// VIVE START - render camera from tracking origin, not player pos
++//		// apply offset
++//		if (entity!=null)
++//		{
++//			double px = entity.prevPosX + (entity.posX - entity.prevPosX) * (double)renderPartialTicks;
++//			double py = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)renderPartialTicks;
++//			double pz = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)renderPartialTicks;
++//
++//			//				interpolate elsewhere
++//			px = entity.posX;
++//			py = entity.posY;
++//			pz = entity.posZ;
++//
++//			camRelX += (mc.vrPlayer.getRoomOrigin().xCoord - px);
++//			camRelY -= (mc.vrPlayer.getRoomOrigin().yCoord - py);
++//			camRelZ += (mc.vrPlayer.getRoomOrigin().zCoord - pz);
++//		}
 +
 +
 +		// VIVE END - render camera from tracking origin, not player pos
 +
 +		if (mc.vrSettings.debugPose)
 +		{
-+			System.out.println(String.format("camRelX:    %.2f, camRelY:    %.2f, camRelZ:    %.2f", new Object[] {Float.valueOf(camRelX), Float.valueOf(camRelY), Float.valueOf(camRelZ)}));
++			//System.out.println(String.format("camRelX:    %.2f, camRelY:    %.2f, camRelZ:    %.2f", new Object[] {Float.valueOf(camRelX), Float.valueOf(camRelY), Float.valueOf(camRelZ)}));
 +		}
-+
-+
-+		//Jrbudda do head collision elsewhere
-+
-+
-+		Vec3 look = Vec3.createVectorHelper(0, 0, 1);
-+		look.rotateAroundX(-(float)cameraPitch* PIOVER180);
-+		look.rotateAroundY(-(float)cameraYaw  * PIOVER180);
-+		lookX = (float)look.xCoord; lookY = (float)look.yCoord; lookZ = (float)look.zCoord;
-+
-+		Vec3 aim = Vec3.createVectorHelper(0, 0, 1);
-+		aim.rotateAroundX(-aimPitch * PIOVER180);
-+		aim.rotateAroundY(-aimYaw   * PIOVER180);
-+		aimX = (float)aim.xCoord; aimY = (float)aim.yCoord; aimZ = (float)aim.zCoord;
-+
-+
 +	}
 +
 +	private float checkCameraCollision(
@@ -4667,8 +4542,8 @@
 +			// The sound system is on a separate thread? Sync issues? Can get to crash by turning analyglph mode on?
 +
 +			sndSystem.setListenerPosition((float) interpolatedPlayerPos.xCoord, (float) interpolatedPlayerPos.yCoord, (float) interpolatedPlayerPos.zCoord);
-+
-+			sndSystem.setListenerOrientation(lookX, lookY, lookZ,
++			Vec3 hmd = mc.roomScale.getHMDDir_World();
++			sndSystem.setListenerOrientation((float)hmd.xCoord,(float) hmd.yCoord,(float) hmd.zCoord,
 +					(float) up.xCoord, (float) up.yCoord, (float) up.zCoord);
 +		}
 +		//}
@@ -4916,10 +4791,12 @@
 +		GL11.glRotatef((float) this.headPitch,     1.0F, 0.0F, 0.0F);
 +		GL11.glRotatef((float) this.headYaw,       0.0F, 1.0F, 0.0F);
 +
++		
++		Vec3 campos = mc.vrPlayer.getHMDPos_World();
 +		// Position
-+		GL11.glTranslatef(camRelX,
-+				camRelY,
-+				camRelZ);
++		GL11.glTranslatef((float)campos.xCoord,
++				(float)campos.yCoord,
++				(float)campos.zCoord);
 +
 +		if (correctOffsets)
 +		{
@@ -4954,7 +4831,7 @@
 +				GL11.glLoadIdentity();
 +			
 +				// VIVE START - custom GUI position
-+				this.mc.lookaimController.applyGUIModelView(this.mc.currentEye); //MCOpenVR.java, pushes.
++			MCOpenVR.applyGUIModelView(this.mc.currentEye); //MCOpenVR.java, pushes.
 +					///JRBUDDA MAIN MENU ROOM            
 +					if(mc.theWorld == null || mc.currentScreen instanceof GuiWinGame){		
 +						rendserJrbuddasAwesomeMainMenuRoom();			
@@ -5030,7 +4907,7 @@
 +
 +		Minecraft.getMinecraft().renderEngine.bindTexture(Gui.optionsBackground);
 +		
-+		float yo = -camRelY;
++	//	float yo = -camRelY;
 +		float s = 3f;
 +		int repeat = 30; 
 +		int w = 5;
@@ -5200,8 +5077,8 @@
 +							if(mc.currentScreen !=null){ //wtf pixelmon?
 +							
 +							//	Draw GUI crosshair
-+							if (mc.lookaimController instanceof MCOpenVR){					
-+								if(((MCOpenVR)mc.lookaimController).controllerMouseValid){
++							if (mc.stereoProvider.isStereo()){					
++								if(MCOpenVR.controllerMouseValid){
 +									mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())		;				
 +								}
 +
@@ -5285,7 +5162,7 @@
 +			Tessellator tes = Tessellator.instance;
 +			tes.startDrawingQuads();
 +
-+			Vec3 start = OpenVRPlayer.getTeleportTraceStart(mc);
++			Vec3 start = mc.vrPlayer.getControllerOffhandDir_World();
 +			start.xCoord -= interpolatedPlayerPos.xCoord;
 +			start.yCoord -= interpolatedPlayerPos.yCoord;
 +			start.zCoord -= interpolatedPlayerPos.zCoord;
@@ -5464,8 +5341,8 @@
 +			float scale = 0.025f*crossDepth*this.mc.vrSettings.crosshairScale;
 +			GL11.glPushMatrix();
 +				GL11.glTranslatef(crossX, crossY, crossZ);
-+				GL11.glRotatef(-this.aimYaw, 0.0F, 1.0F, 0.0F);
-+				GL11.glRotatef(this.aimPitch, 1.0F, 0.0F, 0.0F);
++				GL11.glRotatef(-mc.roomScale.getControllerMainYaw_World(), 0.0F, 1.0F, 0.0F);
++				GL11.glRotatef(mc.roomScale.getControllerMainPitch_World(), 1.0F, 0.0F, 0.0F);
 +				if (this.mc.vrSettings.crosshairRollsWithHead)
 +					GL11.glRotated(this.cameraRoll, 0.0F, 0.0F, 1.0F);
 +				if (this.mc.vrSettings.crosshairScalesWithDistance)
@@ -5646,7 +5523,8 @@
 +	//please push your matrix first. and pop after.
 +	public void SetupRenderingAtController(int controller){
 +		
-+		Vec3 aimSource = this.mc.lookaimController.getAimSource(controller);
++		Vec3 aimSource = this.mc.roomScale.getControllerMainPos_World();
++		if(controller == 1) aimSource = this.mc.roomScale.getControllerOffhandPos_World(); //TODO: cmon lazy.
 +	
 +		if (aimSource!=null)
 +		{ //move from head to hand origin.
@@ -5656,14 +5534,14 @@
 +					(float) (-aimSource.zCoord + mc.thePlayer.posZ));
 +		}
 +		
-+    	Vec3 renderPos = this.mc.lookaimController.getAimSource(controller);
-+ 
-+        	Vector3f fore = new Vector3f(0,0,1);       
-+        	Matrix4f rotation = this.mc.lookaimController.getAimRotation(controller);  
-+        	Vector3f aimv3 = rotation.transform(fore);
++    //    	Vector3f fore = new Vector3f(0,0,1);       
++   //     	Matrix4f rotation = this.mc.vrPlayer.get.getAimRotation(controller);  
++        	
++        	FloatBuffer buf = mc.roomScale.getControllerMatrix_World(controller);
 +        	
 +	    	if(!mc.bowTracker.isDrawing || controller == 0){ //doing this elsewhere
-+            	GL11.glMultMatrix(rotation.transposed().toFloatBuffer());        	
++	    		GL11.glMultMatrix(buf);      
++	    		//GL11.glMultMatrix(rotation.transposed().toFloatBuffer());        	
 +        	}     
 +	}
 +	
@@ -5785,14 +5663,11 @@
 +				GL11.glDisable(GL11.GL_DEPTH_TEST);
 +		
 +				// counter head rotation
-+				Quaternion q = mc.headTracker.getOrientationQuaternion(this.mc.currentEye);
-+				org.lwjgl.util.vector.Matrix4f head = QuaternionHelper.quatToMatrix4f(q);
-+				FloatBuffer buf = BufferUtil.createFloatBuffer(16);
-+				head.storeTranspose(buf);
-+				buf.flip();
-+				GL11.glMultMatrix(buf);
++
++				GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World(mc.currentEye));
 +		
-+				Vec3 eye = mc.positionTracker.getEyePosition(this.mc.currentEye);
++				Vec3 eye = mc.roomScale.getHMDPos_World(); //this prolly should be local.
++				
 +				GL11.glTranslatef(
 +						(float) -eye.xCoord,
 +						(float) eye.yCoord,
@@ -5805,12 +5680,12 @@
 +					tes.startDrawingQuads();
 +		
 +					tes.setColorRGBA(255 - 127 * c,255 - 127 * c,255 - 127 * c,255);
-+		
-+	
-+					Vec3 controllerPos =  mc.lookaimController.getAimSource(c);
++					
++					Vec3 controllerPos = mc.roomScale.getControllerMainPos_World();
++					if(c==1)controllerPos = mc.roomScale.getControllerOffhandPos_World();
++					
 +					controllerPos = mc.vrPlayer.getRoomOrigin().subtract(controllerPos); 
 +				
-+					
 +					GL11.glPushMatrix();
 +						GL11.glTranslatef(
 +								(float)-controllerPos.xCoord,
@@ -5820,17 +5695,20 @@
 +			
 +						Vec3 start = Vec3.createVectorHelper(0,0,0);
 +			
-+						Matrix4f controllerRotation = mc.lookaimController.getAimRotation(c);
-+						Vector3f forward = new Vector3f(0,0,-0.17f);
++//						Matrix4f controllerRotation = mc.lookaimController.getAimRotation(c);
++//						Vector3f forward = new Vector3f(0,0,-0.17f);
 +						Vector3f up = new Vector3f(0,1.0f,0.0f);
-+						Vector3f dir = controllerRotation.transform(forward);
-+						up = controllerRotation.transform(up);
++//						Vector3f dir = controllerRotation.transform(forward);
++						Vec3 dir = mc.roomScale.getControllerMainDir_World();
++						if(c==1) dir = mc.roomScale.getControllerOffhandDir_World();
++						//TODO: FIX
++						//	up = controllerRotation.transform(up);
 +						Vec3 vec3Up = Vec3.createVectorHelper(up.x, up.y, up.z);
 +			
 +						Vec3 end = Vec3.createVectorHelper(
-+								start.xCoord - dir.x,
-+								start.yCoord - dir.y,
-+								start.zCoord - dir.z);
++								start.xCoord - dir.xCoord,
++								start.yCoord - dir.yCoord,
++								start.zCoord - dir.zCoord);
 +			
 +						renderBox(tes, start, end, -0.02f, 0.02f, -0.025f, 0.00f, vec3Up);
 +						tes.draw();

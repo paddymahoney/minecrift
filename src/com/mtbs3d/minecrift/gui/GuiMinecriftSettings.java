@@ -4,9 +4,6 @@
  */
 package com.mtbs3d.minecrift.gui;
 
-import com.mtbs3d.minecrift.api.IEyePositionProvider;
-import com.mtbs3d.minecrift.api.IHMDInfo;
-import com.mtbs3d.minecrift.api.IOrientationProvider;
 import com.mtbs3d.minecrift.api.IStereoProvider;
 import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
 import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
@@ -87,10 +84,10 @@ public class GuiMinecriftSettings extends BaseGuiSettings
         if (par1GuiButton.enabled)
         {
             VRSettings vr = Minecraft.getMinecraft().vrSettings;
-            IHMDInfo hmdInfo = Minecraft.getMinecraft().hmdInfo;
+//            IHMDInfo hmdInfo = Minecraft.getMinecraft().hmdInfo;
             IStereoProvider stereoProvider = Minecraft.getMinecraft().stereoProvider;
-            IOrientationProvider headTracker = Minecraft.getMinecraft().headTracker;
-            IEyePositionProvider positionTracker = Minecraft.getMinecraft().positionTracker;
+//            IOrientationProvider headTracker = Minecraft.getMinecraft().headTracker;
+//            IEyePositionProvider positionTracker = Minecraft.getMinecraft().positionTracker;
 
             if (par1GuiButton.id < 200 && par1GuiButton instanceof GuiSmallButtonEx)
             {
@@ -107,23 +104,21 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             else if (par1GuiButton.id == 201)
             {
                 Minecraft.getMinecraft().vrSettings.saveOptions();
-                this.mc.displayGuiScreen(new GuiPlayerPreferenceSettings(this, this.guivrSettings));
+              //  this.mc.displayGuiScreen(new GuiPlayerPreferenceSettings(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == 202)
             {
-                if( Minecraft.getMinecraft().headTracker != null )
-                {
+
                     Minecraft.getMinecraft().vrSettings.saveOptions();
                     this.mc.displayGuiScreen(new GuiHUDSettings(this, this.guivrSettings));
-                }
+
             }
             else if (par1GuiButton.id == 206)
             {
-            	if( headTracker != null && hmdInfo != null && positionTracker != null )
-            	{
+
                     Minecraft.getMinecraft().vrSettings.saveOptions();
 	                this.mc.displayGuiScreen(new GuiRenderOpticsSettings(this, this.guivrSettings, this.settings));
-            	}
+
             } 
             else if (par1GuiButton.id == 200)
             {
@@ -133,19 +128,16 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             else if (par1GuiButton.id == 209)
             {
                 this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(new GuiLocomotionSettings(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == 210)
             {
                 this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(new GuiOtherHUDSettings(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == 220)
             {
                 this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(new GuiVRControls(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == PROFILES_ID)

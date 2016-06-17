@@ -539,8 +539,8 @@
                      this.theWorld.playSound((double)par3 + 0.5D, (double)par4 + 0.5D, (double)par5 + 0.5D, "random.door_close", 1.0F, this.theWorld.rand.nextFloat() * 0.1F + 0.9F, false);
                  }
  
-+            	this.mc.lookaimController.triggerHapticPulse(0,1000);    
-+                this.mc.lookaimController.triggerHapticPulse(1,1000);   
++            	this.mc.vrPlayer.triggerHapticPulse(0,1000);    
++                this.mc.vrPlayer.triggerHapticPulse(1,1000);   
 +                
                  break;
  
@@ -554,7 +554,7 @@
                  if (var8.getMaterial() != Material.air)
                  {
                      this.mc.getSoundHandler().playSound(new PositionedSoundRecord(new ResourceLocation(var8.stepSound.getDigResourcePath()), (var8.stepSound.getVolume() + 1.0F) / 2.0F, var8.stepSound.getFrequency() * 0.8F, (float)par3 + 0.5F, (float)par4 + 0.5F, (float)par5 + 0.5F));
-+                	this.mc.lookaimController.triggerHapticPulse(0,250);    
++                	this.mc.vrPlayer.triggerHapticPulse(0,250);    
                  }
 -
 +      
@@ -566,8 +566,8 @@
                      for (int var24 = 0; var24 < var23; ++var24)
                      {
 +                  //landing
-+                    	this.mc.lookaimController.triggerHapticPulse(0,2500);    
-+                        this.mc.lookaimController.triggerHapticPulse(1,2500);                  
++                    	this.mc.vrPlayer.triggerHapticPulse(0,2500);    
++                        this.mc.vrPlayer.triggerHapticPulse(1,2500);                  
                          float var25 = MathHelper.randomFloatClamp(var7, 0.0F, ((float)Math.PI * 2F));
                          var26 = (double)MathHelper.randomFloatClamp(var7, 0.75F, 1.0F);
                          var28 = 0.20000000298023224D + var21 / 100.0D;

@@ -5,7 +5,7 @@
  
 +import java.lang.reflect.Field;
 +
-+import com.mtbs3d.minecrift.api.IBodyAimController;
++import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
 +import com.mtbs3d.minecrift.provider.MCOpenVR;
 +import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 +
@@ -563,13 +563,13 @@
 +	  						
 +         	//VIVE DO PITCH FLYING		
 +
-+    		IBodyAimController con = mc.lookaimController;
++    		IRoomscaleAdapter con = mc.roomScale;
 +    		
 +            // Account for pitch if required
 +    		if(this.capabilities.isFlying || this.inWater)
 +            if (Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
 +            	if (vr.useLControllerForRestricedMovement) {
-+            		directionVec.rotateAroundX(-con.getOffhandAimPitch() * PIOVER180);		      					 
++            		directionVec.rotateAroundX(-con.getControllerOffhandPitch_World() * PIOVER180);		      					 
 +            	} else {
 +            		directionVec.rotateAroundX(-this.headPitch * PIOVER180);	
 +            	}		
@@ -577,7 +577,7 @@
 +    		
 +    		// Account for yaw
 +            if (vr.useLControllerForRestricedMovement) {
-+            	directionVec.rotateAroundY(-con.getOffhandAimYaw() * PIOVER180);		   
++            	directionVec.rotateAroundY(-con.getControllerOffhandYaw_World() * PIOVER180);		   
 +            } else {
 +    			directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
 +    		}

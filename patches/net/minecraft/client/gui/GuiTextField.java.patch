@@ -33,7 +33,7 @@
 +        }  else {
 +        	
 +           // VIVE START - show keyboard
-+            ((MCOpenVR) Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, this);
++            MCOpenVR.setKeyboardOverlayShowing(true, this);
 +          // VIVE END - show keyboard
 +          
 +        	
@@ -56,7 +56,7 @@
          this.isFocused = p_146195_1_;
 +        
 +        // VIVE START - show keyboard
-+       if(p_146195_1_) ((MCOpenVR) Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(p_146195_1_, this);
++       if(p_146195_1_) MCOpenVR.setKeyboardOverlayShowing(p_146195_1_, this);
 +        // VIVE END - show keyboard
 +        
      }

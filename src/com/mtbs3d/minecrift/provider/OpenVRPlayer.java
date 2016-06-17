@@ -1,10 +1,12 @@
 package com.mtbs3d.minecrift.provider;
 
 
+import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.EulerOrient;
 import de.fruitfly.ovr.structs.Matrix4f;
 import de.fruitfly.ovr.structs.Quatf;
 import de.fruitfly.ovr.structs.Vector3f;
+import de.fruitfly.ovr.util.BufferUtil;
 import io.netty.util.concurrent.GenericFutureListener;
 import jopenvr.OpenVRUtil;
 import net.minecraft.block.Block;
@@ -32,13 +34,17 @@ import net.minecraft.network.play.client.C17PacketCustomPayload;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 
+import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.Random;
+
+import org.lwjgl.util.vector.Quaternion;
 
 import com.google.common.base.Charsets;
 import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
 import com.mtbs3d.minecrift.gameplay.EntityVRTeleportFX;
 import com.mtbs3d.minecrift.gameplay.VRMovementStyle;
+import com.mtbs3d.minecrift.render.QuaternionHelper;
 
 // VIVE
 public class OpenVRPlayer implements IRoomscaleAdapter
@@ -97,14 +103,14 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         boolean bStartingUp = (roomOrigin.xCoord==0 && roomOrigin.yCoord==0 && roomOrigin.zCoord==0);
         boolean bRestricted = !bStartingUp && getFreeMoveMode();
 
-        if (mc.positionTracker == null || !mc.positionTracker.isInitialized() || bRestricted)
+        if ( bRestricted)
         { // set room origin exactly to x,y,z since in restricted mode the room origin is always the players feet
             	setRoomOrigin(x, y, z);
         }
         else
         { //set room origin to underneath the headset... which is where the player entity should be already? shouldnt be already anyway? maybe cause collosion?
 
-            Vec3 hmdOffset = mc.positionTracker.getCenterEyePosition();
+            Vec3 hmdOffset = MCOpenVR.getCenterEyePosition();
             double newX = x + hmdOffset.xCoord;
             double newY = y;
             double newZ = z + hmdOffset.zCoord;
@@ -180,7 +186,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
                     if (dest.xCoord != 0 || dest.yCoord != 0 || dest.zCoord != 0)
                     {
-                        Vec3 eyeCenterPos = mc.positionTracker.getCenterEyePosition();
+                        Vec3 eyeCenterPos = MCOpenVR.getCenterEyePosition();
 
                         eyeCenterPos.xCoord = roomOrigin.xCoord + eyeCenterPos.xCoord;
                         eyeCenterPos.yCoord = roomOrigin.yCoord + eyeCenterPos.yCoord;
@@ -378,7 +384,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
     	// move player's X/Z coords as the HMD moves around the room
 
-    	Vec3 eyePos = mc.positionTracker.getCenterEyePosition();
+    	Vec3 eyePos = MCOpenVR.getCenterEyePosition();
 
     	double x = roomOrigin.xCoord - eyePos.xCoord;
     	double y = player.posY;
@@ -515,17 +521,17 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         return torso;
     }
 
-    public static Vec3 getTeleportTraceStart(Minecraft mc)
+    private  Vec3 getTeleportTraceStart(Minecraft mc)
     {
-        return mc.lookaimController.getAimSource(1);
+    	return this.getControllerOffhandPos_World();
     }
 
-    public static Matrix4f getTeleportAimRotation(Minecraft mc)
+    private  Matrix4f getTeleportAimRotation(Minecraft mc)
     {
-        return mc.lookaimController.getAimRotation(1);
+        return MCOpenVR.getAimRotation(1);
     }
 
-    public static Vec3 getTeleportAim(Minecraft mc)
+    public  Vec3 getTeleportAim(Minecraft mc)
     {
         Matrix4f handRotation = getTeleportAimRotation(mc);
         Vector3f forward = new Vector3f(0,0,1);
@@ -850,10 +856,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
         mc.mcProfiler.startSection("updateSwingAttack");
 
-        Vec3 handPos = mc.lookaimController.getAimSource(0);
-        Matrix4f handRotation = mc.lookaimController.getAimRotation(0);
-        Vector3f forward = new Vector3f(0,0,1);
-        Vector3f handDirection = handRotation.transform(forward);
+        Vec3 handPos = this.getControllerMainPos_World();
+        Vec3 handDirection = this.getControllerMainDir_World();
         
         double mot = Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
        
@@ -884,9 +888,9 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
         weapongSwingLen = weaponLength;
         weaponEnd = Vec3.createVectorHelper(
-                handPos.xCoord + handDirection.x * weaponLength,
-                handPos.yCoord - handDirection.y * weaponLength,
-                handPos.zCoord + handDirection.z * weaponLength);     
+                handPos.xCoord + handDirection.xCoord * weaponLength,
+                handPos.yCoord - handDirection.yCoord * weaponLength,
+                handPos.zCoord + handDirection.zCoord * weaponLength);     
         
         if (weaponEndlast == null ) weaponEndlast = weaponEnd;
         
@@ -905,9 +909,9 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
         
         Vec3 extWeapon = Vec3.createVectorHelper(
-                handPos.xCoord + handDirection.x * (weaponLength + entityReachAdd),
-                handPos.yCoord - handDirection.y * (weaponLength + entityReachAdd),
-                handPos.zCoord + handDirection.z * (weaponLength + entityReachAdd));
+                handPos.xCoord + handDirection.xCoord * (weaponLength + entityReachAdd),
+                handPos.yCoord - handDirection.yCoord * (weaponLength + entityReachAdd),
+                handPos.zCoord + handDirection.zCoord * (weaponLength + entityReachAdd));
         
         	//Check EntityCollisions first
         	{
@@ -931,7 +935,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         			{
         				if(canact){
         					mc.playerController.attackEntity(player, hitEntity);
-        					mc.lookaimController.triggerHapticPulse(0, 1000);
+        					this.triggerHapticPulse(0, 1000);
            					lastWeaponSolid = true;
         				}
          				inAnEntity = true;
@@ -965,7 +969,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         							mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
         						}
         					}
-             				mc.lookaimController.triggerHapticPulse(0, 1000);
+             				this.triggerHapticPulse(0, 1000);
             			//	System.out.println("Hit block speed =" + speed);            				
             				lastWeaponSolid = true;
         				}
@@ -1101,11 +1105,44 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	public EulerOrient getHMDEuler_World(){ //TOTO: important place to add user rotation.
+		return MCOpenVR.getOrientationEuler(EyeType.ovrEye_Center);
+	}
+	
 
 	@Override
 	public void triggerHapticPulse(int controller, int duration) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public FloatBuffer getHMDMatrix_World(EyeType eye) {
+		Quaternion q = MCOpenVR.getOrientationQuaternion(eye);
+		org.lwjgl.util.vector.Matrix4f head = QuaternionHelper.quatToMatrix4f(q);
+		FloatBuffer buf = BufferUtil.createFloatBuffer(16);
+		head.storeTranspose(buf);
+		buf.flip();
+		return buf;		
+	}
+
+	@Override
+	public Vec3 getEyePos_World(EyeType eye) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FloatBuffer getControllerMatrix_World(int conttroller) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Vec3 getCustomControllerVector(int controller, Vec3 axis) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

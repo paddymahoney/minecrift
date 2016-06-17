@@ -1,8 +1,6 @@
 package com.mtbs3d.minecrift.provider;
 
-import com.mtbs3d.minecrift.api.BasePlugin;
 import com.mtbs3d.minecrift.api.IStereoProvider;
-import com.mtbs3d.minecrift.api.PluginType;
 import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
 
@@ -35,19 +33,7 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	private float[][] hiddenMesheVertecies = new float[2][];
 
 	@Override
-	public String getName() {
-		return "OpenVR";
-	}
-
-	@Override
-	public String getID() {
-		return "openvr";
-	}
-
-	@Override
-	public RenderTextureInfo getRenderTextureSizes(FovPort leftFov,
-			FovPort rightFov,
-			float renderScaleFactor)
+	public RenderTextureInfo getRenderTextureSizes(float renderScaleFactor)
 	{
 		IntBuffer rtx = IntBuffer.allocate(1);
 		IntBuffer rty = IntBuffer.allocate(1);
@@ -153,56 +139,6 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	{
 		return true;
 	}
-
-
-	@Override
-	public String getInitializationStatus() {
-		return null;
-	}
-
-	@Override
-	public String getVersion() {
-		return "1.0";
-	}
-
-	@Override
-	public boolean init() {
-		return false;
-	}
-
-	@Override
-	public boolean isInitialized() {
-		return true;
-	}
-
-	@Override
-	public void poll(long frameIndex) {
-
-	}
-
-	@Override
-	public void destroy() {
-
-	}
-
-
-	@Override
-	public void beginFrame()
-	{
-		beginFrame(0);
-	}
-
-	@Override
-	public void beginFrame(long frameIndex)
-	{
-
-	}
-
-	@Override
-	public boolean endFrame() {
-		return true;
-	}
-
 	@Override
 	public double getCurrentTimeSecs()
 	{
@@ -256,9 +192,16 @@ public class OpenVRStereoRenderer implements IStereoProvider
 
 	@Override
 	public boolean endFrame(EyeType eye) {
-		return this.endFrame();
+		this.endFrame();
+		return true;
 	}
 
+	
+	public void endFrame() {
+		if(MCOpenVR.vrCompositor !=null) MCOpenVR.vrCompositor.PostPresentHandoff.apply();
+	}
+
+	
 	@Override
 	public boolean providesStencilMask() {
 		return true;
@@ -267,6 +210,11 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	@Override
 	public float[] getStencilMask(EyeType eye) {
 		return eye == EyeType.ovrEye_Left ? hiddenMesheVertecies[0] : hiddenMesheVertecies[1];
+	}
+
+	@Override
+	public String getName() {
+		return "OpenVR";
 	}
 
 }

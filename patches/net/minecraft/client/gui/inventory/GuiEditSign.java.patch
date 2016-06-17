@@ -14,7 +14,7 @@
          this.buttonList.add(this.doneBtn = new GuiButton(0, this.width / 2 - 100, this.height / 4 + 120, I18n.format("gui.done", new Object[0])));
          this.tileSign.setEditable(false);
 +        // VIVE START - show keyboard
-+        ((MCOpenVR)Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, null);
++        MCOpenVR.setKeyboardOverlayShowing(true, null);
 +        // VIVE END - show keyboard
      }
  

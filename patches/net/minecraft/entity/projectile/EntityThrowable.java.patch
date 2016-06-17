@@ -13,7 +13,7 @@
  import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLivingBase;
  import net.minecraft.entity.IProjectile;
-@@ -49,15 +54,44 @@
+@@ -49,15 +54,40 @@
          return distance < var3 * var3;
      }
  
@@ -40,18 +40,14 @@
 +     
 +        if (shooter instanceof EntityPlayer)
 +        { 	
-+            Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
-+        	Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
-+            //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
-+            //aimRotation = Matrix4f.multiply(aimRotation, tilt);
-+            Vector3f forward = new Vector3f(0,0,1);
-+            Vector3f controllerDirection = aimRotation.transform(forward);
-+            spawnPosition.xCoord = aimSource.xCoord + controllerDirection.x * 0.28f;
-+            spawnPosition.yCoord = aimSource.yCoord - controllerDirection.y * 0.28f;
-+            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.z * 0.28f;
++            Vec3 aimSource = Minecraft.getMinecraft().roomScale.getControllerMainPos_World();
++            Vec3 controllerDirection = Minecraft.getMinecraft().roomScale.getControllerMainDir_World();
++            spawnPosition.xCoord = aimSource.xCoord + controllerDirection.xCoord * 0.28f;
++            spawnPosition.yCoord = aimSource.yCoord - controllerDirection.yCoord * 0.28f;
++            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.zCoord * 0.28f;
 +      	
-+            yaw = Minecraft.getMinecraft().lookaimController.getAimYaw();
-+            pitch = Minecraft.getMinecraft().lookaimController.getAimPitch();
++            yaw = Minecraft.getMinecraft().roomScale.getControllerMainYaw_World();
++            pitch =Minecraft.getMinecraft().roomScale.getControllerMainPitch_World();
 +        }
 +    
 +        this.setLocationAndAngles(spawnPosition.xCoord, spawnPosition.yCoord ,spawnPosition.zCoord, yaw, pitch);

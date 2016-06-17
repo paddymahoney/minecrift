@@ -60,17 +60,16 @@ import java.nio.LongBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-public class MCOpenVR implements IEyePositionProvider, IOrientationProvider, IBasePlugin, IHMDInfo, 
-IEventNotifier, IEventListener, IBodyAimController
+public class MCOpenVR 
 {
 	private static String initStatus;
-	private boolean initialized;
-	private Minecraft mc;
+	private static boolean initialized;
+	private static Minecraft mc;
 
 	static VR_IVRSystem_FnTable vrsystem;
-	private static VR_IVRCompositor_FnTable vrCompositor;
-	private static VR_IVROverlay_FnTable vrOverlay;
-	private static VR_IVRSettings_FnTable vrSettings;
+	static VR_IVRCompositor_FnTable vrCompositor;
+	static VR_IVROverlay_FnTable vrOverlay;
+	static VR_IVRSettings_FnTable vrSettings;
 
 	private static IntBuffer hmdErrorStore;
 	private static TrackedDevicePose_t.ByReference hmdTrackedDevicePoseReference;
@@ -107,14 +106,14 @@ IEventNotifier, IEventListener, IBodyAimController
 	private final Texture_t texType = new Texture_t();
 
 	// aiming
-	private float bodyYaw = 0;
-	private float aimYaw = 0;
-	private float aimPitch = 0;
+	private static float bodyYaw = 0;
+	private static float aimYaw = 0;
+	private static float aimPitch = 0;
 
-	private float laimPitch = 0;
-	private float laimYaw = 0;
+	private static float laimPitch = 0;
+	private static float laimYaw = 0;
 
-	private Vec3[] aimSource = new Vec3[2];
+	private static Vec3[] aimSource = new Vec3[2];
 
 	// Controllers
 	private static int RIGHT_CONTROLLER = 0;
@@ -145,13 +144,13 @@ IEventNotifier, IEventListener, IBodyAimController
 	private static Vector3f guiPos = new Vector3f();
 	private static Matrix4f guiRotationPose = new Matrix4f();
 	public static float guiScale = 1.0f;
-	public double startedOpeningInventory = 0;
+	public static double startedOpeningInventory = 0;
 
 	// For mouse menu emulation
-	private float controllerMouseX = -1.0f;
-	private float controllerMouseY = -1.0f;
-	public boolean controllerMouseValid;
-	public int controllerMouseTicks;
+	private static float controllerMouseX = -1.0f;
+	private static float controllerMouseY = -1.0f;
+	public static boolean controllerMouseValid;
+	public static int controllerMouseTicks;
 
 	//keyboard
 	public static boolean keyboardShowing = false;
@@ -160,38 +159,37 @@ IEventNotifier, IEventListener, IBodyAimController
 	static int pollsSinceLastChange = 0;
 
 	// Touchpad samples
-	private Vector2f[][] touchpadSamples = new Vector2f[2][5];
-	private int[] touchpadSampleCount = new int[2];
+	private static Vector2f[][] touchpadSamples = new Vector2f[2][5];
+	private static int[] touchpadSampleCount = new int[2];
 
-	private float[] inventory_swipe = new float[2];
+	private static float[] inventory_swipe = new float[2];
 	
-	private boolean headIsTracking;
+	private static boolean headIsTracking;
 	
-	private int moveModeSwitchcount = 0;
+	private static int moveModeSwitchcount = 0;
 
-	@Override
+	
 	public String getName() {
 		return "OpenVR";
 	}
 
-	@Override
+	
 	public String getID() {
 		return "openvr";
 	}
 
-	@Override
+	
 	public String getInitializationStatus() { return initStatus; }
 
-	@Override
+	
 	public boolean isInitialized() { return initialized; }
 
-	@Override
+	
 	public String getVersion() { return "Version TODO"; }
 
 	public MCOpenVR()
 	{
 		super();
-		PluginManager.register(this);
 
 		for (int c=0;c<2;c++)
 		{
@@ -229,7 +227,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	private boolean tried;
 
-	@Override
+	
 	public boolean init()  throws Exception
 	{
 
@@ -445,8 +443,8 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	private String lasttyped = "";
 
-	@Override
-	public void poll(long frameIndex)
+	
+	public static void poll(long frameIndex)
 	{
 		mc.mcProfiler.startSection("poll");
 
@@ -471,9 +469,9 @@ IEventNotifier, IEventListener, IBodyAimController
 		mc.mcProfiler.endSection();
 	}
 
-	GuiTextField keyboardGui;
+	static GuiTextField keyboardGui;
 
-	public boolean setKeyboardOverlayShowing(boolean showingState, GuiTextField gui) {
+	public static boolean setKeyboardOverlayShowing(boolean showingState, GuiTextField gui) {
 		keyboardGui = gui;
 		int ret = 1;
 		if (showingState) {
@@ -507,7 +505,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 	//sets mouse position for currentscreen
-	private void processGui() {
+	private static void processGui() {
 		Vector3f controllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
 
 		Vector3f forward = new Vector3f(0,0,1);
@@ -568,21 +566,21 @@ IEventNotifier, IEventListener, IBodyAimController
 			}
 
 			// copy to mc for debugging
-			this.mc.guiU = u;
-			this.mc.guiV = v;
-			this.mc.intersectDist = intersectDist;
-			this.mc.pointOnPlaneX = pointOnPlane.x;
-			this.mc.pointOnPlaneY = pointOnPlane.y;
-			this.mc.pointOnPlaneZ = pointOnPlane.z;
-			this.mc.guiTopLeftX = guiTopLeft.x;
-			this.mc.guiTopLeftY = guiTopLeft.y;
-			this.mc.guiTopLeftZ = guiTopLeft.z;
-			this.mc.guiTopRightX = guiTopRight.x;
-			this.mc.guiTopRightY = guiTopRight.y;
-			this.mc.guiTopRightZ = guiTopRight.z;
-			this.mc.controllerPosX = controllerPos.x;
-			this.mc.controllerPosY = controllerPos.y;
-			this.mc.controllerPosZ = controllerPos.z;
+			mc.guiU = u;
+			mc.guiV = v;
+			mc.intersectDist = intersectDist;
+			mc.pointOnPlaneX = pointOnPlane.x;
+			mc.pointOnPlaneY = pointOnPlane.y;
+			mc.pointOnPlaneZ = pointOnPlane.z;
+			mc.guiTopLeftX = guiTopLeft.x;
+			mc.guiTopLeftY = guiTopLeft.y;
+			mc.guiTopLeftZ = guiTopLeft.z;
+			mc.guiTopRightX = guiTopRight.x;
+			mc.guiTopRightY = guiTopRight.y;
+			mc.guiTopRightZ = guiTopRight.z;
+			mc.controllerPosX = controllerPos.x;
+			mc.controllerPosY = controllerPos.y;
+			mc.controllerPosZ = controllerPos.z;
 		}
 
 		mc.currentScreen.mouseOffsetX = -1;
@@ -677,7 +675,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 
-	@Override
+	
 	public void destroy()
 	{
 		if (this.initialized)
@@ -687,19 +685,19 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 	}
 
-	@Override
+	
 	public void beginFrame()
 	{
 		beginFrame(0);
 	}
 
-	@Override
+	
 	public void beginFrame(long frameIndex)
 	{
 
 	}
 
-	@Override
+	
 	public boolean endFrame(EyeType eye)
 	{
 		mc.mcProfiler.startSection("submit");
@@ -724,7 +722,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		return true;
 	}
 
-	@Override
+	
 	public HmdParameters getHMDInfo()
 	{
 		HmdParameters hmd = new HmdParameters();
@@ -760,7 +758,7 @@ IEventNotifier, IEventListener, IBodyAimController
 
 
 	/* Gets the current user profile data */
-	@Override
+	
 	public UserProfileData getProfileData()
 	{
 		UserProfileData userProfile = new UserProfileData();
@@ -787,14 +785,14 @@ IEventNotifier, IEventListener, IBodyAimController
 	 * @param worldPitchOffsetDegrees Additional pitch input (e.g. mouse)
 	 * @param worldRollOffsetDegrees Additional roll input
 	 */
-	@Override
+	
 	public void update(float ipd, float yawHeadDegrees, float pitchHeadDegrees, float rollHeadDegrees,
 			float worldYawOffsetDegrees, float worldPitchOffsetDegrees, float worldRollOffsetDegrees)
 	{
 
 	}
 
-	private void findControllerDevices()
+	private static void findControllerDevices()
 	{
 		controllerDeviceIndex[RIGHT_CONTROLLER] = -1;
 		controllerDeviceIndex[LEFT_CONTROLLER] = -1;
@@ -808,7 +806,7 @@ IEventNotifier, IEventListener, IBodyAimController
 			}
 	}
 
-	private void updateControllerButtonState()
+	private static void updateControllerButtonState()
 	{
 		for (int c = 0; c < 2; c++) //each controller
 		{
@@ -863,7 +861,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	//This means we should only set keys as pressed when they change state, or they will repeat.
 	//And we should still unpress the key when released.
 	//TODO: make a new class that polls more quickly and provides Minecraft.java with a HTCController.next() event queue. (unless openVR has one?)
-	private void processControllerButtons()
+	private static void processControllerButtons()
 	{
 		if (mc.theWorld == null)
 			return;
@@ -1128,8 +1126,8 @@ IEventNotifier, IEventListener, IBodyAimController
 				if(gui || keyboardShowing){
 
 					if(mc.currentScreen instanceof GuiWinGame){ //from 'esc' key on guiwingame since we cant push it.
-						this.mc.thePlayer.sendQueue.addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.PERFORM_RESPAWN));
-						this.mc.displayGuiScreen((GuiScreen)null);		
+						mc.thePlayer.sendQueue.addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.PERFORM_RESPAWN));
+						mc.displayGuiScreen((GuiScreen)null);		
 					}else {
 						mc.thePlayer.closeScreen();
 						setKeyboardOverlayShowing(false, null);
@@ -1141,7 +1139,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 	//jrbuda:: oh hello there you are.
-	private void pollInputEvents()
+	private static void pollInputEvents()
 	{
 		//TODO: use this for everything, maybe.
 		jopenvr.VREvent_t event = new jopenvr.VREvent_t();
@@ -1169,7 +1167,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 	}
 
-	private void updateTouchpadSampleBuffer()
+	private static void updateTouchpadSampleBuffer()
 	{
 		for (int c=0;c<2;c++)
 		{
@@ -1187,7 +1185,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 	}
 
-	private void clearTouchpadSampleBuffer(int controller)
+	private static void clearTouchpadSampleBuffer(int controller)
 	{
 		for (int sample=0;sample<5;sample++)
 		{
@@ -1198,7 +1196,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		inventory_swipe[controller] = 0;
 	}
 
-	private void processTouchpadSampleBuffer()
+	private static void processTouchpadSampleBuffer()
 	{
 		if (mc.thePlayer == null)
 			return;
@@ -1270,12 +1268,11 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 			
 			
-
 		//TODO: R touchpad up/down scrolls containers
 
 	}
 
-	public void updatePose()
+	public static void updatePose()
 	{
 		if ( vrsystem == null || vrCompositor == null )
 			return;
@@ -1329,8 +1326,8 @@ IEventNotifier, IEventListener, IBodyAimController
 	/**
 	 * @return The coordinate of the 'center' eye position relative to the head yaw plane
 	 */
-	@Override
-	public Vec3 getCenterEyePosition() {
+	
+	static Vec3 getCenterEyePosition() {
 		Vector3f pos = OpenVRUtil.convertMatrix4ftoTranslationVector(hmdPose);
 		// not sure why the negative y is required here
 		return Vec3.createVectorHelper(pos.x, -pos.y, pos.z);
@@ -1339,8 +1336,8 @@ IEventNotifier, IEventListener, IBodyAimController
 	/**
 	 * @return The coordinate of the left or right eye position relative to the head yaw plane
 	 */
-	@Override
-	public Vec3 getEyePosition(EyeType eye)
+	
+	static Vec3 getEyePosition(EyeType eye)
 	{
 		Matrix4f hmdToEye = hmdPoseRightEye;
 		if ( eye == EyeType.ovrEye_Left )
@@ -1358,7 +1355,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	/**
 	 * Resets the current origin position
 	 */
-	@Override
+	
 	public void resetOrigin()
 	{
 		// not needed with Lighthouse
@@ -1367,7 +1364,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	/**
 	 * Resets the current origin rotation
 	 */
-	@Override
+	
 	public void resetOriginRotation()
 	{
 		// not needed with Lighthouse
@@ -1376,7 +1373,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	/**
 	 * Enables prediction/filtering
 	 */
-	@Override
+	
 	public void setPrediction(float delta, boolean enable)
 	{
 		// n/a
@@ -1387,7 +1384,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	 *
 	 * @return The Head Yaw, in degrees
 	 */
-	@Override
+	
 	public float getHeadYawDegrees(EyeType eye)
 	{
 		Quatf quat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
@@ -1402,7 +1399,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	 *
 	 * @return The Head Pitch, in degrees
 	 */
-	@Override
+	
 	public float getHeadPitchDegrees(EyeType eye)
 	{
 		Quatf quat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
@@ -1417,7 +1414,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	 *
 	 * @return The Head Roll, in degrees
 	 */
-	@Override
+	
 	public float getHeadRollDegrees(EyeType eye)
 	{
 		Quatf quat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
@@ -1432,14 +1429,18 @@ IEventNotifier, IEventListener, IBodyAimController
 	 *
 	 * @return quaternion w, x, y & z components
 	 */
-	@Override
-	public Quaternion getOrientationQuaternion(EyeType eye)
+	
+	static Quaternion getOrientationQuaternion(EyeType eye)
 	{
 		Quatf orient = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
 		return new Quaternion(orient.x, orient.y, orient.z, orient.w);
 	}
 
-
+	static EulerOrient getOrientationEuler(EyeType eye)
+	{
+		Quatf orient = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
+		return OpenVRUtil.getEulerAnglesDegYXZ(orient);
+	}
 		
 	final String k_pch_SteamVR_Section = "steamvr";
 	final String k_pch_SteamVR_RenderTargetMultiplier_Float = "renderTargetMultiplier";
@@ -1527,28 +1528,28 @@ IEventNotifier, IEventListener, IBodyAimController
 	//-------------------------------------------------------
 	// IBodyAimController
 
-	@Override
+	
 	public float getBodyYawDegrees() {
 		return bodyYaw;
 	}
-	@Override
+	
 	public void setBodyYawDegrees(float yawOffset) {
 		bodyYaw = yawOffset;
 	}
-	@Override
+	
 	public float getBodyPitchDegrees() {
 		return 0; //Always return 0 for body pitch
 	}
-	@Override
+	
 	public float getAimYaw() {
 		return aimYaw + bodyYaw;
 	}
-	@Override
+	
 	public float getAimPitch() {
 		return aimPitch;
 	}
     Vector3f forward = new Vector3f(0,0,1);
-	@Override
+	
 	public Vec3 getAimVector( int controller ) {
 		Matrix4f aimRotation = controller == 0 ? controllerRotation[0]: controllerRotation[1];
         Vector3f controllerDirection = aimRotation.transform(forward);
@@ -1558,18 +1559,18 @@ IEventNotifier, IEventListener, IBodyAimController
 
 	}
 	
-	@Override
-	public Matrix4f getAimRotation( int controller ) {
+	
+	public static Matrix4f getAimRotation( int controller ) {
 		return controller == 0 ? controllerRotation[0]: controllerRotation[1];
 	}
 	
-	@Override
+	
 	public boolean initBodyAim() throws Exception
 	{
 		return init();
 	}
 
-	private void updateSmoothedVelocity()
+	private static void updateSmoothedVelocity()
 	{
 		mc.mcProfiler.startSection("updateSmoothedVelocity");
 		int maxSamples = 1000000;
@@ -1596,7 +1597,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		mc.mcProfiler.endSection();
 	}
 
-	@Override
+	
 	public Vec3 getSmoothedAimVelocity(int controller)
 	{
 		Vec3 velocity = Vec3.createVectorHelper(0,0,0);
@@ -1620,21 +1621,21 @@ IEventNotifier, IEventListener, IBodyAimController
 
 		return velocity;
 	}
-	@Override
-	public Vec3 getAimSource( int controller ) {
+	
+	public static Vec3 getAimSource( int controller ) {
 		return Vec3.createVectorHelper(aimSource[controller].xCoord, aimSource[controller].yCoord, aimSource[controller].zCoord);
 	}
-	@Override
+	
 	public void triggerHapticPulse(int controller, int strength) {
 		if (controllerDeviceIndex[controller]==-1)
 			return;
 		vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[controller], 0, (short)strength);
 	}
 
-	private Vector3f headDirection;
+	private static Vector3f headDirection;
 	
-	private void updateAim() {
-		if (this.mc==null)
+	private static void updateAim() {
+		if (mc==null)
 			return;
 
 		mc.mcProfiler.startSection("updateAim");
@@ -1647,7 +1648,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		aimSource[0].zCoord = -controllerPos.z;
 
 		// translate controller position by player position, giving a final world coordinate
-		Entity player = this.mc.renderViewEntity;
+		Entity player = mc.renderViewEntity;
 		if (player!=null)
 		{
 			//Vec3 playerPos = player.getPositionVector();
@@ -1728,14 +1729,14 @@ IEventNotifier, IEventListener, IBodyAimController
 	}
 
 
-	public boolean applyGUIModelView(EyeType eyeType)
+	public static boolean applyGUIModelView(EyeType eyeType)
 	{
    		mc.mcProfiler.startSection("applyGUIModelView");
 
 		float scale = guiScale; 
 
 		// main menu view
-		if (this.mc.theWorld==null || mc.currentScreen instanceof GuiWinGame) {
+		if (mc.theWorld==null || mc.currentScreen instanceof GuiWinGame) {
 			guiPos.x = 0;
 			guiPos.y = 1.3f;
 			guiPos.z = -1.3f;
@@ -1746,7 +1747,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 		// i am dead view
-		if (this.mc.thePlayer!=null && !this.mc.thePlayer.isEntityAlive())
+		if (mc.thePlayer!=null && !mc.thePlayer.isEntityAlive())
 		{
 			Vector3f headPos = OpenVRUtil.convertMatrix4ftoTranslationVector(hmdPose);
 
@@ -1767,7 +1768,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		}
 
 		// HUD view - attach to head or controller
-		else if (this.mc.theWorld!=null && (this.mc.currentScreen==null || mc.vrSettings.floatInventory == false))
+		else if (mc.theWorld!=null && (mc.currentScreen==null || mc.vrSettings.floatInventory == false))
 		{
 			if (mc.vrSettings.hudLockToHead)
 			{
@@ -1804,7 +1805,7 @@ IEventNotifier, IEventListener, IBodyAimController
 		// otherwise, looking at inventory screen. use pose calculated when screen was opened
 		//where is this set up... should be here....
 
-		if(this.mc.currentScreen instanceof GuiChat){
+		if(mc.currentScreen instanceof GuiChat){
 
 
 		}
@@ -1831,7 +1832,7 @@ IEventNotifier, IEventListener, IBodyAimController
 	
 			Quaternion tiltBack = new Quaternion();
 			float tiltAngle = 0.0f; //15.0f;
-			tiltBack.setFromAxisAngle(new Vector4f(1.0f, 0.0f, 0.0f,  tiltAngle * PIOVER180));
+			tiltBack.setFromAxisAngle(new Vector4f(1.0f, 0.0f, 0.0f,  (float) (tiltAngle * Math.PI / 180)));
 			org.lwjgl.util.vector.Matrix4f tiltBackMatrix = QuaternionHelper.quatToMatrix4f(tiltBack);
 			FloatBuffer tiltBackBuf = BufferUtil.createFloatBuffer(16);
 			tiltBackMatrix.storeTranspose(tiltBackBuf);
@@ -1840,8 +1841,8 @@ IEventNotifier, IEventListener, IBodyAimController
 	
 			double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
 	
-			if (this.mc.theWorld == null || this.mc.currentScreen instanceof GuiWinGame || (this.mc.currentScreen!=null && this.mc.currentScreen instanceof GuiContainer
-					&& !(this.mc.currentScreen instanceof GuiInventory || this.mc.currentScreen instanceof GuiContainerCreative)))
+			if (mc.theWorld == null || mc.currentScreen instanceof GuiWinGame || (mc.currentScreen!=null && mc.currentScreen instanceof GuiContainer
+					&& !(mc.currentScreen instanceof GuiInventory || mc.currentScreen instanceof GuiContainerCreative)))
 			{
 				guiScale = 2.0f; 		
 			}else guiScale = 1.0f;//mc.vrSettings.hudScale;
@@ -1858,28 +1859,14 @@ IEventNotifier, IEventListener, IBodyAimController
 	//-------------------------------------------------------
 	// EventNotifier/IEventListener
 
-	public double getCurrentTimeSecs()
+	public static double getCurrentTimeSecs()
 	{
 		return System.nanoTime() / 1000000000d;
 	}
 	
-	@Override
-	public synchronized void registerListener(IEventListener listener)
-	{
-		listeners.add(listener);
-	}
+	
 
-	@Override
-	public synchronized void notifyListeners(int eventId)
-	{
-		for (IEventListener listener : listeners)
-		{
-			if (listener != null)
-				listener.eventNotification(eventId);
-		}
-	}
-
-	@Override
+	
 	public void eventNotification(int eventId)
 	{
 
@@ -1888,37 +1875,32 @@ IEventNotifier, IEventListener, IBodyAimController
 
 
 	
-	@Override
+	
 	public void triggerYawTransition(boolean isPositive) { }
 
-	@Override
+	
 	public void saveOptions() {
 
 	}
 
-	@Override
+	
 	public void loadDefaults() {
 
 	}
 
 
-	@Override
-	public boolean endFrame() {
-		if(vrCompositor !=null) vrCompositor.PostPresentHandoff.apply();
-		return true;
-	}
 
-	@Override
+	
 	public float getOffhandAimYaw() {
 		return laimYaw;
 	}
 
-	@Override
+	
 	public float getOffhandAimPitch() {
 		return laimPitch;
 	}
 
-	@Override
+	
 	public Vec3 getHeadVector() {
 		return Vec3.createVectorHelper(headDirection.x, headDirection.y, headDirection.z);
 	}

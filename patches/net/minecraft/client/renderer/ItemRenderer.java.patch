@@ -258,7 +258,7 @@
  
          GL11.glPopMatrix();
      }
-@@ -240,364 +251,490 @@
+@@ -240,364 +251,493 @@
  
          p_78439_0_.draw();
      }
@@ -694,10 +694,13 @@
 +		    						Vec3 aim = mc.bowTracker.getAimVector(); 
 +		    						Vector3f aimCopy = new Vector3f((float)aim.xCoord,(float) aim.yCoord, (float)aim.zCoord);
 +		
-+		    						Matrix4f left = mc.lookaimController.getAimRotation(1);
++		    						//Matrix4f left = mc.lookaimController.getAimRotation(1);
 +		
-+		    						Vector3f current = left.transform(new Vector3f(0,1,0));
-+		    						Vector3f currentfore = left.transform(new Vector3f(0,0,-1));
++		    						Vec3 lup = mc.roomScale.getCustomControllerVector(1,  Vec3.createVectorHelper(0, 1, 0));
++		    						Vector3f current = new Vector3f((float)lup.xCoord, (float)lup.yCoord, (float)lup.zCoord);
++		    						Vec3 lback = mc.roomScale.getCustomControllerVector(1,  Vec3.createVectorHelper(0, 0, -1));
++		    						
++		    						Vector3f currentfore =  new Vector3f((float)lback.xCoord, (float)lback.yCoord, (float)lback.zCoord);
 +		
 +		    						Vector3f v = aimCopy.cross(current);
 +		    						double d = 180 / Math.PI * Math.acos(aimCopy.dot(current));
@@ -1077,7 +1080,7 @@
          var3.startDrawingQuads();
          var3.addVertexWithUV((double)var5, (double)var7, (double)var9, (double)var11, (double)var13);
          var3.addVertexWithUV((double)var6, (double)var7, (double)var9, (double)var10, (double)var13);
-@@ -606,6 +743,7 @@
+@@ -606,6 +746,7 @@
          var3.draw();
          GL11.glPopMatrix();
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1085,7 +1088,7 @@
      }
  
      /**
-@@ -621,13 +759,13 @@
+@@ -621,13 +762,13 @@
          GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();

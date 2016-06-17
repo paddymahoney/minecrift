@@ -150,7 +150,6 @@ public class VRSettings
     public boolean soundOrientWithHead = true;
 	public float chatOffsetX = 0;
 	public float chatOffsetY = 0.4f;
-	public float aimPitchOffset = 0;
     public int inertiaFactor = INERTIA_NORMAL;
     public boolean allowPitchAffectsHeightWhileFlying = true;
     public boolean storeDebugAim = false;
@@ -593,11 +592,6 @@ public class VRSettings
                         this.chatOffsetY = this.parseFloat(optionTokens[1]);
                     }
 
-                    if (optionTokens[0].equals("aimPitchOffset"))
-                    {
-                        this.aimPitchOffset = this.parseFloat(optionTokens[1]);
-                    }
-
                     if (optionTokens[0].equals("inertiaFactor"))
                     {
                         this.inertiaFactor = Integer.parseInt(optionTokens[1]);
@@ -968,22 +962,10 @@ public class VRSettings
 	            return this.soundOrientWithHead ? var4 + "Headphones" : var4 + "Speakers";
             case MOUSE_AIM_TYPE:
                 return this.mouseKeyholeTight ? var4 + "Keyhole (tight)" : var4 + "Keyhole (loose)";
-            case VR_RENDERER:
-                if (this.mc.stereoProvider != null)
-                    return this.mc.stereoProvider.getName();
-
-                return "None";
-	        case VR_HEAD_ORIENTATION:
-	            if (this.mc.headTracker != null)
-	                return this.mc.headTracker.getName();
-	
-	            return "None";
 	        case CHAT_OFFSET_X:
 	            return var4 + String.format("%.0f%%", new Object[] { Float.valueOf(100*this.chatOffsetX) });
 	        case CHAT_OFFSET_Y:
 	            return var4 + String.format("%.0f%%", new Object[] { Float.valueOf(100*this.chatOffsetY) });
-	        case AIM_PITCH_OFFSET:
-	            return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.aimPitchOffset) });
             case INERTIA_FACTOR:
                 if (this.inertiaFactor == INERTIA_NONE)
                     return var4 + "Automan";
@@ -1101,8 +1083,6 @@ public class VRSettings
 				return this.chatOffsetX;
 			case CHAT_OFFSET_Y:
 				return this.chatOffsetY;
-			case AIM_PITCH_OFFSET:
-				return aimPitchOffset;
             case MOVEMENT_ACCELERATION_SCALE_FACTOR:
                 return movementAccelerationScaleFactor;
             case VR_COMFORT_TRANSITION_TIME_SECS:
@@ -1386,9 +1366,6 @@ public class VRSettings
 	        case CHAT_OFFSET_Y:
 	        	this.chatOffsetY = par2;
 	        	break;
-	        case AIM_PITCH_OFFSET:
-	        	this.aimPitchOffset = par2;
-                break;
             case MOVEMENT_ACCELERATION_SCALE_FACTOR:
                 this.movementAccelerationScaleFactor = par2;
                 break;
@@ -1500,7 +1477,6 @@ public class VRSettings
             var5.println("menuCrosshairScale:" + this.menuCrosshairScale);
             var5.println("chatOffsetX:" + this.chatOffsetX);
             var5.println("chatOffsetY:" + this.chatOffsetY);
-            var5.println("aimPitchOffset:" + this.aimPitchOffset);
             var5.println("inertiaFactor:" + this.inertiaFactor);
             var5.println("useVrComfort:" + this.useVrComfort);
             var5.println("allowForwardPlusStrafe:" + this.allowForwardPlusStrafe);

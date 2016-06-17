@@ -1,5 +1,6 @@
 package com.mtbs3d.minecrift.gameplay;
 
+import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
 import com.mtbs3d.minecrift.provider.MCOpenVR;
 
 import de.fruitfly.ovr.structs.Matrix4f;
@@ -64,7 +65,7 @@ public class BowTracker {
 	
 	int hapcounter = 0;
 	
-	public void doProcess(MCOpenVR provider, EntityPlayerSP player){
+	public void doProcess(IRoomscaleAdapter provider, EntityPlayerSP player){
 
 		if (!isActive(player)){			
 			isDrawing = false;
@@ -80,22 +81,25 @@ public class BowTracker {
 		lastcanDraw = canDraw;
 		maxDraw = Minecraft.getMinecraft().thePlayer.height * 0.25;
 
-		Vec3 rightPos = provider.getAimSource(0);
-		Vec3 leftPos = provider.getAimSource(1);
+		Vec3 rightPos = provider.getControllerMainPos_World();
+		Vec3 leftPos = provider.getControllerOffhandPos_World();
 		controllersDist = leftPos.distanceTo(rightPos);
 		
 		aim = rightPos.subtract(leftPos).normalize();
 
 		Vector3f forward = new Vector3f(0,0,1);
-
-		Matrix4f rv4 = provider.getAimRotation(0);
-		Vector3f rightAim = rv4.transform(forward);
-
-		Matrix4f lv4 = provider.getAimRotation(1);
-		Vector3f leftAim = lv4.transform(forward);
-		Vector3f leftforeward = lv4.transform(new Vector3f(0,1,0));
-
-		leftHandAim = Vec3.createVectorHelper(leftAim.x, leftAim.y, leftAim.z);
+//
+//		Matrix4f rv4 = provider.getAimRotation(0);
+//		Vector3f rightAim = rv4.transform(forward);
+		Vec3 rightaim3 = provider.getControllerMainDir_World();
+		
+		Vector3f rightAim = new Vector3f((float)rightaim3.xCoord, (float) rightaim3.yCoord, (float) rightaim3.zCoord);
+//		Matrix4f lv4 = provider.getAimRotation(1);
+//		Vector3f leftAim = lv4.transform(forward);
+		 leftHandAim = provider.getControllerOffhandDir_World();
+		 Vec3 l4v3 = provider.getCustomControllerVector(1, Vec3.createVectorHelper(0, 1, 0));
+		 
+		Vector3f leftforeward = new Vector3f((float)l4v3.xCoord, (float) l4v3.yCoord, (float) l4v3.zCoord);
 
 		controllersDot = 180 / Math.PI * Math.acos(leftforeward.dot(rightAim));
 

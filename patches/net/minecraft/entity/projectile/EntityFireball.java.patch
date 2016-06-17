@@ -16,7 +16,7 @@
  import net.minecraft.nbt.NBTTagCompound;
  import net.minecraft.nbt.NBTTagList;
  import net.minecraft.util.AxisAlignedBB;
-@@ -59,12 +65,35 @@
+@@ -59,12 +65,34 @@
          this.accelerationZ = p_i1760_12_ / var14 * 0.1D;
      }
  
@@ -36,17 +36,16 @@
 +        float yaw = shooter.rotationYaw;
 +        float pitch = shooter.rotationPitch;
 +     
-+       if (shooter instanceof EntityPlayer)
-+        {
-+       	
-+           Vec3 aimSource = Minecraft.getMinecraft().lookaimController.getAimSource(0);
-+           Vec3 aimRotation = Minecraft.getMinecraft().lookaimController.getAimVector(0);
-+           spawnPosition.xCoord = aimSource.xCoord + aimRotation.xCoord * 0.28f;
-+           spawnPosition.yCoord = aimSource.yCoord - aimRotation.yCoord * 0.28f;
-+           spawnPosition.zCoord = aimSource.zCoord + aimRotation.zCoord * 0.28f;
-+     	
-+           yaw = Minecraft.getMinecraft().lookaimController.getAimYaw();
-+           pitch = Minecraft.getMinecraft().lookaimController.getAimPitch();
++        if (shooter instanceof EntityPlayer)
++        { 	
++            Vec3 aimSource = Minecraft.getMinecraft().roomScale.getControllerMainPos_World();
++            Vec3 controllerDirection = Minecraft.getMinecraft().roomScale.getControllerMainDir_World();
++            spawnPosition.xCoord = aimSource.xCoord + controllerDirection.xCoord * 0.28f;
++            spawnPosition.yCoord = aimSource.yCoord - controllerDirection.yCoord * 0.28f;
++            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.zCoord * 0.28f;
++      	
++            yaw = Minecraft.getMinecraft().roomScale.getControllerMainYaw_World();
++            pitch =Minecraft.getMinecraft().roomScale.getControllerMainPitch_World();
 +        }
 +    
 +        this.setLocationAndAngles(spawnPosition.xCoord, spawnPosition.yCoord ,spawnPosition.zCoord, yaw, pitch);

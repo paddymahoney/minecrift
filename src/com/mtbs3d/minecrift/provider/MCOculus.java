@@ -204,38 +204,6 @@ public class MCOculus extends OculusRift //OculusRift does most of the heavy lif
     }
 
 
-
-    
-    public void eventNotification(int eventId)
-    {
-        switch (eventId)
-        {
-            case IBasePlugin.EVENT_CALIBRATION_SET_ORIGIN:
-            {
-                if (calibrationStep == CALIBRATE_AWAITING_FIRST_ORIGIN)
-                {
-                    calibrationStep = CALIBRATE_AT_FIRST_ORIGIN;
-                    processCalibration();
-                }
-                break;
-            }
-            case IBasePlugin.EVENT_SET_ORIGIN:
-            {
-                resetOrigin();
-            }
-            case IBasePlugin.EVENT_CALIBRATION_ABORT:
-            {
-                if (isCalibrating)
-                {
-                    calibrationStep = CALIBRATE_ABORTED_COOLDOWN;
-                    coolDownStart = System.currentTimeMillis();
-                    processCalibration();
-                }
-                break;
-            }
-        }
-    }
-
     
     private void processCalibration()
     {

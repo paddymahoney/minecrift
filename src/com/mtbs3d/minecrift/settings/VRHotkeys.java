@@ -4,8 +4,6 @@
 */
 package com.mtbs3d.minecrift.settings;
 
-import com.mtbs3d.minecrift.api.IBasePlugin;
-import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
@@ -26,14 +24,6 @@ public class VRHotkeys {
 
 		// Capture Minecrift key events
 		boolean gotKey = false;
-
-		//  Reinitialise head tracking
-		if (Keyboard.getEventKey() == Keyboard.KEY_BACK && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
-		{
-			PluginManager.destroyAll();
-			mc.printChatMessage("Re-initialising all plugins (RCTRL+BACK): done");
-			gotKey = true;
-		}
 
 		// Debug aim
 		if (Keyboard.getEventKey() == Keyboard.KEY_RSHIFT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
@@ -115,20 +105,6 @@ public class VRHotkeys {
 			}
 			gotKey = true;
 		}
-
-		// If an orientation plugin is performing calibration, space also sets the origin
-		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE))
-		{
-			PluginManager.notifyAll(IBasePlugin.EVENT_CALIBRATION_SET_ORIGIN);
-			gotKey = true;
-		}
-		// ...and ESC aborts
-		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
-		{
-			PluginManager.notifyAll(IBasePlugin.EVENT_CALIBRATION_ABORT);
-			gotKey = true;
-		}
-
 		// VIVE START - hotkeys
 
 		// Testing different movement styles

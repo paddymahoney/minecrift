@@ -7,8 +7,6 @@ package com.mtbs3d.minecrift.gui;
 import com.mtbs3d.minecrift.api.ErrorHelper;
 import com.mtbs3d.minecrift.gui.framework.*;
 import com.mtbs3d.minecrift.provider.MCOculus;
-import com.mtbs3d.minecrift.api.IBasePlugin;
-import com.mtbs3d.minecrift.api.PluginManager;
 import com.mtbs3d.minecrift.provider.MCOpenVR;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import com.mtbs3d.minecrift.settings.VRSettings.VrOptions;
@@ -24,7 +22,6 @@ import java.util.List;
 public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEventEx
 {
     protected boolean reinit = false;
-    private PluginModeChangeButton pluginModeChangeButton;
 
     static VRSettings.VrOptions[] monoDisplayOptions = new VRSettings.VrOptions[] {
             //VRSettings.VrOptions.USE_ORTHO_GUI,
@@ -76,10 +73,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
         this.buttonList.add(new GuiButtonEx(ID_GENERIC_DONE, this.width / 2 - 100, this.height / 6 + 170, "Done"));
         this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, this.width / 2 - 100, this.height / 6 + 150, "Reset To Defaults"));
 
-        pluginModeChangeButton = new PluginModeChangeButton(ID_GENERIC_MODE_CHANGE, this.width / 2 - 78, this.height / 6 - 14, (List<IBasePlugin>)(List<?>) PluginManager.thePluginManager.stereoProviderPlugins, this.guivrSettings.stereoProviderPluginID);
-        this.buttonList.add(pluginModeChangeButton);
-        pluginModeChangeButton.enabled = true;
-
         VRSettings.VrOptions[] var10 = null;
         if( Minecraft.getMinecraft().stereoProvider instanceof MCOculus )
         {
@@ -95,12 +88,12 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
         }
         else if( Minecraft.getMinecraft().stereoProvider instanceof MCOpenVR )
         {
-            HmdParameters hmd = Minecraft.getMinecraft().hmdInfo.getHMDInfo();
-            productName = hmd.ProductName;
-            if (!hmd.isReal())
-                productName += " (Debug)";
-
-            var10 = openVRDisplayOptions;
+//            HmdParameters hmd = Minecraft.getMinecraft().hmdInfo.getHMDInfo();
+//            productName = hmd.ProductName;
+//            if (!hmd.isReal())
+//                productName += " (Debug)";
+//
+//            var10 = openVRDisplayOptions;
         }
         else
             var10 = monoDisplayOptions;
@@ -200,7 +193,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             else if (par1GuiButton.id == ID_GENERIC_MODE_CHANGE) // Mode Change
             {
                 Minecraft.getMinecraft().vrSettings.saveOptions();
-                selectOption = new GuiSelectOption(this, this.guivrSettings, "Select StereoProvider", "Select the render provider:", pluginModeChangeButton.getPluginNames());
+               // selectOption = new GuiSelectOption(this, this.guivrSettings, "Select StereoProvider", "Select the render provider:", pluginModeChangeButton.getPluginNames());
                 this.mc.displayGuiScreen(selectOption);
             }
             else if (par1GuiButton.id == VRSettings.VrOptions.OTHER_RENDER_SETTINGS.returnEnumOrdinal())
@@ -265,33 +258,33 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
 
         if (id == GuiSelectOption.ID_OPTION_SELECTED)
         {
-            String origId = pluginModeChangeButton.getSelectedID();
-
-            try {
-                pluginModeChangeButton.setPluginByName(s);
-                vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
-                mc.stereoProvider = PluginManager.configureStereoProvider(vrSettings.stereoProviderPluginID, true);
-                vrSettings.badStereoProviderPluginID = "";
-                vrSettings.saveOptions();
-                mc.reinitFramebuffers = true;
-                this.reinit = true;
-            }
-            catch (Throwable e) {
-                e.printStackTrace();
-                error = e.getClass().getName() + ": " + e.getMessage();
-                title = "Failed to initialise stereo provider: " + pluginModeChangeButton.getSelectedName();
-                mc.errorHelper = new ErrorHelper(title, error, "Reverted to previous renderer!", mc.ERROR_DISPLAY_TIME_SECS);
-                success = false;
-            }
-
-            if (!success) {
-                pluginModeChangeButton.setPluginByID(origId);
-                vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
-                try {
-                    mc.stereoProvider = PluginManager.configureStereoProvider(vrSettings.stereoProviderPluginID);
-                }
-                catch (Exception ex) {}
-            }
+//            String origId = pluginModeChangeButton.getSelectedID();
+//
+//            try {
+//                pluginModeChangeButton.setPluginByName(s);
+//                vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
+//                mc.stereoProvider = PluginManager.configureStereoProvider(vrSettings.stereoProviderPluginID, true);
+//                vrSettings.badStereoProviderPluginID = "";
+//                vrSettings.saveOptions();
+//                mc.reinitFramebuffers = true;
+//                this.reinit = true;
+//            }
+//            catch (Throwable e) {
+//                e.printStackTrace();
+//                error = e.getClass().getName() + ": " + e.getMessage();
+//                title = "Failed to initialise stereo provider: " + pluginModeChangeButton.getSelectedName();
+//                mc.errorHelper = new ErrorHelper(title, error, "Reverted to previous renderer!", mc.ERROR_DISPLAY_TIME_SECS);
+//                success = false;
+//            }
+//
+//            if (!success) {
+//                pluginModeChangeButton.setPluginByID(origId);
+//                vrSettings.stereoProviderPluginID = pluginModeChangeButton.getSelectedID();
+//                try {
+//                    mc.stereoProvider = PluginManager.configureStereoProvider(vrSettings.stereoProviderPluginID);
+//                }
+//                catch (Exception ex) {}
+//            }
         }
 
         return success;
