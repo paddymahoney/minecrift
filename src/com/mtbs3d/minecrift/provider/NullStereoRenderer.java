@@ -50,12 +50,6 @@ public class NullStereoRenderer implements IStereoProvider
     }
 
     @Override
-    public boolean isGuiOrtho()
-    {
-        return true;
-    }
-
-    @Override
     public double getFrameTiming() { return (double)System.currentTimeMillis() / 1000d; }
     
     @Override

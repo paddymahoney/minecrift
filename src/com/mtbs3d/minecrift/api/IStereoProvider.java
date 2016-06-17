@@ -43,8 +43,6 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean isStereo();
 
-    public boolean isGuiOrtho();
-
     public double getFrameTiming();
 
     public Matrix4f getProjectionMatrix(FovPort fov,
