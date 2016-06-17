@@ -1856,7 +1856,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1137,4035 @@
+@@ -825,1829 +1137,4042 @@
          {
              clipDistance = 256.0F;
          }
@@ -3619,7 +3619,14 @@
 +		if (this.mc.gameSettings.renderDistanceChunks >= 4)
 +		{
 +			Vec3 var19 = MathHelper.sin(var2.getCelestialAngleRadians(par1)) > 0.0F ? Vec3.createVectorHelper(-1.0D, 0.0D, 0.0D) : Vec3.createVectorHelper(1.0D, 0.0D, 0.0D);
-+			Vec3 look = mc.lookaimController.getHeadVector();
++			Vec3 look;
++			if(mc.stereoProvider.isStereo()){
++				 look = mc.lookaimController.getHeadVector();
++			}else {
++				 look = mc.thePlayer.getLook(par1);
++			}
++
++			
 +			var11 = (float)look.dotProduct(var19);
 +
 +			if (var11 < 0.0F)
@@ -5131,7 +5138,7 @@
 +			this.guiScreenShowingThisFrame = true;
 +			this.mc.loadingScreen.render();
 +		}
-+		else if (this.mc.stereoProvider.isStereo()) //always for vive, never for mono
++		else  //always for vive, never for mono
 +		{
 +			if ((this.mc.theWorld != null && !this.mc.vrSettings.hideGui && this.mc.thePlayer.getSleepTimer() == 0) 
 +					|| this.mc.currentScreen != null)

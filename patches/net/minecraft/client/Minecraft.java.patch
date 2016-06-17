@@ -100,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4756 @@
+@@ -150,2988 +168,4757 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -127,6 +127,7 @@
 +import org.lwjgl.opengl.*;
  import org.lwjgl.util.glu.GLU;
 +import org.lwjgl.util.vector.Quaternion;
++import org.omg.CORBA._PolicyStub;
 +
 +import static java.lang.Math.ceil;
  
@@ -6824,7 +6825,7 @@
 +			}
 +		} else { //mono
 +			this.framebufferMc.unbindFramebuffer();	//draw directly to window
-+			framebuffer.framebufferRender((int)0,Display.getWidth(), Display.getHeight(),0 );
++			framebuffer.framebufferRender((int)0,displayWidth, displayHeight,0 );
 +			return true;
 +		}
 +

@@ -880,37 +880,33 @@ public class VRPlayer
         Vector3f handDirection = handRotation.transform(forward);
         
         double mot = Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
-        
        
         ItemStack is = player.inventory.getCurrentItem();
         Item item = null;
 
         double speedthresh = (float) (is==null ? 3.5f + mot: 4.2f + mot); //account for lower apparent speed due to shorter fulcrum.         
         float weaponLength = is == null ?  0 : 0.3f; //no reach for hand
-        float attackadd =0f;
+        float entityReachAdd =0f;
         
         if(is!=null )item = is.getItem();
         
         if (item instanceof ItemSword){
-        		attackadd = 2.5f;
+        		entityReachAdd = 2.5f;
         		weaponLength = 0.3f;
                	speedthresh = 4.2f + mot;
         } else if (item instanceof ItemTool ||
         		item instanceof ItemHoe
         		){
-        	attackadd = 1.8f;
+        	entityReachAdd = 1.8f;
         	weaponLength = 0.3f;
         	speedthresh = 4.2f + mot;
         } else {
         	weaponLength = 0.0f;
-        	attackadd = 0.3f;
+        	entityReachAdd = 0.3f;
         	speedthresh = 3.7f + mot;
         }
-        
-        
 
-
-		weapongSwingLen = weaponLength;
+        weapongSwingLen = weaponLength;
         weaponEnd = Vec3.createVectorHelper(
                 handPos.xCoord + handDirection.x * weaponLength,
                 handPos.yCoord - handDirection.y * weaponLength,
@@ -933,9 +929,9 @@ public class VRPlayer
 
         
         Vec3 extWeapon = Vec3.createVectorHelper(
-                handPos.xCoord + handDirection.x * (weaponLength + attackadd),
-                handPos.yCoord - handDirection.y * (weaponLength + attackadd),
-                handPos.zCoord + handDirection.z * (weaponLength + attackadd));
+                handPos.xCoord + handDirection.x * (weaponLength + entityReachAdd),
+                handPos.yCoord - handDirection.y * (weaponLength + entityReachAdd),
+                handPos.zCoord + handDirection.z * (weaponLength + entityReachAdd));
         
         	//Check EntityCollisions first
         	{
@@ -994,7 +990,7 @@ public class VRPlayer
         						}
         					}
              				mc.lookaimController.triggerHapticPulse(0, 1000);
-            				System.out.println("Hit block speed =" + speed);            				
+            			//	System.out.println("Hit block speed =" + speed);            				
             				lastWeaponSolid = true;
         				}
            				insolidBlock = true;
