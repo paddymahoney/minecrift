@@ -38,6 +38,8 @@ import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.Random;
 
+import javax.swing.plaf.multi.MultiViewportUI;
+
 import org.lwjgl.util.vector.Quaternion;
 
 import com.google.common.base.Charsets;
@@ -56,6 +58,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     public double movementTeleportDistance;
         
     private Vec3 roomOrigin = Vec3.createVectorHelper(0,0,0);
+    private Vec3 lastroomOrigin = Vec3.createVectorHelper(0,0,0);
+    private Vec3 interPolatedRoomOrigin = Vec3.createVectorHelper(0,0,0);
     
     public VRMovementStyle vrMovementStyle = new VRMovementStyle();
     public Vec3[] movementTeleportArc = new Vec3[50];
@@ -79,8 +83,10 @@ public class OpenVRPlayer implements IRoomscaleAdapter
             movementTeleportArc[i] = Vec3.createVectorHelper(0,0,0);
         }
     }
-
-    public Vec3 getRoomOrigin() { return this.roomOrigin;}
+   
+    public void onFrameUpdate(float nano){
+     	interPolatedRoomOrigin = getInterpolatedRoomOriginPos_World(nano);
+    }
     
     public void setRoomOrigin(double x, double y, double z) { 
     	this.roomOrigin.xCoord = x;
@@ -89,36 +95,24 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         lastRoomUpdateTime = Minecraft.getMinecraft().stereoProvider.getCurrentTimeSecs();
     }
     
-    
+    //set room 
     public void snapRoomOriginToPlayerEntity(EntityPlayerSP player)
     {
         if (Thread.currentThread().getName().equals("Server thread"))
             return;
 
-        double x = player.posX;
-        double y = player.boundingBox.minY;
-        double z = player.posZ;
+        if(player.posX == 0 && player.posY == 0 &&player.posZ == 0) return;
         
         Minecraft mc = Minecraft.getMinecraft();
-        boolean bStartingUp = (roomOrigin.xCoord==0 && roomOrigin.yCoord==0 && roomOrigin.zCoord==0);
-        boolean bRestricted = !bStartingUp && getFreeMoveMode();
+        
+        Vec3 campos = mc.roomScale.getHMDPos_Room();
+        
+        double x = player.posX - campos.xCoord;
+        double y = player.boundingBox.minY;
+        double z = player.posZ - campos.zCoord;
 
-        if ( bRestricted)
-        { // set room origin exactly to x,y,z since in restricted mode the room origin is always the players feet
-            	setRoomOrigin(x, y, z);
-        }
-        else
-        { //set room origin to underneath the headset... which is where the player entity should be already? shouldnt be already anyway? maybe cause collosion?
+        setRoomOrigin(x, y, z);
 
-            Vec3 hmdOffset = MCOpenVR.getCenterEyePosition();
-            double newX = x + hmdOffset.xCoord;
-            double newY = y;
-            double newZ = z + hmdOffset.zCoord;
-
-            setRoomOrigin(newX, newY, newZ);
-
-
-        }
     }
     
     public  double topofhead = 1.62;
@@ -127,11 +121,14 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
-	
+    	
+    	this.lastroomOrigin.xCoord = roomOrigin.xCoord ;
+    	this.lastroomOrigin.yCoord = roomOrigin.yCoord ;
+    	this.lastroomOrigin.zCoord = roomOrigin.zCoord ;
         updateSwingAttack();
 		
        if(mc.vrSettings.vrAllowCrawling){         //experimental
-           topofhead = (double) (mc.entityRenderer.getCameraLocation().yCoord + .05) - player.boundingBox.minY;
+           topofhead = (double) (mc.roomScale.getHMDPos_Room().yCoord + .05);
            
            if(topofhead < .5) {topofhead = 0.5f;}
            if(topofhead > 1.8) {topofhead = 1.8f;}
@@ -186,11 +183,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
                     if (dest.xCoord != 0 || dest.yCoord != 0 || dest.zCoord != 0)
                     {
-                        Vec3 eyeCenterPos = MCOpenVR.getCenterEyePosition();
-
-                        eyeCenterPos.xCoord = roomOrigin.xCoord + eyeCenterPos.xCoord;
-                        eyeCenterPos.yCoord = roomOrigin.yCoord + eyeCenterPos.yCoord;
-                        eyeCenterPos.zCoord = roomOrigin.zCoord - eyeCenterPos.zCoord;
+                        Vec3 eyeCenterPos = getHMDPos_World();
 
                         // cloud of sparks moving past you
                         Vec3 motionDir = dest.addVector(-eyeCenterPos.xCoord, -eyeCenterPos.yCoord, -eyeCenterPos.zCoord).normalize();
@@ -370,25 +363,23 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     
     private void doPlayerMoveInRoom(EntityPlayerSP player){
     	// this needs... work...
-
     	if(player.isSneaking()) {return;} //jrbudda : prevent falling off things or walking up blocks while moving in room scale.
 
     	if(player.isRiding()) return; //dont fall off the tracks man
-    	
+    	   	
     	if(Math.abs(player.motionX) > 0.01) return;
     	if(Math.abs(player.motionZ) > 0.01) return;
-    	
     	
     	Minecraft mc = Minecraft.getMinecraft();
     	float playerHalfWidth = player.width / 2.0F;
 
     	// move player's X/Z coords as the HMD moves around the room
 
-    	Vec3 eyePos = MCOpenVR.getCenterEyePosition();
+    	Vec3 eyePos = getHMDPos_World();
 
-    	double x = roomOrigin.xCoord - eyePos.xCoord;
+    	double x = eyePos.xCoord;
     	double y = player.posY;
-    	double z = roomOrigin.zCoord - eyePos.zCoord;
+    	double z = eyePos.zCoord;
 
     	// create bounding box at dest position
     	AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(
@@ -533,10 +524,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
     public  Vec3 getTeleportAim(Minecraft mc)
     {
-        Matrix4f handRotation = getTeleportAimRotation(mc);
-        Vector3f forward = new Vector3f(0,0,1);
-        Vector3f handDirection = handRotation.transform(forward);
-        return Vec3.createVectorHelper(handDirection.x, -handDirection.y, handDirection.z);
+    	return mc.roomScale.getControllerOffhandDir_World();
     }
 
     public void updateTeleportArc(Minecraft mc, Entity player)
@@ -555,20 +543,12 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         movementTeleportArc[0].zCoord = start.zCoord;
         movementTeleportArcSteps = 1;
 
-        // if aiming too high, don't trace a full arc
-        float horizontalAimDist = (float)Math.sqrt(tiltedAim.xCoord*tiltedAim.xCoord + tiltedAim.zCoord*tiltedAim.zCoord);
-//        float pitch = (float)Math.atan2(tiltedAim.yCoord, horizontalAimDist);
-//        if (pitch > (float)Math.PI * 0.25f)
-//        {
-//            maxSteps = 6;
-//        }
-
         // calculate gravity vector for arc
         float gravityAcceleration = 0.098f;
-        Matrix4f rollCounter = OpenVRUtil.rotationZMatrix((float)MathHelper.deg2Rad*euler.roll);
-        Matrix4f gravityTilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.5f);
-        Matrix4f gravityRotation = Matrix4f.multiply(Matrix4f.multiply(handRotation, rollCounter), gravityTilt);
-        Vector3f forward = new Vector3f(0,0,1);
+        Matrix4f rollCounter = OpenVRUtil.rotationZMatrix((float)MathHelper.deg2Rad*-euler.roll);
+       // Matrix4f gravityTilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -.8f);
+        Matrix4f gravityRotation = Matrix4f.multiply(handRotation, rollCounter);
+        Vector3f forward = new Vector3f(0,1,0);
         Vector3f gravityDirection = gravityRotation.transform(forward);
         Vec3 gravity = Vec3.createVectorHelper(gravityDirection.x, -gravityDirection.y, gravityDirection.z);
         gravity.xCoord *= gravityAcceleration;
@@ -580,7 +560,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         Vec3 velocity = Vec3.createVectorHelper(
                 tiltedAim.xCoord * speed,
                 tiltedAim.yCoord * speed,
-                tiltedAim.zCoord * speed );
+                tiltedAim.zCoord * speed);
 
         Vec3 pos = Vec3.createVectorHelper(start.xCoord, start.yCoord, start.zCoord);
         Vec3 newPos = Vec3.createVectorHelper(0,0,0);
@@ -622,9 +602,9 @@ public class OpenVRPlayer implements IRoomscaleAdapter
             movementTeleportArc[i].zCoord = newPos.zCoord;
             movementTeleportArcSteps = i + 1;
 
-            velocity.xCoord += gravity.xCoord;
+            velocity.xCoord +=0;// gravity.xCoord;
             velocity.yCoord += gravity.yCoord;
-            velocity.zCoord += gravity.zCoord;
+            velocity.zCoord +=0;// gravity.zCoord;
         }
     }
 
@@ -859,7 +839,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         Vec3 handPos = this.getControllerMainPos_World();
         Vec3 handDirection = this.getControllerMainDir_World();
         
-        double mot = Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
+        double mot = 20* Math.sqrt(player.motionX * player.motionX +  player.motionZ * player.motionZ);
        
         ItemStack is = player.inventory.getCurrentItem();
         Item item = null;
@@ -883,13 +863,13 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         } else {
         	weaponLength = 0.0f;
         	entityReachAdd = 0.3f;
-        	speedthresh = 3.7f + mot;
+        	speedthresh = 3.5f + mot;
         }
 
         weapongSwingLen = weaponLength;
         weaponEnd = Vec3.createVectorHelper(
                 handPos.xCoord + handDirection.xCoord * weaponLength,
-                handPos.yCoord - handDirection.yCoord * weaponLength,
+                handPos.yCoord + handDirection.yCoord * weaponLength,
                 handPos.zCoord + handDirection.zCoord * weaponLength);     
         
         if (weaponEndlast == null ) weaponEndlast = weaponEnd;
@@ -910,7 +890,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         
         Vec3 extWeapon = Vec3.createVectorHelper(
                 handPos.xCoord + handDirection.xCoord * (weaponLength + entityReachAdd),
-                handPos.yCoord - handDirection.yCoord * (weaponLength + entityReachAdd),
+                handPos.yCoord + handDirection.yCoord * (weaponLength + entityReachAdd),
                 handPos.zCoord + handDirection.zCoord * (weaponLength + entityReachAdd));
         
         	//Check EntityCollisions first
@@ -970,7 +950,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         						}
         					}
              				this.triggerHapticPulse(0, 1000);
-            			//	System.out.println("Hit block speed =" + speed);            				
+            			   System.out.println("Hit block speed =" + speed + " mot " + mot) ;            				
             				lastWeaponSolid = true;
         				}
            				insolidBlock = true;
@@ -1006,14 +986,21 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	//================= IROOMSCALEADAPTER =============================
 	
+	
+	public float worldScale = 3.0f;
+	
 	@Override
 	public boolean isHMDTracking() {
 		return MCOpenVR.headIsTracking;
 	}
 
+	private Vec3 vecMult(Vec3 in, float factor){
+		return Vec3.createVectorHelper(in.xCoord * factor,	in.yCoord * factor, in.zCoord*factor);
+	}
+	
 	@Override
 	public Vec3 getHMDPos_World() {	
-		return MCOpenVR.getCenterEyePosition().addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
+		return vecMult(MCOpenVR.getCenterEyePosition(),worldScale).addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 	}
 
 	@Override
@@ -1024,7 +1011,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public float getHMDYaw_World() {
-		return MCOpenVR.getHeadPitchDegrees(EyeType.ovrEye_Center);
+		return MCOpenVR.getHeadYawDegrees(EyeType.ovrEye_Center);
 	}
 
 	@Override
@@ -1039,7 +1026,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public Vec3 getControllerMainPos_World() {
-		return MCOpenVR.getAimSource(0);
+		return vecMult(MCOpenVR.getAimSource(0),worldScale).addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 	}
 
 	@Override
@@ -1065,7 +1052,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public Vec3 getControllerOffhandPos_World() {
-		return MCOpenVR.getAimSource(1).addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
+		return vecMult(MCOpenVR.getAimSource(1),worldScale).addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 	}
 
 	@Override
@@ -1086,7 +1073,15 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public Vec3 getRoomOriginPos_World() {
-		return MCOpenVR.getAimSource(1).addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
+		return roomOrigin;
+	}
+	
+	private Vec3 getInterpolatedRoomOriginPos_World(float nano) {
+		Vec3 out = Vec3.createVectorHelper(0, 0, 0);
+		out.xCoord = lastroomOrigin.xCoord + (roomOrigin.xCoord - lastroomOrigin.xCoord) * (double)nano;
+		out.yCoord = lastroomOrigin.yCoord + (roomOrigin.yCoord - lastroomOrigin.yCoord) * (double)nano;
+		out.zCoord = lastroomOrigin.zCoord + (roomOrigin.zCoord - lastroomOrigin.zCoord) * (double)nano;
+		return out;
 	}
 
 	@Override
@@ -1117,7 +1112,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	
 	@Override
 	public Vec3 getEyePos_World(EyeType eye) {
-		return MCOpenVR.getEyePosition(eye).addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
+		return vecMult(MCOpenVR.getEyePosition(eye),worldScale).addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 	}
 
 	@Override
@@ -1129,6 +1124,22 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	public Vec3 getCustomControllerVector(int controller, Vec3 axis) {
 		Vector3f v3 = MCOpenVR.getAimRotation(controller).transform(new Vector3f((float)axis.xCoord, (float)axis.yCoord,(float) axis.zCoord));
 		return Vec3.createVectorHelper(v3.x, v3.y, v3.z);
+	}
+
+	@Override
+	public Vec3 getHMDPos_Room() {
+		return vecMult(MCOpenVR.getCenterEyePosition(),worldScale);
+	}
+
+	@Override
+	public Vec3 getControllerPos_Room(int i) {
+		return vecMult(MCOpenVR.getAimSource(i),worldScale);
+	}
+	
+
+	@Override
+	public Vec3 getEyePos_Room(EyeType eye) {
+		return vecMult(MCOpenVR.getEyePosition(eye),worldScale);
 	}
 	
 }

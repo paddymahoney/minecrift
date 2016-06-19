@@ -68,4 +68,6 @@ public interface IStereoProvider
 	public String getName();
 
 	public boolean isInitialized();
+	
+	public String getinitError();
 }

@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/EntityRenderer.java
-@@ -4,19 +4,43 @@
+@@ -4,19 +4,44 @@
  import java.io.IOException;
  import java.lang.reflect.Field;
  import java.nio.FloatBuffer;
@@ -27,6 +27,7 @@
 +import de.fruitfly.ovr.structs.Vector3f;
 +import de.fruitfly.ovr.util.BufferUtil;
 +import jopenvr.OpenVRUtil;
++import jopenvr.VR_IVRSystem_FnTable.GetHiddenAreaMesh_callback;
  import net.minecraft.block.Block;
 +import net.minecraft.block.BlockLiquid;
  import net.minecraft.block.material.Material;
@@ -44,7 +45,7 @@
  import net.minecraft.client.multiplayer.WorldClient;
  import net.minecraft.client.particle.EffectRenderer;
  import net.minecraft.client.particle.EntityRainFX;
-@@ -24,15 +48,18 @@
+@@ -24,15 +49,18 @@
  import net.minecraft.client.renderer.culling.ClippingHelperImpl;
  import net.minecraft.client.renderer.culling.Frustrum;
  import net.minecraft.client.renderer.entity.RenderManager;
@@ -63,7 +64,7 @@
  import net.minecraft.enchantment.EnchantmentHelper;
  import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLivingBase;
-@@ -40,16 +67,14 @@
+@@ -40,16 +68,14 @@
  import net.minecraft.entity.item.EntityItemFrame;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.init.Blocks;
@@ -86,7 +87,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,976 @@
+@@ -63,736 +89,969 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1016,7 +1017,7 @@
 +	public boolean inGameMenuShowingLastFrame = false;
 +	public boolean inWorldGuiScreenShowingThisFrame = false;
 +	public float inGameMenuHeadYaw = 0.0f; //Not including mouse
-+	Vec3 interpolatedPlayerPos = Vec3.createVectorHelper(0, 0, 0);
++	public Vec3 interpolatedPlayerPos = Vec3.createVectorHelper(0, 0, 0);
 +	public double cameraRoll;
 +	public float headYaw = 0.0F; //relative to head tracker reference frame, absolute
 +	public float headPitch = 0.0F;
@@ -1045,6 +1046,7 @@
 +	public int callCount = 0;
 +	public boolean warningsEnabled = false;
 +	private Vec3 centerEyePosToCrossDirection;
++	public Vec3 crossVec;
 +	/** END MINECRIFT */
 +
 +	public EntityRenderer(Minecraft p_i45076_1_, IResourceManager p_i45076_2_)
@@ -1268,10 +1270,6 @@
 +		//No-op for performance reasons (MouseOver set in render loop via getPointedBlock)
 +	}
 +
-+	public Vec3 getCameraLocation(){
-+		return mc.vrPlayer.getHMDPos_World();
-+	}
-+
 +	//checks around the eye position for an opaque block or water block so we can render fog and overlays for that eye
 +	public Block getEyeCollisionBlock(EyeType eye){
 +		Vec3 exact = mc.roomScale.getEyePos_World(eye);
@@ -1316,7 +1314,7 @@
 +	}
 +
 +	public Vec3 getCameraBlock(){
-+		Vec3 cam = getCameraLocation();
++		Vec3 cam = mc.roomScale.getHMDPos_World();
 +		return Vec3.createVectorHelper(Math.floor(cam.xCoord), Math.floor(cam.yCoord), Math.floor(cam.zCoord));
 +	}
 +
@@ -1365,21 +1363,16 @@
 +			double blockReachDistance = (double)this.mc.playerController.getBlockReachDistance();
 +			double entityReachDistance = blockReachDistance;
 +			// Darktemp's crosshair fix
-+			// VIVE START - interact source
-+			Vec3 cameraPos = getCameraLocation();
-+			cameraPos.yCoord = interpolatedPlayerPos.yCoord; //to keep server happy we use the 1.62m position.
++			// VIVE START - interact source	
 +			
 +			Vec3 pos1 = mc.roomScale.getControllerMainPos_World();
-+			if (pos1==null) {
-+				pos1 = Vec3.createVectorHelper(cameraPos.xCoord, cameraPos.yCoord, cameraPos.zCoord);
-+			}
 +			Vec3 pos2 = Vec3.createVectorHelper(pos1.xCoord, pos1.yCoord, pos1.zCoord);
 +			Vec3 pos3 = Vec3.createVectorHelper(pos1.xCoord, pos1.yCoord, pos1.zCoord);
 +			// VIVE END - interact source
 +
 +			Vec3 aim = mc.roomScale.getControllerMainDir_World();
 +			Vec3 endPos = pos1.addVector(aim.xCoord*blockReachDistance,aim.yCoord*blockReachDistance ,aim.zCoord*blockReachDistance );
-+			Vec3 crossVec=pos1.addVector(aim.xCoord*blockReachDistance,aim.yCoord*blockReachDistance ,aim.zCoord*blockReachDistance );
++			crossVec=pos1.addVector(aim.xCoord*blockReachDistance,aim.yCoord*blockReachDistance ,aim.zCoord*blockReachDistance );
 +
 +			this.mc.objectMouseOver = this.mc.theWorld.rayTraceBlocks(pos1, endPos, false, false, true);
 +			//   System.out.println(this.mc.objectMouseOver.toString());
@@ -1475,6 +1468,7 @@
 +
 +			// Set up crosshair position
 +			float SLIGHTLY_CLOSER = 0.001f;
++			Vec3 cameraPos = mc.roomScale.getEyePos_Room(mc.currentEye);
 +			centerEyePosToCrossDirection = cameraPos.subtract(crossVec).normalize();   // VIVE use camerapos
 +			crossX = (float)(crossVec.xCoord - (centerEyePosToCrossDirection.xCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.xCoord);
 +			crossY = (float)(crossVec.yCoord - (centerEyePosToCrossDirection.yCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.yCoord);
@@ -1759,7 +1753,7 @@
 +			// VIVE START - don't add minecraft player height to the openVR position data
 +			orientModelView(true, false);
 +			// VIVE END - don't add minecraft player height to the openVR position data
-+			GL11.glRotatef(180f, 0f, 1f, 0f);
++			//GL11.glRotatef(180f, 0f, 1f, 0f); //do not understand this.
 +		}
 +
 +		// VIVE START - move camera up out of the bed
@@ -1784,7 +1778,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +1069,14 @@
+@@ -804,16 +1063,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1807,7 +1801,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1088,3937 @@
+@@ -825,1829 +1082,3943 @@
          {
              clipDistance = 256.0F;
          }
@@ -1918,10 +1912,6 @@
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glLoadIdentity();
 +
-+		if (this.mc.gameSettings.anaglyph && !this.mc.vrSettings.debugPos)
-+		{
-+			GL11.glTranslatef((float)(par2 * 2 - 1) * 0.1F, 0.0F, 0.0F);
-+		}
 +
 +		if (!this.mc.vrSettings.debugPos) {
 +			this.hurtCameraEffect(par1);
@@ -1985,11 +1975,11 @@
 +	}
 +
 +	//VIVE
-+	public void renderDebugAxes(){
-+		renderCircle(Vec3.createVectorHelper(0, 0, 0), (float) .05, 32, 255, 255, 255	, 255, 0);
-+		renderCircle(Vec3.createVectorHelper(0, .01, 0), (float) .03, 32, 255, 255, 255	, 255, 0);
-+		renderCircle(Vec3.createVectorHelper(0,0.02, 0), (float) .01, 32, 255, 255, 255	, 255, 0);
-+		renderCircle(Vec3.createVectorHelper(0, 0, .15), (float) .02, 32, 255, 255, 255	, 255, 2);
++	public void renderDebugAxes(int r, int g, int b){
++		renderCircle(Vec3.createVectorHelper(0, 0, 0), (float) .05, 32, r, g, b	, 255, 0);
++		renderCircle(Vec3.createVectorHelper(0, .01, 0), (float) .03, 32, r, g, b	, 255, 0);
++		renderCircle(Vec3.createVectorHelper(0,0.02, 0), (float) .01, 32, r, g, b	, 255, 0);
++		renderCircle(Vec3.createVectorHelper(0, 0, .15), (float) .02, 32, r, g, b	, 255, 2);
 +
 +	}
 +	//END VIVE
@@ -2739,7 +2729,10 @@
 +		interpolatedPlayerPos.yCoord = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double)par1;
 +		interpolatedPlayerPos.zCoord = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double)par1;
 +		interpolatedPlayerPos = Vec3.createVectorHelper(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
-+
++		
++		//update interpolatedRoomOrigin
++		mc.vrPlayer.onFrameUpdate(par1);
++		
 +		if( this.mc.currentScreen == null )
 +		{
 +			this.mc.mcProfiler.endStartSection("pick");
@@ -2765,6 +2758,7 @@
 +
 +		this.updateFogColor(par1);
 +
++		//Main eye clear - start from here.
 +		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 +
 +		if(mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.vrPlayer.isHMDTracking())	
@@ -2791,7 +2785,8 @@
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glPushMatrix();
 +		/** END MINECRIFT */
-+		ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
++		//TODO: put back?
++		//ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
 +		this.mc.mcProfiler.endStartSection("frustrum");
 +		ClippingHelperImpl.getInstance();
 +
@@ -2837,18 +2832,20 @@
 +		}
 +
 +		this.mc.mcProfiler.endStartSection("culling");
-+		Frustrum var14 = new Frustrum();
++		Frustrum frustrum = new Frustrum();
 +		/** MINECRIFT */
 +		/** MINECRIFT SHADERS MOD **/
 +		if (shadersMod) {
 +			//ShadersRender.setFrustrumPosition(var14, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
 +			//ShadersRender.clipRenderersByFrustrum(this.mc.renderGlobal, var14, par1);
-+			Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {var14, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord});
-+			Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, var14, par1});
++			Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {frustrum, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord});
++			Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, frustrum, par1});
 +		}
 +		else {
-+			var14.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
-+			this.mc.renderGlobal.clipRenderersByFrustum(var14, par1);
++			Vec3 pos = mc.roomScale.getEyePos_World(mc.currentEye);
++			frustrum.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
++			
++			this.mc.renderGlobal.clipRenderersByFrustum(frustrum, par1);
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
 +
@@ -2930,7 +2927,7 @@
 +		/** END MINECRIFT */
 +		if (this.debugViewDirection == 0)
 +		{ //this renders all the entities
-+			debugViewDirection(par1, player, rg, var14, hasForge, renderOutline);
++			debugViewDirection(par1, player, rg, frustrum, hasForge, renderOutline);
 +		}
 +
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
@@ -3084,7 +3081,7 @@
 +			RenderHelper.enableStandardItemLighting();
 +			this.mc.mcProfiler.endStartSection("entities");
 +			Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(1)});
-+			this.mc.renderGlobal.renderEntities(player, var14, par1);
++			this.mc.renderGlobal.renderEntities(player, frustrum, par1);
 +			Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(-1)});
 +			RenderHelper.disableStandardItemLighting();
 +
@@ -4782,26 +4779,25 @@
 +
 +	public void orientModelView(boolean correctOffsets, boolean adjustHeight)   // VIVE added param
 +	{
-+		// Orientation
-+		if (this.mc.gameSettings.thirdPersonView == 2)
-+			GL11.glRotatef((float) -this.headRoll, 0.0F, 0.0F, 1.0F);
-+		else
-+			GL11.glRotatef((float) this.headRoll,  0.0F, 0.0F, 1.0F);
-+		GL11.glRotatef((float) this.headPitch,     1.0F, 0.0F, 0.0F);
-+		GL11.glRotatef((float) this.headYaw,       0.0F, 1.0F, 0.0F);
++		// Rotation
++		if (this.mc.gameSettings.thirdPersonView == 2)	GL11.glRotatef((float) -this.headRoll, 0.0F, 0.0F, 1.0F);
++		else GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World(mc.currentEye));
++			
 +
-+		
-+		Vec3 campos = mc.vrPlayer.getHMDPos_World();
++		Vec3 campos = getCameraPos_Render();
++	//	Vec3 center = mc.roomScale.getRoomOriginPos_World();
 +		// Position
-+		GL11.glTranslatef((float)campos.xCoord,
-+				(float)campos.yCoord,
-+				(float)campos.zCoord);
++	
++		float x = (float) (campos.xCoord );
++		float y = (float) (campos.yCoord);
++		float z = (float) (campos.zCoord );
++		GL11.glTranslatef(x,y,z);
 +
 +		if (correctOffsets)
 +		{
 +			// Correct for yaw / pitch offsets
-+			GL11.glRotatef(this.lookPitchOffset, 1.0F, 0.0F, 0.0F);
-+			GL11.glRotatef(this.lookYawOffset, 0.0F, 1.0F, 0.0F);
++//			GL11.glRotatef(this.lookPitchOffset, 1.0F, 0.0F, 0.0F);
++//			GL11.glRotatef(this.lookYawOffset, 0.0F, 1.0F, 0.0F);
 +		}
 +	}
 +
@@ -4830,7 +4826,7 @@
 +				GL11.glLoadIdentity();
 +			
 +				// VIVE START - custom GUI position
-+			MCOpenVR.applyGUIModelView(this.mc.currentEye); //MCOpenVR.java, pushes.
++				MCOpenVR.applyGUIModelView(this.mc.currentEye); //MCOpenVR.java, pushes.
 +					///JRBUDDA MAIN MENU ROOM            
 +					if(mc.theWorld == null || mc.currentScreen instanceof GuiWinGame){		
 +						rendserJrbuddasAwesomeMainMenuRoom();			
@@ -5336,12 +5332,12 @@
 +		{
 +			this.mc.mcProfiler.endStartSection("crosshair");
 +			GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
-+			float crossDepth = (float)Math.sqrt((crossX*crossX + crossY*crossY + crossZ*crossZ));
-+			float scale = 0.025f*crossDepth*this.mc.vrSettings.crosshairScale;
++			float crossDepth = MAX_CROSSHAIR_DISTANCE - (float)crossVec.subtract(mc.roomScale.getControllerMainPos_World()).lengthVector();
++			float scale = 0.002f*crossDepth*this.mc.vrSettings.crosshairScale;
 +			GL11.glPushMatrix();
 +				GL11.glTranslatef(crossX, crossY, crossZ);
 +				GL11.glRotatef(-mc.roomScale.getControllerMainYaw_World(), 0.0F, 1.0F, 0.0F);
-+				GL11.glRotatef(mc.roomScale.getControllerMainPitch_World(), 1.0F, 0.0F, 0.0F);
++				GL11.glRotatef(-mc.roomScale.getControllerMainPitch_World(), 1.0F, 0.0F, 0.0F);
 +				if (this.mc.vrSettings.crosshairRollsWithHead)
 +					GL11.glRotated(this.cameraRoll, 0.0F, 0.0F, 1.0F);
 +				if (this.mc.vrSettings.crosshairScalesWithDistance)
@@ -5406,6 +5402,7 @@
 +			GL11.glEnable(GL11.GL_DEPTH_TEST);
 +
 +			Tessellator tes = Tessellator.instance;
++			
 +			tes.startDrawingQuads();
 +
 +				double VOffset = vrPlayer.lastTeleportArcDisplayOffset;
@@ -5513,6 +5510,19 @@
 +		return viewAdjust;
 +	}
 +
++	
++	public Vec3 getCameraPos_Render(){
++		return mc.roomScale.getEyePos_World(mc.currentEye).subtract(mc.renderViewEntity.getPosition(1));
++	}
++	
++	public Vec3 getMainHandPos_Render(){
++		return mc.roomScale.getControllerMainPos_World().subtract(mc.renderViewEntity.getPosition(1));
++	}
++	
++	public Vec3 getOffHandPos_Render(){
++		return mc.roomScale.getControllerOffhandPos_World().subtract(mc.renderViewEntity.getPosition(1));
++	}
++	
 +	public float getBaseEyeRelief()
 +	{
 +		return 0;//Math.abs(this.mc.eyeRenderParams.Eyes[EyeType.ovrEye_Left.value()].ViewAdjust.z);
@@ -5521,16 +5531,15 @@
 +	
 +	//please push your matrix first. and pop after.
 +	public void SetupRenderingAtController(int controller){
-+		
-+		Vec3 aimSource = this.mc.roomScale.getControllerMainPos_World();
-+		if(controller == 1) aimSource = this.mc.roomScale.getControllerOffhandPos_World(); //TODO: cmon lazy.
++		Vec3 aimSource = getMainHandPos_Render();
++		if(controller == 1)aimSource= getOffHandPos_Render(); //TODO: cmon lazy.
 +	
 +		if (aimSource!=null)
 +		{ //move from head to hand origin.
 +				GL11.glTranslatef(
-+					(float) (-aimSource.xCoord + mc.thePlayer.posX ),
-+					(float) (aimSource.yCoord - mc.thePlayer.posY),
-+					(float) (-aimSource.zCoord + mc.thePlayer.posZ));
++					(float) (-aimSource.xCoord ),
++					(float) (-aimSource.yCoord ),
++					(float) (-aimSource.zCoord ));
 +		}
 +		
 +    //    	Vector3f fore = new Vector3f(0,0,1);       
@@ -5540,7 +5549,7 @@
 +        	
 +	    	if(!mc.bowTracker.isDrawing || controller == 0){ //doing this elsewhere
 +	    		GL11.glMultMatrix(buf);      
-+	    		//GL11.glMultMatrix(rotation.transposed().toFloatBuffer());        	
++  	
 +        	}     
 +	}
 +	
@@ -5628,7 +5637,6 @@
 +
 +			GL11.glPopMatrix();//back to hmd rendering
 +		
-+			GL11.glRotatef(180f, 0, 1f, 0); //wat
 +				
 +			if(!mc.vrPlayer.getFreeMoveMode()){
 +				if(mc.vrPlayer.vrMovementStyle.arcAiming) {
@@ -5656,7 +5664,7 @@
 +			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +			GL11.glPushMatrix();
 +				GL11.glLoadIdentity();
-+				
++		
 +				GL11.glDisable(GL11.GL_TEXTURE_2D);
 +				GL11.glDisable(GL11.GL_ALPHA_TEST);
 +				GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -5664,14 +5672,11 @@
 +				// counter head rotation
 +
 +				GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World(mc.currentEye));
-+		
-+				Vec3 eye = mc.roomScale.getHMDPos_World(); //this prolly should be local.
++
 +				
-+				GL11.glTranslatef(
-+						(float) -eye.xCoord,
-+						(float) eye.yCoord,
-+						(float) -eye.zCoord);
-+		
++				//OK SO when world == null the origin is at your face.
++				
++				
 +				Tessellator tes = Tessellator.instance;
 +		
 +				for (int c=0;c<2;c++)
@@ -5680,46 +5685,41 @@
 +		
 +					tes.setColorRGBA(255 - 127 * c,255 - 127 * c,255 - 127 * c,255);
 +					
-+					Vec3 controllerPos = mc.roomScale.getControllerMainPos_World();
-+					if(c==1)controllerPos = mc.roomScale.getControllerOffhandPos_World();
++					Vec3 controllerPos = mc.roomScale.getEyePos_Room(mc.currentEye).subtract(mc.roomScale.getControllerPos_Room(c));
 +					
-+					controllerPos = mc.vrPlayer.getRoomOrigin().subtract(controllerPos); 
-+				
 +					GL11.glPushMatrix();
 +						GL11.glTranslatef(
-+								(float)-controllerPos.xCoord,
++								(float)controllerPos.xCoord,
 +								(float)controllerPos.yCoord,
-+								(float)-controllerPos.zCoord);
++								(float)controllerPos.zCoord);
 +			
 +			
 +						Vec3 start = Vec3.createVectorHelper(0,0,0);
 +			
 +//						Matrix4f controllerRotation = mc.lookaimController.getAimRotation(c);
 +//						Vector3f forward = new Vector3f(0,0,-0.17f);
-+						Vector3f up = new Vector3f(0,1.0f,0.0f);
 +//						Vector3f dir = controllerRotation.transform(forward);
 +						Vec3 dir = mc.roomScale.getControllerMainDir_World();
 +						if(c==1) dir = mc.roomScale.getControllerOffhandDir_World();
-+						//TODO: FIX
-+						//	up = controllerRotation.transform(up);
-+						Vec3 vec3Up = Vec3.createVectorHelper(up.x, up.y, up.z);
-+			
++						Vec3 up = mc.roomScale.getCustomControllerVector(c, Vec3.createVectorHelper(0, 1, 0));
++				
 +						Vec3 end = Vec3.createVectorHelper(
-+								start.xCoord - dir.xCoord,
-+								start.yCoord - dir.yCoord,
-+								start.zCoord - dir.zCoord);
++								start.xCoord - dir.xCoord*.18,
++								start.yCoord - dir.yCoord*.18,
++								start.zCoord - dir.zCoord*.18);
 +			
-+						renderBox(tes, start, end, -0.02f, 0.02f, -0.025f, 0.00f, vec3Up);
++						renderBox(tes, start, end, -0.02f, 0.02f, -0.025f, 0.00f, up);
 +						tes.draw();
 +					GL11.glPopMatrix();     
 +				}
 +		
++			
++				
 +				GL11.glEnable(GL11.GL_TEXTURE_2D);
-+		
-+				GL11.glMatrixMode(GL11.GL_PROJECTION);
++
 +			GL11.glPopMatrix();
-+			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glPopMatrix();
++		GL11.glMatrixMode(GL11.GL_PROJECTION);
++	GL11.glPopMatrix();
 +	}
 +
 +	private void renderBox(Tessellator tes, Vec3 start, Vec3 end, float minX, float maxX, float minY, float maxY, Vec3 up)

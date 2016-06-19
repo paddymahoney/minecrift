@@ -569,9 +569,9 @@
 +    		if(this.capabilities.isFlying || this.inWater)
 +            if (Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
 +            	if (vr.useLControllerForRestricedMovement) {
-+            		directionVec.rotateAroundX(-con.getControllerOffhandPitch_World() * PIOVER180);		      					 
++            		directionVec.rotateAroundX(con.getControllerOffhandPitch_World() * PIOVER180);		      					 
 +            	} else {
-+            		directionVec.rotateAroundX(-this.headPitch * PIOVER180);	
++            		directionVec.rotateAroundX(this.headPitch * PIOVER180);	
 +            	}		
 +            }
 +    		
@@ -665,8 +665,8 @@
 +    	boolean client = this instanceof EntityPlayerSP;
 +    	boolean freemove = OpenVRPlayer.get().getFreeMoveMode();
 +    	boolean doY = freemove || (Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder()) && !this.isSneaking();
-+    	Vec3 roomOrigin = OpenVRPlayer.get().getRoomOrigin();
-+    	Vec3 camloc = Minecraft.getMinecraft().entityRenderer.getCameraLocation();
++    	Vec3 roomOrigin = OpenVRPlayer.get().getRoomOriginPos_World();
++ //   	Vec3 camloc = Minecraft.getMinecraft().roomScale.getHMDPos_World();
 +
 +    	if (freemove && (this.moveForward != 0 || Math.abs(this.motionX) > 0.01 || Math.abs(this.motionZ) > 0.01))
 +    	{
@@ -687,9 +687,9 @@
 +    			super.moveEntity(0,y,0);
 +    			if (client){
 +    				OpenVRPlayer.get().setRoomOrigin(
-+    					OpenVRPlayer.get().getRoomOrigin().xCoord, 
++    					OpenVRPlayer.get().getRoomOriginPos_World().xCoord, 
 +    					this.boundingBox.minY, 
-+    					OpenVRPlayer.get().getRoomOrigin().zCoord);
++    					OpenVRPlayer.get().getRoomOriginPos_World().zCoord);
 +    			}
 +
 +    		} else {

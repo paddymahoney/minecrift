@@ -190,7 +190,25 @@
              var22 = MathHelper.floor_double(this.mc.thePlayer.posX);
              var23 = MathHelper.floor_double(this.mc.thePlayer.posY);
              int var24 = MathHelper.floor_double(this.mc.thePlayer.posZ);
-@@ -501,9 +567,10 @@
+@@ -347,6 +413,17 @@
+             {
+                 this.drawString(var8, String.format("shader: %s", new Object[] {this.mc.entityRenderer.getShaderGroup().getShaderGroupName()}), 2, 112, 14737632);
+             }
++            
++            this.drawString(var8,"Room: " + mc.vrPlayer.getRoomOriginPos_World().toString() , 2, 124, 14737632);
++            this.drawString(var8,"HMD: " + mc.vrPlayer.getHMDPos_Room().toString() , 2, 132, 14737632);
++            this.drawString(var8,"Main: " + mc.vrPlayer.getControllerMainPos_World().toString() , 2, 140, 14737632);
++            this.drawString(var8,"Offhand: " + mc.vrPlayer.getControllerOffhandPos_World().toString() , 2, 148, 14737632);
++            this.drawString(var8,"Player: " + mc.entityRenderer.interpolatedPlayerPos.toString() , 2, 156	, 14737632);
++            this.drawString(var8,"Crosshair: " + mc.entityRenderer.crossVec.toString() , 2, 164	, 14737632);
++            this.drawString(var8,"HMD Look: " + mc.vrPlayer.getHMDDir_World().toString() , 2, 172	, 14737632);
++            this.drawString(var8,"Main Look: " + mc.vrPlayer.getControllerMainDir_World().toString(), 2, 180	, 14737632);
++            this.drawString(var8,"Offhand Look: " + mc.vrPlayer.getControllerOffhandDir_World().toString() , 2, 188	, 14737632);
++
+ 
+             GL11.glPopMatrix();
+             this.mc.mcProfiler.endSection();
+@@ -501,9 +578,10 @@
      {
          this.streamIndicator.render((int)(p_152126_1_ - 10.0F), 10);
      }
@@ -204,7 +222,7 @@
          Scoreboard var5 = p_96136_1_.getScoreboard();
          Collection var6 = var5.getSortedScores(p_96136_1_);
  
-@@ -549,9 +616,10 @@
+@@ -549,9 +627,10 @@
              }
          }
      }
@@ -218,7 +236,7 @@
          boolean var3 = this.mc.thePlayer.hurtResistantTime / 3 % 2 == 1;
  
          if (this.mc.thePlayer.hurtResistantTime < 10)
-@@ -830,7 +898,9 @@
+@@ -830,7 +909,9 @@
      /**
       * Renders dragon's (boss) health on the HUD
       */
@@ -229,7 +247,7 @@
      {
          if (BossStatus.bossName != null && BossStatus.statusBarTime > 0)
          {
-@@ -856,9 +926,15 @@
+@@ -856,9 +937,15 @@
              this.mc.getTextureManager().bindTexture(icons);
          }
      }
@@ -247,7 +265,7 @@
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glDepthMask(false);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -881,8 +957,15 @@
+@@ -881,8 +968,15 @@
      /**
       * Renders the vignette. Args: vignetteBrightness, width, height
       */
@@ -264,7 +282,7 @@
          p_73829_1_ = 1.0F - p_73829_1_;
  
          if (p_73829_1_ < 0.0F)
-@@ -913,8 +996,9 @@
+@@ -913,8 +1007,9 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
      }
@@ -276,7 +294,7 @@
      {
          if (p_130015_1_ < 1.0F)
          {
-@@ -950,7 +1034,9 @@
+@@ -950,7 +1045,9 @@
      /**
       * Renders the specified item of the inventory slot at the specified location. Args: slot, x, y, partialTick
       */
@@ -287,7 +305,7 @@
      {
          ItemStack var5 = this.mc.thePlayer.inventory.mainInventory[p_73832_1_];
  
-@@ -1039,4 +1125,23 @@
+@@ -1039,4 +1136,23 @@
      {
          return this.updateCounter;
      }

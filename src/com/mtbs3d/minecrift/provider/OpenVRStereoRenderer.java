@@ -26,9 +26,6 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	// TextureIDs of framebuffers for each eye
 	private int LeftEyeTextureId;
 
-	private final VRTextureBounds_t texBounds = new VRTextureBounds_t();
-	private final Texture_t texType = new Texture_t();
-
 	private HiddenAreaMesh_t[] hiddenMeshes = new HiddenAreaMesh_t[2];
 	private float[][] hiddenMesheVertecies = new float[2][];
 
@@ -169,10 +166,10 @@ public class OpenVRStereoRenderer implements IStereoProvider
 		GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT, (java.nio.ByteBuffer) null);
 		GL11.glBindTexture(GL11.GL_TEXTURE_2D, boundTextureId);
 
-		texType.handle = LeftEyeTextureId;
-		texType.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
-		texType.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
-		texType.write();
+		MCOpenVR.texType.handle = LeftEyeTextureId;
+		MCOpenVR.texType.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
+		MCOpenVR.texType.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
+		MCOpenVR.texType.write();
 
 		RenderTextureSet textureSet = new RenderTextureSet();
 		textureSet.leftEyeTextureIds.add(LeftEyeTextureId);
@@ -184,9 +181,9 @@ public class OpenVRStereoRenderer implements IStereoProvider
 
 	}
 
-	// VIVE START
-	public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen) { }
-	// VIVE END
+	public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen) {
+		MCOpenVR.onGuiScreenChanged(previousScreen, newScreen);
+	}
 
 	@Override
 	public boolean endFrame(EyeType eye)
@@ -197,15 +194,14 @@ public class OpenVRStereoRenderer implements IStereoProvider
 		if(eye == EyeType.ovrEye_Left){
 			ret = MCOpenVR.vrCompositor.Submit.apply(
 				JOpenVRLibrary.EVREye.EVREye_Eye_Left,
-				texType, texBounds,
+				MCOpenVR.texType, MCOpenVR.texBounds,
 				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
 		}else{
 			ret = MCOpenVR.vrCompositor.Submit.apply(
 				JOpenVRLibrary.EVREye.EVREye_Eye_Right,
-				texType, texBounds,
+				MCOpenVR.texType, MCOpenVR.texBounds,
 				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
 		}
-
 
 
 		//System.out.println("vsync="+JOpenVRLibrary.VR_IVRCompositor_GetVSync(vrCompositor));
@@ -236,6 +232,11 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	@Override
 	public boolean isInitialized() {
 		return MCOpenVR.initSuccess;
+	}
+
+	@Override
+	public String getinitError() {
+		return MCOpenVR.initStatus;
 	}
 
 }

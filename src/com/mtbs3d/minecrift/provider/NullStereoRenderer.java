@@ -131,4 +131,10 @@ public class NullStereoRenderer implements IStereoProvider
 		return true;
 	}
 
+
+	@Override
+	public String getinitError() {
+		return "u dun goof'd";
+	}
+
 }
