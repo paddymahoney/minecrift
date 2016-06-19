@@ -1121,7 +1121,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	}
 
 	@Override
-	public FloatBuffer getHMDMatrix() {
+	public FloatBuffer getHMDMatrix_World() {
 		return MCOpenVR.hmdRotation.transposed().toFloatBuffer();
 	}
 	
