@@ -1782,7 +1782,7 @@ public class MCOpenVR
 		FloatBuffer guiRotationBuf = guiRotationPose.transposed().toFloatBuffer();
 
 		// counter head rotation
-		GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World(eyeType));
+		GL11.glMultMatrix(mc.roomScale.getEyeMatrix_World(eyeType));
 
 		// offset from eye to gui pos
 		Vec3 eye = getEyePosition(eyeType);

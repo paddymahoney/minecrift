@@ -848,6 +848,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         float weaponLength = is == null ?  0 : 0.3f; //no reach for hand
         float entityReachAdd =0f;
         
+      
         if(is!=null )item = is.getItem();
         
         if (item instanceof ItemSword){
@@ -866,6 +867,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         	speedthresh = 3.5f + mot;
         }
 
+        weaponLength *= this.worldScale;
+        
         weapongSwingLen = weaponLength;
         weaponEnd = Vec3.createVectorHelper(
                 handPos.xCoord + handDirection.xCoord * weaponLength,
@@ -874,9 +877,15 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         
         if (weaponEndlast == null ) weaponEndlast = weaponEnd;
         
-        float speed = (float) (weaponEnd.subtract(weaponEndlast).lengthVector() * 20);
+        float tickDist = (float) (weaponEndlast.subtract(weaponEnd).lengthVector());
+        
+        float speed = (float) (tickDist * 20);
         
         weaponEndlast = weaponEnd;
+        
+        int passes = (int) (tickDist / .1f);
+          
+       
         
         int bx = (int) MathHelper.floor_double(weaponEnd.xCoord);
         int by = (int) MathHelper.floor_double(weaponEnd.yCoord);
@@ -958,7 +967,9 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         		}
         	}
         }
-
+        
+        	
+        	
         if (!inAnEntity && !insolidBlock)
         {
             lastWeaponEndAir.xCoord = weaponEnd.xCoord;
@@ -987,7 +998,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	//================= IROOMSCALEADAPTER =============================
 	
 	
-	public float worldScale = 3.0f;
+	public float worldScale = 0.5f;
 	
 	@Override
 	public boolean isHMDTracking() {
@@ -1100,7 +1111,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	}
 
 	@Override
-	public FloatBuffer getHMDMatrix_World(EyeType eye) {
+	public FloatBuffer getEyeMatrix_World(EyeType eye) {
 		Quaternion q = MCOpenVR.getOrientationQuaternion(eye);
 		org.lwjgl.util.vector.Matrix4f head = QuaternionHelper.quatToMatrix4f(q);
 		FloatBuffer buf = BufferUtil.createFloatBuffer(16);
@@ -1109,6 +1120,10 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 		return buf;		
 	}
 
+	@Override
+	public FloatBuffer getHMDMatrix() {
+		return MCOpenVR.hmdRotation.transposed().toFloatBuffer();
+	}
 	
 	@Override
 	public Vec3 getEyePos_World(EyeType eye) {
@@ -1136,11 +1151,12 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 		return vecMult(MCOpenVR.getAimSource(i),worldScale);
 	}
 	
-
 	@Override
 	public Vec3 getEyePos_Room(EyeType eye) {
 		return vecMult(MCOpenVR.getEyePosition(eye),worldScale);
 	}
+	
+
 	
 }
 

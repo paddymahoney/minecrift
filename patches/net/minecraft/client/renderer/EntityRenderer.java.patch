@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/EntityRenderer.java
-@@ -4,19 +4,44 @@
+@@ -4,19 +4,43 @@
  import java.io.IOException;
  import java.lang.reflect.Field;
  import java.nio.FloatBuffer;
@@ -27,7 +27,6 @@
 +import de.fruitfly.ovr.structs.Vector3f;
 +import de.fruitfly.ovr.util.BufferUtil;
 +import jopenvr.OpenVRUtil;
-+import jopenvr.VR_IVRSystem_FnTable.GetHiddenAreaMesh_callback;
  import net.minecraft.block.Block;
 +import net.minecraft.block.BlockLiquid;
  import net.minecraft.block.material.Material;
@@ -45,7 +44,7 @@
  import net.minecraft.client.multiplayer.WorldClient;
  import net.minecraft.client.particle.EffectRenderer;
  import net.minecraft.client.particle.EntityRainFX;
-@@ -24,15 +49,18 @@
+@@ -24,15 +48,18 @@
  import net.minecraft.client.renderer.culling.ClippingHelperImpl;
  import net.minecraft.client.renderer.culling.Frustrum;
  import net.minecraft.client.renderer.entity.RenderManager;
@@ -64,7 +63,7 @@
  import net.minecraft.enchantment.EnchantmentHelper;
  import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLivingBase;
-@@ -40,16 +68,14 @@
+@@ -40,16 +67,14 @@
  import net.minecraft.entity.item.EntityItemFrame;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.init.Blocks;
@@ -87,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +89,969 @@
+@@ -63,736 +88,966 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1360,7 +1359,7 @@
 +			// forward, you can hit further away...
 +
 +			this.mc.pointedEntity = null;
-+			double blockReachDistance = (double)this.mc.playerController.getBlockReachDistance();
++			double blockReachDistance = mc.vrPlayer.worldScale * (double)this.mc.playerController.getBlockReachDistance();
 +			double entityReachDistance = blockReachDistance;
 +			// Darktemp's crosshair fix
 +			// VIVE START - interact source	
@@ -1596,13 +1595,10 @@
 +		// VIVE END - don't tilt camera to avoid motion sickeness
 +		//
 +
-+
 +		if (var2.getHealth() <= 0.0F)
 +		{
 +			var4 = (float)var2.deathTime + par1;
 +			GL11.glRotatef(40.0F - 8000.0F / (var4 + 200.0F), 0.0F, 0.0F, 1.0F);
-+
-+
 +		}
 +
 +		if (var3 >= 0.0F)
@@ -1778,7 +1774,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +1063,14 @@
+@@ -804,16 +1059,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1801,7 +1797,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1082,3943 @@
+@@ -825,1829 +1078,3947 @@
          {
              clipDistance = 256.0F;
          }
@@ -2695,6 +2691,9 @@
 +
 +	public void renderWorld(float par1, long par2)
 +	{
++		
++		mc.vrPlayer.worldScale = 20f;
++		
 +		/** MINECRIFT SHADERS MOD **/
 +		boolean shadersMod = Reflector.shadersModExists();
 +		if (shadersMod) {
@@ -2785,8 +2784,7 @@
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glPushMatrix();
 +		/** END MINECRIFT */
-+		//TODO: put back?
-+		//ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
++		ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
 +		this.mc.mcProfiler.endStartSection("frustrum");
 +		ClippingHelperImpl.getInstance();
 +
@@ -4781,7 +4779,7 @@
 +	{
 +		// Rotation
 +		if (this.mc.gameSettings.thirdPersonView == 2)	GL11.glRotatef((float) -this.headRoll, 0.0F, 0.0F, 1.0F);
-+		else GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World(mc.currentEye));
++		else GL11.glMultMatrix(mc.roomScale.getEyeMatrix_World(mc.currentEye));
 +			
 +
 +		Vec3 campos = getCameraPos_Render();
@@ -5542,6 +5540,8 @@
 +					(float) (-aimSource.zCoord ));
 +		}
 +		
++		GL11.glScalef(mc.vrPlayer.worldScale, mc.vrPlayer.worldScale, mc.vrPlayer.worldScale);
++		
 +    //    	Vector3f fore = new Vector3f(0,0,1);       
 +   //     	Matrix4f rotation = this.mc.vrPlayer.get.getAimRotation(controller);  
 +        	
@@ -5671,7 +5671,7 @@
 +		
 +				// counter head rotation
 +
-+				GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World(mc.currentEye));
++				GL11.glMultMatrix(mc.roomScale.getEyeMatrix_World(mc.currentEye));
 +
 +				
 +				//OK SO when world == null the origin is at your face.

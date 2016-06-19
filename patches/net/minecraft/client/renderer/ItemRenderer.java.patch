@@ -258,7 +258,7 @@
  
          GL11.glPopMatrix();
      }
-@@ -240,364 +251,493 @@
+@@ -240,364 +251,492 @@
  
          p_78439_0_.draw();
      }
@@ -800,7 +800,7 @@
 +		    					//MOST ITEMS
 +		    					//adjust for tools		
 +		    					
-+		    					float add = mc.vrPlayer.weapongSwingLen - 0.3f;
++		    					float add =0; // mc.vrPlayer.weapongSwingLen - 0.3f;
 +		    					
 +		    					GL11.glTranslatef(0.01f, .28f, -.08f - add);			
 +		    					GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);			
@@ -843,7 +843,6 @@
 +		    		{
 +		    			GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
 +		    		}
-+		
 +		    		
 +		    		if (renderitem8.getItem().requiresMultipleRenderPasses())
 +		    		{
@@ -1080,7 +1079,7 @@
          var3.startDrawingQuads();
          var3.addVertexWithUV((double)var5, (double)var7, (double)var9, (double)var11, (double)var13);
          var3.addVertexWithUV((double)var6, (double)var7, (double)var9, (double)var10, (double)var13);
-@@ -606,6 +746,7 @@
+@@ -606,6 +745,7 @@
          var3.draw();
          GL11.glPopMatrix();
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1088,7 +1087,7 @@
      }
  
      /**
-@@ -621,13 +762,13 @@
+@@ -621,13 +761,13 @@
          GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();

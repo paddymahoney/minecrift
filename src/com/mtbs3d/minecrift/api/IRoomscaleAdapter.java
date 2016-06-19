@@ -24,7 +24,7 @@ public interface IRoomscaleAdapter  {
 	public Vec3 getHMDDir_World(); 
 	public float getHMDYaw_World();  //degrees
 	public float getHMDPitch_World(); //degrees
-	public FloatBuffer getHMDMatrix_World(EyeType eye);
+	public FloatBuffer getEyeMatrix_World(EyeType eye);
 	
 	public FloatBuffer getControllerMatrix_World(int conttroller);
 	
@@ -50,6 +50,7 @@ public interface IRoomscaleAdapter  {
 	
 	public void triggerHapticPulse(int controller, int duration);
 	Vec3 getControllerPos_Room(int i);
+	FloatBuffer getHMDMatrix();
 
 	
 }
