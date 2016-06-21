@@ -462,7 +462,18 @@
          }
      }
  
-@@ -2202,6 +2377,8 @@
+@@ -2075,7 +2250,9 @@
+     {
+         this.renderViewEntity = entityliving;
+ 
+-        if (WrUpdates.hasWrUpdater())
++        //VIVECRAFT override multicore?
++        if (false)
++        //END VIVECRAFT
+         {
+             return WrUpdates.updateRenderers(this, entityliving, flag);
+         }
+@@ -2202,6 +2379,8 @@
  
      public void drawBlockDamageTexture(Tessellator par1Tessellator, EntityLivingBase par2EntityPlayer, float par3)
      {
@@ -471,7 +482,7 @@
          double var4 = par2EntityPlayer.lastTickPosX + (par2EntityPlayer.posX - par2EntityPlayer.lastTickPosX) * (double)par3;
          double var6 = par2EntityPlayer.lastTickPosY + (par2EntityPlayer.posY - par2EntityPlayer.lastTickPosY) * (double)par3;
          double var8 = par2EntityPlayer.lastTickPosZ + (par2EntityPlayer.posZ - par2EntityPlayer.lastTickPosZ) * (double)par3;
-@@ -2216,6 +2393,10 @@
+@@ -2216,6 +2395,10 @@
              GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
              GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
              GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -482,7 +493,7 @@
              par1Tessellator.startDrawingQuads();
              par1Tessellator.setTranslation(-var4, -var6, -var8);
              par1Tessellator.disableColor();
-@@ -2245,6 +2426,10 @@
+@@ -2245,6 +2428,10 @@
  
              par1Tessellator.draw();
              par1Tessellator.setTranslation(0.0D, 0.0D, 0.0D);
@@ -493,7 +504,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glPolygonOffset(0.0F, 0.0F);
              GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
-@@ -2252,6 +2437,7 @@
+@@ -2252,6 +2439,7 @@
              GL11.glDepthMask(true);
              GL11.glPopMatrix();
          }
@@ -501,7 +512,7 @@
      }
  
      /**
-@@ -2259,6 +2445,8 @@
+@@ -2259,6 +2447,8 @@
       */
      public void drawSelectionBox(EntityPlayer par1EntityPlayer, MovingObjectPosition par2MovingObjectPosition, int par3, float par4)
      {
@@ -510,7 +521,7 @@
          if (par3 == 0 && par2MovingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
          {
              GL11.glEnable(GL11.GL_BLEND);
-@@ -2266,6 +2454,10 @@
+@@ -2266,6 +2456,10 @@
              GL11.glColor4f(0.0F, 0.0F, 0.0F, 0.4F);
              GL11.glLineWidth(2.0F);
              GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -521,7 +532,7 @@
              GL11.glDepthMask(false);
              float var5 = 0.002F;
              Block var6 = this.theWorld.getBlock(par2MovingObjectPosition.blockX, par2MovingObjectPosition.blockY, par2MovingObjectPosition.blockZ);
-@@ -2281,8 +2473,13 @@
+@@ -2281,8 +2475,13 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -535,7 +546,7 @@
      }
  
      /**
-@@ -2933,6 +3130,9 @@
+@@ -2933,6 +3132,9 @@
                      this.theWorld.playSound((double)par3 + 0.5D, (double)par4 + 0.5D, (double)par5 + 0.5D, "random.door_close", 1.0F, this.theWorld.rand.nextFloat() * 0.1F + 0.9F, false);
                  }
  
@@ -545,7 +556,7 @@
                  break;
  
              case 1004:
-@@ -3026,12 +3226,13 @@
+@@ -3026,12 +3228,13 @@
  
              case 2001:
                  var8 = Block.getBlockById(par6 & 4095);
@@ -561,7 +572,7 @@
                  this.mc.effectRenderer.addBlockDestroyEffects(par3, par4, par5, var8, par6 >> 12 & 255);
                  break;
  
-@@ -3128,6 +3329,9 @@
+@@ -3128,6 +3331,9 @@
  
                      for (int var24 = 0; var24 < var23; ++var24)
                      {

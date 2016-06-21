@@ -138,7 +138,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     	this.lastroomOrigin.yCoord = roomOrigin.yCoord ;
     	this.lastroomOrigin.zCoord = roomOrigin.zCoord ;
         updateSwingAttack();
-        this.worldScale = mc.vrSettings.vrWorldScale;
+        this.worldScale =  mc.vrSettings.vrWorldScale;
         this.worldRotation = (float) Math.toRadians(mc.vrSettings.vrWorldRotation);
         
         if (worldRotation!= lastworldRotation) {
@@ -1018,8 +1018,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	//================= IROOMSCALEADAPTER =============================
 	
 	
-	private float worldScale = 1.0f;
-	private float worldRotation = 0f; 
+	private float worldScale =  Minecraft.getMinecraft().vrSettings.vrWorldScale;
+	private float worldRotation = Minecraft.getMinecraft().vrSettings.vrWorldRotation;
 	
 	@Override
 	public boolean isHMDTracking() {

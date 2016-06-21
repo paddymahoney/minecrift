@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4701 @@
+@@ -150,2988 +167,4707 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1708,8 +1708,8 @@
 +	public MovingObjectPosition objectMouseOver;
 +
 +	// VIVE START - teleport movement
-+	public OpenVRPlayer vrPlayer = new OpenVRPlayer();
-+	public IRoomscaleAdapter roomScale = vrPlayer;
++	public OpenVRPlayer vrPlayer; 
++	public IRoomscaleAdapter roomScale;
 +	// VIVE END - teleport movement
 +
 +	// VIVE START - vive ui debugging
@@ -1941,6 +1941,7 @@
 +			vrSettings.badStereoProviderPluginID = "";
 +			vrSettings.saveOptions();
 +		}
++		
 +		/** END MINECRIFT **/
 +	}
 +
@@ -2150,6 +2151,7 @@
 +			logger.error("Couldn\'t initialize twitch stream");
 +		}
 +
++	
 +		this.guiFramebuffer = new Framebuffer(this.displayWidth, this.displayHeight, true);
 +		this.guiFramebuffer.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
 +		this.framebufferMc = guiFramebuffer; //temp
@@ -5090,6 +5092,8 @@
 +		/** END MINECRIFT */
 +	}
 +
++	public Object fmlCommonHandler = null;
++	
 +	/**
 +	 * Runs the current tick.
 +	 */
@@ -5113,7 +5117,7 @@
 +			--this.rightClickDelayTimer;
 +		}
 +		/** MINECRIFT FORGE **/
-+		Object fmlCommonHandler = null;
++
 +		if( Reflector.FMLCommonHandler_instance.exists()) {
 +			fmlCommonHandler = Reflector.call( Reflector.FMLCommonHandler_instance, new Object[0]);
 +		}
@@ -7365,6 +7369,8 @@
 +		new MCOpenVR();
 +		MCOpenVR.init();
 +		this.stereoProvider = new OpenVRStereoRenderer();
++		this.vrPlayer = new OpenVRPlayer();
++		this.roomScale = this.vrPlayer;
 +		
 +		//hmdInfo = PluginManager.configureHMD("oculus");
 +

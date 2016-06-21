@@ -781,6 +781,7 @@ public class VRSettings
 		        	}
 				}					
 			}
+			
 			if(vb.key == null && !vb.FunctionDesc.startsWith("keyboard"))
 				System.out.println("Unknown key binding: " + vb.FunctionDesc);
 		}

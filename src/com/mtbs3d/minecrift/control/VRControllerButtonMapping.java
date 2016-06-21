@@ -4,7 +4,9 @@ import java.awt.event.KeyEvent;
 
 import com.mtbs3d.minecrift.utils.KeyboardSimulator;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.src.Reflector;
 
 public class VRControllerButtonMapping {
 
@@ -26,7 +28,11 @@ public class VRControllerButtonMapping {
 	public void press(){	
 		if(this.FunctionDesc.equals("none")) return;
 		if(key!=null){
+			System.out.println("Press " + this.Button.toString() + " " + this.FunctionDesc + " "+ this.key.getKeyDescription());
 			key.pressKey();
+			if( Minecraft.getMinecraft().fmlCommonHandler != null) {
+				Reflector.callVoid(Minecraft.getMinecraft().fmlCommonHandler, Reflector.FMLCommonHandler_fireKeyInput, new Object[0]);
+			}
 			return;
 		}
 		if(FunctionExt!=0){
