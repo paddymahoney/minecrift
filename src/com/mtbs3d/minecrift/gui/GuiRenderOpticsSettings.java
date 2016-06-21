@@ -37,7 +37,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
             VRSettings.VrOptions.MIRROR_DISPLAY,     
             VRSettings.VrOptions.FSAA,
-            VRSettings.VrOptions.STENCIL_ON
+            VRSettings.VrOptions.STENCIL_ON,
+            VRSettings.VrOptions.WORLD_SCALE,
+            VRSettings.VrOptions.WORLD_ROTATION
             
             /*VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.TIMEWARP,
@@ -74,26 +76,11 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
         this.buttonList.add(new GuiButtonEx(ID_GENERIC_DEFAULTS, this.width / 2 - 100, this.height / 6 + 150, "Reset To Defaults"));
 
         VRSettings.VrOptions[] var10 = null;
-        if( Minecraft.getMinecraft().stereoProvider instanceof MCOculus )
+        
+        if( Minecraft.getMinecraft().stereoProvider.isStereo() )
         {
-//            HmdParameters hmd = Minecraft.getMinecraft().hmdInfo.getHMDInfo();
-//            productName = hmd.ProductName;
-//            if (!hmd.isReal())
-//                productName += " (Debug)";
-//
-//            if (hmd.ProductName.contains("DK1"))      // Hacky. Improve.
-//                var10 = oculusDK1DisplayOptions;
-//            else
-//                var10 = oculusDK2DisplayOptions;
-        }
-        else if( Minecraft.getMinecraft().stereoProvider instanceof MCOpenVR )
-        {
-//            HmdParameters hmd = Minecraft.getMinecraft().hmdInfo.getHMDInfo();
-//            productName = hmd.ProductName;
-//            if (!hmd.isReal())
-//                productName += " (Debug)";
-//
-//            var10 = openVRDisplayOptions;
+            productName = "OpenVR";
+            var10 = openVRDisplayOptions;
         }
         else
             var10 = monoDisplayOptions;
@@ -132,6 +119,18 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                     minValue = 30f;
                     maxValue = 110f;
                     increment = 1f;
+                }
+                else if (var8 == VRSettings.VrOptions.WORLD_SCALE)
+                {
+                    minValue = 0.1f;
+                    maxValue = 12f;
+                    increment = 0.1f;
+                }
+                else if (var8 == VRSettings.VrOptions.WORLD_ROTATION)
+                {
+                    minValue = 0f;
+                    maxValue = 360;
+                    increment = 45;
                 }
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.setEventHandler(this);
@@ -186,7 +185,8 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useFsaa = false;
                 minecraft.vrSettings.fsaaScaleFactor = 1.4f;
                 minecraft.vrSettings.vrUseStencil = true;
-                
+                minecraft.vrSettings.vrWorldScale = 1.0f;
+                minecraft.vrSettings.vrWorldRotation = 0f;
                 minecraft.reinitFramebuffers = true;
 			    this.guivrSettings.saveOptions();
             }
@@ -399,6 +399,20 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                         "Mask out areas of the screen outside the FOV.",
                         "Improves performance."
                 };
+            case WORLD_SCALE:
+                return new String[] {
+                        "Scales the player in the world.",
+                        "Above one makes you larger",
+                        "And below one makes you small",
+                        "And the ones that mother gives you",
+                        "don't do anything at all."
+                };
+            case WORLD_ROTATION:
+                return new String[] {
+                        "Adds extra rotation to your HMD.",
+                        "More useful bound to a button or ",
+                        "changed with the arrow keys."
+                };
     	default:
     		return null;
     	}
@@ -426,3 +440,4 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
         return true;
     }
 }
+

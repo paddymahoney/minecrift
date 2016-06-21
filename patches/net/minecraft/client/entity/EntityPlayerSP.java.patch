@@ -467,7 +467,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +891,232 @@
+@@ -662,4 +891,234 @@
      }
  
      protected void sendHorseJump() {}
@@ -656,7 +656,9 @@
 +    public void setPosition(double x, double y, double z)
 +    {
 +        super.setPosition(x, y, z);
++        if(this.mc == null){} else { //still init.
 +        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
++        }
 +    }
 +    
 +    @Override

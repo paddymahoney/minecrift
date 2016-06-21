@@ -182,7 +182,7 @@ public class GuiVRControlsList extends GuiListExtended
         
         	this.btnKey.xPosition = x+240;
         	this.btnKey.yPosition = y;
-        	this.btnKey.visible = (myKey.FunctionDesc.equalsIgnoreCase("keyboard"));
+        	this.btnKey.visible = (myKey.FunctionDesc.startsWith("keyboard("));
             this.btnKey.displayString = String.valueOf((myKey.FunctionExt));        		
 
         	boolean var10 = GuiVRControlsList.this.parent.buttonId == myKey;

@@ -178,6 +178,9 @@ public class VRSettings
     public VRControllerButtonMapping[] buttonMappings;
     public boolean vrUseStencil = true;
     public boolean vrShowBlueCircleBuddy = true;
+    public float vrWorldScale = 1.0f;
+    public float vrWorldRotation = 0f;
+    
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -707,6 +710,14 @@ public class VRSettings
                     {
                         this.vrShowBlueCircleBuddy = optionTokens[1].equals("true");
                     }
+                    if (optionTokens[0].equals("worldScale"))
+                    {
+                        this.vrWorldScale = this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("worldRotation"))
+                    {
+                        this.vrWorldRotation = this.parseFloat(optionTokens[1]);
+                    }
     
                     if (optionTokens[0].startsWith("BUTTON_"))
                     {
@@ -1029,6 +1040,10 @@ public class VRSettings
             	return this.vrUseStencil ? var4 + "ON" : var4 + "OFF";
             case BCB_ON:
             	return this.vrShowBlueCircleBuddy ? var4 + "ON" : var4 + "OFF";
+            case WORLD_SCALE:
+	            return var4 + String.format("%.1f", new Object[] { Float.valueOf(this.vrWorldScale) });
+            case WORLD_ROTATION:
+	            return var4 + String.format("%.0f", new Object[] { Float.valueOf(this.vrWorldRotation) });
 
                 //END JRBUDDA
  	        default:
@@ -1090,7 +1105,10 @@ public class VRSettings
             case VR_COMFORT_TRANSITION_ANGLE_DEGS:
                 return vrComfortTransitionAngleDegs;
             // VIVE START - new options
-
+            case WORLD_SCALE:
+                return vrWorldScale;
+            case WORLD_ROTATION:
+                return vrWorldRotation;
             // VIVE END - new options
 
             default:
@@ -1376,7 +1394,12 @@ public class VRSettings
                 this.vrComfortTransitionAngleDegs = par2;
                 break;
             // VIVE START - new options
-
+            case WORLD_SCALE:
+                this.vrWorldScale = par2;
+                break;
+            case WORLD_ROTATION:
+                this.vrWorldRotation = par2;
+                break;
             // VIVE END - new options
             default:
 	        	break;
@@ -1503,6 +1526,8 @@ public class VRSettings
             var5.println("reverseHands:" + this.vrReverseHands);
             var5.println("stencilOn:" + this.vrUseStencil);
             var5.println("bcbOn:" + this.vrShowBlueCircleBuddy);
+            var5.println("worldScale:" + this.vrWorldScale);
+            var5.println("worldRotation:" + this.vrWorldRotation);
            
             if (buttonMappings == null) resetBindings(); //defaults
             
@@ -1817,14 +1842,14 @@ public class VRSettings
         REVERSE_HANDS("Reverse Hands",false, true),
         STENCIL_ON("Use Eye Stencil", false, true), 
         BCB_ON("Show Body Position", false, true),    
-        
+        WORLD_SCALE("World Scale", true, false),
+        WORLD_ROTATION("World Rotation", true, false),
         //END JRBUDDA
         
         // OTher buttons
         OTHER_HUD_SETTINGS("Overlay/Crosshair/Chat...", false, true),
         OTHER_RENDER_SETTINGS("IPD / FOV...", false, true),
         LOCOMOTION_SETTINGS("Locomotion Settings...", false, true); 
-
 
 //        ANISOTROPIC_FILTERING("options.anisotropicFiltering", true, false, 1.0F, 16.0F, 0.0F)
 //                {

@@ -1359,7 +1359,7 @@
 +			// forward, you can hit further away...
 +
 +			this.mc.pointedEntity = null;
-+			double blockReachDistance = mc.vrPlayer.worldScale * (double)this.mc.playerController.getBlockReachDistance();
++			double blockReachDistance = mc.vrSettings.vrWorldScale * (double)this.mc.playerController.getBlockReachDistance();
 +			double entityReachDistance = blockReachDistance;
 +			// Darktemp's crosshair fix
 +			// VIVE START - interact source	
@@ -1467,7 +1467,7 @@
 +
 +			// Set up crosshair position
 +			float SLIGHTLY_CLOSER = 0.001f;
-+			Vec3 cameraPos = mc.roomScale.getEyePos_Room(mc.currentEye);
++			Vec3 cameraPos = mc.roomScale.getEyePos_World(mc.currentEye);
 +			centerEyePosToCrossDirection = cameraPos.subtract(crossVec).normalize();   // VIVE use camerapos
 +			crossX = (float)(crossVec.xCoord - (centerEyePosToCrossDirection.xCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.xCoord);
 +			crossY = (float)(crossVec.yCoord - (centerEyePosToCrossDirection.yCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.yCoord);
@@ -1797,7 +1797,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1078,3947 @@
+@@ -825,1829 +1078,3943 @@
          {
              clipDistance = 256.0F;
          }
@@ -2692,8 +2692,7 @@
 +	public void renderWorld(float par1, long par2)
 +	{
 +		
-+		mc.vrPlayer.worldScale = 20f;
-+		
++	
 +		/** MINECRIFT SHADERS MOD **/
 +		boolean shadersMod = Reflector.shadersModExists();
 +		if (shadersMod) {
@@ -2840,8 +2839,7 @@
 +			Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, frustrum, par1});
 +		}
 +		else {
-+			Vec3 pos = mc.roomScale.getEyePos_World(mc.currentEye);
-+			frustrum.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
++			frustrum.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
 +			
 +			this.mc.renderGlobal.clipRenderersByFrustum(frustrum, par1);
 +		}
@@ -4779,9 +4777,8 @@
 +	{
 +		// Rotation
 +		if (this.mc.gameSettings.thirdPersonView == 2)	GL11.glRotatef((float) -this.headRoll, 0.0F, 0.0F, 1.0F);
-+		else GL11.glMultMatrix(mc.roomScale.getEyeMatrix_World(mc.currentEye));
++		else GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
 +			
-+
 +		Vec3 campos = getCameraPos_Render();
 +	//	Vec3 center = mc.roomScale.getRoomOriginPos_World();
 +		// Position
@@ -4879,7 +4876,7 @@
 +					GL11.glEnable(GL11.GL_CULL_FACE);
 +		
 +				GL11.glPopMatrix();// undo extra push in applyguithing
-+				GL11.glMatrixMode(GL11.GL_PROJECTION);
++			GL11.glMatrixMode(GL11.GL_PROJECTION);
 +		
 +		
 +			}
@@ -5334,7 +5331,7 @@
 +			float scale = 0.002f*crossDepth*this.mc.vrSettings.crosshairScale;
 +			GL11.glPushMatrix();
 +				GL11.glTranslatef(crossX, crossY, crossZ);
-+				GL11.glRotatef(-mc.roomScale.getControllerMainYaw_World(), 0.0F, 1.0F, 0.0F);
++				GL11.glRotatef(- mc.vrPlayer.getControllerYaw_Room(0) + mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
 +				GL11.glRotatef(-mc.roomScale.getControllerMainPitch_World(), 1.0F, 0.0F, 0.0F);
 +				if (this.mc.vrSettings.crosshairRollsWithHead)
 +					GL11.glRotated(this.cameraRoll, 0.0F, 0.0F, 1.0F);
@@ -5362,7 +5359,7 @@
 +				
 +				this.mc.getTextureManager().bindTexture(Gui.icons);
 +	
-+
++				
 +				GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
 +				GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
 +				GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
@@ -5495,9 +5492,6 @@
 +		}
 +	}
 +
-+
-+
-+
 +	public Vector3f getViewAdjust(EyeType eye)
 +	{
 +		Vector3f viewAdjust = new Vector3f();
@@ -5508,17 +5502,19 @@
 +		return viewAdjust;
 +	}
 +
-+	
 +	public Vec3 getCameraPos_Render(){
-+		return mc.roomScale.getEyePos_World(mc.currentEye).subtract(mc.renderViewEntity.getPosition(1));
++		Vec3 out = mc.roomScale.getEyePos_World(mc.currentEye).subtract(mc.renderViewEntity.getPosition(1));
++		return out;
 +	}
 +	
 +	public Vec3 getMainHandPos_Render(){
-+		return mc.roomScale.getControllerMainPos_World().subtract(mc.renderViewEntity.getPosition(1));
++		Vec3 out =  mc.roomScale.getControllerMainPos_World().subtract(mc.renderViewEntity.getPosition(1));
++		return out;
 +	}
 +	
 +	public Vec3 getOffHandPos_Render(){
-+		return mc.roomScale.getControllerOffhandPos_World().subtract(mc.renderViewEntity.getPosition(1));
++		Vec3 out =  mc.roomScale.getControllerOffhandPos_World().subtract(mc.renderViewEntity.getPosition(1));
++		return out;
 +	}
 +	
 +	public float getBaseEyeRelief()
@@ -5540,7 +5536,7 @@
 +					(float) (-aimSource.zCoord ));
 +		}
 +		
-+		GL11.glScalef(mc.vrPlayer.worldScale, mc.vrPlayer.worldScale, mc.vrPlayer.worldScale);
++			GL11.glScalef(mc.vrSettings.vrWorldScale , mc.vrSettings.vrWorldScale , mc.vrSettings.vrWorldScale );
 +		
 +    //    	Vector3f fore = new Vector3f(0,0,1);       
 +   //     	Matrix4f rotation = this.mc.vrPlayer.get.getAimRotation(controller);  
@@ -5671,7 +5667,7 @@
 +		
 +				// counter head rotation
 +
-+				GL11.glMultMatrix(mc.roomScale.getEyeMatrix_World(mc.currentEye));
++				GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
 +
 +				
 +				//OK SO when world == null the origin is at your face.

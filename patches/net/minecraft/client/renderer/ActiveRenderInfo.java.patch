@@ -17,8 +17,8 @@
          float var5 = p_74583_0_.rotationPitch;
          float var6 = p_74583_0_.rotationYaw;
 +        // VIVE START - use pitch/yaw from HMD instead of aim (controller)
-+        var5 = Minecraft.getMinecraft().roomScale.getHMDYaw_World();
-+        var6 = Minecraft.getMinecraft().roomScale.getHMDPitch_World();
++        var5 = Minecraft.getMinecraft().roomScale.getHMDPitch_World();
++        var6 = Minecraft.getMinecraft().roomScale.getHMDYaw_World();
 +        // VIVE END
          rotationX = MathHelper.cos(var6 * (float)Math.PI / 180.0F) * (float)(1 - var4 * 2);
          rotationZ = MathHelper.sin(var6 * (float)Math.PI / 180.0F) * (float)(1 - var4 * 2);

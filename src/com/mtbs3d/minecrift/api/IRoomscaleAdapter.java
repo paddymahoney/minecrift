@@ -25,8 +25,8 @@ public interface IRoomscaleAdapter  {
 	public float getHMDYaw_World();  //degrees
 	public float getHMDPitch_World(); //degrees
 	
-	public FloatBuffer getEyeMatrix_World(EyeType eye);
-	public FloatBuffer getHMDMatrix_World();	
+	public FloatBuffer getHMDMatrix_World();
+	public FloatBuffer getHMDMatrix_Room();	
 	public FloatBuffer getControllerMatrix_World(int controller);
 	
 	public Vec3 getEyePos_World(EyeType eye);
@@ -37,6 +37,9 @@ public interface IRoomscaleAdapter  {
 	public Vec3 getControllerMainDir_World(); 
 	public float getControllerMainYaw_World(); //degrees
 	public float getControllerMainPitch_World(); //degrees
+	
+	public float getControllerYaw_Room(int controller); //degrees
+	public float getControllerPitch_Room(int controller); //degrees
 	
     public boolean isControllerOffhandTracking();
 	public Vec3 getControllerOffhandPos_World(); 

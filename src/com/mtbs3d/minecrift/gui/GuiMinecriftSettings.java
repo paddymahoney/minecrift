@@ -28,9 +28,9 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             new VROption(206,                                      VROption.Position.POS_LEFT,   1f, VROption.ENABLED, "Stereo Rendering..."),
             new VROption(VRSettings.VrOptions.VR_RENDERER,         VROption.Position.POS_RIGHT,  1f, VROption.DISABLED, null),
             new VROption(209,                                      VROption.Position.POS_LEFT,   2f, VROption.ENABLED, "Locomotion Settings..."),
-            new VROption(VRSettings.VrOptions.REVERSE_HANDS,       VROption.Position.POS_LEFT,   3f, VROption.ENABLED, null),
             new VROption(210, 							           VROption.Position.POS_RIGHT,  3f, VROption.ENABLED, "Chat/Crosshair Settings..."),
-            new VROption(220, 							           VROption.Position.POS_LEFT,   4f, VROption.ENABLED, "Controller Buttons..."),
+            new VROption(220, 							           VROption.Position.POS_LEFT,   3f, VROption.ENABLED, "Controller Buttons..."),
+            new VROption(VRSettings.VrOptions.REVERSE_HANDS,       VROption.Position.POS_LEFT,   5f, VROption.ENABLED, null),
             
             
             // VIVE END - hide options not relevant to teleport/room scale
