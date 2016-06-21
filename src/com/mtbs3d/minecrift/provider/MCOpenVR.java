@@ -37,6 +37,7 @@ import net.minecraft.network.play.client.C16PacketClientStatus;
 import net.minecraft.util.Vec3;
 import optifine.Utils;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.util.ByteArrayBuffer;
 import org.lwjgl.LWJGLUtil;
 import org.lwjgl.input.Keyboard;
@@ -192,6 +193,10 @@ public class MCOpenVR
 	
 	public String getVersion() { return "Version TODO"; }
 
+	static KeyBinding rotateLeft = new KeyBinding("Rotate Left", 203, "key.categories.movement");
+	static KeyBinding rotateRight = new KeyBinding("Rotate Right", 205, "key.categories.movement");
+	
+	
 	public MCOpenVR()
 	{
 		super();
@@ -215,7 +220,6 @@ public class MCOpenVR
 			inputStateRefernceArray[c].setAutoRead(false);
 			inputStateRefernceArray[c].setAutoWrite(false);
 			inputStateRefernceArray[c].setAutoSynch(false);
-
 			for (int i = 0; i < 5; i++)
 			{
 				lastControllerState[c].rAxis[i] = new VRControllerAxis_t();
@@ -291,13 +295,14 @@ public class MCOpenVR
 		HmdMatrix34_t matR = vrsystem.GetEyeToHeadTransform.apply(JOpenVRLibrary.EVREye.EVREye_Eye_Right);
 		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matR, hmdPoseRightEye);
 
+	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, rotateLeft));
+	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, rotateRight));	
+
+		
 		initialized = true;
 		return true;
 	}
 
-	static KeyBinding rotateLeft = new KeyBinding("Rotate Left", 203, "key.categories.movement");
-	static KeyBinding rotateRight = new KeyBinding("Rotate Right", 205, "key.categories.movement");
-	
 	final int rotationIncrement = 0;
 
 	private static void initializeJOpenVR() throws Exception { 
@@ -1486,15 +1491,15 @@ public class MCOpenVR
 			if (newScreen instanceof GuiChat){
 				Vector3f forward = new Vector3f(-0.3f,-.7f,1f);
 				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(1.3f));
+				guiPos_World = guiPos_World.subtract(controllerForward.divide(1/mc.vrSettings.vrWorldScale));
 			} else if (newScreen instanceof GuiScreenBook || newScreen instanceof GuiEditSign) {
 				Vector3f forward = new Vector3f(0,-.7f,1f);
 				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(1.3f));
+				guiPos_World = guiPos_World.subtract(controllerForward.divide(1/mc.vrSettings.vrWorldScale));
 			} else {
-				Vector3f forward = new Vector3f(0,0,1f).normalised();
+				Vector3f forward = new Vector3f(0,0,1);
 				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(-6f));
+				guiPos_World = guiPos_World.subtract(controllerForward.divide(1/mc.vrSettings.vrWorldScale));
 			}
 
 			if (appearOverBlock && mc.objectMouseOver != null) {
@@ -1720,14 +1725,12 @@ public class MCOpenVR
 	{
    		mc.mcProfiler.startSection("applyGUIModelView");
 
-		float scale = guiScale; 
-
 		// main menu view
 		if (mc.theWorld==null || mc.currentScreen instanceof GuiWinGame) {
 			
 			guiPos_World.x = (float) (0 + mc.vrPlayer.getRoomOriginPos_World().xCoord);
-			guiPos_World.y = (float) (1.3f + mc.vrPlayer.getRoomOriginPos_World().yCoord);
-			guiPos_World.z = (float) (-1.3f + mc.vrPlayer.getRoomOriginPos_World().zCoord);
+			guiPos_World.y = (float) (1.3f*mc.vrSettings.vrWorldScale + mc.vrPlayer.getRoomOriginPos_World().yCoord);
+			guiPos_World.z = (float) (-1.3f*mc.vrSettings.vrWorldScale + mc.vrPlayer.getRoomOriginPos_World().zCoord);
 			guiRotationPose.M[0][0] = guiRotationPose.M[1][1] = guiRotationPose.M[2][2] = guiRotationPose.M[3][3] = 1.0F;
 			guiRotationPose.M[0][1] = guiRotationPose.M[1][0] = guiRotationPose.M[2][3] = guiRotationPose.M[3][1] = 0.0F;
 			guiRotationPose.M[0][2] = guiRotationPose.M[1][2] = guiRotationPose.M[2][0] = guiRotationPose.M[3][2] = 0.0F;
@@ -1739,19 +1742,24 @@ public class MCOpenVR
 		// i am dead view
 		if (mc.thePlayer!=null && !mc.thePlayer.isEntityAlive())
 		{
-			Matrix4f out = MCOpenVR.getAimRotation(1);
 			Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
-			Matrix4f MguiRotationPose =  Matrix4f.multiply(rot,out);
-			MguiRotationPose.M[1][3] = 0.5f;
-			//guiRotationPose = mc.vrPlayer.getControllerMatrix_World(1);
-			guiRotationPose = Matrix4f.multiply(MguiRotationPose, OpenVRUtil.rotationXMatrix((float) Math.PI * -0.2F));
-			guiRotationPose = Matrix4f.multiply(guiRotationPose, Matrix4f.rotationY((float) Math.PI * 0.1F));
-			guiRotationPose.M[3][3] = 1.7f;
-	
-			Vec3 v =mc.vrPlayer.getControllerOffhandPos_World();
-			guiPos_World.x = (float) v.xCoord;
-			guiPos_World.y = (float) v.yCoord ;
-			guiPos_World.z = (float) v.zCoord;
+			Matrix4f max = Matrix4f.multiply(rot, hmdRotation);
+			
+			Vec3 v = mc.vrPlayer.getHMDPos_World();
+			Vec3 d = mc.vrPlayer.getHMDDir_World();
+			guiPos_World.x = (float) (v.xCoord + d.xCoord*mc.vrSettings.vrWorldScale);
+			guiPos_World.y = (float) (v.yCoord + d.yCoord*mc.vrSettings.vrWorldScale);
+			guiPos_World.z = (float) (v.zCoord + d.zCoord*mc.vrSettings.vrWorldScale);
+				
+			Quatf orientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(max);
+			
+			guiRotationPose = new Matrix4f(orientationQuat);
+
+			//float pitchOffset = (float) Math.toRadians( -mc.vrSettings.hudPitchOffset );
+			//float yawOffset = (float) Math.toRadians( -mc.vrSettings.hudYawOffset );
+			//guiRotationPose = Matrix4f.multiply(guiRotationPose, OpenVRUtil.rotationXMatrix(yawOffset));
+			//guiRotationPose = Matrix4f.multiply(guiRotationPose, Matrix4f.rotationY(pitchOffset));
+			guiRotationPose.M[3][3] = 1.0f;
 		}
 
 		// HUD view - attach to head or controller
@@ -1763,9 +1771,10 @@ public class MCOpenVR
 				Matrix4f max = Matrix4f.multiply(rot, hmdRotation);
 				
 				Vec3 v = mc.vrPlayer.getHMDPos_World();
-				guiPos_World.x = (float) (v.xCoord);
-				guiPos_World.y = (float) (v.yCoord);
-				guiPos_World.z = (float) (v.zCoord);
+				Vec3 d = mc.vrPlayer.getHMDDir_World();
+				guiPos_World.x = (float) (v.xCoord + d.xCoord*mc.vrSettings.vrWorldScale);
+				guiPos_World.y = (float) (v.yCoord + d.yCoord*mc.vrSettings.vrWorldScale);
+				guiPos_World.z = (float) (v.zCoord + d.zCoord*mc.vrSettings.vrWorldScale);
   				
 				Quatf orientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(max);
 				
@@ -1789,11 +1798,11 @@ public class MCOpenVR
 				guiRotationPose = Matrix4f.multiply(guiRotationPose, Matrix4f.rotationY((float) Math.PI * 0.1F));
 				guiRotationPose.M[3][3] = 1.7f;
 			
-				guiLocal.yCoord = 0.5f;
+				guiLocal.yCoord = 0.5*mc.vrSettings.vrWorldScale;
 				
 				Vec3 v =mc.vrPlayer.getControllerOffhandPos_World();
 				guiPos_World.x = (float) v.xCoord;
-				guiPos_World.y = (float) v.yCoord ;
+				guiPos_World.y = (float) v.yCoord;
 				guiPos_World.z = (float) v.zCoord;
 				
 			}
@@ -1813,13 +1822,14 @@ public class MCOpenVR
 			GL11.glMultMatrix(guiRotationPose.transposed().toFloatBuffer());	
 
 			GL11.glTranslatef((float)guiLocal.xCoord, (float) guiLocal.yCoord, (float)guiLocal.zCoord);
+			
 			double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
 	
 			if (mc.theWorld == null || mc.currentScreen instanceof GuiWinGame || (mc.currentScreen!=null && mc.currentScreen instanceof GuiContainer
 					&& !(mc.currentScreen instanceof GuiInventory || mc.currentScreen instanceof GuiContainerCreative)))
 			{
-				guiScale = 2.0f; 		
-			}else guiScale = 1.0f;//mc.vrSettings.hudScale;
+				guiScale =  mc.vrSettings.vrWorldScale * 2;	
+			}else guiScale = mc.vrSettings.vrWorldScale;
 	
 			//		if (timeOpen < 1.5) {
 			//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
