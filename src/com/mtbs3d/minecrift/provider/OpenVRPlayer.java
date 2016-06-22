@@ -111,7 +111,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         
         Vec3 campos = mc.roomScale.getHMDPos_Room();
         
-        campos.rotateAroundY(worldRotation);
+        campos.rotateAroundY(worldRotationRadians);
         
         double x = player.posX - campos.xCoord;
         double y = player.boundingBox.minY;
@@ -127,6 +127,22 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     private float lastworldRotation= 0f;
 	private float lastWorldScale;
     
+	public void checkandUpdateRotateScale(){
+		Minecraft mc = Minecraft.getMinecraft();
+	    this.worldScale =  mc.vrSettings.vrWorldScale;
+	    this.worldRotationRadians = (float) Math.toRadians(mc.vrSettings.vrWorldRotation);
+	    
+	    if (worldRotationRadians!= lastworldRotation || worldScale != lastWorldScale) {
+	    	if(mc.thePlayer!=null)snapRoomOriginToPlayerEntity(mc.thePlayer, true);
+	    	MCOpenVR.onGuiScreenChanged(mc.currentScreen, mc.currentScreen);
+	    }
+	    lastworldRotation = worldRotationRadians;
+	    lastWorldScale = worldScale;		
+	}
+
+	
+	
+	
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
     	if(!player.initFromServer) return;
@@ -135,16 +151,9 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     	this.lastroomOrigin.yCoord = roomOrigin.yCoord ;
     	this.lastroomOrigin.zCoord = roomOrigin.zCoord ;
         updateSwingAttack();
-        this.worldScale =  mc.vrSettings.vrWorldScale;
-        this.worldRotation = (float) Math.toRadians(mc.vrSettings.vrWorldRotation);
         
-        if (worldRotation!= lastworldRotation || worldScale != lastWorldScale) {
-        	snapRoomOriginToPlayerEntity(mc.thePlayer, true);
-        	this.lastroomOrigin = this.roomOrigin;
-        }
-        lastworldRotation = worldRotation;
-        lastWorldScale = worldScale;
-       // this.worldRotation += 0.01f;
+        this.checkandUpdateRotateScale();
+
         
        if(mc.vrSettings.vrAllowCrawling){         //experimental
            topofhead = (double) (mc.roomScale.getHMDPos_Room().yCoord + .05);
@@ -544,7 +553,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         Vec3 start = this.getControllerOffhandPos_World();
         Vec3 tiltedAim = mc.roomScale.getControllerOffhandDir_World();
         Matrix4f handRotation = getTeleportAimRotation(mc);
-        Matrix4f rot = Matrix4f.rotationY(this.worldRotation);
+        Matrix4f rot = Matrix4f.rotationY(this.worldRotationRadians);
         handRotation = Matrix4f.multiply(handRotation, rot);
         
         // extract hand roll
@@ -1010,7 +1019,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	
 	
 	float worldScale =  Minecraft.getMinecraft().vrSettings.vrWorldScale;
-	float worldRotation = Minecraft.getMinecraft().vrSettings.vrWorldRotation;
+	float worldRotationRadians;
 	
 	@Override
 	public boolean isHMDTracking() {
@@ -1024,7 +1033,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	@Override
 	public Vec3 getHMDPos_World() {	
 		Vec3 out = vecMult(MCOpenVR.getCenterEyePosition(),worldScale);
-		out.rotateAroundY(worldRotation);
+		out.rotateAroundY(worldRotationRadians);
 		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 	}
 
@@ -1032,7 +1041,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	public Vec3 getHMDDir_World() {
 		Vector3f v3 = MCOpenVR.headDirection;
 		Vec3 out = Vec3.createVectorHelper(v3.x, v3.y, v3.z);
-		out.rotateAroundY(worldRotation);
+		out.rotateAroundY(worldRotationRadians);
 		return out;
 	}
 
@@ -1054,7 +1063,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	@Override
 	public Vec3 getControllerMainPos_World() {
 		Vec3 out = vecMult(MCOpenVR.getAimSource(0),worldScale);
-		out.rotateAroundY(worldRotation);
+		out.rotateAroundY(worldRotationRadians);
 		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 		}
 
@@ -1062,7 +1071,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	public Vec3 getControllerMainDir_World() {
 		Vector3f v3 = MCOpenVR.controllerDirection;
 		Vec3 out = Vec3.createVectorHelper(v3.x, v3.y, v3.z);
-		out.rotateAroundY(worldRotation);
+		out.rotateAroundY(worldRotationRadians);
 		return out;
 	}
 
@@ -1084,14 +1093,14 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	@Override
 	public Vec3 getControllerOffhandPos_World() {
 		Vec3 out = vecMult(MCOpenVR.getAimSource(1),worldScale);
-		out.rotateAroundY(worldRotation);
+		out.rotateAroundY(worldRotationRadians);
 		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);	}
 
 	@Override
 	public Vec3 getControllerOffhandDir_World() {
 		Vector3f v3 = MCOpenVR.lcontrollerDirection;
 		Vec3 out = Vec3.createVectorHelper(v3.x, v3.y, v3.z);
-		out.rotateAroundY(worldRotation);
+		out.rotateAroundY(worldRotationRadians);
 		return out;
 	}
 
@@ -1125,7 +1134,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	
 	public EulerOrient getHMDEuler_World(){ //TOTO: important place to add user rotation.
 		EulerOrient out = MCOpenVR.getOrientationEuler(EyeType.ovrEye_Center);
-		out.yaw += Math.toDegrees(this.worldRotation);
+		out.yaw += Math.toDegrees(this.worldRotationRadians);
 		return out;
 	}
 	
@@ -1138,14 +1147,14 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	@Override
 	public FloatBuffer getHMDMatrix_World() {
 		Matrix4f out = MCOpenVR.hmdRotation;
-		Matrix4f rot = Matrix4f.rotationY(worldRotation);
+		Matrix4f rot = Matrix4f.rotationY(worldRotationRadians);
 		return Matrix4f.multiply(rot, out).toFloatBuffer();
 	}
 	
 	@Override
 	public Vec3 getEyePos_World(EyeType eye) {
 		Vec3 out = vecMult(MCOpenVR.getEyePosition(eye),worldScale);
-		out.rotateAroundY(worldRotation);
+		out.rotateAroundY(worldRotationRadians);
 		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 	}
 	
@@ -1153,7 +1162,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	@Override
 	public FloatBuffer getControllerMatrix_World(int controller) {
 		Matrix4f out = MCOpenVR.getAimRotation(controller);
-		Matrix4f rot = Matrix4f.rotationY(worldRotation);
+		Matrix4f rot = Matrix4f.rotationY(worldRotationRadians);
 		return Matrix4f.multiply(rot,out).transposed().toFloatBuffer();
 	}
 
@@ -1161,7 +1170,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	public Vec3 getCustomControllerVector(int controller, Vec3 axis) {
 		Vector3f v3 = MCOpenVR.getAimRotation(controller).transform(new Vector3f((float)axis.xCoord, (float)axis.yCoord,(float) axis.zCoord));
 		Vec3 out =  Vec3.createVectorHelper(v3.x, v3.y, v3.z);
-		out.rotateAroundY(worldRotation);
+		out.rotateAroundY(worldRotationRadians);
 		return out;
 	}
 

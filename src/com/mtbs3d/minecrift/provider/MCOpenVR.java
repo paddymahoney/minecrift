@@ -1748,7 +1748,7 @@ public class MCOpenVR
 		if (mc.theWorld==null || mc.currentScreen instanceof GuiWinGame) {
 			//TODO reset scale things
 			mc.vrPlayer.worldScale = 1;
-			mc.vrPlayer.worldRotation = (float) Math.toRadians( mc.vrSettings.vrWorldRotation);
+			mc.vrPlayer.worldRotationRadians = (float) Math.toRadians( mc.vrSettings.vrWorldRotation);
 			guiPos_World.x = (float) (0 + mc.vrPlayer.getRoomOriginPos_World().xCoord);
 			guiPos_World.y = (float) (1.3f + mc.vrPlayer.getRoomOriginPos_World().yCoord);
 			guiPos_World.z = (float) (-1.3f + mc.vrPlayer.getRoomOriginPos_World().zCoord);
@@ -1757,16 +1757,13 @@ public class MCOpenVR
 			guiRotationPose.M[0][2] = guiRotationPose.M[1][2] = guiRotationPose.M[2][0] = guiRotationPose.M[3][2] = 0.0F;
 			guiRotationPose.M[0][3] = guiRotationPose.M[1][3] = guiRotationPose.M[2][1] = guiRotationPose.M[3][0] = 0.0F;
 		} else { //these dont update when screen open.
-			if((mc.vrPlayer.worldScale != mc.vrSettings.vrWorldScale)){
-				mc.vrPlayer.worldScale = mc.vrSettings.vrWorldScale;
-				MCOpenVR.onGuiScreenChanged(mc.currentScreen, mc.currentScreen);
-			}
-			if((mc.vrPlayer.worldRotation != mc.vrSettings.vrWorldRotation)){
-				mc.vrPlayer.worldRotation = mc.vrSettings.vrWorldRotation;
-				MCOpenVR.onGuiScreenChanged(mc.currentScreen, mc.currentScreen);
+			if (mc.currentScreen != null){
+				mc.vrPlayer.checkandUpdateRotateScale();
 			}
 		}
 
+
+		
 		Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
 		
 		// i am dead view
@@ -1870,29 +1867,10 @@ public class MCOpenVR
 			return true;
 	} //note returns with matrix pushed
 
-	
-	
-	
-	//-------------------------------------------------------
-	// EventNotifier/IEventListener
 
 	public static double getCurrentTimeSecs()
 	{
 		return System.nanoTime() / 1000000000d;
 	}
-	
-	
-	float getOffhandAimYaw() {
-		return laimYaw;
-	}
 
-	
-	float getOffhandAimPitch() {
-		return laimPitch;
-	}
-
-	
-	Vec3 getHeadVector() {
-		return Vec3.createVectorHelper(headDirection.x, headDirection.y, headDirection.z);
-	}
 }

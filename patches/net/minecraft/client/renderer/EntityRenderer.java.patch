@@ -5334,7 +5334,7 @@
 +			float scale = 0.002f*crossDepth*this.mc.vrSettings.crosshairScale;
 +			GL11.glPushMatrix();
 +				GL11.glTranslatef(crossX, crossY, crossZ);
-+				GL11.glRotatef(- mc.vrPlayer.getControllerYaw_Room(0) + mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
++				GL11.glRotatef(mc.vrPlayer.getControllerMainYaw_World(), 0.0F, 1.0F, 0.0F);
 +				GL11.glRotatef(-mc.roomScale.getControllerMainPitch_World(), 1.0F, 0.0F, 0.0F);
 +				if (this.mc.vrSettings.crosshairRollsWithHead)
 +					GL11.glRotated(this.cameraRoll, 0.0F, 0.0F, 1.0F);
