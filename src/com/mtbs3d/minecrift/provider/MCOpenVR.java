@@ -1688,7 +1688,7 @@ public class MCOpenVR
 		// Minecraft entities don't have a roll, so just base it on a direction
 		controllerDirection = controllerRotation[0].transform(forward);
 		aimPitch = (float)Math.toDegrees(Math.asin(controllerDirection.y/controllerDirection.length()));
-		aimYaw = -(float)Math.toDegrees(Math.atan2(controllerDirection.x, controllerDirection.z));
+		aimYaw = (float)Math.toDegrees(Math.atan2(controllerDirection.x, controllerDirection.z));
 
 		hmdRotation.M[0][0] = hmdPose.M[0][0];
 		hmdRotation.M[0][1] = hmdPose.M[0][1];
@@ -1735,7 +1735,7 @@ public class MCOpenVR
 
 		lcontrollerDirection = controllerRotation[1].transform(forward);
 		laimPitch = (float)Math.toDegrees(Math.asin(lcontrollerDirection.y/lcontrollerDirection.length()));
-		laimYaw = -(float)Math.toDegrees(Math.atan2(lcontrollerDirection.x, lcontrollerDirection.z));
+		laimYaw = (float)Math.toDegrees(Math.atan2(lcontrollerDirection.x, lcontrollerDirection.z));
 
 		mc.mcProfiler.endSection();
 	}

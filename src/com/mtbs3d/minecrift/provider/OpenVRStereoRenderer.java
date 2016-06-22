@@ -202,8 +202,6 @@ public class OpenVRStereoRenderer implements IStereoProvider
 				MCOpenVR.texType, MCOpenVR.texBounds,
 				JOpenVRLibrary.EVRSubmitFlags.EVRSubmitFlags_Submit_Default);
 		}
-
-
 		//System.out.println("vsync="+JOpenVRLibrary.VR_IVRCompositor_GetVSync(vrCompositor));
 		return true;
 	}

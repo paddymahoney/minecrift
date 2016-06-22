@@ -88,8 +88,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
      	interPolatedRoomOrigin = getInterpolatedRoomOriginPos_World(nano);
     }
     
-    public void setRoomOrigin(double x, double y, double z) { 
-    	if (roomOrigin.xCoord == 0 && roomOrigin.yCoord ==0 && roomOrigin.zCoord == 0){
+    public void setRoomOrigin(double x, double y, double z, boolean reset ) { 
+    	if (reset){
     		interPolatedRoomOrigin = Vec3.createVectorHelper(x, y, z);
     		lastroomOrigin = Vec3.createVectorHelper(x, y, z);
     	}
@@ -97,15 +97,10 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     	this.roomOrigin.yCoord = y;
     	this.roomOrigin.zCoord = z;
         lastRoomUpdateTime = Minecraft.getMinecraft().stereoProvider.getCurrentTimeSecs();
-        if (x ==0 &&  y ==0 && z == 0){
-        	interPolatedRoomOrigin = Vec3.createVectorHelper(0, 0, 0);
-        	lastroomOrigin = Vec3.createVectorHelper(0, 0, 0);
-        	
-        }
     }
     
     //set room 
-    public void snapRoomOriginToPlayerEntity(EntityPlayerSP player)
+    public void snapRoomOriginToPlayerEntity(EntityPlayerSP player, boolean reset)
     {
         if (Thread.currentThread().getName().equals("Server thread"))
             return;
@@ -122,7 +117,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         double y = player.boundingBox.minY;
         double z = player.posZ - campos.zCoord;
 
-        setRoomOrigin(x, y, z);
+        setRoomOrigin(x, y, z, reset);
 
     }
     
@@ -134,6 +129,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
+    	if(!player.initFromServer) return;
     	
     	this.lastroomOrigin.xCoord = roomOrigin.xCoord ;
     	this.lastroomOrigin.yCoord = roomOrigin.yCoord ;
@@ -143,7 +139,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         this.worldRotation = (float) Math.toRadians(mc.vrSettings.vrWorldRotation);
         
         if (worldRotation!= lastworldRotation || worldScale != lastWorldScale) {
-        	snapRoomOriginToPlayerEntity(mc.thePlayer);
+        	snapRoomOriginToPlayerEntity(mc.thePlayer, true);
         	this.lastroomOrigin = this.roomOrigin;
         }
         lastworldRotation = worldRotation;
@@ -1042,7 +1038,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public float getHMDYaw_World() {
-		return (float) (180 - MCOpenVR.getHeadYawDegrees(EyeType.ovrEye_Center) + Math.toDegrees(this.worldRotation));
+		return (float) (180 - MCOpenVR.getHeadYawDegrees(EyeType.ovrEye_Center) +Minecraft.getMinecraft().vrSettings.vrWorldRotation);
 	}
 
 	@Override
@@ -1072,7 +1068,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public float getControllerMainYaw_World() {
-		return (float) (MCOpenVR.aimYaw + Math.toDegrees(this.worldRotation));
+		return (float) (MCOpenVR.aimYaw + Minecraft.getMinecraft().vrSettings.vrWorldRotation);
 	}
 
 	@Override
@@ -1101,7 +1097,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public float getControllerOffhandYaw_World() {
-		return  (float) (MCOpenVR.laimYaw + Math.toDegrees(this.worldRotation));
+		return  (float) (MCOpenVR.laimYaw + Minecraft.getMinecraft().vrSettings.vrWorldRotation);
 	}
 
 	@Override

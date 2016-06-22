@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4709 @@
+@@ -150,2988 +167,4708 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -5817,7 +5817,7 @@
 +	public void loadWorld(WorldClient worldClientIn)
 +	{
 +		// VIVE START - reset room origin
-+		vrPlayer.setRoomOrigin(0, 0, 0);
++		vrPlayer.setRoomOrigin(0, 0, 0, true);
 +		// VIVE END - reset room origin
 +		this.loadWorld(worldClientIn, "");
 +	}
@@ -5923,7 +5923,6 @@
 +
 +			this.thePlayer.preparePlayerToSpawn();
 +			//VIVECRAFT
-+			vrPlayer.snapRoomOriginToPlayerEntity(this.thePlayer);
 +			worldClientIn.spawnEntityInWorld(this.thePlayer);
 +			this.thePlayer.movementInput = new MovementInputFromOptions(this.gameSettings);
 +			this.playerController.setPlayerCapabilities(this.thePlayer);

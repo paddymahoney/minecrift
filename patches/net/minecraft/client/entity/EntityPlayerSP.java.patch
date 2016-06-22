@@ -468,7 +468,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +892,233 @@
+@@ -662,4 +892,237 @@
      }
  
      protected void sendHorseJump() {}
@@ -578,7 +578,7 @@
 +    		
 +    		// Account for yaw
 +            if (vr.useLControllerForRestricedMovement) {
-+            	directionVec.rotateAroundY(-con.getControllerOffhandYaw_World() * PIOVER180);		   
++            	directionVec.rotateAroundY(con.getControllerOffhandYaw_World() * PIOVER180);		   
 +            } else {
 +    			directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
 +    		}
@@ -641,24 +641,28 @@
 +        }
 +    }
 +
-+    // VIVE START - update room origin when player entity is moved
++    public boolean initFromServer = false;
 +    public void setPositionAndRotation(double x, double y, double z, float yaw, float pitch)
 +    {
 +        super.setPositionAndRotation(x, y, z, yaw, pitch);
-+        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
++        if(initFromServer == false){
++            initFromServer = true;    
++    		OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this, true);
++        }
 +    }
 +
 +    public void readFromNBT(NBTTagCompound tagCompund)
 +    {
 +        super.readFromNBT(tagCompund);
-+        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
 +
++    // VIVE START - update room origin when player entity is moved
 +    public void setPosition(double x, double y, double z)
 +    {
 +        super.setPosition(x, y, z);
-+        if(this.mc == null || this.mc.theWorld == null){this.mc = null;} else { //still init.
-+        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
++    	if(!initFromServer) return;
++    	else { //still init.
++    		OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this, false);
 +        }
 +    }
 +    
@@ -681,7 +685,7 @@
 +    			OpenVRPlayer.get().setRoomOrigin(
 +    					posX + ox, 
 +    					this.boundingBox.minY, 
-+    					posZ  + oz);
++    					posZ  + oz, false);
 +    					}
 +    
 +    	} else {
@@ -691,7 +695,7 @@
 +    				OpenVRPlayer.get().setRoomOrigin(
 +    					OpenVRPlayer.get().getRoomOriginPos_World().xCoord, 
 +    					this.boundingBox.minY, 
-+    					OpenVRPlayer.get().getRoomOriginPos_World().zCoord);
++    					OpenVRPlayer.get().getRoomOriginPos_World().zCoord, false);
 +    			}
 +
 +    		} else {
