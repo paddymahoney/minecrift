@@ -4898,17 +4898,17 @@
 +		Minecraft.getMinecraft().renderEngine.bindTexture(Gui.optionsBackground);
 +		
 +	//	float yo = -camRelY;
-+		float s = 3f * mc.vrSettings.vrWorldScale;
++		float s = 3f;
 +		int repeat = 30; 
 +		int w = 5;
 +		
 +		GL11.glPushMatrix();
-+		GL11.glScalef(2f * mc.vrSettings.vrWorldScale, 2f*mc.vrSettings.vrWorldScale, 2f*mc.vrSettings.vrWorldScale);
++		GL11.glScalef(2f, 2f, 2f);
 +
-+			GL11.glTranslatef(0f, 0, 1.3f*mc.vrSettings.vrWorldScale);
++			GL11.glTranslatef(0f, 0, 1.3f);
 +	
-+				GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, setFogColorBuffer(0f,0f,-0.2f*mc.vrSettings.vrWorldScale,1f*mc.vrSettings.vrWorldScale));           
-+				GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, setFogColorBuffer(mc.vrSettings.vrWorldScale, mc.vrSettings.vrWorldScale, mc.vrSettings.vrWorldScale, mc.vrSettings.vrWorldScale ));
++				GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, setFogColorBuffer(0f,0f,-0.2f,1));           
++				GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, setFogColorBuffer(1,1,1,1));
 +				GL11.glLight(GL11.GL_LIGHT0, GL11.GL_AMBIENT, setFogColorBuffer(0.0F, 0.0F, 0.0F, 1.0F));
 +				GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, setFogColorBuffer(0, 0, 0, 1.0F));
 +				GL11.glShadeModel(GL11.GL_SMOOTH);
@@ -4930,7 +4930,7 @@
 +							GL11.glRotatef(-90, 1,0, 0);
 +						}
 +	
-+						GL11.glTranslatef(0f, 0, t* mc.vrSettings.vrWorldScale);			        	
++						GL11.glTranslatef(0f, 0, t);			        	
 +						GL11.glBegin(GL11.GL_QUADS);	  	
 +							GL11.glTexCoord2f(0.0f, 0.0f);
 +							GL11.glVertex3f(-(s / 2f), -(s * 1) / 2f, 0.0f);  // Bottom Left Of The Texture and Quad
@@ -4945,7 +4945,7 @@
 +	
 +				}         
 +	
-+				GL11.glTranslatef(0f, 0, -1.3f*mc.vrSettings.vrWorldScale);
++				GL11.glTranslatef(0f, 0, -1.3f);
 +	
 +				
 +				GL11.glPopMatrix();   

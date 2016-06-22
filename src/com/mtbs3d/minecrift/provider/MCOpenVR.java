@@ -195,6 +195,8 @@ public class MCOpenVR
 
 	static KeyBinding rotateLeft = new KeyBinding("Rotate Left", 203, "key.categories.movement");
 	static KeyBinding rotateRight = new KeyBinding("Rotate Right", 205, "key.categories.movement");
+	static KeyBinding quickTorch = new KeyBinding("Quick Torch", 210, "key.categories.gameplay");
+	
 	
 	
 	public MCOpenVR()
@@ -297,6 +299,7 @@ public class MCOpenVR
 
 	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, rotateLeft));
 	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, rotateRight));	
+	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, quickTorch));	
 
 		
 		initialized = true;
@@ -475,6 +478,7 @@ public class MCOpenVR
 	}
 
 	static GuiTextField keyboardGui;
+	private static int quickTorchPreviousSlot;
 
 	public static boolean setKeyboardOverlayShowing(boolean showingState, GuiTextField gui) {
 		keyboardGui = gui;
@@ -1086,6 +1090,24 @@ public class MCOpenVR
 			mc.vrSettings.vrWorldRotation = mc.vrSettings.vrWorldRotation % 360;
 			}
 		
+		if(quickTorch.isPressed() && mc.thePlayer != null){
+		    for (int slot=0;slot<9;slot++)
+            {  
+		    	ItemStack itemStack = mc.thePlayer.inventory.getStackInSlot(slot);
+                if (itemStack!=null && itemStack.getUnlocalizedName().equals("tile.torch") )
+                {
+                    quickTorchPreviousSlot = mc.thePlayer.inventory.currentItem;
+                    mc.thePlayer.inventory.currentItem = slot;
+                    mc.rightClickMouse();
+                    // switch back immediately
+                    mc.thePlayer.inventory.currentItem = quickTorchPreviousSlot;
+                    quickTorchPreviousSlot = -1;
+                    break;
+                }
+            }
+        }
+		
+		
 		// if you start teleporting, close any UI
 		if (gui && !sleeping && mc.gameSettings.keyBindForward.getIsKeyPressed() && !(mc.currentScreen instanceof GuiWinGame))
 		{
@@ -1468,13 +1490,11 @@ public class MCOpenVR
 			guiPos_World.y = (float) (e.yCoord + v.yCoord);
 			guiPos_World.z = (float) (e.zCoord + v.zCoord);
 
-
 			Matrix4f hmd = hmdRotation;
 			Matrix4f cont = controllerRotation[0];
 			Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
 			hmd = Matrix4f.multiply(hmd, rot);
 			cont=Matrix4f.multiply(cont, rot);
-			
 			
 			if(!appearOverBlock){
 				
@@ -1491,15 +1511,15 @@ public class MCOpenVR
 			if (newScreen instanceof GuiChat){
 				Vector3f forward = new Vector3f(-0.3f,-.7f,1f);
 				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(1/mc.vrSettings.vrWorldScale));
+				guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
 			} else if (newScreen instanceof GuiScreenBook || newScreen instanceof GuiEditSign) {
 				Vector3f forward = new Vector3f(0,-.7f,1f);
 				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(1/mc.vrSettings.vrWorldScale));
+				guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
 			} else {
 				Vector3f forward = new Vector3f(0,0,1);
 				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(1/mc.vrSettings.vrWorldScale));
+				guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
 			}
 
 			if (appearOverBlock && mc.objectMouseOver != null) {
@@ -1720,21 +1740,31 @@ public class MCOpenVR
 		mc.mcProfiler.endSection();
 	}
 
-
 	public static boolean applyGUIModelView(EyeType eyeType)
 	{
    		mc.mcProfiler.startSection("applyGUIModelView");
 
 		// main menu view
 		if (mc.theWorld==null || mc.currentScreen instanceof GuiWinGame) {
-			
+			//TODO reset scale things
+			mc.vrPlayer.worldScale = 1;
+			mc.vrPlayer.worldRotation = (float) Math.toRadians( mc.vrSettings.vrWorldRotation);
 			guiPos_World.x = (float) (0 + mc.vrPlayer.getRoomOriginPos_World().xCoord);
-			guiPos_World.y = (float) (1.3f*mc.vrSettings.vrWorldScale + mc.vrPlayer.getRoomOriginPos_World().yCoord);
-			guiPos_World.z = (float) (-1.3f*mc.vrSettings.vrWorldScale + mc.vrPlayer.getRoomOriginPos_World().zCoord);
+			guiPos_World.y = (float) (1.3f + mc.vrPlayer.getRoomOriginPos_World().yCoord);
+			guiPos_World.z = (float) (-1.3f + mc.vrPlayer.getRoomOriginPos_World().zCoord);
 			guiRotationPose.M[0][0] = guiRotationPose.M[1][1] = guiRotationPose.M[2][2] = guiRotationPose.M[3][3] = 1.0F;
 			guiRotationPose.M[0][1] = guiRotationPose.M[1][0] = guiRotationPose.M[2][3] = guiRotationPose.M[3][1] = 0.0F;
 			guiRotationPose.M[0][2] = guiRotationPose.M[1][2] = guiRotationPose.M[2][0] = guiRotationPose.M[3][2] = 0.0F;
 			guiRotationPose.M[0][3] = guiRotationPose.M[1][3] = guiRotationPose.M[2][1] = guiRotationPose.M[3][0] = 0.0F;
+		} else { //these dont update when screen open.
+			if((mc.vrPlayer.worldScale != mc.vrSettings.vrWorldScale)){
+				mc.vrPlayer.worldScale = mc.vrSettings.vrWorldScale;
+				MCOpenVR.onGuiScreenChanged(mc.currentScreen, mc.currentScreen);
+			}
+			if((mc.vrPlayer.worldRotation != mc.vrSettings.vrWorldRotation)){
+				mc.vrPlayer.worldRotation = mc.vrSettings.vrWorldRotation;
+				MCOpenVR.onGuiScreenChanged(mc.currentScreen, mc.currentScreen);
+			}
 		}
 
 		Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
@@ -1828,9 +1858,9 @@ public class MCOpenVR
 			if (mc.theWorld == null || mc.currentScreen instanceof GuiWinGame || (mc.currentScreen!=null && mc.currentScreen instanceof GuiContainer
 					&& !(mc.currentScreen instanceof GuiInventory || mc.currentScreen instanceof GuiContainerCreative)))
 			{
-				guiScale =  mc.vrSettings.vrWorldScale * 2;	
+				guiScale =  2;	
 			}else guiScale = mc.vrSettings.vrWorldScale;
-	
+			if(guiScale < 0.5f) guiScale = 0.5f;
 			//		if (timeOpen < 1.5) {
 			//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
 			//		}

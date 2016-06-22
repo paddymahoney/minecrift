@@ -60,7 +60,7 @@
      /** Ticks left before sprinting is disabled. */
      public int sprintingTicksLeft;
      public float renderArmYaw;
-@@ -80,13 +108,89 @@
+@@ -80,13 +108,86 @@
      public float prevTimeInPortal;
      private static final String __OBFID = "CL_00000938";
  
@@ -75,14 +75,9 @@
 +        
          this.mc = p_i1238_1_;
          this.dimension = p_i1238_4_;
--    }
--
 +        
-+        if(this instanceof EntityClientPlayerMP)
-+        	OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
-+        
-+    }
-+
+     }
+ 
 +    //VIVECRAFT
 +    Field inuse, inusedur;
 +    private void hackSuperFields(){ //this will work, damnit.
@@ -152,7 +147,7 @@
      public void updateEntityActionState()
      {
          super.updateEntityActionState();
-@@ -99,6 +203,7 @@
+@@ -99,6 +200,7 @@
          this.renderArmYaw = (float)((double)this.renderArmYaw + (double)(this.rotationYaw - this.renderArmYaw) * 0.5D);
      }
  
@@ -160,7 +155,7 @@
      /**
       * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
       * use this to react to sunlight and start to burn.
-@@ -182,7 +287,9 @@
+@@ -182,7 +284,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -171,7 +166,7 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -195,20 +302,28 @@
+@@ -195,20 +299,28 @@
  
              if (this.movementInput.sneak && this.yOffset2 < 0.2F)
              {
@@ -206,7 +201,7 @@
                  }
                  else
                  {
-@@ -252,7 +367,7 @@
+@@ -252,7 +364,7 @@
                      this.motionY += 0.15D;
                  }
              }
@@ -215,7 +210,7 @@
              if (this.isRidingHorse())
              {
                  if (this.horseJumpPowerCounter < 0)
-@@ -296,6 +411,10 @@
+@@ -296,6 +408,10 @@
  
              super.onLivingUpdate();
  
@@ -226,7 +221,7 @@
              if (this.onGround && this.capabilities.isFlying)
              {
                  this.capabilities.isFlying = false;
-@@ -341,7 +460,14 @@
+@@ -341,7 +457,14 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -242,7 +237,7 @@
      }
  
      /**
-@@ -524,70 +650,168 @@
+@@ -524,70 +647,168 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -457,7 +452,7 @@
  
          return false;
      }
-@@ -640,6 +864,15 @@
+@@ -640,6 +861,15 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -473,7 +468,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +895,234 @@
+@@ -662,4 +892,233 @@
      }
  
      protected void sendHorseJump() {}
@@ -662,7 +657,7 @@
 +    public void setPosition(double x, double y, double z)
 +    {
 +        super.setPosition(x, y, z);
-+        if(this.mc == null){} else { //still init.
++        if(this.mc == null || this.mc.theWorld == null){this.mc = null;} else { //still init.
 +        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +        }
 +    }
@@ -688,8 +683,7 @@
 +    					this.boundingBox.minY, 
 +    					posZ  + oz);
 +    					}
-+    		//	VRPlayer.get().snapRoomOriginToPlayerEntity((EntityPlayerSP) this);
-+
++    
 +    	} else {
 +    		if(doY) {      	 
 +    			super.moveEntity(0,y,0);

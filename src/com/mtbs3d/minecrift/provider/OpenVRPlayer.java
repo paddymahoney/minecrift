@@ -130,6 +130,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     
     
     private float lastworldRotation= 0f;
+	private float lastWorldScale;
     
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
@@ -141,11 +142,12 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         this.worldScale =  mc.vrSettings.vrWorldScale;
         this.worldRotation = (float) Math.toRadians(mc.vrSettings.vrWorldRotation);
         
-        if (worldRotation!= lastworldRotation) {
+        if (worldRotation!= lastworldRotation || worldScale != lastWorldScale) {
         	snapRoomOriginToPlayerEntity(mc.thePlayer);
         	this.lastroomOrigin = this.roomOrigin;
         }
         lastworldRotation = worldRotation;
+        lastWorldScale = worldScale;
        // this.worldRotation += 0.01f;
         
        if(mc.vrSettings.vrAllowCrawling){         //experimental
@@ -344,6 +346,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
           
             this.weaponEndlast = null;
+            this.lastmot = 0;
             
             if(mc.vrSettings.vrLimitedSurvivalTeleport){
               player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));    
@@ -535,27 +538,19 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         return torso;
     }
 
-    private  Vec3 getTeleportTraceStart(Minecraft mc)
-    {
-    	return this.getControllerOffhandPos_World();
-    }
-
     private  Matrix4f getTeleportAimRotation(Minecraft mc)
     {
         return MCOpenVR.getAimRotation(1);
     }
 
-    public  Vec3 getTeleportAim(Minecraft mc)
-    {
-    	return mc.roomScale.getControllerOffhandDir_World();
-    }
-
     public void updateTeleportArc(Minecraft mc, Entity player)
     {
-        Vec3 start = getTeleportTraceStart(mc);
-        Vec3 tiltedAim = getTeleportAim(mc);
+        Vec3 start = this.getControllerOffhandPos_World();
+        Vec3 tiltedAim = mc.roomScale.getControllerOffhandDir_World();
         Matrix4f handRotation = getTeleportAimRotation(mc);
-
+        Matrix4f rot = Matrix4f.rotationY(this.worldRotation);
+        handRotation = Matrix4f.multiply(handRotation, rot);
+        
         // extract hand roll
         Quatf handQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(handRotation);
         EulerOrient euler = OpenVRUtil.getEulerAnglesDegYXZ(handQuat);
@@ -569,7 +564,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         // calculate gravity vector for arc
         float gravityAcceleration = 0.098f;
         Matrix4f rollCounter = OpenVRUtil.rotationZMatrix((float)MathHelper.deg2Rad*-euler.roll);
-       // Matrix4f gravityTilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -.8f);
+        Matrix4f gravityTilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -.8f);
         Matrix4f gravityRotation = Matrix4f.multiply(handRotation, rollCounter);
         Vector3f forward = new Vector3f(0,1,0);
         Vector3f gravityDirection = gravityRotation.transform(forward);
@@ -625,9 +620,9 @@ public class OpenVRPlayer implements IRoomscaleAdapter
             movementTeleportArc[i].zCoord = newPos.zCoord;
             movementTeleportArcSteps = i + 1;
 
-            velocity.xCoord +=0;// gravity.xCoord;
+            velocity.xCoord += gravity.xCoord;
             velocity.yCoord += gravity.yCoord;
-            velocity.zCoord +=0;// gravity.zCoord;
+            velocity.zCoord += gravity.zCoord;
         }
     }
 
@@ -656,10 +651,10 @@ public class OpenVRPlayer implements IRoomscaleAdapter
                 updateTeleportArc(mc, player);
             }
         }
-        else
+        else //non-arc modes.
         {
-            Vec3 start = getTeleportTraceStart(mc);
-            Vec3 aimDir = getTeleportAim(mc);
+            Vec3 start = this.getControllerOffhandPos_World();
+            Vec3 aimDir = mc.roomScale.getControllerOffhandDir_World();
 
             // setup teleport forwards to the mouse cursor
             double movementTeleportDistance = 250.0;
@@ -1018,8 +1013,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	//================= IROOMSCALEADAPTER =============================
 	
 	
-	private float worldScale =  Minecraft.getMinecraft().vrSettings.vrWorldScale;
-	private float worldRotation = Minecraft.getMinecraft().vrSettings.vrWorldRotation;
+	float worldScale =  Minecraft.getMinecraft().vrSettings.vrWorldScale;
+	float worldRotation = Minecraft.getMinecraft().vrSettings.vrWorldRotation;
 	
 	@Override
 	public boolean isHMDTracking() {

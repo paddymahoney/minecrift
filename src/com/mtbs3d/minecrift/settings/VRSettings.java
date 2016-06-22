@@ -1042,7 +1042,7 @@ public class VRSettings
             case BCB_ON:
             	return this.vrShowBlueCircleBuddy ? var4 + "ON" : var4 + "OFF";
             case WORLD_SCALE:
-	            return var4 + String.format("%.1f", new Object[] { Float.valueOf(this.vrWorldScale) });
+	            return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.vrWorldScale)})+ "x" ;
             case WORLD_ROTATION:
 	            return var4 + String.format("%.0f", new Object[] { Float.valueOf(this.vrWorldRotation) });
 
@@ -1107,7 +1107,13 @@ public class VRSettings
                 return vrComfortTransitionAngleDegs;
             // VIVE START - new options
             case WORLD_SCALE:
-                return vrWorldScale;
+            	if(vrWorldScale < 1.5){
+            		return -1/vrWorldScale  + 10 ;
+            	} else if (vrWorldScale == 1.5f){
+            		return 10;  
+            	} else {
+            		return(vrWorldScale/2 + 10);            		
+            	}
             case WORLD_ROTATION:
                 return vrWorldRotation;
             // VIVE END - new options
@@ -1396,7 +1402,13 @@ public class VRSettings
                 break;
             // VIVE START - new options
             case WORLD_SCALE:
-                this.vrWorldScale = par2;
+            	if(par2 < 10){
+            		this.vrWorldScale = 1 / (10-par2);
+            	} else if (par2 == 10){
+            		this.vrWorldScale = 1.5f;   
+            	} else {
+            		this.vrWorldScale = (par2 - 10) * 2;            		
+            	}
                 break;
             case WORLD_ROTATION:
                 this.vrWorldRotation = par2;

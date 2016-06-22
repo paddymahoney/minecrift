@@ -122,9 +122,9 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 }
                 else if (var8 == VRSettings.VrOptions.WORLD_SCALE)
                 {
-                    minValue = 0.1f;
-                    maxValue = 12f;
-                    increment = 0.1f;
+                    minValue = 0f;
+                    maxValue = 20f;
+                    increment = 1f;
                 }
                 else if (var8 == VRSettings.VrOptions.WORLD_ROTATION)
                 {
