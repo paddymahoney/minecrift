@@ -853,8 +853,6 @@ public class MCOpenVR
 				} catch (Throwable e){
 
 				}
-
-
 			}
 		}
 	}
@@ -870,7 +868,6 @@ public class MCOpenVR
 		if (mc.theWorld == null)
 			return;
 
-		boolean gui = (mc.currentScreen != null);
 		boolean sleeping = (mc.thePlayer != null && mc.thePlayer.isPlayerSleeping());
 
 		// right controller
@@ -920,7 +917,7 @@ public class MCOpenVR
 
 		//R TOUCHPAD	
 
-		if(!gui){ //this are the mouse buttons.
+		//if(!gui){ //this are the mouse buttons. ummm do I need this? it causes the key to stick down.
 		
 		if (pressedRtouchpadBottomLeft && !lastpressedRtouchpadBottomLeft){
 			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BL.ordinal()].press();
@@ -948,13 +945,11 @@ public class MCOpenVR
 			//R TRIGGER
 			if (pressedRTrigger && !lastpressedRTrigger) {
 				mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TRIGGER.ordinal()].press();
-				//keyBindR_Trigger.pressKey();
 			}	
 			if(!pressedRTrigger && lastpressedRTrigger) {
 				mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TRIGGER.ordinal()].unpress();
-				//	keyBindR_Trigger.unpressKey();
 			}
-		}
+	//	}
 
 		//R AppMenu
 		if (pressedRAppMenu && !lastpressedRAppMenu) {
@@ -1068,8 +1063,8 @@ public class MCOpenVR
 			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_LEFT_TRIGGER_FULLCLICK.ordinal()].unpress();
 		}			
 
-
-		
+		boolean gui = (mc.currentScreen != null);
+	
 		//VIVE SPECIFIC FUNCTIONALITY
 		//TODO: Find a better home for these in Minecraft.java		
 
@@ -1107,7 +1102,6 @@ public class MCOpenVR
             }
         }
 		
-		
 		// if you start teleporting, close any UI
 		if (gui && !sleeping && mc.gameSettings.keyBindForward.getIsKeyPressed() && !(mc.currentScreen instanceof GuiWinGame))
 		{
@@ -1121,11 +1115,10 @@ public class MCOpenVR
 				if (moveModeSwitchcount >= 20 * 4) {
 					moveModeSwitchcount = 0;
 					if(mc.vrPlayer.noTeleportClient && mc.vrPlayer.getFreeMoveMode()){
-						mc.printChatMessage("Cannot change move mode: This server does not allow teleporting.");
-					}else {
+						mc.printChatMessage("Warning: This server may not allow teleporting.");
+					}
 					mc.vrPlayer.setFreeMoveMode(!mc.vrPlayer.getFreeMoveMode());
 					mc.printChatMessage("Movement mode set to: " + (mc.vrPlayer.getFreeMoveMode() ? "Free Move" : "Teleport"));
-					}
 				}				
 			}
 		} else {
@@ -1292,10 +1285,6 @@ public class MCOpenVR
 				}
 			}
 		}
-			
-			
-		//TODO: R touchpad up/down scrolls containers
-
 	}
 
 	private static void updatePose()
@@ -1486,70 +1475,57 @@ public class MCOpenVR
 
 			Vec3 v = mc.vrPlayer.getHMDPos_World();
 			Vec3 e = mc.vrPlayer.getHMDDir_World();
-			guiPos_World.x = (float) (e.xCoord + v.xCoord);
-			guiPos_World.y = (float) (e.yCoord + v.yCoord);
-			guiPos_World.z = (float) (e.zCoord + v.zCoord);
+			guiPos_World.x = (float) (e.xCoord * mc.vrSettings.vrWorldScale / 2 + v.xCoord);
+			guiPos_World.y = (float) (e.yCoord* mc.vrSettings.vrWorldScale / 2 + v.yCoord);
+			guiPos_World.z = (float) (e.zCoord* mc.vrSettings.vrWorldScale / 2 + v.zCoord);
 
 			Matrix4f hmd = hmdRotation;
 			Matrix4f cont = controllerRotation[0];
 			Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
 			hmd = Matrix4f.multiply(hmd, rot);
-			cont=Matrix4f.multiply(cont, rot);
+			cont = Matrix4f.multiply(cont, rot);
 			
-			if(!appearOverBlock){
+			guiScale = mc.vrSettings.vrWorldScale;
+			if(mc.theWorld == null) guiScale = 2.0f;
+			
+			if(appearOverBlock && mc.objectMouseOver !=null){	
+
+				guiScale =(float) (Math.sqrt(mc.vrSettings.vrWorldScale) * 2);
+				guiPos_World =new Vector3f((float) mc.objectMouseOver.blockX + 0.5f,
+						(float) mc.objectMouseOver.blockY + 1.7f,
+						(float) mc.objectMouseOver.blockZ + 0.5f);
 				
-				guiRotationPose = Matrix4f.rotationY((float) Math.toRadians( getHeadYawDegrees(mc.currentEye) + mc.vrSettings.vrWorldRotation));
-				Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.toRadians(mc.roomScale.getHMDPitch_World()));	
-				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);					
+				Vec3 pos = mc.roomScale.getHMDPos_World();
+				Vector3f look = new Vector3f();
+				look.x = (float) (guiPos_World.x - pos.xCoord);
+				look.y = (float) (guiPos_World.y - pos.yCoord);
+				look.z = (float) (guiPos_World.z - pos.zCoord);
+				
+				float pitch = (float) Math.asin(look.y/look.length());
+				float yaw = (float) ((float) Math.PI + Math.atan2(look.x, look.z));    
+					guiRotationPose = Matrix4f.rotationY((float) yaw);
+					Matrix4f tilt = OpenVRUtil.rotationXMatrix(pitch);	
+					guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);						
 			}				
 			else{
 				guiRotationPose = Matrix4f.rotationY((float) Math.toRadians( getHeadYawDegrees(mc.currentEye) + mc.vrSettings.vrWorldRotation));
-			}
-
-			guiScale = 1.0f;
-
-			if (newScreen instanceof GuiChat){
-				Vector3f forward = new Vector3f(-0.3f,-.7f,1f);
-				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
-			} else if (newScreen instanceof GuiScreenBook || newScreen instanceof GuiEditSign) {
-				Vector3f forward = new Vector3f(0,-.7f,1f);
-				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
-			} else {
-				Vector3f forward = new Vector3f(0,0,1);
-				Vector3f controllerForward = hmd.transform(forward);
-				guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
-			}
-
-			if (appearOverBlock && mc.objectMouseOver != null) {
-				Vec3 blockTop = Vec3.createVectorHelper(
-						(double) mc.objectMouseOver.blockX + 0.5,
-						(double) mc.objectMouseOver.blockY + 1.7,
-						(double) mc.objectMouseOver.blockZ + 0.5);
-
-				// translate controller position by player position, giving a final world coordinate
-				Entity player = mc.renderViewEntity;
-				if (player!=null)
-				{
-					//Vec3 playerPos = player.getPositionVector();
-					Minecraft mc = Minecraft.getMinecraft();
-					Vec3 playerPos = mc.vrPlayer.getRoomOriginPos_World();
-					blockTop.xCoord -= playerPos.xCoord;
-					blockTop.yCoord -= playerPos.yCoord;
-					blockTop.zCoord -= playerPos.zCoord;
+				Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.toRadians(mc.roomScale.getHMDPitch_World()));	
+				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);		
+				
+				if (newScreen instanceof GuiChat){
+					Vector3f forward = new Vector3f(-0.3f,- 1f,1f);
+					Vector3f controllerForward = hmd.transform(forward);
+					guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
+				} else if (newScreen instanceof GuiScreenBook || newScreen instanceof GuiEditSign) {
+					Vector3f forward = new Vector3f(0,-1f,1f);
+					Vector3f controllerForward = hmd.transform(forward);
+					guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
+				} else {
+					Vector3f forward = new Vector3f(0,0,1);
+					Vector3f controllerForward = hmd.transform(forward);
+					guiPos_World = guiPos_World.subtract(controllerForward.divide(2/mc.vrSettings.vrWorldScale));
 				}
-
-				guiPos_World.x = (float) -blockTop.xCoord;
-				guiPos_World.y = (float) blockTop.yCoord;
-				guiPos_World.z = (float) -blockTop.zCoord;
-
-				guiScale = 2.0f;
 			}
-
-
-			if(mc.theWorld == null) guiScale = 2.0f;
-
 		}
 	}
 
@@ -1740,13 +1716,19 @@ public class MCOpenVR
 		mc.mcProfiler.endSection();
 	}
 
+	
+	
+	
 	public static boolean applyGUIModelView(EyeType eyeType)
 	{
    		mc.mcProfiler.startSection("applyGUIModelView");
 
+		Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
+   		
 		// main menu view
 		if (mc.theWorld==null || mc.currentScreen instanceof GuiWinGame) {
 			//TODO reset scale things
+			guiScale = 2.0f;
 			mc.vrPlayer.worldScale = 1;
 			mc.vrPlayer.worldRotationRadians = (float) Math.toRadians( mc.vrSettings.vrWorldRotation);
 			guiPos_World.x = (float) (0 + mc.vrPlayer.getRoomOriginPos_World().xCoord);
@@ -1761,13 +1743,9 @@ public class MCOpenVR
 				mc.vrPlayer.checkandUpdateRotateScale();
 			}
 		}
-
-
-		
-		Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
 		
 		// i am dead view
-		if (mc.thePlayer!=null && !mc.thePlayer.isEntityAlive())
+	 if (mc.thePlayer!=null && !mc.thePlayer.isEntityAlive())
 		{
 			Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
 			Matrix4f max = Matrix4f.multiply(rot, hmdRotation);
@@ -1792,6 +1770,7 @@ public class MCOpenVR
 		// HUD view - attach to head or controller
 		else if (mc.theWorld!=null && (mc.currentScreen==null || mc.vrSettings.floatInventory == false))
 		{
+			guiScale = mc.vrSettings.vrWorldScale;
 			if (mc.vrSettings.hudLockToHead)
 			{
 				Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
@@ -1814,7 +1793,7 @@ public class MCOpenVR
 				guiRotationPose.M[3][3] = 1.0f;
 
 			}
-			else
+			else //hud on hand
 			{
 				Matrix4f out = MCOpenVR.getAimRotation(1);
 				Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
@@ -1835,6 +1814,8 @@ public class MCOpenVR
 			}
 		} 
 
+	
+		
 		// otherwise, looking at inventory screen. use pose calculated when screen was opened
 		//where is this set up... should be here....
 
@@ -1851,13 +1832,8 @@ public class MCOpenVR
 			GL11.glTranslatef((float)guiLocal.xCoord, (float) guiLocal.yCoord, (float)guiLocal.zCoord);
 			
 			double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
-	
-			if (mc.theWorld == null || mc.currentScreen instanceof GuiWinGame || (mc.currentScreen!=null && mc.currentScreen instanceof GuiContainer
-					&& !(mc.currentScreen instanceof GuiInventory || mc.currentScreen instanceof GuiContainerCreative)))
-			{
-				guiScale =  2;	
-			}else guiScale = mc.vrSettings.vrWorldScale;
-			if(guiScale < 0.5f) guiScale = 0.5f;
+
+
 			//		if (timeOpen < 1.5) {
 			//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
 			//		}

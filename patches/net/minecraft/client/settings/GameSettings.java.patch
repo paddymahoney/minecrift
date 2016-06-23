@@ -296,7 +296,7 @@
              if (var6 != null && Reflector.callBoolean(var6, Reflector.FMLClientHandler_isLoading, new Object[0]))
              {
 -                return;
-+                //return;  // Always continue to save settings
++                return;  // Always continue to save settings
              }
          }
  

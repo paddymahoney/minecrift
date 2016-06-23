@@ -194,7 +194,7 @@
              {
                  this.drawString(var8, String.format("shader: %s", new Object[] {this.mc.entityRenderer.getShaderGroup().getShaderGroupName()}), 2, 112, 14737632);
              }
-+            
++            if(false){
 +            this.drawString(var8,"Room: " + mc.vrPlayer.getRoomOriginPos_World().toString() , 2, 124, 14737632);
 +            this.drawString(var8,"HMD: " + mc.vrPlayer.getHMDPos_Room().toString() + mc.vrPlayer.getHMDPos_World() , 2, 132, 14737632);
 +            this.drawString(var8,"Main: " + mc.vrPlayer.getControllerPos_Room(0) + mc.vrPlayer.getControllerMainPos_World().toString() , 2, 140, 14737632);
@@ -207,7 +207,7 @@
 +            this.drawString(var8,"World Scale: " + mc.vrSettings.vrWorldScale + " World Rotation " + mc.vrSettings.vrWorldRotation , 2, 196	, 14737632);
 +            this.drawString(var8,"Gui " + MCOpenVR.guiPos_World.x + " " + MCOpenVR.guiPos_World.y + " " + MCOpenVR.guiPos_World.z, 2, 204	, 14737632);
 +            this.drawString(var8,"Swing " + mc.vrPlayer.tickDist * 20 + " " + mc.vrPlayer.lastmot, 2, 212	, 14737632);
-+
++            }
  
              GL11.glPopMatrix();
              this.mc.mcProfiler.endSection();

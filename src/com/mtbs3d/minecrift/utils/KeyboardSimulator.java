@@ -26,14 +26,14 @@ public class KeyboardSimulator {
     public static void press(char character){
         int[] chars = getCodes(character);
         for (int i : chars) {
-        	  robot.keyPress(chars[i]);
+        	  robot.keyPress(i);
 		}
     }
     
     public static void unpress(char character){
         int[] chars = getCodes(character);
         for (int i : chars) {
-        	  robot.keyRelease(chars[i]);
+        	  robot.keyRelease(i);
 		}
     }
     

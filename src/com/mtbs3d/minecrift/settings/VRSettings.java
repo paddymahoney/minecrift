@@ -1981,7 +1981,7 @@ public class VRSettings
     {
         ProfileManager.init(dataDir);
         mc.gameSettings = new GameSettings( mc, dataDir );
-        mc.gameSettings.saveOptions();
+       // mc.gameSettings.saveOptions();
         mc.vrSettings = new VRSettings( mc, dataDir );
         mc.vrSettings.saveOptions();
     }

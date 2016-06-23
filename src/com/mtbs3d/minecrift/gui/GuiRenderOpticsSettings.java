@@ -120,18 +120,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                     maxValue = 110f;
                     increment = 1f;
                 }
-                else if (var8 == VRSettings.VrOptions.WORLD_SCALE)
-                {
-                    minValue = 0f;
-                    maxValue = 20f;
-                    increment = 1f;
-                }
-                else if (var8 == VRSettings.VrOptions.WORLD_ROTATION)
-                {
-                    minValue = 0f;
-                    maxValue = 360;
-                    increment = 45;
-                }
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.setEventHandler(this);
                 slider.enabled = getEnabledState(var8);
@@ -185,8 +173,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useFsaa = false;
                 minecraft.vrSettings.fsaaScaleFactor = 1.4f;
                 minecraft.vrSettings.vrUseStencil = true;
-                minecraft.vrSettings.vrWorldScale = 1.0f;
-                minecraft.vrSettings.vrWorldRotation = 0f;
                 minecraft.reinitFramebuffers = true;
 			    this.guivrSettings.saveOptions();
             }
@@ -398,20 +384,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 return new String[] {
                         "Mask out areas of the screen outside the FOV.",
                         "Improves performance."
-                };
-            case WORLD_SCALE:
-                return new String[] {
-                        "Scales the player in the world.",
-                        "Above one makes you larger",
-                        "And below one makes you small",
-                        "And the ones that mother gives you",
-                        "don't do anything at all."
-                };
-            case WORLD_ROTATION:
-                return new String[] {
-                        "Adds extra rotation to your HMD.",
-                        "More useful bound to a button or ",
-                        "changed with the arrow keys."
                 };
     	default:
     		return null;

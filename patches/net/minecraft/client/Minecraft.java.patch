@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4708 @@
+@@ -150,2988 +167,4707 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -3457,7 +3457,6 @@
 +	/** END MINECRIFT */
 +	{
 +		if (rightClickDelayTimer <= 0){
-+
 +			this.rightClickDelayTimer = 12; //JRBUDDA (was 4)
 +			boolean var1 = true;
 +			ItemStack var2 = this.thePlayer.inventory.getCurrentItem();
@@ -7388,7 +7387,7 @@
 +	public void printChatMessage(String msg)
 +	{
 +		if (this.theWorld != null) {
-+			ChatComponentText chatText = new ChatComponentText("\u00a7e[Minecrift]: " + msg + "\u00a7f");
++			ChatComponentText chatText = new ChatComponentText(msg);
 +			this.ingameGUI.getChatGUI().printChatMessage(chatText);
 +		}
 +	}

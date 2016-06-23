@@ -1797,7 +1797,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1078,3946 @@
+@@ -825,1829 +1078,3947 @@
          {
              clipDistance = 256.0F;
          }
@@ -2839,6 +2839,7 @@
 +			Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, frustrum, par1});
 +		}
 +		else {
++			
 +			frustrum.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
 +			
 +			this.mc.renderGlobal.clipRenderersByFrustum(frustrum, par1);
@@ -4301,11 +4302,11 @@
 +							//use bow aim
 +							Vec3 aim = mc.bowTracker.getAimVector();
 +
-+							float pitch = -(float)Math.toDegrees(Math.asin(aim.yCoord/aim.lengthVector()));
++							float pitch = (float)Math.toDegrees(Math.asin(aim.yCoord/aim.lengthVector()));
 +							float yaw = (float)Math.toDegrees(Math.atan2(aim.xCoord, aim.zCoord));   		
 +
-+							entity.rotationYaw = - (float)yaw;
-+							entity.rotationYawHead = - (float)yaw;
++							entity.rotationYaw =  (float)yaw;
++							entity.rotationYawHead =  (float)yaw;
 +							entity.rotationPitch = (float)pitch;
 +
 +						}	 else if(i.getItem() == Items.snowball ||
@@ -5331,7 +5332,7 @@
 +			this.mc.mcProfiler.endStartSection("crosshair");
 +			GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
 +			float crossDepth = MAX_CROSSHAIR_DISTANCE - (float)crossVec.subtract(mc.roomScale.getControllerMainPos_World()).lengthVector();
-+			float scale = 0.002f*crossDepth*this.mc.vrSettings.crosshairScale;
++			float scale = (float) (0.031f*Math.sqrt(crossDepth)*this.mc.vrSettings.crosshairScale * Math.sqrt(mc.vrSettings.vrWorldScale));
 +			GL11.glPushMatrix();
 +				GL11.glTranslatef(crossX, crossY, crossZ);
 +				GL11.glRotatef(mc.vrPlayer.getControllerMainYaw_World(), 0.0F, 1.0F, 0.0F);
@@ -5684,7 +5685,7 @@
 +		
 +					tes.setColorRGBA(255 - 127 * c,255 - 127 * c,255 - 127 * c,255);
 +					
-+					Vec3 controllerPos = mc.roomScale.getEyePos_Room(mc.currentEye).subtract(mc.roomScale.getControllerPos_Room(c));
++					Vec3 controllerPos = mc.roomScale.getEyePos_World(mc.currentEye).subtract(mc.roomScale.getControllerPos_World(c));
 +					
 +					GL11.glPushMatrix();
 +						GL11.glTranslatef(

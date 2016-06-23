@@ -32,7 +32,6 @@ public class BowTracker {
 	
 	private Vec3 leftHandAim;
 	
-	private final double notchDistThreshold = 0.3;
 	private final double notchDotThreshold = 10;
 	private double maxDraw = .7;
 
@@ -88,16 +87,12 @@ public class BowTracker {
 		aim = rightPos.subtract(leftPos).normalize();
 
 		Vector3f forward = new Vector3f(0,0,1);
-//
-//		Matrix4f rv4 = provider.getAimRotation(0);
-//		Vector3f rightAim = rv4.transform(forward);
+
 		Vec3 rightaim3 = provider.getControllerMainDir_World();
 		
 		Vector3f rightAim = new Vector3f((float)rightaim3.xCoord, (float) rightaim3.yCoord, (float) rightaim3.zCoord);
-//		Matrix4f lv4 = provider.getAimRotation(1);
-//		Vector3f leftAim = lv4.transform(forward);
-		 leftHandAim = provider.getControllerOffhandDir_World();
-		 Vec3 l4v3 = provider.getCustomControllerVector(1, Vec3.createVectorHelper(0, 1, 0));
+		leftHandAim = provider.getControllerOffhandDir_World();
+	 	Vec3 l4v3 = provider.getCustomControllerVector(1, Vec3.createVectorHelper(0, -1, 0));
 		 
 		Vector3f leftforeward = new Vector3f((float)l4v3.xCoord, (float) l4v3.yCoord, (float) l4v3.zCoord);
 
@@ -105,6 +100,8 @@ public class BowTracker {
 
 		pressed = Minecraft.getMinecraft().gameSettings.keyBindAttack.getIsKeyPressed();
 
+		float notchDistThreshold = (float) (0.3 * Minecraft.getMinecraft().vrSettings.vrWorldScale);
+		
 		boolean infiniteAmmo = player.capabilities.isCreativeMode || EnchantmentHelper.getEnchantmentLevel(Enchantment.infinity.effectId, bow) > 0;
 
 		if( controllersDist <= notchDistThreshold && controllersDot <= notchDotThreshold && (infiniteAmmo || player.inventory.hasItem(Items.arrow)))

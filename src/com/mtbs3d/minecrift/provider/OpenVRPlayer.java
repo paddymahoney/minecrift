@@ -347,12 +347,11 @@ public class OpenVRPlayer implements IRoomscaleAdapter
                 playFootstepSound(mc, dest.xCoord, dest.yCoord, dest.zCoord);
             }
 
+            this.disableSwing = 3;
+            
             //execute teleport      
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
-          
-            this.weaponEndlast = null;
-            this.lastmot = 0;
-            
+           
             if(mc.vrSettings.vrLimitedSurvivalTeleport){
               player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));    
               
@@ -430,11 +429,11 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     	if (emptySpot)
     	{
     		// don't call setPosition style functions to avoid shifting room origin
-    		player.lastTickPosX = player.prevPosX =  player.posX = x;
+    		player.lastTickPosX = player.prevPosX = player.posX = x;
     		if (!mc.vrSettings.simulateFalling)	{
-    			player.lastTickPosY = player.prevPosY =  player.posY = y;                	
+    			player.lastTickPosY = player.prevPosY = player.posY = y;                	
     		}
-    		player.lastTickPosZ = player.prevPosZ = 	 player.posZ = z;
+    		player.lastTickPosZ = player.prevPosZ = player.posZ = z;
     
     		 if(player.ridingEntity!=null){ //you're coming with me, horse! //TODO: use mount's bounding box.
     				player.ridingEntity.lastTickPosX = player.ridingEntity.prevPosX =  player.ridingEntity.posX = x;
@@ -491,9 +490,11 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     	    			x += xOffset;  	
     	    			z += zOffset;
     					y += 0.1f*i;
+    					
     					player.lastTickPosX = player.prevPosX = player.posX = x;
     					player.lastTickPosY = player.prevPosY = player.posY = y;
     					player.lastTickPosZ = player.prevPosZ = player.posZ = z;
+    					
     					player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
 
     					roomOrigin.xCoord += xOffset;
@@ -502,6 +503,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
     					Vec3 look = player.getLookVec();
     					Vec3 forward = Vec3.createVectorHelper(look.xCoord,0,look.zCoord).normalize();
+    					player.fallDistance = 0.0F;
     					playFootstepSound(mc,
     							player.posX + forward.xCoord * 0.4f,
     							player.posY-player.height,
@@ -543,23 +545,19 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         return torso;
     }
 
-    private  Matrix4f getTeleportAimRotation(Minecraft mc)
-    {
-        return MCOpenVR.getAimRotation(1);
-    }
 
     public void updateTeleportArc(Minecraft mc, Entity player)
     {
         Vec3 start = this.getControllerOffhandPos_World();
         Vec3 tiltedAim = mc.roomScale.getControllerOffhandDir_World();
-        Matrix4f handRotation = getTeleportAimRotation(mc);
+        Matrix4f handRotation =MCOpenVR.getAimRotation(1);
         Matrix4f rot = Matrix4f.rotationY(this.worldRotationRadians);
-        handRotation = Matrix4f.multiply(handRotation, rot);
+        handRotation = Matrix4f.multiply(rot, handRotation);
         
         // extract hand roll
         Quatf handQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(handRotation);
         EulerOrient euler = OpenVRUtil.getEulerAnglesDegYXZ(handQuat);
-
+        
         int maxSteps = 50;
         movementTeleportArc[0].xCoord = start.xCoord;
         movementTeleportArc[0].yCoord = start.yCoord;
@@ -571,14 +569,17 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         Matrix4f rollCounter = OpenVRUtil.rotationZMatrix((float)MathHelper.deg2Rad*-euler.roll);
         Matrix4f gravityTilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -.8f);
         Matrix4f gravityRotation = Matrix4f.multiply(handRotation, rollCounter);
+        
         Vector3f forward = new Vector3f(0,1,0);
         Vector3f gravityDirection = gravityRotation.transform(forward);
-        Vec3 gravity = Vec3.createVectorHelper(gravityDirection.x, -gravityDirection.y, gravityDirection.z);
+        Vec3 gravity = Vec3.createVectorHelper(-gravityDirection.x, -gravityDirection.y, -gravityDirection.z);
         gravity.xCoord *= gravityAcceleration;
         gravity.yCoord *= gravityAcceleration;
         gravity.zCoord *= gravityAcceleration;
+        
+     //   gravity.rotateAroundY(this.worldRotationRadians);
 
-        // calculate initial move step
+        // calculate initial move step	
         float speed = 0.5f;
         Vec3 velocity = Vec3.createVectorHelper(
                 tiltedAim.xCoord * speed,
@@ -839,7 +840,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
                 movementTeleportArc[step].zCoord + deltaZ * stepProgress);
     }
 
-
     private Vec3 lastWeaponEndAir = Vec3.createVectorHelper(0,0,0);
     private boolean lastWeaponSolid = false;
 
@@ -849,6 +849,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	public float tickDist;
     public float lastmot;
 	
+    public int disableSwing = 3;
+    
     public void updateSwingAttack()
     {
         Minecraft mc = Minecraft.getMinecraft();
@@ -862,9 +864,13 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         Vec3 handPos = this.getControllerMainPos_World();
         Vec3 handDirection = this.getControllerMainDir_World();
         
-        float mot = (float) Math.max(40* Math.sqrt(player.motionX * player.motionX +  player.motionZ * player.motionZ), lastmot);
+        float thismot =(float) (40* Math.sqrt(player.motionX * player.motionX + player.motionZ * player.motionZ));
+        if(!player.onGround) //higher threshold when jumping and falling.
+        	thismot =(float) (40* Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ));	
+        
+        float mot = Math.max(thismot, lastmot);
        
-        lastmot = (float) (40* Math.sqrt(player.motionX * player.motionX +  player.motionZ * player.motionZ));
+        lastmot = thismot;
         
         ItemStack is = player.inventory.getCurrentItem();
         Item item = null;
@@ -899,13 +905,19 @@ public class OpenVRPlayer implements IRoomscaleAdapter
                 handPos.yCoord + handDirection.yCoord * weaponLength,
                 handPos.zCoord + handDirection.zCoord * weaponLength);     
         
-        if (weaponEndlast == null ) weaponEndlast = weaponEnd;
+        if (disableSwing > 0 ) {
+        	disableSwing--;
+        	if(disableSwing<0)disableSwing = 0;
+        	weaponEndlast = Vec3.createVectorHelper(weaponEnd.xCoord,	 weaponEnd.yCoord, 	 weaponEnd.zCoord);
+        	lastmot = mot;
+        	return;
+        }
         
         tickDist = (float) (weaponEndlast.subtract(weaponEnd).lengthVector());
         
         float speed = (float) (tickDist * 20);
         
-        weaponEndlast = weaponEnd;
+     	weaponEndlast = Vec3.createVectorHelper(weaponEnd.xCoord,	 weaponEnd.yCoord, 	 weaponEnd.zCoord);
         
         int passes = (int) (tickDist / .1f);
                  
@@ -979,7 +991,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         						}
         					}
              				this.triggerHapticPulse(0, 1000);
-            			   System.out.println("Hit block speed =" + speed + " mot " + mot + " thresh " + speedthresh) ;            				
+            			//   System.out.println("Hit block speed =" + speed + " mot " + mot + " thresh " + speedthresh) ;            				
             				lastWeaponSolid = true;
         				}
            				insolidBlock = true;
@@ -1047,12 +1059,14 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public float getHMDYaw_World() {
-		return (float) (180 - MCOpenVR.getHeadYawDegrees(EyeType.ovrEye_Center) +Minecraft.getMinecraft().vrSettings.vrWorldRotation);
+		Vec3 dir = getHMDDir_World();
+		 return (float)Math.toDegrees(Math.atan2(dir.xCoord, dir.zCoord));    
 	}
 
 	@Override
 	public float getHMDPitch_World() {
-		return MCOpenVR.getHeadPitchDegrees(EyeType.ovrEye_Center);
+		Vec3 dir = getHMDDir_World();
+		return (float)Math.toDegrees(Math.asin(dir.yCoord/dir.lengthVector())); 
 	}
 
 	@Override
@@ -1204,6 +1218,11 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	public float getControllerPitch_Room(int controller) {
 		if(controller == 0) return MCOpenVR.aimPitch;
 		return MCOpenVR.laimPitch;
+	}
+
+	@Override
+	public Vec3 getControllerPos_World(int c) {
+		return c == 0 ? this.getControllerMainPos_World() : this.getControllerOffhandPos_World();
 	}
 	
 
