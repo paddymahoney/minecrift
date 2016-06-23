@@ -1,10 +1,12 @@
-package com.mtbs3d.minecrift.gameplay;
+package com.mtbs3d.minecrift.provider;
 
 
+import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.EulerOrient;
 import de.fruitfly.ovr.structs.Matrix4f;
 import de.fruitfly.ovr.structs.Quatf;
 import de.fruitfly.ovr.structs.Vector3f;
+import de.fruitfly.ovr.util.BufferUtil;
 import io.netty.util.concurrent.GenericFutureListener;
 import jopenvr.OpenVRUtil;
 import net.minecraft.block.Block;
@@ -32,22 +34,33 @@ import net.minecraft.network.play.client.C17PacketCustomPayload;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 
+import java.nio.FloatBuffer;
 import java.util.List;
 import java.util.Random;
 
+import javax.swing.plaf.multi.MultiViewportUI;
+
+import org.lwjgl.util.vector.Quaternion;
+
 import com.google.common.base.Charsets;
+import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
+import com.mtbs3d.minecrift.gameplay.EntityVRTeleportFX;
+import com.mtbs3d.minecrift.gameplay.VRMovementStyle;
+import com.mtbs3d.minecrift.render.QuaternionHelper;
 
 // VIVE
-public class VRPlayer
+public class OpenVRPlayer implements IRoomscaleAdapter
 {
     public double lastRoomUpdateTime = 0;
     public Vec3 movementTeleportDestination = Vec3.createVectorHelper(0.0,0.0,0.0);
     public int movementTeleportDestinationSideHit;
     public double movementTeleportProgress;
     public double movementTeleportDistance;
+        
     private Vec3 roomOrigin = Vec3.createVectorHelper(0,0,0);
-    public Vec3 teleportSlide = Vec3.createVectorHelper(0,0,0);
-    public long teleportSlideStartTime = 0;
+    private Vec3 lastroomOrigin = Vec3.createVectorHelper(0,0,0);
+    private Vec3 interPolatedRoomOrigin = Vec3.createVectorHelper(0,0,0);
+    
     public VRMovementStyle vrMovementStyle = new VRMovementStyle();
     public Vec3[] movementTeleportArc = new Vec3[50];
     public int movementTeleportArcSteps = 0;
@@ -58,76 +71,92 @@ public class VRPlayer
     
     private float teleportEnergy;
     
-    public static VRPlayer get()
+    public static OpenVRPlayer get()
     {
         return Minecraft.getMinecraft().vrPlayer;
     }
 
-    public VRPlayer()
+    public OpenVRPlayer()
     {
         for (int i=0;i<50;i++)
         {
             movementTeleportArc[i] = Vec3.createVectorHelper(0,0,0);
         }
     }
-
-    public Vec3 getRoomOrigin() { return this.roomOrigin;}
+   
+    public void onFrameUpdate(float nano){
+     	interPolatedRoomOrigin = getInterpolatedRoomOriginPos_World(nano);
+    }
     
-    public void setRoomOrigin(double x, double y, double z) { 
+    public void setRoomOrigin(double x, double y, double z, boolean reset ) { 
+    	if (reset){
+    		interPolatedRoomOrigin = Vec3.createVectorHelper(x, y, z);
+    		lastroomOrigin = Vec3.createVectorHelper(x, y, z);
+    	}
     	this.roomOrigin.xCoord = x;
     	this.roomOrigin.yCoord = y;
     	this.roomOrigin.zCoord = z;
         lastRoomUpdateTime = Minecraft.getMinecraft().stereoProvider.getCurrentTimeSecs();
     }
     
-    
-    public void snapRoomOriginToPlayerEntity(EntityPlayerSP player)
+    //set room 
+    public void snapRoomOriginToPlayerEntity(EntityPlayerSP player, boolean reset)
     {
         if (Thread.currentThread().getName().equals("Server thread"))
             return;
 
-        double x = player.posX;
-        double y = player.boundingBox.minY;
-        double z = player.posZ;
+        if(player.posX == 0 && player.posY == 0 &&player.posZ == 0) return;
         
         Minecraft mc = Minecraft.getMinecraft();
-        boolean bStartingUp = (roomOrigin.xCoord==0 && roomOrigin.yCoord==0 && roomOrigin.zCoord==0);
-        boolean bRestricted = !bStartingUp && getFreeMoveMode();
+        
+        Vec3 campos = mc.roomScale.getHMDPos_Room();
+        
+        campos.rotateAroundY(worldRotationRadians);
+        
+        double x = player.posX - campos.xCoord;
+        double y = player.boundingBox.minY;
+        double z = player.posZ - campos.zCoord;
 
-        if (mc.positionTracker == null || !mc.positionTracker.isInitialized() || bRestricted)
-        { // set room origin exactly to x,y,z since in restricted mode the room origin is always the players feet
-            	setRoomOrigin(x, y, z);
-        }
-        else
-        { //set room origin to underneath the headset... which is where the player entity should be already? shouldnt be already anyway? maybe cause collosion?
-            teleportSlide.xCoord = 0;
-            teleportSlide.yCoord = 0;
-            teleportSlide.zCoord = 0;
-            Vec3 hmdOffset = mc.positionTracker.getCenterEyePosition();
-            double newX = x + hmdOffset.xCoord;
-            double newY = y;
-            double newZ = z + hmdOffset.zCoord;
-            teleportSlide.xCoord = roomOrigin.xCoord - newX;
-            teleportSlide.yCoord = roomOrigin.yCoord - newY;
-            teleportSlide.zCoord = roomOrigin.zCoord - newZ;
-            
-            setRoomOrigin(newX, newY, newZ);
+        setRoomOrigin(x, y, z, reset);
 
-            teleportSlideStartTime = System.nanoTime();
-        }
     }
     
     public  double topofhead = 1.62;
     
     
+    private float lastworldRotation= 0f;
+	private float lastWorldScale;
     
+	public void checkandUpdateRotateScale(){
+		Minecraft mc = Minecraft.getMinecraft();
+	    this.worldScale =  mc.vrSettings.vrWorldScale;
+	    this.worldRotationRadians = (float) Math.toRadians(mc.vrSettings.vrWorldRotation);
+	    
+	    if (worldRotationRadians!= lastworldRotation || worldScale != lastWorldScale) {
+	    	if(mc.thePlayer!=null)snapRoomOriginToPlayerEntity(mc.thePlayer, true);
+	    	MCOpenVR.onGuiScreenChanged(mc.currentScreen, mc.currentScreen);
+	    }
+	    lastworldRotation = worldRotationRadians;
+	    lastWorldScale = worldScale;		
+	}
+
+	
+	
+	
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
-	
+    	if(!player.initFromServer) return;
+    	
+    	this.lastroomOrigin.xCoord = roomOrigin.xCoord ;
+    	this.lastroomOrigin.yCoord = roomOrigin.yCoord ;
+    	this.lastroomOrigin.zCoord = roomOrigin.zCoord ;
         updateSwingAttack();
-		
+        
+        this.checkandUpdateRotateScale();
+
+        
        if(mc.vrSettings.vrAllowCrawling){         //experimental
-           topofhead = (double) (mc.entityRenderer.getCameraLocation().yCoord + .05) - player.boundingBox.minY;
+           topofhead = (double) (mc.roomScale.getHMDPos_Room().yCoord + .05);
            
            if(topofhead < .5) {topofhead = 0.5f;}
            if(topofhead > 1.8) {topofhead = 1.8f;}
@@ -182,12 +211,7 @@ public class VRPlayer
 
                     if (dest.xCoord != 0 || dest.yCoord != 0 || dest.zCoord != 0)
                     {
-                        Vec3 teleportSlide = mc.vrPlayer.getTeleportSlide();
-                        Vec3 eyeCenterPos = mc.positionTracker.getCenterEyePosition();
-
-                        eyeCenterPos.xCoord = roomOrigin.xCoord + teleportSlide.xCoord - eyeCenterPos.xCoord;
-                        eyeCenterPos.yCoord = roomOrigin.yCoord + teleportSlide.yCoord - eyeCenterPos.yCoord;
-                        eyeCenterPos.zCoord = roomOrigin.zCoord + teleportSlide.zCoord - eyeCenterPos.zCoord;
+                        Vec3 eyeCenterPos = getHMDPos_World();
 
                         // cloud of sparks moving past you
                         Vec3 motionDir = dest.addVector(-eyeCenterPos.xCoord, -eyeCenterPos.yCoord, -eyeCenterPos.zCoord).normalize();
@@ -323,11 +347,11 @@ public class VRPlayer
                 playFootstepSound(mc, dest.xCoord, dest.yCoord, dest.zCoord);
             }
 
+            this.disableSwing = 3;
+            
             //execute teleport      
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
-          
-            this.weaponEndlast = null;
-            
+           
             if(mc.vrSettings.vrLimitedSurvivalTeleport){
               player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));    
               
@@ -367,25 +391,25 @@ public class VRPlayer
     
     private void doPlayerMoveInRoom(EntityPlayerSP player){
     	// this needs... work...
-
     	if(player.isSneaking()) {return;} //jrbudda : prevent falling off things or walking up blocks while moving in room scale.
-
     	if(player.isRiding()) return; //dont fall off the tracks man
+    	if(player.isDead) return; //
+    	if(player.isPlayerSleeping()) return; //
+    	if(this.interPolatedRoomOrigin.xCoord == 0 && this.interPolatedRoomOrigin.yCoord ==0 && this.interPolatedRoomOrigin.zCoord == 0) return;
     	
     	if(Math.abs(player.motionX) > 0.01) return;
     	if(Math.abs(player.motionZ) > 0.01) return;
-    	
     	
     	Minecraft mc = Minecraft.getMinecraft();
     	float playerHalfWidth = player.width / 2.0F;
 
     	// move player's X/Z coords as the HMD moves around the room
 
-    	Vec3 eyePos = mc.positionTracker.getCenterEyePosition();
+    	Vec3 eyePos = getHMDPos_World();
 
-    	double x = roomOrigin.xCoord - eyePos.xCoord;
+    	double x = eyePos.xCoord;
     	double y = player.posY;
-    	double z = roomOrigin.zCoord - eyePos.zCoord;
+    	double z = eyePos.zCoord;
 
     	// create bounding box at dest position
     	AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(
@@ -405,11 +429,11 @@ public class VRPlayer
     	if (emptySpot)
     	{
     		// don't call setPosition style functions to avoid shifting room origin
-    		player.lastTickPosX = player.prevPosX =  player.posX = x;
+    		player.lastTickPosX = player.prevPosX = player.posX = x;
     		if (!mc.vrSettings.simulateFalling)	{
-    			player.lastTickPosY = player.prevPosY =  player.posY = y;                	
+    			player.lastTickPosY = player.prevPosY = player.posY = y;                	
     		}
-    		player.lastTickPosZ = player.prevPosZ = 	 player.posZ = z;
+    		player.lastTickPosZ = player.prevPosZ = player.posZ = z;
     
     		 if(player.ridingEntity!=null){ //you're coming with me, horse! //TODO: use mount's bounding box.
     				player.ridingEntity.lastTickPosX = player.ridingEntity.prevPosX =  player.ridingEntity.posX = x;
@@ -466,9 +490,11 @@ public class VRPlayer
     	    			x += xOffset;  	
     	    			z += zOffset;
     					y += 0.1f*i;
+    					
     					player.lastTickPosX = player.prevPosX = player.posX = x;
     					player.lastTickPosY = player.prevPosY = player.posY = y;
     					player.lastTickPosZ = player.prevPosZ = player.posZ = z;
+    					
     					player.boundingBox.setBounds(bb.minX, bb.minY, bb.minZ, bb.maxX, bb.maxY, bb.maxZ);
 
     					roomOrigin.xCoord += xOffset;
@@ -477,6 +503,7 @@ public class VRPlayer
 
     					Vec3 look = player.getLookVec();
     					Vec3 forward = Vec3.createVectorHelper(look.xCoord,0,look.zCoord).normalize();
+    					player.fallDistance = 0.0F;
     					playFootstepSound(mc,
     							player.posX + forward.xCoord * 0.4f,
     							player.posY-player.height,
@@ -518,66 +545,46 @@ public class VRPlayer
         return torso;
     }
 
-    public static Vec3 getTeleportTraceStart(Minecraft mc)
-    {
-        return mc.lookaimController.getAimSource(1);
-    }
-
-    public static Matrix4f getTeleportAimRotation(Minecraft mc)
-    {
-        return mc.lookaimController.getAimRotation(1);
-    }
-
-    public static Vec3 getTeleportAim(Minecraft mc)
-    {
-        Matrix4f handRotation = getTeleportAimRotation(mc);
-        Vector3f forward = new Vector3f(0,0,1);
-        Vector3f handDirection = handRotation.transform(forward);
-        return Vec3.createVectorHelper(handDirection.x, -handDirection.y, handDirection.z);
-    }
 
     public void updateTeleportArc(Minecraft mc, Entity player)
     {
-        Vec3 start = getTeleportTraceStart(mc);
-        Vec3 tiltedAim = getTeleportAim(mc);
-        Matrix4f handRotation = getTeleportAimRotation(mc);
-
+        Vec3 start = this.getControllerOffhandPos_World();
+        Vec3 tiltedAim = mc.roomScale.getControllerOffhandDir_World();
+        Matrix4f handRotation =MCOpenVR.getAimRotation(1);
+        Matrix4f rot = Matrix4f.rotationY(this.worldRotationRadians);
+        handRotation = Matrix4f.multiply(rot, handRotation);
+        
         // extract hand roll
         Quatf handQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(handRotation);
         EulerOrient euler = OpenVRUtil.getEulerAnglesDegYXZ(handQuat);
-
+        
         int maxSteps = 50;
         movementTeleportArc[0].xCoord = start.xCoord;
         movementTeleportArc[0].yCoord = start.yCoord;
         movementTeleportArc[0].zCoord = start.zCoord;
         movementTeleportArcSteps = 1;
 
-        // if aiming too high, don't trace a full arc
-        float horizontalAimDist = (float)Math.sqrt(tiltedAim.xCoord*tiltedAim.xCoord + tiltedAim.zCoord*tiltedAim.zCoord);
-//        float pitch = (float)Math.atan2(tiltedAim.yCoord, horizontalAimDist);
-//        if (pitch > (float)Math.PI * 0.25f)
-//        {
-//            maxSteps = 6;
-//        }
-
         // calculate gravity vector for arc
         float gravityAcceleration = 0.098f;
-        Matrix4f rollCounter = OpenVRUtil.rotationZMatrix((float)MathHelper.deg2Rad*euler.roll);
-        Matrix4f gravityTilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.5f);
-        Matrix4f gravityRotation = Matrix4f.multiply(Matrix4f.multiply(handRotation, rollCounter), gravityTilt);
-        Vector3f forward = new Vector3f(0,0,1);
+        Matrix4f rollCounter = OpenVRUtil.rotationZMatrix((float)MathHelper.deg2Rad*-euler.roll);
+        Matrix4f gravityTilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -.8f);
+        Matrix4f gravityRotation = Matrix4f.multiply(handRotation, rollCounter);
+        
+        Vector3f forward = new Vector3f(0,1,0);
         Vector3f gravityDirection = gravityRotation.transform(forward);
-        Vec3 gravity = Vec3.createVectorHelper(gravityDirection.x, -gravityDirection.y, gravityDirection.z);
+        Vec3 gravity = Vec3.createVectorHelper(-gravityDirection.x, -gravityDirection.y, -gravityDirection.z);
         gravity.xCoord *= gravityAcceleration;
         gravity.yCoord *= gravityAcceleration;
         gravity.zCoord *= gravityAcceleration;
+        
+     //   gravity.rotateAroundY(this.worldRotationRadians);
 
-        // calculate initial move step
+        // calculate initial move step	
         float speed = 0.5f;
         Vec3 velocity = Vec3.createVectorHelper(
                 tiltedAim.xCoord * speed,
                 tiltedAim.yCoord * speed,
-                tiltedAim.zCoord * speed );
+                tiltedAim.zCoord * speed);
 
         Vec3 pos = Vec3.createVectorHelper(start.xCoord, start.yCoord, start.zCoord);
         Vec3 newPos = Vec3.createVectorHelper(0,0,0);
@@ -650,10 +657,10 @@ public class VRPlayer
                 updateTeleportArc(mc, player);
             }
         }
-        else
+        else //non-arc modes.
         {
-            Vec3 start = getTeleportTraceStart(mc);
-            Vec3 aimDir = getTeleportAim(mc);
+            Vec3 start = this.getControllerOffhandPos_World();
+            Vec3 aimDir = mc.roomScale.getControllerOffhandDir_World();
 
             // setup teleport forwards to the mouse cursor
             double movementTeleportDistance = 250.0;
@@ -833,37 +840,17 @@ public class VRPlayer
                 movementTeleportArc[step].zCoord + deltaZ * stepProgress);
     }
 
-
-    public Vec3 getTeleportSlide()
-    {
-        if (!vrMovementStyle.cameraSlide)
-        {
-            return Vec3.createVectorHelper(0,0,0);
-        }
-        long delta = System.nanoTime() - this.teleportSlideStartTime;
-        float speed = 400.0f;
-        double slideTime = (double)delta / (double)1000000000L;
-
-        Vec3 dir = teleportSlide.normalize();
-        dir.xCoord = -dir.xCoord * slideTime * speed + teleportSlide.xCoord;
-        dir.yCoord = -dir.yCoord * slideTime * speed + teleportSlide.yCoord;
-        dir.zCoord = -dir.zCoord * slideTime * speed + teleportSlide.zCoord;
-        if (dir.dotProduct(teleportSlide)<=0)
-        {
-            dir.xCoord = dir.yCoord = dir.zCoord = 0;
-        }
-        return dir;
-    }
-
     private Vec3 lastWeaponEndAir = Vec3.createVectorHelper(0,0,0);
     private boolean lastWeaponSolid = false;
 
     public float weapongSwingLen;
 	public Vec3 weaponEnd;
 	public Vec3 weaponEndlast;
+	public float tickDist;
+    public float lastmot;
+	
+    public int disableSwing = 3;
     
-	
-	
     public void updateSwingAttack()
     {
         Minecraft mc = Minecraft.getMinecraft();
@@ -874,50 +861,66 @@ public class VRPlayer
 
         mc.mcProfiler.startSection("updateSwingAttack");
 
-        Vec3 handPos = mc.lookaimController.getAimSource(0);
-        Matrix4f handRotation = mc.lookaimController.getAimRotation(0);
-        Vector3f forward = new Vector3f(0,0,1);
-        Vector3f handDirection = handRotation.transform(forward);
+        Vec3 handPos = this.getControllerMainPos_World();
+        Vec3 handDirection = this.getControllerMainDir_World();
         
-        double mot = Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ);
+        float thismot =(float) (40* Math.sqrt(player.motionX * player.motionX + player.motionZ * player.motionZ));
+        if(!player.onGround) //higher threshold when jumping and falling.
+        	thismot =(float) (40* Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ));	
+        
+        float mot = Math.max(thismot, lastmot);
        
+        lastmot = thismot;
+        
         ItemStack is = player.inventory.getCurrentItem();
         Item item = null;
 
         double speedthresh = (float) (is==null ? 3.5f + mot: 4.2f + mot); //account for lower apparent speed due to shorter fulcrum.         
         float weaponLength = is == null ?  0 : 0.3f; //no reach for hand
         float entityReachAdd =0f;
-        
+      
         if(is!=null )item = is.getItem();
         
         if (item instanceof ItemSword){
         		entityReachAdd = 2.5f;
         		weaponLength = 0.3f;
-               	speedthresh = 4.2f + mot;
+               	speedthresh = 3f + mot;
         } else if (item instanceof ItemTool ||
         		item instanceof ItemHoe
         		){
         	entityReachAdd = 1.8f;
         	weaponLength = 0.3f;
-        	speedthresh = 4.2f + mot;
+        	speedthresh = 3f + mot;
         } else {
         	weaponLength = 0.0f;
         	entityReachAdd = 0.3f;
-        	speedthresh = 3.7f + mot;
+        	speedthresh = 1.5f + mot;
         }
 
+        weaponLength *= this.worldScale;
+        
         weapongSwingLen = weaponLength;
         weaponEnd = Vec3.createVectorHelper(
-                handPos.xCoord + handDirection.x * weaponLength,
-                handPos.yCoord - handDirection.y * weaponLength,
-                handPos.zCoord + handDirection.z * weaponLength);     
+                handPos.xCoord + handDirection.xCoord * weaponLength,
+                handPos.yCoord + handDirection.yCoord * weaponLength,
+                handPos.zCoord + handDirection.zCoord * weaponLength);     
         
-        if (weaponEndlast == null ) weaponEndlast = weaponEnd;
+        if (disableSwing > 0 ) {
+        	disableSwing--;
+        	if(disableSwing<0)disableSwing = 0;
+        	weaponEndlast = Vec3.createVectorHelper(weaponEnd.xCoord,	 weaponEnd.yCoord, 	 weaponEnd.zCoord);
+        	lastmot = mot;
+        	return;
+        }
         
-        float speed = (float) (weaponEnd.subtract(weaponEndlast).lengthVector() * 20);
+        tickDist = (float) (weaponEndlast.subtract(weaponEnd).lengthVector());
         
-        weaponEndlast = weaponEnd;
+        float speed = (float) (tickDist * 20);
         
+     	weaponEndlast = Vec3.createVectorHelper(weaponEnd.xCoord,	 weaponEnd.yCoord, 	 weaponEnd.zCoord);
+        
+        int passes = (int) (tickDist / .1f);
+                 
         int bx = (int) MathHelper.floor_double(weaponEnd.xCoord);
         int by = (int) MathHelper.floor_double(weaponEnd.yCoord);
         int bz = (int) MathHelper.floor_double(weaponEnd.zCoord);
@@ -925,13 +928,11 @@ public class VRPlayer
         boolean inAnEntity = false;
         boolean insolidBlock = false;
         boolean canact = speed > speedthresh && !lastWeaponSolid;
-        
-
-        
+               
         Vec3 extWeapon = Vec3.createVectorHelper(
-                handPos.xCoord + handDirection.x * (weaponLength + entityReachAdd),
-                handPos.yCoord - handDirection.y * (weaponLength + entityReachAdd),
-                handPos.zCoord + handDirection.z * (weaponLength + entityReachAdd));
+                handPos.xCoord + handDirection.xCoord * (weaponLength + entityReachAdd),
+                handPos.yCoord + handDirection.yCoord * (weaponLength + entityReachAdd),
+                handPos.zCoord + handDirection.zCoord * (weaponLength + entityReachAdd));
         
         	//Check EntityCollisions first
         	{
@@ -955,7 +956,7 @@ public class VRPlayer
         			{
         				if(canact){
         					mc.playerController.attackEntity(player, hitEntity);
-        					mc.lookaimController.triggerHapticPulse(0, 1000);
+        					this.triggerHapticPulse(0, 1000);
            					lastWeaponSolid = true;
         				}
          				inAnEntity = true;
@@ -989,8 +990,8 @@ public class VRPlayer
         							mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
         						}
         					}
-             				mc.lookaimController.triggerHapticPulse(0, 1000);
-            			//	System.out.println("Hit block speed =" + speed);            				
+             				this.triggerHapticPulse(0, 1000);
+            			//   System.out.println("Hit block speed =" + speed + " mot " + mot + " thresh " + speedthresh) ;            				
             				lastWeaponSolid = true;
         				}
            				insolidBlock = true;
@@ -998,7 +999,9 @@ public class VRPlayer
         		}
         	}
         }
-
+        
+        	
+        	
         if (!inAnEntity && !insolidBlock)
         {
             lastWeaponEndAir.xCoord = weaponEnd.xCoord;
@@ -1023,6 +1026,206 @@ public class VRPlayer
 	}
 
 	public float getTeleportEnergy () {return teleportEnergy;}
+
+	//================= IROOMSCALEADAPTER =============================
+	
+	
+	float worldScale =  Minecraft.getMinecraft().vrSettings.vrWorldScale;
+	float worldRotationRadians;
+	
+	@Override
+	public boolean isHMDTracking() {
+		return MCOpenVR.headIsTracking;
+	}
+
+	private Vec3 vecMult(Vec3 in, float factor){
+		return Vec3.createVectorHelper(in.xCoord * factor,	in.yCoord * factor, in.zCoord*factor);
+	}
+	
+	@Override
+	public Vec3 getHMDPos_World() {	
+		Vec3 out = vecMult(MCOpenVR.getCenterEyePosition(),worldScale);
+		out.rotateAroundY(worldRotationRadians);
+		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
+	}
+
+	@Override
+	public Vec3 getHMDDir_World() {
+		Vector3f v3 = MCOpenVR.headDirection;
+		Vec3 out = Vec3.createVectorHelper(v3.x, v3.y, v3.z);
+		out.rotateAroundY(worldRotationRadians);
+		return out;
+	}
+
+	@Override
+	public float getHMDYaw_World() {
+		Vec3 dir = getHMDDir_World();
+		 return (float)Math.toDegrees(Math.atan2(dir.xCoord, dir.zCoord));    
+	}
+
+	@Override
+	public float getHMDPitch_World() {
+		Vec3 dir = getHMDDir_World();
+		return (float)Math.toDegrees(Math.asin(dir.yCoord/dir.lengthVector())); 
+	}
+
+	@Override
+	public boolean isControllerMainTracking() {
+		return MCOpenVR.controllerTracking[0];
+	}
+
+	@Override
+	public Vec3 getControllerMainPos_World() {
+		Vec3 out = vecMult(MCOpenVR.getAimSource(0),worldScale);
+		out.rotateAroundY(worldRotationRadians);
+		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
+		}
+
+	@Override
+	public Vec3 getControllerMainDir_World() {
+		Vector3f v3 = MCOpenVR.controllerDirection;
+		Vec3 out = Vec3.createVectorHelper(v3.x, v3.y, v3.z);
+		out.rotateAroundY(worldRotationRadians);
+		return out;
+	}
+
+	@Override
+	public float getControllerMainYaw_World() {
+		return (float) (MCOpenVR.aimYaw + Minecraft.getMinecraft().vrSettings.vrWorldRotation);
+	}
+
+	@Override
+	public float getControllerMainPitch_World() {
+		return MCOpenVR.aimPitch;
+	}
+
+	@Override
+	public boolean isControllerOffhandTracking() {
+		return MCOpenVR.controllerTracking[1];
+	}
+
+	@Override
+	public Vec3 getControllerOffhandPos_World() {
+		Vec3 out = vecMult(MCOpenVR.getAimSource(1),worldScale);
+		out.rotateAroundY(worldRotationRadians);
+		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);	}
+
+	@Override
+	public Vec3 getControllerOffhandDir_World() {
+		Vector3f v3 = MCOpenVR.lcontrollerDirection;
+		Vec3 out = Vec3.createVectorHelper(v3.x, v3.y, v3.z);
+		out.rotateAroundY(worldRotationRadians);
+		return out;
+	}
+
+	@Override
+	public float getControllerOffhandYaw_World() {
+		return  (float) (MCOpenVR.laimYaw + Minecraft.getMinecraft().vrSettings.vrWorldRotation);
+	}
+
+	@Override
+	public float getControllerOffhandPitch_World() {
+		return MCOpenVR.laimPitch;
+	}
+
+	@Override
+	public Vec3 getRoomOriginPos_World() {
+		return roomOrigin;
+	}
+	
+	private Vec3 getInterpolatedRoomOriginPos_World(float nano) {
+		Vec3 out = Vec3.createVectorHelper(0, 0, 0);
+		out.xCoord = lastroomOrigin.xCoord + (roomOrigin.xCoord - lastroomOrigin.xCoord) * (double)nano;
+		out.yCoord = lastroomOrigin.yCoord + (roomOrigin.yCoord - lastroomOrigin.yCoord) * (double)nano;
+		out.zCoord = lastroomOrigin.zCoord + (roomOrigin.zCoord - lastroomOrigin.zCoord) * (double)nano;
+		return out;
+	}
+
+	@Override
+	public Vec3 getRoomOriginUpDir_World() { //ummmm
+		return Vec3.createVectorHelper(0, 1, 0);
+	}
+	
+	public EulerOrient getHMDEuler_World(){ //TOTO: important place to add user rotation.
+		EulerOrient out = MCOpenVR.getOrientationEuler(EyeType.ovrEye_Center);
+		out.yaw += Math.toDegrees(this.worldRotationRadians);
+		return out;
+	}
+	
+
+	@Override
+	public void triggerHapticPulse(int controller, int strength) {
+		MCOpenVR.triggerHapticPulse(controller, strength);
+	}
+
+	@Override
+	public FloatBuffer getHMDMatrix_World() {
+		Matrix4f out = MCOpenVR.hmdRotation;
+		Matrix4f rot = Matrix4f.rotationY(worldRotationRadians);
+		return Matrix4f.multiply(rot, out).toFloatBuffer();
+	}
+	
+	@Override
+	public Vec3 getEyePos_World(EyeType eye) {
+		Vec3 out = vecMult(MCOpenVR.getEyePosition(eye),worldScale);
+		out.rotateAroundY(worldRotationRadians);
+		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
+	}
+	
+
+	@Override
+	public FloatBuffer getControllerMatrix_World(int controller) {
+		Matrix4f out = MCOpenVR.getAimRotation(controller);
+		Matrix4f rot = Matrix4f.rotationY(worldRotationRadians);
+		return Matrix4f.multiply(rot,out).transposed().toFloatBuffer();
+	}
+
+	@Override
+	public Vec3 getCustomControllerVector(int controller, Vec3 axis) {
+		Vector3f v3 = MCOpenVR.getAimRotation(controller).transform(new Vector3f((float)axis.xCoord, (float)axis.yCoord,(float) axis.zCoord));
+		Vec3 out =  Vec3.createVectorHelper(v3.x, v3.y, v3.z);
+		out.rotateAroundY(worldRotationRadians);
+		return out;
+	}
+
+	@Override
+	public Vec3 getHMDPos_Room() {
+		return vecMult(MCOpenVR.getCenterEyePosition(),worldScale);
+	}
+
+	@Override
+	public Vec3 getControllerPos_Room(int i) {
+		return vecMult(MCOpenVR.getAimSource(i),worldScale);
+	}
+	
+	@Override
+	public Vec3 getEyePos_Room(EyeType eye) {
+		return vecMult(MCOpenVR.getEyePosition(eye),worldScale);
+	}
+
+	@Override
+	public FloatBuffer getHMDMatrix_Room() {
+		return MCOpenVR.hmdRotation.toFloatBuffer();
+	}
+
+	@Override
+	public float getControllerYaw_Room(int controller) {
+		if(controller == 0) return MCOpenVR.aimYaw;
+		return MCOpenVR.laimYaw;
+	}
+
+	@Override
+	public float getControllerPitch_Room(int controller) {
+		if(controller == 0) return MCOpenVR.aimPitch;
+		return MCOpenVR.laimPitch;
+	}
+
+	@Override
+	public Vec3 getControllerPos_World(int c) {
+		return c == 0 ? this.getControllerMainPos_World() : this.getControllerOffhandPos_World();
+	}
+	
+
 	
 }
 

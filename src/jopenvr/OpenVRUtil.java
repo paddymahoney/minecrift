@@ -136,9 +136,9 @@ public class OpenVRUtil {
     public static EulerOrient getEulerAnglesDegYXZ(Quatf q) {
         EulerOrient eulerAngles = new EulerOrient();
 
-        eulerAngles.yaw = -(float)Math.toDegrees(Math.atan2( 2*(q.x*q.z + q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z ));
-        eulerAngles.pitch = -(float)Math.toDegrees(Math.asin ( -2*(q.y*q.z - q.w*q.x) ));
-        eulerAngles.roll = -(float)Math.toDegrees(Math.atan2( 2*(q.x*q.y + q.w*q.z), q.w*q.w - q.x*q.x + q.y*q.y - q.z*q.z ));
+        eulerAngles.yaw = (float)Math.toDegrees(Math.atan2( 2*(q.x*q.z + q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z ));
+        eulerAngles.pitch = (float)Math.toDegrees(Math.asin ( -2*(q.y*q.z - q.w*q.x) ));
+        eulerAngles.roll = (float)Math.toDegrees(Math.atan2( 2*(q.x*q.y + q.w*q.z), q.w*q.w - q.x*q.x + q.y*q.y - q.z*q.z ));
 
         return eulerAngles;
     }

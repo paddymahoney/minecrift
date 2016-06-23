@@ -1,8 +1,7 @@
 package com.mtbs3d.minecrift.gameplay;
 
-// VIVE START - teleport effect
+import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 
-import com.mtbs3d.minecrift.gameplay.VRPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.Tessellator;
@@ -58,7 +57,7 @@ public class EntityVRTeleportFX extends EntityFX
             this.setDead();
         }
 
-        VRPlayer vrPlayer = VRPlayer.get();
+        OpenVRPlayer vrPlayer = OpenVRPlayer.get();
         this.moveEntity(this.motionX*(0.05+0.95*vrPlayer.movementTeleportProgress),
                         this.motionY*(0.05+0.95*vrPlayer.movementTeleportProgress),
                         this.motionZ*(0.05+0.95*vrPlayer.movementTeleportProgress));

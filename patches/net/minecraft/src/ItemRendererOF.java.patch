@@ -21,7 +21,7 @@
  import org.lwjgl.opengl.GL11;
  import org.lwjgl.opengl.GL12;
  
-@@ -50,125 +54,126 @@
+@@ -50,125 +54,127 @@
       */
      public void renderItem(EntityLivingBase par1EntityLivingBase, ItemStack par2ItemStack, int par3)
      {
@@ -206,12 +206,13 @@
 +	            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 +	            float var15 = 1.5F;
 +	            GL11.glScalef(var15, var15, var15);                 
-+	//            //TODO: put back?
-+	//            if(!(par1EntityLivingBase instanceof EntityPlayerSP) || !(par2ItemStack.getItem() instanceof ItemBow)){
-+	//                GL11.glRotatef(0.0F, 0.0F, 1.0F, 0.0F);
-+	//                GL11.glRotatef(0F, 0.0F, 0.0F, 1.0F);
-+	//                GL11.glTranslatef(-0.8375F, -0.0625F, 0.0F);            	       	
-+	//            }                
++	            if(!(par1EntityLivingBase == mc.thePlayer)){
++	            	if(!(par1EntityLivingBase instanceof EntityPlayerSP) || !(par2ItemStack.getItem() instanceof ItemBow)){
++	            		GL11.glRotatef(0.0F, 0.0F, 1.0F, 0.0F);
++	            		GL11.glRotatef(0F, 0.0F, 0.0F, 1.0F);
++	            		GL11.glTranslatef(-0.8375F, -0.0625F, 0.0F);            	       	
++	            	}                
++	            }
 +	            renderItemIn2D(var8, var10, var11, var9, var12, var7.getIconWidth(), var7.getIconHeight(), 0.0625F);
 +	            boolean renderEffect = false;
 +	

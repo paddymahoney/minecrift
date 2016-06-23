@@ -1,12 +1,11 @@
 --- a/net/minecraft/client/Minecraft.java
 +++ b/net/minecraft/client/Minecraft.java
-@@ -9,19 +9,41 @@
+@@ -9,19 +9,40 @@
  import com.google.common.util.concurrent.ListenableFutureTask;
  import com.mojang.authlib.minecraft.MinecraftSessionService;
  import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 +import com.mtbs3d.minecrift.api.*;
 +import com.mtbs3d.minecrift.gameplay.BowTracker;
-+import com.mtbs3d.minecrift.gameplay.VRPlayer;
 +import com.mtbs3d.minecrift.provider.*;
 +import com.mtbs3d.minecrift.render.FBOParams;
 +import com.mtbs3d.minecrift.render.RenderConfigException;
@@ -42,7 +41,7 @@
  import java.util.HashSet;
  import java.util.Iterator;
  import java.util.List;
-@@ -30,26 +52,18 @@
+@@ -30,26 +51,18 @@
  import java.util.concurrent.Callable;
  import java.util.concurrent.Executors;
  import java.util.concurrent.FutureTask;
@@ -75,7 +74,7 @@
  import net.minecraft.client.gui.achievement.GuiAchievement;
  import net.minecraft.client.gui.inventory.GuiInventory;
  import net.minecraft.client.gui.stream.GuiStreamUnavailable;
-@@ -97,6 +111,7 @@
+@@ -97,6 +110,7 @@
  import net.minecraft.client.settings.GameSettings;
  import net.minecraft.client.settings.KeyBinding;
  import net.minecraft.client.shader.Framebuffer;
@@ -83,7 +82,7 @@
  import net.minecraft.client.stream.IStream;
  import net.minecraft.client.stream.NullStream;
  import net.minecraft.client.stream.TwitchStream;
-@@ -127,6 +142,8 @@
+@@ -127,6 +141,8 @@
  import net.minecraft.profiler.Profiler;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.integrated.IntegratedServer;
@@ -92,7 +91,7 @@
  import net.minecraft.stats.AchievementList;
  import net.minecraft.stats.IStatStringFormat;
  import net.minecraft.stats.StatFileWriter;
-@@ -142,6 +159,7 @@
+@@ -142,6 +158,7 @@
  import net.minecraft.util.Session;
  import net.minecraft.util.Timer;
  import net.minecraft.util.Util;
@@ -100,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4757 @@
+@@ -150,2988 +167,4707 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -127,7 +126,6 @@
 +import org.lwjgl.opengl.*;
  import org.lwjgl.util.glu.GLU;
 +import org.lwjgl.util.vector.Quaternion;
-+import org.omg.CORBA._PolicyStub;
 +
 +import static java.lang.Math.ceil;
  
@@ -1710,7 +1708,8 @@
 +	public MovingObjectPosition objectMouseOver;
 +
 +	// VIVE START - teleport movement
-+	public VRPlayer vrPlayer = new VRPlayer();
++	public OpenVRPlayer vrPlayer; 
++	public IRoomscaleAdapter roomScale;
 +	// VIVE END - teleport movement
 +
 +	// VIVE START - vive ui debugging
@@ -1844,11 +1843,7 @@
 +	public Field fieldWindow = null;
 +	public Field fieldResized = null;
 +	public Method fieldResizedMethod = null;
-+	public IHMDInfo hmdInfo;
 +	public IStereoProvider stereoProvider;
-+	public IOrientationProvider headTracker;
-+	public IEyePositionProvider positionTracker;
-+	public IBodyAimController lookaimController;
 +	public VRSettings vrSettings;
 +	public MumbleLink mumbleLink;
 +	public long lastIntegratedServerLaunchCheck = 0;
@@ -1857,7 +1852,6 @@
 +	public int lastMirrorSetting = -1;
 +	//public EyeRenderParams eyeRenderParams = null;
 +	public EyeType currentEye = EyeType.ovrEye_Left;
-+	public Posef currentEyePose = null;
 +	public Cursor nativeMouseCursor = null;
 +	public boolean lastShowMouseNative = true;
 +	public Cursor invisibleMouseCursor = null;
@@ -1905,7 +1899,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda20";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda21";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -1947,6 +1941,7 @@
 +			vrSettings.badStereoProviderPluginID = "";
 +			vrSettings.saveOptions();
 +		}
++		
 +		/** END MINECRIFT **/
 +	}
 +
@@ -2156,6 +2151,7 @@
 +			logger.error("Couldn\'t initialize twitch stream");
 +		}
 +
++	
 +		this.guiFramebuffer = new Framebuffer(this.displayWidth, this.displayHeight, true);
 +		this.guiFramebuffer.setFramebufferColor(0.0F, 0.0F, 0.0F, 0.0F);
 +		this.framebufferMc = guiFramebuffer; //temp
@@ -2880,19 +2876,13 @@
 +			//	}
 +			//}
 +				
-+			// Mark beginning of frame AFTER any GUI rendering to allow maximum
-+			// latency reduction
-+			PluginManager.beginFrameAll(frameIndex);
 +
 +			// Poll sensors
-+			if (!this.vrSettings.testTimewarp) {
-+				PluginManager.pollAll(frameIndex);
-+				PredictedDisplayTimeSeconds = this.stereoProvider.getFrameTiming();
-+			}
++			MCOpenVR.poll(frameIndex);
 +
 +			//I dunno where to put this.
-+			if(lookaimController instanceof MCOpenVR){
-+					bowTracker.doProcess((MCOpenVR) this.lookaimController, thePlayer);
++			if(this.stereoProvider.isStereo()){
++					bowTracker.doProcess(roomScale, thePlayer);
 +			}
 +
 +
@@ -2932,10 +2922,6 @@
 +					this.entityRenderer.theShaderGroup = shaderGroup;
 +				}
 +
-+				currentEyePose = getEyePose(this.currentEye);
-+				//System.out.println("Posef (" + this.currentEye.toString() + "): " + currentEyePose.toString());
-+
-+			
 +				GL11.glPushMatrix();
 +				GL11.glClearColor(0f, 0, 0, 1f);	
 +				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
@@ -2953,10 +2939,12 @@
 +	
 +					// Update our orientation and position variables from the sensor polled data
 +					this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
++					
 +					Object fmlCommonHandler = null;
 +					if (Reflector.FMLCommonHandler_instance.exists()) {
 +						fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
 +					}
++					
 +					if (!this.skipRenderWorld)
 +					{
 +						/** MINECRIFT FORGE **/
@@ -3031,7 +3019,7 @@
 +			} //end per eye rendering.
 +
 +			if(this.stereoProvider.isStereo())
-+				if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF && ( this.stereoProvider).isHMDTracking()){
++				if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF && ( this.vrPlayer).isHMDTracking()){
 +					GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
 +					shouldupdate = true;
 +					this.framebufferMc.unbindFramebuffer();	//draw directly to window
@@ -3089,16 +3077,10 @@
 +		}
 +		catch (RenderConfigException e) {
 +			// set mono provider
-+			vrSettings.badStereoProviderPluginID = stereoProvider.getID();
-+			vrSettings.stereoProviderPluginID = "mono";
-+			vrSettings.saveOptions();
-+			try {
-+				stereoProvider = PluginManager.configureStereoProvider(vrSettings.stereoProviderPluginID);
++			if (this.stereoProvider.getName() == "OpenVR"){
++				this.stereoProvider = new NullStereoRenderer();
 +			}
-+			catch (Exception ex) {
-+				ex.printStackTrace();
-+			}
-+
++			
 +			// set error
 +			this.errorHelper = new ErrorHelper(e.title, e.error, "Reverted to mono renderer!", ERROR_DISPLAY_TIME_SECS);
 +			e.printStackTrace();
@@ -3475,7 +3457,6 @@
 +	/** END MINECRIFT */
 +	{
 +		if (rightClickDelayTimer <= 0){
-+
 +			this.rightClickDelayTimer = 12; //JRBUDDA (was 4)
 +			boolean var1 = true;
 +			ItemStack var2 = this.thePlayer.inventory.getCurrentItem();
@@ -5110,6 +5091,8 @@
 +		/** END MINECRIFT */
 +	}
 +
++	public Object fmlCommonHandler = null;
++	
 +	/**
 +	 * Runs the current tick.
 +	 */
@@ -5133,7 +5116,7 @@
 +			--this.rightClickDelayTimer;
 +		}
 +		/** MINECRIFT FORGE **/
-+		Object fmlCommonHandler = null;
++
 +		if( Reflector.FMLCommonHandler_instance.exists()) {
 +			fmlCommonHandler = Reflector.call( Reflector.FMLCommonHandler_instance, new Object[0]);
 +		}
@@ -5525,8 +5508,8 @@
 +			{
 +				this.getNetHandler().addToSendQueue(new C16PacketClientStatus(C16PacketClientStatus.EnumState.OPEN_INVENTORY_ACHIEVEMENT));
 +				
-+				if(this.lookaimController instanceof MCOpenVR){
-+					((MCOpenVR) this.lookaimController).startedOpeningInventory = getCurrentTimeSecs();	//prevent immediately closing it
++				if(stereoProvider.isStereo()){
++					MCOpenVR.startedOpeningInventory = getCurrentTimeSecs();	//prevent immediately closing it
 +				}
 +				
 +				this.displayGuiScreen(new GuiInventory(this.thePlayer));
@@ -5594,7 +5577,7 @@
 +				lastClick = false;
 +			}
 +
-+			if (this.gameSettings.keyBindUseItem.getIsKeyPressed())
++			if (this.gameSettings.keyBindUseItem.getIsKeyPressed() && !this.thePlayer.isUsingItem())
 +			{
 +				this.rightClickMouse();
 +			} else {this.rightClickDelayTimer = 0;}
@@ -5639,10 +5622,10 @@
 +				KeyBinding.onTick(var9 - 100);
 +			}
 +			
-+			if (lookaimController instanceof MCOpenVR){
-+				if(!((MCOpenVR)lookaimController).controllerMouseValid){
++			if (stereoProvider.isStereo()){
++				if(!(MCOpenVR.controllerMouseValid)){
 +					if (mouseHelper.deltaX > 0 || mouseHelper.deltaY> 0 )
-+						((MCOpenVR) lookaimController).controllerMouseValid = true;
++						MCOpenVR.controllerMouseValid = true;
 +					}
 +				}
 +				
@@ -5833,7 +5816,7 @@
 +	public void loadWorld(WorldClient worldClientIn)
 +	{
 +		// VIVE START - reset room origin
-+		vrPlayer.setRoomOrigin(0, 0, 0);
++		vrPlayer.setRoomOrigin(0, 0, 0, true);
 +		// VIVE END - reset room origin
 +		this.loadWorld(worldClientIn, "");
 +	}
@@ -5938,6 +5921,7 @@
 +			}
 +
 +			this.thePlayer.preparePlayerToSpawn();
++			//VIVECRAFT
 +			worldClientIn.spawnEntityInWorld(this.thePlayer);
 +			this.thePlayer.movementInput = new MovementInputFromOptions(this.gameSettings);
 +			this.playerController.setPlayerCapabilities(this.thePlayer);
@@ -6791,7 +6775,7 @@
 +
 +		if (this.stereoProvider.isStereo() )
 +		{
-+			if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF &&  this.stereoProvider.isHMDTracking()){
++			if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF &&  this.vrPlayer.isHMDTracking()){
 +				return false;
 +			}else {
 +				int every = 1;
@@ -6909,19 +6893,19 @@
 +			FovPort rightFov = null;
 +
 +			if (!this.stereoProvider.isInitialized()) {
-+				throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), this.stereoProvider.getInitializationStatus());
++				throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), " " + this.stereoProvider.isInitialized());
 +			}
 +
 +			// Scale up the FBO to allow for the distortion
 +			if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
 +			{
-+				leftFov = hmdInfo.getHMDInfo().DefaultEyeFov[0];
-+				rightFov = hmdInfo.getHMDInfo().DefaultEyeFov[1];
++//				leftFov = hmdInfo.getHMDInfo().DefaultEyeFov[0];
++//				rightFov = hmdInfo.getHMDInfo().DefaultEyeFov[1];
 +
-+				System.out.println("L Fov:           " + leftFov.toString());
-+				System.out.println("R Fov:           " + rightFov.toString());
++//				System.out.println("L Fov:           " + leftFov.toString());
++//				System.out.println("R Fov:           " + rightFov.toString());
 +
-+				RenderTextureInfo renderTextureInfo = this.stereoProvider.getRenderTextureSizes(leftFov, rightFov, this.vrSettings.renderScaleFactor);
++				RenderTextureInfo renderTextureInfo = this.stereoProvider.getRenderTextureSizes(this.vrSettings.renderScaleFactor);
 +
 +				EyeTextureSize.w  = renderTextureInfo.LeftFovTextureResolution.w ;
 +				EyeTextureSize.h  = renderTextureInfo.LeftFovTextureResolution.h ;
@@ -7045,8 +7029,8 @@
 +
 +			if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
 +			{
-+				this.entityRenderer.eyeproj[EyeType.ovrEye_Left.value()] = this.stereoProvider.getProjectionMatrix(hmdInfo.getHMDInfo().DefaultEyeFov[0], EyeType.ovrEye_Left, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
-+				this.entityRenderer.eyeproj[EyeType.ovrEye_Right.value()] = this.stereoProvider.getProjectionMatrix(hmdInfo.getHMDInfo().DefaultEyeFov[1], EyeType.ovrEye_Right, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance);
++				this.entityRenderer.eyeproj[EyeType.ovrEye_Left.value()] = this.stereoProvider.getProjectionMatrix(null, EyeType.ovrEye_Left, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance).transposed().toFloatBuffer();
++				this.entityRenderer.eyeproj[EyeType.ovrEye_Right.value()] = this.stereoProvider.getProjectionMatrix(null, EyeType.ovrEye_Right, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance).transposed().toFloatBuffer();
 +			}
 +
 +			try
@@ -7143,12 +7127,10 @@
 +		this.framebuffer.bindFramebuffer(true);
 +
 +			//START STENCIL TESTING - Yes I know there's about 15 better ways to do this.
-+			float[] verts = ((MCOpenVR)this.lookaimController).hiddenMesheVertecies[i];
++			float[] verts = stereoProvider.getStencilMask(this.currentEye);
 +			if(verts!=null){
 +				GL11.glEnable(GL11.GL_STENCIL_TEST);
 +				GL11.glDisable(GL11.GL_CULL_FACE);
-+				GL11.glDisable(GL11.GL_LIGHTING);
-+				GL11.glDisable(GL11.GL_ALPHA_TEST);
 +				GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
 +				GL11.glStencilMask(0xFF); // Write to stencil buffer
 +				GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT); // Clear stencil buffer (0 by default)
@@ -7385,13 +7367,14 @@
 +		}
 +
 +		new MCOpenVR();
++		MCOpenVR.init();
++		this.stereoProvider = new OpenVRStereoRenderer();
++		this.vrPlayer = new OpenVRPlayer();
++		this.roomScale = this.vrPlayer;
++		
 +		//hmdInfo = PluginManager.configureHMD("oculus");
 +
-+		new NullHmdInfo();
-+		new NullPositionAndOrientation();
-+		new NullStereoRenderer();                            // Create and register "None" stereo renderer plugin
-+
-+		initPlugins();
++		//TODO: init new steroerenderer
 +
 +		nativeMouseCursor = Mouse.getNativeCursor();
 +		try {
@@ -7401,20 +7384,10 @@
 +		}
 +	}
 +
-+	public void initPlugins() throws Exception
-+	{
-+		hmdInfo           = PluginManager.configureHMD(this.vrSettings.hmdPluginID);
-+		headTracker       = PluginManager.configureOrientation(this.vrSettings.headTrackerPluginID);
-+		positionTracker   = PluginManager.configurePosition(this.vrSettings.headPositionPluginID);
-+		lookaimController = PluginManager.configureController("mouse"); // Always configure mouse
-+		lookaimController = PluginManager.configureController(this.vrSettings.controllerPluginID);
-+		stereoProvider    = PluginManager.configureStereoProvider(this.vrSettings.stereoProviderPluginID);
-+	}
-+
 +	public void printChatMessage(String msg)
 +	{
 +		if (this.theWorld != null) {
-+			ChatComponentText chatText = new ChatComponentText("\u00a7e[Minecrift]: " + msg + "\u00a7f");
++			ChatComponentText chatText = new ChatComponentText(msg);
 +			this.ingameGUI.getChatGUI().printChatMessage(chatText);
 +		}
 +	}
@@ -7443,42 +7416,11 @@
 +		}
 +	}
 +
-+	public Posef getEyePose(EyeType eye)
-+	{
-+		Posef eyePose = new Posef();
-+
-+		// Get orientation first...
-+		if (this.headTracker != null && this.headTracker.isInitialized())
-+		{
-+			Quaternion orient = this.headTracker.getOrientationQuaternion(eye);
-+			if (orient != null) {
-+				eyePose.Orientation.x = orient.x;
-+				eyePose.Orientation.y = orient.y;
-+				eyePose.Orientation.z = orient.z;
-+				eyePose.Orientation.w = orient.w;
-+			}
-+		}
-+
-+		// ...as some position providers also require orientation information (I'm looking
-+		// at you, Hydra!)
-+		if (positionTracker != null && this.positionTracker.isInitialized())
-+		{
-+			Vec3 pos = positionTracker.getEyePosition(eye);
-+			if (pos != null)
-+			{
-+				eyePose.Position.x = (float) pos.xCoord;
-+				eyePose.Position.y = (float) pos.yCoord;
-+				eyePose.Position.z = (float) pos.zCoord;
-+			}
-+		}
-+
-+		return eyePose;
-+	}
 +
 +	public boolean endFrame()
 +	{				
 +		if (this.stereoProvider != null)
-+			return this.stereoProvider.endFrame();
++			this.stereoProvider.endFrame();
 +
 +		return true;
 +	}
@@ -7524,68 +7466,75 @@
 +
 +				// Setup ortho projection
 +				GL11.glMatrixMode(GL11.GL_PROJECTION);
-+				GL11.glLoadIdentity();
-+				GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+				GL11.glLoadIdentity();
++				GL11.glPushMatrix();
++					GL11.glLoadIdentity();
++					GL11.glMatrixMode(GL11.GL_MODELVIEW);
++					GL11.glPushMatrix();
++						GL11.glLoadIdentity();
++		
++						GL11.glTranslatef(0.0f, 0.0f, -.7f);
++						// Pass 1 - horizontal
++						// Now switch to 1st pass FSAA result target framebuffer
++						this.fsaaFirstPassResultFBO.bindRenderTarget();
++		
++						// Bind the FBO Texture
++						this.framebuffer.bindFramebufferTexture();
++		
++						GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
++						GL11.glClearDepth(1.0D);
++						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer
++		
++						// Render onto the entire screen framebuffer
++						GL11.glViewport(0, 0, fsaaFirstPassResultFBO.getFramebufferWidth(), fsaaFirstPassResultFBO.getFramebufferHeight());
++		
++						// Set the downsampling shader as in use
++						ARBShaderObjects.glUseProgramObjectARB(_Lanczos_shaderProgramId);
++		
++						// Set up the fragment shader uniforms
++						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 1.0f / (3.0f * (float) fsaaFirstPassResultFBO.getFramebufferWidth()));
++						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 0.0f);
++						ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
++		
++						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
++		
++						drawQuad();
++		
++						// checkGLError("After Lanczos Pass1");
++		
++						// Pass 2 - Vertial
++						// Now switch to 2nd pass screen framebuffer
++						fsaaSecondPassResultFBO.bindRenderTarget();
++						fsaaSecondPassResultFBO.selectTexture(); //this is our Eye tex!
++		
++						fsaaFirstPassResultFBO.bindTexture();
++		
++						GL11.glViewport(0, 0,fsaaSecondPassResultFBO.getFramebufferWidth(), fsaaSecondPassResultFBO.getFramebufferHeight());
++						GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
++						GL11.glClearDepth(1.0D);
++						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
++		
++						// Bind the texture
++						GL13.glActiveTexture(GL13.GL_TEXTURE0);
++		
++						// Set up the fragment shader uniforms for pass 2
++						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 0.0f);
++						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 1.0f / (3.0f * (float) fsaaSecondPassResultFBO.getFramebufferHeight()));
++						ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
++						
++						drawQuad();
++		
++						// Stop shader use
++						ARBShaderObjects.glUseProgramObjectARB(0);
++						// checkGLError("After Lanczos Pass2");
++		
++						GL11.glEnable(GL11.GL_ALPHA_TEST);
++						GL11.glEnable(GL11.GL_BLEND);
 +
-+				GL11.glTranslatef(0.0f, 0.0f, -0.7f);
-+
-+				// Pass 1 - horizontal
-+				// Now switch to 1st pass FSAA result target framebuffer
-+				this.fsaaFirstPassResultFBO.bindRenderTarget();
-+
-+				// Bind the FBO Texture
-+				this.framebuffer.bindFramebufferTexture();
-+
-+				GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
-+				GL11.glClearDepth(1.0D);
-+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer
-+
-+				// Render onto the entire screen framebuffer
-+				GL11.glViewport(0, 0, fsaaFirstPassResultFBO.getFramebufferWidth(), fsaaFirstPassResultFBO.getFramebufferHeight());
-+
-+				// Set the downsampling shader as in use
-+				ARBShaderObjects.glUseProgramObjectARB(_Lanczos_shaderProgramId);
-+
-+				// Set up the fragment shader uniforms
-+				ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 1.0f / (3.0f * (float) fsaaFirstPassResultFBO.getFramebufferWidth()));
-+				ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 0.0f);
-+				ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
-+
-+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-+
-+				drawQuad();
-+
-+				// checkGLError("After Lanczos Pass1");
-+
-+				// Pass 2 - Vertial
-+				// Now switch to 2nd pass screen framebuffer
-+				fsaaSecondPassResultFBO.bindRenderTarget();
-+				fsaaSecondPassResultFBO.selectTexture(); //this is our Eye tex!
-+
-+				fsaaFirstPassResultFBO.bindTexture();
-+
-+				GL11.glViewport(0, 0,fsaaSecondPassResultFBO.getFramebufferWidth(), fsaaSecondPassResultFBO.getFramebufferHeight());
-+				GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
-+				GL11.glClearDepth(1.0D);
-+				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-+
-+				// Bind the texture
-+				GL13.glActiveTexture(GL13.GL_TEXTURE0);
-+
-+				// Set up the fragment shader uniforms for pass 2
-+				ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 0.0f);
-+				ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 1.0f / (3.0f * (float) fsaaSecondPassResultFBO.getFramebufferHeight()));
-+				ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
-+
-+				drawQuad();
-+
-+				// Stop shader use
-+				ARBShaderObjects.glUseProgramObjectARB(0);
-+				// checkGLError("After Lanczos Pass2");
-+
-+				GL11.glEnable(GL11.GL_ALPHA_TEST);
-+				GL11.glEnable(GL11.GL_BLEND);
++						GL11.glPopMatrix();
++					GL11.glMatrixMode(GL11.GL_PROJECTION);
++					GL11.glPopMatrix();
++						
++						
 +			}
 +		}
 +	}
@@ -7613,7 +7562,7 @@
 +		final long currentTimeMs = System.currentTimeMillis();
 +
 +		// Start display splash timer (only after any calibration has finished)
-+		if (this.entityRenderer.calibrationHelper == null && splashTimer1 == 0 && splashTimer2 == 0)
++		if (splashTimer1 == 0 && splashTimer2 == 0)
 +		{
 +			splashTimer1 = currentTimeMs;
 +		}
@@ -7818,7 +7767,7 @@
 +
 +
 +	public void triggerYawTransition(boolean isPositive) {
-+		this.lookaimController.triggerYawTransition(isPositive);
++	//	this.lookaimController.triggerYawTransition(isPositive);
 +	}
 +
 +	public void print(String s)

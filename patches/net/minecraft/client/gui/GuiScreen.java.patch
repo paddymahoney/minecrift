@@ -167,10 +167,10 @@
 -            {
 +            {		
 +            	
-+            	if (mc.lookaimController instanceof MCOpenVR){
-+            		if(!((MCOpenVR)mc.lookaimController).controllerMouseValid){
-+						((MCOpenVR) mc.lookaimController).controllerMouseValid = true;
-+						((MCOpenVR) mc.lookaimController).controllerMouseTicks = 20;
++            	if (mc.stereoProvider.isStereo()){
++            		if(!MCOpenVR.controllerMouseValid){
++            			MCOpenVR.controllerMouseValid = true;
++            			MCOpenVR.controllerMouseTicks = 20;
 +				}}
 +            	
                  this.handleMouseInput();
@@ -184,10 +184,10 @@
 -        int var2 = this.height - Mouse.getEventY() * this.height / this.mc.displayHeight - 1;
 +		/** MINECRIFT */
 +
-+		if (mc.lookaimController instanceof MCOpenVR){
-+			if(!((MCOpenVR)mc.lookaimController).controllerMouseValid){
++    	if (mc.stereoProvider.isStereo()){
++    		if(!MCOpenVR.controllerMouseValid){
 +				if (mc.mouseHelper.deltaX > 0 || mc.mouseHelper.deltaY> 0 )
-+					((MCOpenVR) mc.lookaimController).controllerMouseValid = true;
++        			MCOpenVR.controllerMouseValid = true;
 +				}
 +			}
 +    	

@@ -150,7 +150,6 @@ public class VRSettings
     public boolean soundOrientWithHead = true;
 	public float chatOffsetX = 0;
 	public float chatOffsetY = 0.4f;
-	public float aimPitchOffset = 0;
     public int inertiaFactor = INERTIA_NORMAL;
     public boolean allowPitchAffectsHeightWhileFlying = true;
     public boolean storeDebugAim = false;
@@ -179,6 +178,9 @@ public class VRSettings
     public VRControllerButtonMapping[] buttonMappings;
     public boolean vrUseStencil = true;
     public boolean vrShowBlueCircleBuddy = true;
+    public float vrWorldScale = 1.0f;
+    public float vrWorldRotation = 0f;
+    
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -593,11 +595,6 @@ public class VRSettings
                         this.chatOffsetY = this.parseFloat(optionTokens[1]);
                     }
 
-                    if (optionTokens[0].equals("aimPitchOffset"))
-                    {
-                        this.aimPitchOffset = this.parseFloat(optionTokens[1]);
-                    }
-
                     if (optionTokens[0].equals("inertiaFactor"))
                     {
                         this.inertiaFactor = Integer.parseInt(optionTokens[1]);
@@ -713,6 +710,14 @@ public class VRSettings
                     {
                         this.vrShowBlueCircleBuddy = optionTokens[1].equals("true");
                     }
+                    if (optionTokens[0].equals("worldScale"))
+                    {
+                        this.vrWorldScale = this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("worldRotation"))
+                    {
+                        this.vrWorldRotation = this.parseFloat(optionTokens[1]);
+                    }
     
                     if (optionTokens[0].startsWith("BUTTON_"))
                     {
@@ -776,6 +781,7 @@ public class VRSettings
 		        	}
 				}					
 			}
+			
 			if(vb.key == null && !vb.FunctionDesc.startsWith("keyboard"))
 				System.out.println("Unknown key binding: " + vb.FunctionDesc);
 		}
@@ -968,22 +974,10 @@ public class VRSettings
 	            return this.soundOrientWithHead ? var4 + "Headphones" : var4 + "Speakers";
             case MOUSE_AIM_TYPE:
                 return this.mouseKeyholeTight ? var4 + "Keyhole (tight)" : var4 + "Keyhole (loose)";
-            case VR_RENDERER:
-                if (this.mc.stereoProvider != null)
-                    return this.mc.stereoProvider.getName();
-
-                return "None";
-	        case VR_HEAD_ORIENTATION:
-	            if (this.mc.headTracker != null)
-	                return this.mc.headTracker.getName();
-	
-	            return "None";
 	        case CHAT_OFFSET_X:
 	            return var4 + String.format("%.0f%%", new Object[] { Float.valueOf(100*this.chatOffsetX) });
 	        case CHAT_OFFSET_Y:
 	            return var4 + String.format("%.0f%%", new Object[] { Float.valueOf(100*this.chatOffsetY) });
-	        case AIM_PITCH_OFFSET:
-	            return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.aimPitchOffset) });
             case INERTIA_FACTOR:
                 if (this.inertiaFactor == INERTIA_NONE)
                     return var4 + "Automan";
@@ -1047,6 +1041,10 @@ public class VRSettings
             	return this.vrUseStencil ? var4 + "ON" : var4 + "OFF";
             case BCB_ON:
             	return this.vrShowBlueCircleBuddy ? var4 + "ON" : var4 + "OFF";
+            case WORLD_SCALE:
+	            return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.vrWorldScale)})+ "x" ;
+            case WORLD_ROTATION:
+	            return var4 + String.format("%.0f", new Object[] { Float.valueOf(this.vrWorldRotation) });
 
                 //END JRBUDDA
  	        default:
@@ -1101,8 +1099,6 @@ public class VRSettings
 				return this.chatOffsetX;
 			case CHAT_OFFSET_Y:
 				return this.chatOffsetY;
-			case AIM_PITCH_OFFSET:
-				return aimPitchOffset;
             case MOVEMENT_ACCELERATION_SCALE_FACTOR:
                 return movementAccelerationScaleFactor;
             case VR_COMFORT_TRANSITION_TIME_SECS:
@@ -1110,7 +1106,16 @@ public class VRSettings
             case VR_COMFORT_TRANSITION_ANGLE_DEGS:
                 return vrComfortTransitionAngleDegs;
             // VIVE START - new options
-
+            case WORLD_SCALE:
+            	if(vrWorldScale < 1.5){
+            		return -1/vrWorldScale  + 10 ;
+            	} else if (vrWorldScale == 1.5f){
+            		return 10;  
+            	} else {
+            		return(vrWorldScale/2 + 10);            		
+            	}
+            case WORLD_ROTATION:
+                return vrWorldRotation;
             // VIVE END - new options
 
             default:
@@ -1386,9 +1391,6 @@ public class VRSettings
 	        case CHAT_OFFSET_Y:
 	        	this.chatOffsetY = par2;
 	        	break;
-	        case AIM_PITCH_OFFSET:
-	        	this.aimPitchOffset = par2;
-                break;
             case MOVEMENT_ACCELERATION_SCALE_FACTOR:
                 this.movementAccelerationScaleFactor = par2;
                 break;
@@ -1399,7 +1401,18 @@ public class VRSettings
                 this.vrComfortTransitionAngleDegs = par2;
                 break;
             // VIVE START - new options
-
+            case WORLD_SCALE:
+            	if(par2 < 10){
+            		this.vrWorldScale = 1 / (10-par2);
+            	} else if (par2 == 10){
+            		this.vrWorldScale = 1.5f;   
+            	} else {
+            		this.vrWorldScale = (par2 - 10) * 2;            		
+            	}
+                break;
+            case WORLD_ROTATION:
+                this.vrWorldRotation = par2;
+                break;
             // VIVE END - new options
             default:
 	        	break;
@@ -1500,7 +1513,6 @@ public class VRSettings
             var5.println("menuCrosshairScale:" + this.menuCrosshairScale);
             var5.println("chatOffsetX:" + this.chatOffsetX);
             var5.println("chatOffsetY:" + this.chatOffsetY);
-            var5.println("aimPitchOffset:" + this.aimPitchOffset);
             var5.println("inertiaFactor:" + this.inertiaFactor);
             var5.println("useVrComfort:" + this.useVrComfort);
             var5.println("allowForwardPlusStrafe:" + this.allowForwardPlusStrafe);
@@ -1527,6 +1539,8 @@ public class VRSettings
             var5.println("reverseHands:" + this.vrReverseHands);
             var5.println("stencilOn:" + this.vrUseStencil);
             var5.println("bcbOn:" + this.vrShowBlueCircleBuddy);
+            var5.println("worldScale:" + this.vrWorldScale);
+            var5.println("worldRotation:" + this.vrWorldRotation);
            
             if (buttonMappings == null) resetBindings(); //defaults
             
@@ -1841,14 +1855,14 @@ public class VRSettings
         REVERSE_HANDS("Reverse Hands",false, true),
         STENCIL_ON("Use Eye Stencil", false, true), 
         BCB_ON("Show Body Position", false, true),    
-        
+        WORLD_SCALE("World Scale", true, false),
+        WORLD_ROTATION("World Rotation", true, false),
         //END JRBUDDA
         
         // OTher buttons
         OTHER_HUD_SETTINGS("Overlay/Crosshair/Chat...", false, true),
         OTHER_RENDER_SETTINGS("IPD / FOV...", false, true),
         LOCOMOTION_SETTINGS("Locomotion Settings...", false, true); 
-
 
 //        ANISOTROPIC_FILTERING("options.anisotropicFiltering", true, false, 1.0F, 16.0F, 0.0F)
 //                {
@@ -1967,7 +1981,7 @@ public class VRSettings
     {
         ProfileManager.init(dataDir);
         mc.gameSettings = new GameSettings( mc, dataDir );
-        mc.gameSettings.saveOptions();
+       // mc.gameSettings.saveOptions();
         mc.vrSettings = new VRSettings( mc, dataDir );
         mc.vrSettings.saveOptions();
     }

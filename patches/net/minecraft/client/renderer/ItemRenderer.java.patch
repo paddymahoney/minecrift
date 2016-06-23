@@ -258,7 +258,7 @@
  
          GL11.glPopMatrix();
      }
-@@ -240,364 +251,490 @@
+@@ -240,364 +251,494 @@
  
          p_78439_0_.draw();
      }
@@ -692,19 +692,24 @@
 +									if (mc.vrSettings.vrReverseShootingEye) c = 1;
 +		    						
 +		    						Vec3 aim = mc.bowTracker.getAimVector(); 
-+		    						Vector3f aimCopy = new Vector3f((float)aim.xCoord,(float) aim.yCoord, (float)aim.zCoord);
++		    						Vec3 a = Vec3.createVectorHelper(aim.xCoord, aim.yCoord, aim.zCoord);
++		    						//a.rotateAroundY(-mc.vrSettings.vrWorldRotation);
++		    						Vector3f aimCopy = new Vector3f((float)a.xCoord,(float) a.yCoord, (float)a.zCoord);
 +		
-+		    						Matrix4f left = mc.lookaimController.getAimRotation(1);
++		    						//Matrix4f left = mc.lookaimController.getAimRotation(1);
 +		
-+		    						Vector3f current = left.transform(new Vector3f(0,1,0));
-+		    						Vector3f currentfore = left.transform(new Vector3f(0,0,-1));
++		    						Vec3 lup = mc.roomScale.getCustomControllerVector(1,  Vec3.createVectorHelper(0, -1, 0));
++		    						Vector3f current = new Vector3f((float)lup.xCoord, (float)lup.yCoord, (float)lup.zCoord);
++		    						Vec3 lback = mc.roomScale.getCustomControllerVector(1,  Vec3.createVectorHelper(0, 0, -1));
++		    						
++		    						Vector3f currentfore =  new Vector3f((float)lback.xCoord, (float)lback.yCoord, (float)lback.zCoord);
 +		
 +		    						Vector3f v = aimCopy.cross(current);
 +		    						double d = 180 / Math.PI * Math.acos(aimCopy.dot(current));
 +		
-+		    						float pitch = -(float)Math.toDegrees(Math.asin(aimCopy.y/aimCopy.length()));
-+		    						float yaw = (float)Math.toDegrees(Math.atan2(aimCopy.x, aimCopy.z));    
-+		    						//		    									    				    			
++		    						float pitch = (float)Math.toDegrees(Math.asin(aimCopy.y/aimCopy.length()));
++		    						float yaw = (float)Math.toDegrees(Math.atan2(aimCopy.x, aimCopy.z));     
++		    						
 +		    						Vector3f up = new Vector3f(0,1,0);
 +		
 +		    						Vector3f pAim2 = new Vector3f(0,0,0);
@@ -728,15 +733,15 @@
 +		    						if (dot2 < 0) 
 +		    							angle = -(float) Math.acos(dot);  	
 +		    						else angle = (float) Math.acos(dot); 
-+		
-+		
++
 +		    						float roll = (float) (180 / Math.PI * angle);     //calulate bow model roll.
 +		
-+		    						GL11.glRotatef(yaw, 0.0F,1.0F, 0.0F);
-+		    						GL11.glRotatef(-pitch, 1.0F, 0.0F, 0.0F);
++		    				        GL11.glRotatef(yaw, 0.0F,1.0F, 0.0F);
++		    				        GL11.glRotatef(-pitch, 1.0F, 0.0F, 0.0F);
 +		
 +		    						GL11.glRotatef(-roll, 0.0F, 0.0F, 1.0F);  
-+		    						GL11.glRotatef(90f, 1.0F, 0.0F, 0.0F);    					
++		    						GL11.glRotatef(90f, 1.0F, 0.0F, 0.0F);    
++		    						GL11.glRotatef(-180.0F, 0.0F, 0.0F, 1.0F);	
 +		    					}
 +		
 +		
@@ -797,7 +802,7 @@
 +		    					//MOST ITEMS
 +		    					//adjust for tools		
 +		    					
-+		    					float add = mc.vrPlayer.weapongSwingLen - 0.3f;
++		    					float add =0; // mc.vrPlayer.weapongSwingLen - 0.3f;
 +		    					
 +		    					GL11.glTranslatef(0.01f, .28f, -.08f - add);			
 +		    					GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);			
@@ -840,7 +845,6 @@
 +		    		{
 +		    			GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
 +		    		}
-+		
 +		    		
 +		    		if (renderitem8.getItem().requiresMultipleRenderPasses())
 +		    		{
@@ -1077,7 +1081,7 @@
          var3.startDrawingQuads();
          var3.addVertexWithUV((double)var5, (double)var7, (double)var9, (double)var11, (double)var13);
          var3.addVertexWithUV((double)var6, (double)var7, (double)var9, (double)var10, (double)var13);
-@@ -606,6 +743,7 @@
+@@ -606,6 +747,7 @@
          var3.draw();
          GL11.glPopMatrix();
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1085,7 +1089,7 @@
      }
  
      /**
-@@ -621,13 +759,13 @@
+@@ -621,13 +763,13 @@
          GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();

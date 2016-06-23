@@ -4,22 +4,23 @@
  */
 package com.mtbs3d.minecrift.gui;
 
-import com.mtbs3d.minecrift.api.IEyePositionProvider;
-import com.mtbs3d.minecrift.api.IHMDInfo;
-import com.mtbs3d.minecrift.api.IOrientationProvider;
 import com.mtbs3d.minecrift.api.IStereoProvider;
 import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
 import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
+import com.mtbs3d.minecrift.gui.framework.GuiEventEx;
+import com.mtbs3d.minecrift.gui.framework.GuiSliderEx;
 import com.mtbs3d.minecrift.gui.framework.GuiSmallButtonEx;
 import com.mtbs3d.minecrift.gui.framework.VROption;
 import com.mtbs3d.minecrift.settings.VRSettings;
+import com.mtbs3d.minecrift.settings.VRSettings.VrOptions;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.settings.GameSettings;
 
 
-public class GuiMinecriftSettings extends BaseGuiSettings
+public class GuiMinecriftSettings extends BaseGuiSettings implements GuiEventEx
 {
     public static final int PROFILES_ID = 915;
 
@@ -31,9 +32,12 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             new VROption(206,                                      VROption.Position.POS_LEFT,   1f, VROption.ENABLED, "Stereo Rendering..."),
             new VROption(VRSettings.VrOptions.VR_RENDERER,         VROption.Position.POS_RIGHT,  1f, VROption.DISABLED, null),
             new VROption(209,                                      VROption.Position.POS_LEFT,   2f, VROption.ENABLED, "Locomotion Settings..."),
-            new VROption(VRSettings.VrOptions.REVERSE_HANDS,       VROption.Position.POS_LEFT,   3f, VROption.ENABLED, null),
             new VROption(210, 							           VROption.Position.POS_RIGHT,  3f, VROption.ENABLED, "Chat/Crosshair Settings..."),
-            new VROption(220, 							           VROption.Position.POS_LEFT,   4f, VROption.ENABLED, "Controller Buttons..."),
+            new VROption(220, 							           VROption.Position.POS_LEFT,   3f, VROption.ENABLED, "Controller Buttons..."),
+            new VROption(VRSettings.VrOptions.REVERSE_HANDS,       VROption.Position.POS_CENTER,   4.5f, VROption.ENABLED, null),
+            new VROption(VRSettings.VrOptions.WORLD_SCALE,       	VROption.Position.POS_LEFT,   6f, VROption.ENABLED, null),
+            new VROption(VRSettings.VrOptions.WORLD_ROTATION,       VROption.Position.POS_RIGHT,   6f, VROption.ENABLED, null),
+            new VROption(221,									     VROption.Position.POS_CENTER,   7f, VROption.ENABLED, "Reset to Defaults"),
             
             
             // VIVE END - hide options not relevant to teleport/room scale
@@ -70,13 +74,41 @@ public class GuiMinecriftSettings extends BaseGuiSettings
     	{
     		int width = var8.getWidth(this.width);
     		int height = var8.getHeight(this.height);
-
-    		{
-    			GuiSmallButtonEx button = new GuiSmallButtonEx(var8.getOrdinal(), width, height, var8._e, var8.getButtonText());
+    		VrOptions o = VrOptions.getEnumOptions(var8.getOrdinal());
+    		if(o==null || o.getEnumBoolean() ){
+      			GuiSmallButtonEx button = new GuiSmallButtonEx(var8.getOrdinal(), width, height, var8._e, var8.getButtonText());
     			button.enabled = var8._enabled;
     			this.buttonList.add(button);
     		}
+    		else if (o.getEnumFloat()){
+                float minValue = 0.0f;
+                float maxValue = 1.0f;
+                float increment = 0.001f;
+                
+    			if(o == VrOptions.WORLD_SCALE){
+                     minValue = 0f;
+                     maxValue = 20f;
+                     increment = 1f;
+    			}
+    			else if (o == VrOptions.WORLD_ROTATION){
+                     minValue = 0f;
+                     maxValue = 360f;
+                     increment = 45f;
+    			}
+    			
+    	        GuiSliderEx slider = new GuiSliderEx(o.returnEnumOrdinal(), width, height, o, this.guivrSettings.getKeyBinding(o), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(o));
+    	        slider.setEventHandler(this);
+    	        slider.enabled = true;
+    	        this.buttonList.add(slider);
+    		}
+	
     	}
+    	
+    	{
+
+
+    	}
+
     }
 
     /**
@@ -87,10 +119,10 @@ public class GuiMinecriftSettings extends BaseGuiSettings
         if (par1GuiButton.enabled)
         {
             VRSettings vr = Minecraft.getMinecraft().vrSettings;
-            IHMDInfo hmdInfo = Minecraft.getMinecraft().hmdInfo;
+//            IHMDInfo hmdInfo = Minecraft.getMinecraft().hmdInfo;
             IStereoProvider stereoProvider = Minecraft.getMinecraft().stereoProvider;
-            IOrientationProvider headTracker = Minecraft.getMinecraft().headTracker;
-            IEyePositionProvider positionTracker = Minecraft.getMinecraft().positionTracker;
+//            IOrientationProvider headTracker = Minecraft.getMinecraft().headTracker;
+//            IEyePositionProvider positionTracker = Minecraft.getMinecraft().positionTracker;
 
             if (par1GuiButton.id < 200 && par1GuiButton instanceof GuiSmallButtonEx)
             {
@@ -107,23 +139,21 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             else if (par1GuiButton.id == 201)
             {
                 Minecraft.getMinecraft().vrSettings.saveOptions();
-                this.mc.displayGuiScreen(new GuiPlayerPreferenceSettings(this, this.guivrSettings));
+              //  this.mc.displayGuiScreen(new GuiPlayerPreferenceSettings(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == 202)
             {
-                if( Minecraft.getMinecraft().headTracker != null )
-                {
+
                     Minecraft.getMinecraft().vrSettings.saveOptions();
                     this.mc.displayGuiScreen(new GuiHUDSettings(this, this.guivrSettings));
-                }
+
             }
             else if (par1GuiButton.id == 206)
             {
-            	if( headTracker != null && hmdInfo != null && positionTracker != null )
-            	{
+
                     Minecraft.getMinecraft().vrSettings.saveOptions();
 	                this.mc.displayGuiScreen(new GuiRenderOpticsSettings(this, this.guivrSettings, this.settings));
-            	}
+
             } 
             else if (par1GuiButton.id == 200)
             {
@@ -133,20 +163,26 @@ public class GuiMinecriftSettings extends BaseGuiSettings
             else if (par1GuiButton.id == 209)
             {
                 this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(new GuiLocomotionSettings(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == 210)
             {
                 this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(new GuiOtherHUDSettings(this, this.guivrSettings));
             }
             else if (par1GuiButton.id == 220)
             {
                 this.guivrSettings.saveOptions();
-                Minecraft.getMinecraft().lookaimController.saveOptions();
                 this.mc.displayGuiScreen(new GuiVRControls(this, this.guivrSettings));
+            }
+            else if (par1GuiButton.id == 221)
+            {
+                mc.vrSettings.vrReverseHands = false;
+                mc.vrSettings.vrWorldRotation = 0;
+                mc.vrSettings.vrWorldScale = 1;
+                
+                this.guivrSettings.saveOptions();
+                this.initGui();
             }
             else if (par1GuiButton.id == PROFILES_ID)
             {
@@ -187,6 +223,20 @@ public class GuiMinecriftSettings extends BaseGuiSettings
                     "  Pitch Only: View ratcheting applied to Pitch only.",
                     "  Yaw and Pitch: You guessed it...",
             } ;
+        case WORLD_SCALE:
+            return new String[] {
+                    "Scales the player in the world.",
+                    "Above one makes you larger",
+                    "And below one makes you small",
+                    "And the ones that mother gives you",
+                    "don't do anything at all."
+            };
+        case WORLD_ROTATION:
+            return new String[] {
+                    "Adds extra rotation to your HMD.",
+                    "More useful bound to a button or ",
+                    "changed with the arrow keys."
+            };
             default:
     		return null;
     	}
@@ -256,5 +306,17 @@ public class GuiMinecriftSettings extends BaseGuiSettings
     			return null;
     	}
     }
+
+	@Override
+	public boolean event(int id, VrOptions enumm) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean event(int id, String s) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }

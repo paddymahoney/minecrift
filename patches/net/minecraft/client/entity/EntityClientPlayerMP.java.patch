@@ -20,8 +20,8 @@
 +    public void onDeath(DamageSource p_70645_1_){
 +    	
 +    	super.onDeath(p_70645_1_);
-+        Minecraft.getMinecraft().lookaimController.triggerHapticPulse(0, 2000);
-+        Minecraft.getMinecraft().lookaimController.triggerHapticPulse(1, 2000);    	
++        Minecraft.getMinecraft().vrPlayer.triggerHapticPulse(0, 2000);
++        Minecraft.getMinecraft().vrPlayer.triggerHapticPulse(1, 2000);    	
 +    	
 +    }
 +    //END VIVECRAFT
@@ -37,8 +37,8 @@
 +    	if(source.damageType == "cactuc")dur = 200;
 +    	
 +        	//Vivecraft trigger haptics
-+            Minecraft.getMinecraft().lookaimController.triggerHapticPulse(0, dur);
-+            Minecraft.getMinecraft().lookaimController.triggerHapticPulse(1, dur);    		
++            Minecraft.getMinecraft().vrPlayer.triggerHapticPulse(0, dur);
++            Minecraft.getMinecraft().vrPlayer.triggerHapticPulse(1, dur);    		
 +        //END VIVECRAFT
          return false;
      }

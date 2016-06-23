@@ -14,7 +14,7 @@
              this.buttonList.add(this.buttonFinalize = new GuiButton(5, this.width / 2 - 100, 4 + this.bookImageHeight, 98, 20, I18n.format("book.finalizeButton", new Object[0])));
              this.buttonList.add(this.buttonCancel = new GuiButton(4, this.width / 2 + 2, 4 + this.bookImageHeight, 98, 20, I18n.format("gui.cancel", new Object[0])));
 +            // VIVE START - show keyboard
-+            ((MCOpenVR)Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, null);
++            MCOpenVR.setKeyboardOverlayShowing(true, null);
 +            // VIVE END - show keyboard
          }
          else
@@ -24,7 +24,7 @@
              {
                  this.bookGettingSigned = true;
 +                // VIVE START - show keyboard
-+                ((MCOpenVR)Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, null);
++                MCOpenVR.setKeyboardOverlayShowing(true, null);
 +                // VIVE END - show keyboard
              }
              else if (button.id == 1)
@@ -34,7 +34,7 @@
              {
                  this.bookGettingSigned = false;
 +                // VIVE START - show keyboard
-+                ((MCOpenVR)Minecraft.getMinecraft().lookaimController).setKeyboardOverlayShowing(true, null);
++                MCOpenVR.setKeyboardOverlayShowing(true, null);
 +                // VIVE END - show keyboard
              }
  

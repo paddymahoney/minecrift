@@ -246,10 +246,10 @@
 +                this.bipedHead.rotationPointY = 0.0F;
 +                this.bipedHeadwear.rotationPointY = 0.0F;
 +            }
-+            else {
-+                if (Minecraft.getMinecraft().positionTracker != null) {
-+                    centreEyePos = Minecraft.getMinecraft().positionTracker.getCenterEyePosition();
-+                    centreEyePos.yCoord += 1.2d; // Account for position of body rotation point
++            else { //what did this do.... oculus leftovers.
++                if (false){ // (Minecraft.getMinecraft().positionTracker != null) {
++                    //centreEyePos = Minecraft.getMinecraft().positionTracker.getCenterEyePosition();
++                    //centreEyePos.yCoord += 1.2d; // Account for position of body rotation point
 +                }
 +                else {
 +                    centreEyePos.xCoord = 0;

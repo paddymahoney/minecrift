@@ -1,25 +1,21 @@
 --- a/net/minecraft/client/renderer/ActiveRenderInfo.java
 +++ b/net/minecraft/client/renderer/ActiveRenderInfo.java
-@@ -2,8 +2,11 @@
- 
- import java.nio.FloatBuffer;
+@@ -4,6 +4,7 @@
  import java.nio.IntBuffer;
-+
-+import de.fruitfly.ovr.enums.EyeType;
  import net.minecraft.block.Block;
  import net.minecraft.block.BlockLiquid;
 +import net.minecraft.client.Minecraft;
  import net.minecraft.entity.EntityLivingBase;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.util.MathHelper;
-@@ -73,6 +76,10 @@
+@@ -73,6 +74,10 @@
          int var4 = p_74583_1_ ? 1 : 0;
          float var5 = p_74583_0_.rotationPitch;
          float var6 = p_74583_0_.rotationYaw;
-+        // VIVE START - use pitch/yaw from HMD instead of aim (controller)
-+        var5 = Minecraft.getMinecraft().headTracker.getHeadPitchDegrees(EyeType.ovrEye_Left);
-+        var6 = Minecraft.getMinecraft().headTracker.getHeadYawDegrees(EyeType.ovrEye_Left);
-+        // VIVE END
++        //VIVECRAFT
++        var5 = -Minecraft.getMinecraft().roomScale.getHMDPitch_World();
++        var6 = - Minecraft.getMinecraft().roomScale.getHMDYaw_World();
++        //////
          rotationX = MathHelper.cos(var6 * (float)Math.PI / 180.0F) * (float)(1 - var4 * 2);
          rotationZ = MathHelper.sin(var6 * (float)Math.PI / 180.0F) * (float)(1 - var4 * 2);
          rotationYZ = -rotationZ * MathHelper.sin(var5 * (float)Math.PI / 180.0F) * (float)(1 - var4 * 2);

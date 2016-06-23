@@ -1,38 +1,51 @@
 --- a/net/minecraft/client/network/NetHandlerPlayClient.java
 +++ b/net/minecraft/client/network/NetHandlerPlayClient.java
-@@ -2,6 +2,8 @@
+@@ -2,6 +2,11 @@
  
  import com.google.common.base.Charsets;
  import com.mojang.authlib.GameProfile;
-+import com.mtbs3d.minecrift.gameplay.VRPlayer;
++import com.mtbs3d.minecrift.api.NetworkHelper;
++import com.mtbs3d.minecrift.api.NetworkHelper.PacketDiscriminators;
++import com.mtbs3d.minecrift.provider.OpenVRPlayer;
++
 +import net.minecraft.src.Reflector;
  import io.netty.buffer.ByteBuf;
  import io.netty.buffer.Unpooled;
  import io.netty.util.concurrent.GenericFutureListener;
-@@ -290,6 +292,11 @@
+@@ -193,6 +198,8 @@
+ import net.minecraft.world.storage.ISaveHandler;
+ import net.minecraft.world.storage.MapData;
+ import net.minecraft.world.storage.MapStorage;
++
++import org.apache.commons.lang3.ArrayUtils;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
+ 
+@@ -290,6 +297,12 @@
          this.gameController.playerController.setGameType(packetIn.func_149198_e());
          this.gameController.gameSettings.sendSettingsToServer();
          this.netManager.scheduleOutboundPacket(new C17PacketCustomPayload("MC|Brand", ClientBrandRetriever.getClientModName().getBytes(Charsets.UTF_8)), new GenericFutureListener[0]);
 +        // VIVE START - ask server if it's running this mod
 +        this.gameController.vrPlayer.setFreeMoveMode(true);
-+        String version = Minecraft.getMinecraft().minecriftVerString;
-+        this.addToSendQueue(new C17PacketCustomPayload("MC|Vive|Version", version.getBytes(Charsets.UTF_8)));
++        byte[] version = Minecraft.getMinecraft().minecriftVerString.getBytes(Charsets.UTF_8);
++        this.addToSendQueue(new C17PacketCustomPayload("MC|Vive|Version", version));
++        this.addToSendQueue(NetworkHelper.getVivecraftClientPacket(PacketDiscriminators.VERSION, version));
 +        // VIVE END - ask server if it's running this mod
      }
  
      /**
-@@ -739,6 +746,10 @@
+@@ -739,6 +752,10 @@
      public void handleDisconnect(S40PacketDisconnect packetIn)
      {
          this.netManager.closeChannel(packetIn.func_149165_c());
 +        // VIVE START - no longer on a vanilla server, reset restricted state
 +    	this.gameController.vrPlayer.noTeleportClient = true;
-+        VRPlayer.get().setFreeMoveMode(true);
++        OpenVRPlayer.get().setFreeMoveMode(true);
 +        // VIVE END - no longer on a vanilla server, reset restricted state
      }
  
      /**
-@@ -1297,6 +1308,11 @@
+@@ -1297,6 +1314,11 @@
                  {
                      var2.readFromNBT(packetIn.getNbtCompound());
                  }
@@ -44,7 +57,7 @@
              }
          }
      }
-@@ -1663,6 +1679,13 @@
+@@ -1663,6 +1685,36 @@
                  }, I18n.format("multiplayer.texturePrompt.line1", new Object[0]), I18n.format("multiplayer.texturePrompt.line2", new Object[0]), 0));
              }
          }
@@ -53,6 +66,29 @@
 +        { //allowed, set to user preference.
 +        	this.gameController.vrPlayer.noTeleportClient = false;
 +            this.gameController.vrPlayer.setFreeMoveMode(Minecraft.getMinecraft().vrSettings.vrFreeMove);
++        } 
++        else if ("Vivecraft".equals(packetIn.func_149169_c()))
++        { 
++        	byte[] bytes = packetIn.func_149168_d();
++        	byte[] payload = ArrayUtils.remove(bytes, 0);
++        	PacketDiscriminators dis = PacketDiscriminators.values()[bytes[0]];
++        	
++        	switch (dis){
++        	case DAMAGE:
++
++        		break;
++        	case POSITIONS:
++
++        		break;
++        	case VERSION:
++            	this.gameController.vrPlayer.noTeleportClient = false;
++                this.gameController.vrPlayer.setFreeMoveMode(Minecraft.getMinecraft().vrSettings.vrFreeMove);
++                this.gameController.printChatMessage("Vivecraft server mod detected: " + new String(payload));
++        		break;
++        	default:
++        		break;
++        	}
++
 +        }
 +        // VIVE END
      }

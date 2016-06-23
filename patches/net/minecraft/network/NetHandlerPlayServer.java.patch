@@ -1,6 +1,16 @@
 --- a/net/minecraft/network/NetHandlerPlayServer.java
 +++ b/net/minecraft/network/NetHandlerPlayServer.java
-@@ -14,6 +14,7 @@
+@@ -2,6 +2,9 @@
+ 
+ import com.google.common.base.Charsets;
+ import com.google.common.collect.Lists;
++import com.mtbs3d.minecrift.api.NetworkHelper;
++import com.mtbs3d.minecrift.api.NetworkHelper.PacketDiscriminators;
++
+ import io.netty.buffer.Unpooled;
+ import io.netty.util.concurrent.Future;
+ import io.netty.util.concurrent.GenericFutureListener;
+@@ -14,6 +17,7 @@
  import java.util.Random;
  import java.util.concurrent.Callable;
  import net.minecraft.block.material.Material;
@@ -8,7 +18,7 @@
  import net.minecraft.command.server.CommandBlockLogic;
  import net.minecraft.crash.CrashReport;
  import net.minecraft.crash.CrashReportCategory;
-@@ -58,14 +59,7 @@
+@@ -58,14 +62,7 @@
  import net.minecraft.network.play.client.C15PacketClientSettings;
  import net.minecraft.network.play.client.C16PacketClientStatus;
  import net.minecraft.network.play.client.C17PacketCustomPayload;
@@ -24,7 +34,7 @@
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.management.UserListBansEntry;
  import net.minecraft.stats.AchievementList;
-@@ -291,12 +285,15 @@
+@@ -291,12 +288,15 @@
                      var9 = packetIn.getPositionZ();
                      var13 = packetIn.getStance() - packetIn.getPositionY();
  
@@ -41,7 +51,7 @@
  
                      if (Math.abs(packetIn.getPositionX()) > 3.2E7D || Math.abs(packetIn.getPositionZ()) > 3.2E7D)
                      {
-@@ -313,6 +310,9 @@
+@@ -313,6 +313,9 @@
  
                  this.playerEntity.onUpdateEntity();
                  this.playerEntity.yOffset2 = 0.0F;
@@ -51,7 +61,7 @@
                  this.playerEntity.setPositionAndRotation(this.lastPosX, this.lastPosY, this.lastPosZ, var11, var12);
  
                  if (!this.hasMoved)
-@@ -345,6 +345,7 @@
+@@ -345,6 +348,7 @@
  
                  this.playerEntity.moveEntity(var13, var15, var17);
                  this.playerEntity.onGround = packetIn.func_149465_i();
@@ -59,7 +69,7 @@
                  this.playerEntity.addMovementStat(var13, var15, var17);
                  double var29 = var15;
                  var13 = var5 - this.playerEntity.posX;
-@@ -362,7 +363,9 @@
+@@ -362,7 +366,9 @@
                  if (var25 > 0.0625D && !this.playerEntity.isPlayerSleeping() && !this.playerEntity.theItemInWorldManager.isCreative())
                  {
                      var31 = true;
@@ -70,7 +80,7 @@
                  }
  
                  this.playerEntity.setPositionAndRotation(var5, var7, var9, var11, var12);
-@@ -370,7 +373,9 @@
+@@ -370,7 +376,9 @@
  
                  if (var28 && (var31 || !var32) && !this.playerEntity.isPlayerSleeping())
                  {
@@ -81,7 +91,7 @@
                      return;
                  }
  
-@@ -1129,20 +1134,20 @@
+@@ -1129,20 +1137,20 @@
              {
                  var3 = var2.readItemStackFromBuffer();
  
@@ -112,17 +122,31 @@
                      if (var3.getItem() == Items.writable_book && var3.getItem() == var4.getItem())
                      {
                          var4.setTagInfo("pages", var3.getTagCompound().getTagList("pages", 8));
-@@ -1333,6 +1338,13 @@
+@@ -1333,6 +1341,27 @@
                      var41.updateItemName("");
                  }
              }
 +            // VIVE START - client querying if server is running this mod too
-+            else if ("MC|Vive|Version".equals(packetIn.getChannel()))
++            else if ("Vivecraft".equals(packetIn.getChannel()))
 +            {
-+                String ok = "ok";
-+                sendPacket(new S3FPacketCustomPayload("MC|ViveOK", ok.getBytes(Charsets.UTF_8)));
++            	PacketDiscriminators dis = PacketDiscriminators.values()[packetIn.getData()[0]];
++            	
++            	switch (dis){
++            	case DAMAGE:
++
++            		break;
++            	case POSITIONS:
++
++            		break;
++            	case VERSION:
++                	String ver = Minecraft.getMinecraft().minecriftVerString;
++                	sendPacket(NetworkHelper.getVivecraftServerPacket(PacketDiscriminators.VERSION,ver.getBytes(Charsets.UTF_8)));  
++            		break;
++            	default:
++            		break;
++            	}
 +            }
-+            // VIVE END - client querying if server is running this mod too
++            // VIVE END - vivecraft packets
          }
      }
  

@@ -5,9 +5,9 @@
  
 +import java.lang.reflect.Field;
 +
-+import com.mtbs3d.minecrift.api.IBodyAimController;
-+import com.mtbs3d.minecrift.gameplay.VRPlayer;
++import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
 +import com.mtbs3d.minecrift.provider.MCOpenVR;
++import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 +
 +import net.minecraft.block.Block;
 +import net.minecraft.block.BlockLiquid;
@@ -60,7 +60,7 @@
      /** Ticks left before sprinting is disabled. */
      public int sprintingTicksLeft;
      public float renderArmYaw;
-@@ -80,13 +108,85 @@
+@@ -80,13 +108,86 @@
      public float prevTimeInPortal;
      private static final String __OBFID = "CL_00000938";
  
@@ -75,6 +75,7 @@
 +        
          this.mc = p_i1238_1_;
          this.dimension = p_i1238_4_;
++        
      }
  
 +    //VIVECRAFT
@@ -146,7 +147,7 @@
      public void updateEntityActionState()
      {
          super.updateEntityActionState();
-@@ -99,6 +199,7 @@
+@@ -99,6 +200,7 @@
          this.renderArmYaw = (float)((double)this.renderArmYaw + (double)(this.rotationYaw - this.renderArmYaw) * 0.5D);
      }
  
@@ -154,7 +155,7 @@
      /**
       * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
       * use this to react to sunlight and start to burn.
-@@ -182,7 +283,9 @@
+@@ -182,7 +284,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -165,7 +166,7 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -195,20 +298,28 @@
+@@ -195,20 +299,28 @@
  
              if (this.movementInput.sneak && this.yOffset2 < 0.2F)
              {
@@ -200,7 +201,7 @@
                  }
                  else
                  {
-@@ -252,7 +363,7 @@
+@@ -252,7 +364,7 @@
                      this.motionY += 0.15D;
                  }
              }
@@ -209,7 +210,7 @@
              if (this.isRidingHorse())
              {
                  if (this.horseJumpPowerCounter < 0)
-@@ -296,6 +407,10 @@
+@@ -296,6 +408,10 @@
  
              super.onLivingUpdate();
  
@@ -220,7 +221,7 @@
              if (this.onGround && this.capabilities.isFlying)
              {
                  this.capabilities.isFlying = false;
-@@ -341,7 +456,14 @@
+@@ -341,7 +457,14 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -236,7 +237,7 @@
      }
  
      /**
-@@ -524,70 +646,168 @@
+@@ -524,70 +647,168 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -451,7 +452,7 @@
  
          return false;
      }
-@@ -640,6 +860,15 @@
+@@ -640,6 +861,15 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -467,7 +468,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +891,232 @@
+@@ -662,4 +892,237 @@
      }
  
      protected void sendHorseJump() {}
@@ -533,7 +534,7 @@
 +    {
 +//   	super.moveFlying(strafe, forward, friction);;
 +    	
-+    	VRPlayer vr = mc.vrPlayer;		
++    	OpenVRPlayer vr = mc.vrPlayer;		
 +    	if (!vr.getFreeMoveMode()) {return;}
 +		
 +        int inertiaFactor = Minecraft.getMinecraft().vrSettings.inertiaFactor;
@@ -563,21 +564,21 @@
 +	  						
 +         	//VIVE DO PITCH FLYING		
 +
-+    		IBodyAimController con = mc.lookaimController;
++    		IRoomscaleAdapter con = mc.roomScale;
 +    		
 +            // Account for pitch if required
 +    		if(this.capabilities.isFlying || this.inWater)
 +            if (Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
 +            	if (vr.useLControllerForRestricedMovement) {
-+            		directionVec.rotateAroundX(-con.getOffhandAimPitch() * PIOVER180);		      					 
++            		directionVec.rotateAroundX(con.getControllerOffhandPitch_World() * PIOVER180);		      					 
 +            	} else {
-+            		directionVec.rotateAroundX(-this.headPitch * PIOVER180);	
++            		directionVec.rotateAroundX(this.headPitch * PIOVER180);	
 +            	}		
 +            }
 +    		
 +    		// Account for yaw
 +            if (vr.useLControllerForRestricedMovement) {
-+            	directionVec.rotateAroundY(-con.getOffhandAimYaw() * PIOVER180);		   
++            	directionVec.rotateAroundY(con.getControllerOffhandYaw_World() * PIOVER180);		   
 +            } else {
 +    			directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
 +    		}
@@ -640,33 +641,39 @@
 +        }
 +    }
 +
-+    // VIVE START - update room origin when player entity is moved
++    public boolean initFromServer = false;
 +    public void setPositionAndRotation(double x, double y, double z, float yaw, float pitch)
 +    {
 +        super.setPositionAndRotation(x, y, z, yaw, pitch);
-+        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
++        if(initFromServer == false){
++            initFromServer = true;    
++    		OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this, true);
++        }
 +    }
 +
 +    public void readFromNBT(NBTTagCompound tagCompund)
 +    {
 +        super.readFromNBT(tagCompund);
-+        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
 +    }
 +
++    // VIVE START - update room origin when player entity is moved
 +    public void setPosition(double x, double y, double z)
 +    {
 +        super.setPosition(x, y, z);
-+        VRPlayer.get().snapRoomOriginToPlayerEntity(this);
++    	if(!initFromServer) return;
++    	else { //still init.
++    		OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this, false);
++        }
 +    }
 +    
 +    @Override
 +    public void moveEntity(double x, double y, double z)
 +    {
 +    	boolean client = this instanceof EntityPlayerSP;
-+    	boolean freemove = VRPlayer.get().getFreeMoveMode();
++    	boolean freemove = OpenVRPlayer.get().getFreeMoveMode();
 +    	boolean doY = freemove || (Minecraft.getMinecraft().vrSettings.simulateFalling && !this.isOnLadder()) && !this.isSneaking();
-+    	Vec3 roomOrigin = VRPlayer.get().getRoomOrigin();
-+    	Vec3 camloc = Minecraft.getMinecraft().entityRenderer.getCameraLocation();
++    	Vec3 roomOrigin = OpenVRPlayer.get().getRoomOriginPos_World();
++ //   	Vec3 camloc = Minecraft.getMinecraft().roomScale.getHMDPos_World();
 +
 +    	if (freemove && (this.moveForward != 0 || Math.abs(this.motionX) > 0.01 || Math.abs(this.motionZ) > 0.01))
 +    	{
@@ -675,21 +682,20 @@
 +    		super.moveEntity(x,y,z);
 +
 +    		if (client){	
-+    			VRPlayer.get().setRoomOrigin(
++    			OpenVRPlayer.get().setRoomOrigin(
 +    					posX + ox, 
 +    					this.boundingBox.minY, 
-+    					posZ  + oz);
++    					posZ  + oz, false);
 +    					}
-+    		//	VRPlayer.get().snapRoomOriginToPlayerEntity((EntityPlayerSP) this);
-+
++    
 +    	} else {
 +    		if(doY) {      	 
 +    			super.moveEntity(0,y,0);
 +    			if (client){
-+    				VRPlayer.get().setRoomOrigin(
-+    					VRPlayer.get().getRoomOrigin().xCoord, 
++    				OpenVRPlayer.get().setRoomOrigin(
++    					OpenVRPlayer.get().getRoomOriginPos_World().xCoord, 
 +    					this.boundingBox.minY, 
-+    					VRPlayer.get().getRoomOrigin().zCoord);
++    					OpenVRPlayer.get().getRoomOriginPos_World().zCoord, false);
 +    			}
 +
 +    		} else {
