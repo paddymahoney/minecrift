@@ -2,6 +2,8 @@
 Minecrift Vive (jrbudda revision)
 ==============
 
+Installer can be downloaded here: https://github.com/jrbudda/minecrift/releases
+
 This is a modified version of the Minecrift VR mod that focuses on the Vive and room scale VR. It adds a teleporting method of locomotion and tracked controller support to interact with the world.
 
 This mod uses phr00t's JOpenVR wrapper from his JMonkeyVR project. Be sure to check that out! Thanks also go to StellaArtois, Mabrowning and everyone else who worked on the Minecrift mod. Thanks to Automat for the Vive port.
