@@ -4293,8 +4293,8 @@
 +
 +				if(entity.moveForward > 0 && (mc.vrPlayer.getFreeMoveMode() || entity.isRiding())){
 +					//us laim, needed for server side movement.
-+					entity.rotationYaw = entity.rotationYawHead = mc.roomScale.getControllerOffhandYaw_World();
-+					entity.rotationPitch = mc.roomScale.getControllerOffhandPitch_World();
++					entity.rotationYaw = entity.rotationYawHead = -mc.roomScale.getControllerOffhandYaw_World();
++					entity.rotationPitch = -mc.roomScale.getControllerOffhandPitch_World();
 +				} else {
 +					ItemStack i = ((EntityPlayerSP) entity).inventory.getCurrentItem();
 +					if(i !=null){
@@ -4302,8 +4302,8 @@
 +							//use bow aim
 +							Vec3 aim = mc.bowTracker.getAimVector();
 +
-+							float pitch = (float)Math.toDegrees(Math.asin(aim.yCoord/aim.lengthVector()));
-+							float yaw = (float)Math.toDegrees(Math.atan2(aim.xCoord, aim.zCoord));   		
++							float pitch = -(float)Math.toDegrees(Math.asin(aim.yCoord/aim.lengthVector()));
++							float yaw = -(float)Math.toDegrees(Math.atan2(aim.xCoord, aim.zCoord));   		
 +
 +							entity.rotationYaw =  (float)yaw;
 +							entity.rotationYawHead =  (float)yaw;
@@ -4315,8 +4315,8 @@
 +								i.getItem() == Items.potionitem  
 +								) {
 +							//use r_hand aim
-+							entity.rotationYaw = entity.rotationYawHead = mc.roomScale.getControllerMainYaw_World();
-+							entity.rotationPitch = mc.roomScale.getControllerMainPitch_World();
++							entity.rotationYaw = entity.rotationYawHead = -mc.roomScale.getControllerMainYaw_World();
++							entity.rotationPitch = -mc.roomScale.getControllerMainPitch_World();
 +						}
 +					}
 +				}
