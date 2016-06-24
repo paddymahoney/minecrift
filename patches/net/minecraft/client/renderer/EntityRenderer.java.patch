@@ -1797,7 +1797,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1078,3902 @@
+@@ -825,1829 +1078,3905 @@
          {
              clipDistance = 256.0F;
          }
@@ -5286,8 +5286,11 @@
 +		{
 +			this.mc.mcProfiler.endStartSection("crosshair");
 +			GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
-+			float crossDepth = MAX_CROSSHAIR_DISTANCE - (float)crossVec.subtract(mc.roomScale.getControllerMainPos_World()).lengthVector();
-+			float scale = (float) (0.031f*Math.sqrt(crossDepth)*this.mc.vrSettings.crosshairScale * Math.sqrt(mc.vrSettings.vrWorldScale));
++			float crossDepth =(float)crossVec.subtract(mc.roomScale.getControllerMainPos_World()).lengthVector();
++			if (crossDepth > MAX_CROSSHAIR_DISTANCE) crossDepth = MAX_CROSSHAIR_DISTANCE;
++			float depthscale = 0.3f + 0.7f*( (MAX_CROSSHAIR_DISTANCE - crossDepth) / MAX_CROSSHAIR_DISTANCE);
++			float scale = (float) (0.15f * this.mc.vrSettings.crosshairScale * Math.sqrt(mc.vrSettings.vrWorldScale));
++			scale/=(depthscale);
 +			GL11.glPushMatrix();
 +				GL11.glTranslatef(crossX, crossY, crossZ);
 +				GL11.glRotatef(mc.vrPlayer.getControllerMainYaw_World(), 0.0F, 1.0F, 0.0F);

@@ -38,8 +38,6 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.MIRROR_DISPLAY,     
             VRSettings.VrOptions.FSAA,
             VRSettings.VrOptions.STENCIL_ON,
-            VRSettings.VrOptions.WORLD_SCALE,
-            VRSettings.VrOptions.WORLD_ROTATION
             
             /*VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.TIMEWARP,
