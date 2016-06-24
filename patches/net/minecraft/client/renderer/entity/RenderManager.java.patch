@@ -20,8 +20,8 @@
 +            // VIVE START - use hmd facing, not player
 +            //this.playerViewY = p_147938_4_.prevRotationYaw + (p_147938_4_.rotationYaw - p_147938_4_.prevRotationYaw) * p_147938_7_;
 +            //this.playerViewX = p_147938_4_.prevRotationPitch + (p_147938_4_.rotationPitch - p_147938_4_.prevRotationPitch) * p_147938_7_;
-+            this.playerViewY = Minecraft.getMinecraft().roomScale.getHMDPitch_World();
-+            this.playerViewX = Minecraft.getMinecraft().roomScale.getHMDYaw_World();
++            this.playerViewY = -Minecraft.getMinecraft().roomScale.getHMDYaw_World();
++            this.playerViewX = -Minecraft.getMinecraft().roomScale.getHMDPitch_World();
 +            // VIVE END - use hmd facing not player
          }
  
