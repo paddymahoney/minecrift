@@ -242,7 +242,7 @@
          }
      }
  
-@@ -1075,11 +1164,21 @@
+@@ -1075,15 +1164,25 @@
                  {
                      endIndex = this.countSortedWorldRenderers;
                  }
@@ -265,6 +265,11 @@
                  GL11.glColorMask(false, false, false, false);
                  GL11.glDepthMask(false);
                  profiler.startSection("check");
+-                this.checkOcclusionQueryResult(startIndex, endIndex, player.posX, player.posY, player.posZ);
++                	this.checkOcclusionQueryResult(startIndex, endIndex, player.posX, player.posY, player.posZ);
+                 profiler.endSection();
+                 GL11.glPushMatrix();
+                 float sumTX = 0.0F;
 @@ -1177,12 +1276,21 @@
                  {
                      GL11.glColorMask(true, true, true, true);

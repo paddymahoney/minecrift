@@ -102,7 +102,7 @@
      /**
       * Render the ingame overlay with quick icon bar, ...
       */
-@@ -121,17 +152,33 @@
+@@ -121,20 +152,36 @@
          int var13;
  
          if (!this.mc.playerController.enableEverythingIsScrewedUpMode())
@@ -139,10 +139,39 @@
 +
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
              this.mc.mcProfiler.startSection("bossHealth");
-             this.renderBossHealth();
-@@ -156,6 +203,7 @@
-             RenderHelper.disableStandardItemLighting();
-             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
+-            this.renderBossHealth();
++            	this.renderBossHealth();
+             this.mc.mcProfiler.endSection();
+ 
+             if (this.mc.playerController.shouldDrawHUD())
+@@ -143,19 +190,20 @@
+             }
+ 
+             this.mc.mcProfiler.startSection("actionBar");
+-            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+-            RenderHelper.enableGUIStandardItemLighting();
+-
+-            for (var11 = 0; var11 < 9; ++var11)
+-            {
+-                var12 = var6 / 2 - 90 + var11 * 20 + 2;
+-                var13 = var7 - 16 - 3;
+-                this.renderInventorySlot(var11, var12, var13, p_73830_1_);
+-            }
+-
+-            RenderHelper.disableStandardItemLighting();
+-            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
++	            GL11.glEnable(GL12.GL_RESCALE_NORMAL);
++	            RenderHelper.enableGUIStandardItemLighting();
++	
++	            for (var11 = 0; var11 < 9; ++var11)
++	            {
++	                var12 = var6 / 2 - 90 + var11 * 20 + 2;
++	                var13 = var7 - 16 - 3;
++	                this.renderInventorySlot(var11, var12, var13, p_73830_1_);
++	            }
++	
++	            RenderHelper.disableStandardItemLighting();
++	            GL11.glDisable(GL12.GL_RESCALE_NORMAL);
              this.mc.mcProfiler.endSection();
 +
              GL11.glDisable(GL11.GL_BLEND);

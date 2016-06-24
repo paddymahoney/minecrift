@@ -1797,7 +1797,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +1078,3947 @@
+@@ -825,1829 +1078,3902 @@
          {
              clipDistance = 256.0F;
          }
@@ -2381,7 +2381,6 @@
 +	 */
 +	public void updateCameraAndRender(float par1)
 +	{
-+		this.mc.mcProfiler.startSection("lightTex");
 +
 +		if (!this.initialized)
 +		{
@@ -2453,7 +2452,6 @@
 +			this.updateLightmap(par1);
 +		}
 +
-+		this.mc.mcProfiler.endSection();
 +		boolean var21 = Display.isActive();
 +
 +		if (!var21 && this.mc.gameSettings.pauseOnLostFocus && (!this.mc.gameSettings.touchscreen || !Mouse.isButtonDown(1)))
@@ -2518,7 +2516,6 @@
 +				}
 +
 +				this.renderEndNanoTime = System.nanoTime();
-+				this.mc.mcProfiler.endStartSection("gui");
 +				/** MINECRIFT */
 +				if (!this.mc.stereoProvider.isStereo())
 +				{
@@ -2554,7 +2551,7 @@
 +					}
 +				}
 +				/** END MINECRIFT */
-+				this.mc.mcProfiler.endSection();
++				this.mc.mcProfiler.endSection(); //level
 +			}
 +			else //world is null
 +			{
@@ -2691,8 +2688,6 @@
 +
 +	public void renderWorld(float par1, long par2)
 +	{
-+		
-+	
 +		/** MINECRIFT SHADERS MOD **/
 +		boolean shadersMod = Reflector.shadersModExists();
 +		if (shadersMod) {
@@ -2733,7 +2728,6 @@
 +		
 +		if( this.mc.currentScreen == null )
 +		{
-+			this.mc.mcProfiler.endStartSection("pick");
 +			getPointedBlock(par1);   // TODO: This needs to be called once, and with the average position
 +			// information for the entire frame, not individual eye pos camRelX, Y, Z
 +		}
@@ -4264,7 +4258,6 @@
 +			System.out.println(String.format("cameraYaw: %.2f, cameraPitch: %.2f, cameraRoll: %.2f", new Object[] {Float.valueOf((float)cameraYaw), Float.valueOf((float)cameraPitch), Float.valueOf((float)cameraRoll)}));
 +		}
 +
-+		this.mc.mcProfiler.endSection();
 +
 +		float PIOVER180 = (float)(Math.PI/180);
 +		EntityLivingBase entity = this.mc.renderViewEntity;
@@ -4323,45 +4316,7 @@
 +			}
 +		}
 +
-+		
-+//		//TODO: not sure if headPitch or cameraPitch is better here... they really should be the same; silly
-+//		//people with their "pitch affects camera" settings.
-+//		//At any rate, using cameraPitch makes the UI look less silly
-+//		float halfIpd = this.mc.vrSettings.getHalfIPD(this.mc.stereoProvider.isStereo() ? this.mc.currentEye : EyeType.ovrEye_Center);
-+//		mc.positionTracker.update(halfIpd, headYaw, (float)headPitch, (float)headRoll, lookYawOffset, 0.0f, 0.0f);
-+//
-+//		//Do head/neck model in non-GL math so we can use camera location(between eyes)
-+//		Vec3 cameraOffset = mc.positionTracker.getEyePosition(this.mc.stereoProvider.isStereo() ? this.mc.currentEye : EyeType.ovrEye_Center);
-+//		cameraOffset.rotateAroundY((float)Math.PI);
-+//
-+//		//The worldOrigin is at player "eye height" (1.62) above foot position
-+//		camRelX = (float)cameraOffset.xCoord; camRelY = (float)cameraOffset.yCoord; camRelZ = (float)cameraOffset.zCoord;
-+//
-+//		// VIVE START - render camera from tracking origin, not player pos
-+//		// apply offset
-+//		if (entity!=null)
-+//		{
-+//			double px = entity.prevPosX + (entity.posX - entity.prevPosX) * (double)renderPartialTicks;
-+//			double py = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)renderPartialTicks;
-+//			double pz = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)renderPartialTicks;
-+//
-+//			//				interpolate elsewhere
-+//			px = entity.posX;
-+//			py = entity.posY;
-+//			pz = entity.posZ;
-+//
-+//			camRelX += (mc.vrPlayer.getRoomOrigin().xCoord - px);
-+//			camRelY -= (mc.vrPlayer.getRoomOrigin().yCoord - py);
-+//			camRelZ += (mc.vrPlayer.getRoomOrigin().zCoord - pz);
-+//		}
-+
-+
-+		// VIVE END - render camera from tracking origin, not player pos
-+
-+		if (mc.vrSettings.debugPose)
-+		{
-+			//System.out.println(String.format("camRelX:    %.2f, camRelY:    %.2f, camRelZ:    %.2f", new Object[] {Float.valueOf(camRelX), Float.valueOf(camRelY), Float.valueOf(camRelZ)}));
-+		}
++	
 +	}
 +
 +	private float checkCameraCollision(
