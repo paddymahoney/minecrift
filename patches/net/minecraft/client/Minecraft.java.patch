@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4697 @@
+@@ -150,2988 +167,4698 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2949,10 +2949,7 @@
 +						{
 +							this.gameSettings.thirdPersonView = 0;
 +						}
-+		
-+						// VIVE - comment so endStartSection below works
-+						//this.mcProfiler.endSection();
-+		
++				
 +						// Update our orientation and position variables from the sensor polled data
 +						this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
 +						
@@ -2997,6 +2994,10 @@
 +									
 +					framebufferEye.bindFramebuffer(true); //draw to eye tex
 +					framebuffer.framebufferRender(framebufferEye.framebufferWidth, framebufferEye.framebufferHeight);
++					
++					this.mcProfiler.startSection("OpenGL Finish:" + currentEye.ordinal());
++					//	GL11.glFinish();
++					this.mcProfiler.endSection();
 +					
 +					this.mcProfiler.startSection("compositorSubmit:" + currentEye.ordinal());
 +						if(this.stereoProvider.isStereo())

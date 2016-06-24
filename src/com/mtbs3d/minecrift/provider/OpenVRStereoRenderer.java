@@ -188,8 +188,6 @@ public class OpenVRStereoRenderer implements IStereoProvider
 	@Override
 	public boolean endFrame(EyeType eye)
 	{
-
-		GL11.glFinish();
 		int ret = 0;
 		if(eye == EyeType.ovrEye_Left){
 			ret = MCOpenVR.vrCompositor.Submit.apply(
