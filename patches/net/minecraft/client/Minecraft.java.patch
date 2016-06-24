@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4698 @@
+@@ -150,2988 +167,4697 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1899,7 +1899,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda21";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda22";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -3028,14 +3028,13 @@
 +					entityRenderer.displayNotificationText("Mirror is OFF", "", "", this.displayWidth, this.displayHeight, false, true);
 +					GL11.glDisable(GL11.GL_DEPTH_TEST);
 +				}
-+			
 +
-+			mcProfiler.startSection("Display");			
++			mcProfiler.startSection("GameWindowEvents");			
 +				Display.processMessages();
 +				if (shouldupdate) Display.update(false);
 +			mcProfiler.endSection();
 +			
-+			mcProfiler.startSection("PostPresent");
++			mcProfiler.startSection("Display/Reproject");
 +				this.stereoProvider.endFrame();
 +			mcProfiler.endSection();
 +
