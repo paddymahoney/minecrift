@@ -5288,8 +5288,8 @@
 +			GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
 +			float crossDepth =(float)crossVec.subtract(mc.roomScale.getControllerMainPos_World()).lengthVector();
 +			if (crossDepth > MAX_CROSSHAIR_DISTANCE) crossDepth = MAX_CROSSHAIR_DISTANCE;
-+			float depthscale = 0.3f + 0.7f*( (MAX_CROSSHAIR_DISTANCE - crossDepth) / MAX_CROSSHAIR_DISTANCE);
-+			float scale = (float) (0.15f * this.mc.vrSettings.crosshairScale * Math.sqrt(mc.vrSettings.vrWorldScale));
++			float depthscale = 0.4f + 0.6f*( (MAX_CROSSHAIR_DISTANCE - crossDepth) / MAX_CROSSHAIR_DISTANCE);
++			float scale = (float) (0.15f* this.mc.vrSettings.crosshairScale * Math.sqrt(mc.vrSettings.vrWorldScale));
 +			scale/=(depthscale);
 +			GL11.glPushMatrix();
 +				GL11.glTranslatef(crossX, crossY, crossZ);
