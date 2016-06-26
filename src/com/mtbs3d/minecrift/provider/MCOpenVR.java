@@ -45,12 +45,14 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.*;
+
 import jopenvr.*;
 import jopenvr.JOpenVRLibrary.EGraphicsAPIConvention;
 import jopenvr.JOpenVRLibrary.EVREventType;
 
 import java.awt.AWTException;
 import java.awt.Window;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -495,6 +497,8 @@ public class MCOpenVR
 			if (ret != 0) {
 				System.out.println("VR Overlay Error: " + vrOverlay.GetOverlayErrorNameFromEnum.apply(ret).getString(0));
 			}
+			
+			if (!Display.isActive()) mc.printChatMessage("Warning: Game window is not in focus, VR keyboard will not function.");
 
 		} else {
 			try {
@@ -623,7 +627,8 @@ public class MCOpenVR
 						)
 				{
 					//click left mouse button
-					mc.currentScreen.mouseDown(mouseX, mouseY, 0);
+					if (Display.isActive()) KeyboardSimulator.robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+					else mc.currentScreen.mouseDown(mouseX, mouseY, 0);
 				}	
 
 				if (mc.currentScreen != null &&
@@ -639,7 +644,8 @@ public class MCOpenVR
 						)
 				{
 					//click left mouse button
-					mc.currentScreen.mouseUp(mouseX, mouseY, 0);
+					if (Display.isActive()) KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+					else mc.currentScreen.mouseUp(mouseX, mouseY, 0);
 				}	
 
 				//RMB
@@ -649,7 +655,8 @@ public class MCOpenVR
 						)				
 				{
 					//click left mouse button
-					mc.currentScreen.mouseDown(mouseX, mouseY, 1);
+					if (Display.isActive()) KeyboardSimulator.robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
+					else mc.currentScreen.mouseDown(mouseX, mouseY, 1);
 				}	
 
 				if (mc.currentScreen != null &&
@@ -666,7 +673,8 @@ public class MCOpenVR
 						)
 				{
 					//click left mouse button
-					mc.currentScreen.mouseUp(mouseX, mouseY, 1);
+					if (Display.isActive()) KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+					else mc.currentScreen.mouseUp(mouseX, mouseY, 1);
 				}	
 				//end RMB
 
