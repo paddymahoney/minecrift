@@ -665,7 +665,7 @@ public class MCOpenVR
 						)				
 				{
 					//click left mouse button
-					if (Display.isActive()) KeyboardSimulator.robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
+					if (Display.isActive()) KeyboardSimulator.robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
 					else mc.currentScreen.mouseDown(mouseX, mouseY, 1);
 				}	
 
@@ -683,7 +683,7 @@ public class MCOpenVR
 						)
 				{
 					//click left mouse button
-					if (Display.isActive()) KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+					if (Display.isActive()) KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
 					else mc.currentScreen.mouseUp(mouseX, mouseY, 1);
 				}	
 				//end RMB
