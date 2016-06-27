@@ -637,7 +637,8 @@ public class MCOpenVR
 						)
 				{
 					//click left mouse button
-					if (Display.isActive()) KeyboardSimulator.robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+					if (Display.isActive()) 
+						KeyboardSimulator.robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 					else mc.currentScreen.mouseDown(mouseX, mouseY, 0);
 				}	
 

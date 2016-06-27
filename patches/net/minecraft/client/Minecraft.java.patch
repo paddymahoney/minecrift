@@ -5431,7 +5431,7 @@
 +
 +					if (Keyboard.getEventKey() == 25 && Keyboard.isKeyDown(61))
 +					{
-+						this.gameSettings.pauseOnLostFocus = !this.gameSettings.pauseOnLostFocus;
++						this.gameSettings.pauseOnLostFocus = false;//!this.gameSettings.pauseOnLostFocus; NONONO
 +						this.gameSettings.saveOptions();
 +					}
 +

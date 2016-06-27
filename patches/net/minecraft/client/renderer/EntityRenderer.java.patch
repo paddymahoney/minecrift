@@ -1569,7 +1569,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +850,4002 @@
+@@ -825,1829 +850,4004 @@
          {
              clipDistance = 256.0F;
          }
@@ -2214,20 +2214,22 @@
 +			this.updateLightmap(par1);
 +		}
 +
-+		boolean var21 = Display.isActive();
-+
-+		if (!var21 && this.mc.gameSettings.pauseOnLostFocus && (!this.mc.gameSettings.touchscreen || !Mouse.isButtonDown(1)))
-+		{
-+			if (Minecraft.getSystemTime() - this.prevFrameTime > 500L)
-+			{
-+				this.mc.displayInGameMenu();
-+			}
-+		}
-+		else
-+		{
-+			this.prevFrameTime = Minecraft.getSystemTime();
-+		}
++		
 +		/** MINECRIFT */
++//		boolean var21 = Display.isActive();
++//
++//		if (!var21 && this.mc.gameSettings.pauseOnLostFocus && (!this.mc.gameSettings.touchscreen || !Mouse.isButtonDown(1)))
++//		{
++//			if (Minecraft.getSystemTime() - this.prevFrameTime > 500L)
++//			{
++//				this.mc.displayInGameMenu();
++//			}
++//		}
++//		else
++//		{
++			this.prevFrameTime = Minecraft.getSystemTime();
++//		}
++
 +		//Update hud Yaw
 +		//if( guiScreenShowingThisFrame && !hudShowingLastFrame)
 +		//  hudHeadYaw = this.mc.lookaimController.getBodyYawDegrees() - (float)this.cameraYaw;

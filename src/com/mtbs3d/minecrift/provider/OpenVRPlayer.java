@@ -990,21 +990,46 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         			if (!(block.getMaterial() == material.air) && !block.getMaterial().isLiquid())
         			{
         				if(canact){
-        					float hardness = block.getPlayerRelativeBlockHardness(mc.thePlayer, mc.thePlayer.worldObj, col.blockX, col.blockY, col.blockZ);
-        				//	System.out.println("hardness=" + hardness);
-        					if (hardness * 4.0f > 1.0f)
-        					{
-    							mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
-        						mc.playerController.onPlayerDestroyBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
-        					} else
-        					{
-        						//is this viable?
-        						clearBlockHitDelay();
+//        					float hardness = block.getPlayerRelativeBlockHardness(mc.thePlayer, mc.thePlayer.worldObj, col.blockX, col.blockY, col.blockZ);
+//        				//	System.out.println("hardness=" + hardness);
+//        					if (hardness * 4.0f > 1.0f)
+//        					{
+//    							mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
+//        						mc.playerController.onPlayerDestroyBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
+//        					} else
+//        					{
+//        						//is this viable?
+
+        					
         						for (int i = 0; i < 4; i++)
         						{
+        							//set delay to 0
+            						clearBlockHitDelay();			
+            						
+            						//all this comes from plaeyrControllerMP clickMouse and friends.
+            						
+            						//all this does is sets the blocking you're currently hitting, has no effect in survival mode after that.
+            						//but if in creaive mode will clickCreative on the block
+        							mc.playerController.clickBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
+
+        							if(!getIsHittingBlock()) //seems to be the only way to tell it broke.
+        								break;
+        							
+        							//apply destruction for survival only
         							mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
+
+        							if(!getIsHittingBlock()) //seems to be the only way to tell it broke.
+        								break;
+        							
+        							//something effects
+        							mc.effectRenderer.addBlockHitEffects(col.blockX, col.blockY, col.blockZ, col.sideHit);
+        				
+
+
+        							
         						}
-        					}
+//        					}
+        				
              				this.triggerHapticPulse(0, 1000);
             			//   System.out.println("Hit block speed =" + speed + " mot " + mot + " thresh " + speedthresh) ;            				
             				lastWeaponSolid = true;
@@ -1254,18 +1279,40 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 			"blockHitDelay", 
 			"i", 
 			"field_78781_i");
-		
+
+	isHittingBlock = Utils.getDeclaredField(Minecraft.getMinecraft().playerController.getClass(), 
+			"isHittingBlock", 
+			"j", 
+			"field_78778_j");
+	
 		if(hitBlockDelay!=null){
 			hitBlockDelay.setAccessible(true);
 		}
+		if(isHittingBlock!=null){
+			isHittingBlock.setAccessible(true);
+		}
 	}
 
+	private boolean getIsHittingBlock(){
+		boolean ret = false;
+		try {
+			ret =	isHittingBlock.getBoolean(Minecraft.getMinecraft().playerController);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;
+
+	}
 	
 	
-	Field hitBlockDelay;
+	Field hitBlockDelay, isHittingBlock;
     //JRBUDDA: This is the only thing this file does, necessary? Use reflection to modify field directly from elsewhere?
     // VIVE START - function to allow damaging blocks immediately
-	public void clearBlockHitDelay() { 
+	private void clearBlockHitDelay() { 
 	
 		if(hitBlockDelay == null) {
 			hackPCMP();

@@ -281,6 +281,15 @@
                      }
  
                      if (var8[0].equals("hideServerAddress"))
+@@ -2076,7 +2049,7 @@
+ 
+                     if (var8[0].equals("pauseOnLostFocus"))
+                     {
+-                        this.pauseOnLostFocus = var8[1].equals("true");
++                        this.pauseOnLostFocus = false; //var8[1].equals("true"); NONONO
+                     }
+ 
+                     if (var8[0].equals("showCape"))
 @@ -2255,21 +2228,28 @@
      /**
       * Saves the options to the options file.
