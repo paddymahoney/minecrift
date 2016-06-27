@@ -100,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +168,4763 @@
+@@ -150,2988 +168,4767 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -3003,6 +3003,7 @@
 +			}
 +			clearGLError();
 +			
++			this.mcProfiler.startSection("setup");
 +			this.framebufferMc.bindFramebuffer(true);	//draw to eye texture.
 +			
 +			this.currentEye = this.stereoProvider.eyeRenderOrder(eye);
@@ -3038,6 +3039,7 @@
 +				if (Reflector.FMLCommonHandler_instance.exists()) {
 +					fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
 +				}
++				this.mcProfiler.endSection();
 +				
 +				if (!this.skipRenderWorld)
 +				{
@@ -3047,7 +3049,7 @@
 +							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
 +						}
 +					}
-+					this.mcProfiler.startSection("updateCameraAndRender:" + currentEye.ordinal());
++					this.mcProfiler.startSection("updateCameraAndRender");
 +
 +						///THIS IS WHERE EVERYTHING IS RENDERED
 +						this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
@@ -3063,31 +3065,33 @@
 +				}
 +
 +
-+			this.mcProfiler.startSection("postProcessing:" + currentEye.ordinal());
++			this.mcProfiler.startSection("postProcessing");
 +				GL11.glPushMatrix();
 +				 	doPostProcessing(frameIndex, this.currentEye);
 +				GL11.glPopMatrix();
 +			this.mcProfiler.endSection();
 +			
-+			GL11.glPushMatrix();
++			//GL11.glPushMatrix();
 +				//this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);   // <-- TODO: What does this do? Some sort of stream status overlay? REENABLE, move to GUI FBO?
-+			GL11.glPopMatrix();
++			//GL11.glPopMatrix();
 +							
++			this.mcProfiler.startSection("framebufferDraw");
 +			framebufferEye.bindFramebuffer(true); //draw to eye tex
 +			framebuffer.framebufferRender(framebufferEye.framebufferWidth, framebufferEye.framebufferHeight);
-+			
-+			this.mcProfiler.startSection("OpenGL Finish:" + currentEye.ordinal());
-+			//	GL11.glFinish();
 +			this.mcProfiler.endSection();
 +			
-+			this.mcProfiler.startSection("compositorSubmit:" + currentEye.ordinal());
++			//this.mcProfiler.startSection("OpenGL Finish");
++			//	GL11.glFinish();
++			//this.mcProfiler.endSection();
++			
++			this.mcProfiler.startSection("compositorSubmit");
 +				if(this.stereoProvider.isStereo())
 +					this.stereoProvider.endFrame(this.currentEye);
 +				else
 +					this.stereoProvider.endFrame();
 +			this.mcProfiler.endSection();
 +				
-+			this.mcProfiler.startSection("Mirror:" + currentEye.ordinal());
++			this.mcProfiler.startSection("mirror");
 +				shouldupdate =	copyToMirror(this.currentEye);
 +			this.mcProfiler.endSection();
 +			
