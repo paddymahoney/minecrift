@@ -971,19 +971,15 @@ public class MCOpenVR
 		//if(!gui){ //this are the mouse buttons. ummm do I need this? it causes the key to stick down.
 		
 		if (pressedRtouchpadBottomLeft && !lastpressedRtouchpadBottomLeft){
-			System.out.println("press rbl");
 			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BL.ordinal()].press();
 		}			
 		if (!pressedRtouchpadBottomLeft && lastpressedRtouchpadBottomLeft){
-			System.out.println("unpress rbl");
 			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BL.ordinal()].unpress();
 		}		
 		if (pressedRtouchpadBottomRight && !lastpressedRtouchpadBottomRight){
-			System.out.println("press rbr");
 			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BR.ordinal()].press();
 		}			
 		if (!pressedRtouchpadBottomRight && lastpressedRtouchpadBottomRight){
-			System.out.println("unpress rbr");
 			mc.vrSettings.buttonMappings[ViveButtons.BUTTON_RIGHT_TOUCHPAD_BR.ordinal()].unpress();
 		}	
 		if (pressedRtouchpadTopLeft && !lastpressedRtouchpadTopLeft){
