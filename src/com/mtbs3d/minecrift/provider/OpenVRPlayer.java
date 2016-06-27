@@ -1196,9 +1196,17 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	}
 
 	@Override
+	public Vec3 getCustomHMDVector(Vec3 axis) {
+		Vector3f v3 = MCOpenVR.hmdRotation.transform(new Vector3f((float)axis.xCoord, (float)axis.yCoord, (float)axis.zCoord));
+		Vec3 out = Vec3.createVectorHelper(v3.x, v3.y, v3.z);
+		out.rotateAroundY(worldRotationRadians);
+		return out;
+	}
+
+	@Override
 	public Vec3 getCustomControllerVector(int controller, Vec3 axis) {
-		Vector3f v3 = MCOpenVR.getAimRotation(controller).transform(new Vector3f((float)axis.xCoord, (float)axis.yCoord,(float) axis.zCoord));
-		Vec3 out =  Vec3.createVectorHelper(v3.x, v3.y, v3.z);
+		Vector3f v3 = MCOpenVR.getAimRotation(controller).transform(new Vector3f((float)axis.xCoord, (float)axis.yCoord, (float)axis.zCoord));
+		Vec3 out = Vec3.createVectorHelper(v3.x, v3.y, v3.z);
 		out.rotateAroundY(worldRotationRadians);
 		return out;
 	}

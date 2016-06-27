@@ -46,7 +46,8 @@ public interface IRoomscaleAdapter  {
 	public Vec3 getControllerOffhandDir_World(); 
 	public float getControllerOffhandYaw_World(); //degrees
 	public float getControllerOffhandPitch_World(); //degrees
-	
+
+	public Vec3 getCustomHMDVector(Vec3 axis);
 	public Vec3 getCustomControllerVector(int controller, Vec3 axis);
 	
 	public Vec3 getRoomOriginPos_World(); //degrees

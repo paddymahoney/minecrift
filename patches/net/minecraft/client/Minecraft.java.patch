@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/Minecraft.java
 +++ b/net/minecraft/client/Minecraft.java
-@@ -9,19 +9,40 @@
+@@ -9,19 +9,41 @@
  import com.google.common.util.concurrent.ListenableFutureTask;
  import com.mojang.authlib.minecraft.MinecraftSessionService;
  import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
@@ -13,6 +13,7 @@
 +import com.mtbs3d.minecrift.settings.VRHotkeys;
 +import com.mtbs3d.minecrift.settings.VRSettings;
 +import com.mtbs3d.minecrift.utils.TextureSelector;
++import com.mtbs3d.minecrift.utils.Utils;
 +
 +import de.fruitfly.ovr.enums.EyeType;
 +import de.fruitfly.ovr.structs.*;
@@ -41,7 +42,7 @@
  import java.util.HashSet;
  import java.util.Iterator;
  import java.util.List;
-@@ -30,26 +51,18 @@
+@@ -30,26 +52,18 @@
  import java.util.concurrent.Callable;
  import java.util.concurrent.Executors;
  import java.util.concurrent.FutureTask;
@@ -74,7 +75,7 @@
  import net.minecraft.client.gui.achievement.GuiAchievement;
  import net.minecraft.client.gui.inventory.GuiInventory;
  import net.minecraft.client.gui.stream.GuiStreamUnavailable;
-@@ -97,6 +110,7 @@
+@@ -97,6 +111,7 @@
  import net.minecraft.client.settings.GameSettings;
  import net.minecraft.client.settings.KeyBinding;
  import net.minecraft.client.shader.Framebuffer;
@@ -82,7 +83,7 @@
  import net.minecraft.client.stream.IStream;
  import net.minecraft.client.stream.NullStream;
  import net.minecraft.client.stream.TwitchStream;
-@@ -127,6 +141,8 @@
+@@ -127,6 +142,8 @@
  import net.minecraft.profiler.Profiler;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.integrated.IntegratedServer;
@@ -91,7 +92,7 @@
  import net.minecraft.stats.AchievementList;
  import net.minecraft.stats.IStatStringFormat;
  import net.minecraft.stats.StatFileWriter;
-@@ -142,6 +158,7 @@
+@@ -142,6 +159,7 @@
  import net.minecraft.util.Session;
  import net.minecraft.util.Timer;
  import net.minecraft.util.Util;
@@ -99,7 +100,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4684 @@
+@@ -150,2988 +168,4763 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -127,6 +128,7 @@
  import org.lwjgl.util.glu.GLU;
 +import org.lwjgl.util.vector.Quaternion;
 +
++import paulscode.sound.SoundSystem;
 +import static java.lang.Math.ceil;
  
  public class Minecraft implements IPlayerUsage
@@ -1774,6 +1776,11 @@
 +	private final boolean isDemo;
 +	private NetworkManager myNetworkManager;
 +	private boolean integratedServerIsRunning;
++	
++	/** Sound system junk */
++	public Field _soundManagerSndSystemField = null;
++	public boolean trySoundSystemReflect = true;
++	public boolean sndSystemReflect = true;
 +
 +	/** The profiler instance */
 +	public final Profiler mcProfiler = new Profiler();
@@ -2877,9 +2884,6 @@
 +			var6 = System.nanoTime() - var5;
 +						
 +			RenderBlocks.fancyGrass = this.gameSettings.fancyGraphics;
-+			this.mcProfiler.startSection("sound");
-+				this.mcSoundHandler.setListener(this.thePlayer, this.timer.renderPartialTicks);
-+			this.mcProfiler.endSection();
 +			
 +			this.mcProfiler.startSection("Gui");
 +			// Render GUI to FBO if necessary
@@ -2897,7 +2901,11 @@
 +			// Poll sensors
 +				MCOpenVR.poll(frameIndex);
 +			this.mcProfiler.endSection();
-+			
++
++			this.mcProfiler.startSection("sound");
++				//this.mcSoundHandler.setListener(this.thePlayer, this.timer.renderPartialTicks);
++				updateSoundListener(); // we update the sound listener from the HMD info
++			this.mcProfiler.endSection();
 +			
 +			//I dunno where to put this.
 +			if(this.stereoProvider.isStereo()){
@@ -7665,6 +7673,78 @@
 +	private long getMedianRunTickTimeNanos()
 +	{
 +		return medianRunTickTimeNanos;
++	}
++
++	/**
++	 * Sets the listener of sounds
++	 */
++	public void updateSoundListener() {
++		SoundSystem sndSystem = null;
++
++		// Get the soundManager from mc.mcSoundHandler (sndManager or field_147694_f)
++		// then get SoundSystem from it (sndSystem or field_148620_e)
++		// Obfuscated names (from MCP908/conf/joined.srg):
++		//    SoundHandler.sndManager = SoundHandler.field_147694_f = btp/a
++		//    stem.sndSystem = SoundSySoundSystem.field_148620_e = btj/e
++
++		// Use reflection to get the sndManager
++		if (sndSystemReflect && _soundManagerSndSystemField == null && this.trySoundSystemReflect) {
++			try {
++				// Get SoundManager from the SoundHandler...
++				Field soundManagerField = Utils.getDeclaredField(mcSoundHandler.getClass(), "sndManager", "f", "field_147694_f");
++				if (soundManagerField != null) {
++					soundManagerField.setAccessible(true);
++					sndManager = (SoundManager)soundManagerField.get(mcSoundHandler);
++				}
++
++				// ...get SoundSystem from SoundManager
++				if (sndManager != null) {
++					_soundManagerSndSystemField = Utils.getDeclaredField(sndManager.getClass(), "sndSystem", "e", "field_148620_e");
++					if (_soundManagerSndSystemField != null) {
++						_soundManagerSndSystemField.setAccessible(true);
++					}
++				}
++			}
++			catch (IllegalAccessException e) {
++				e.printStackTrace();
++			}
++
++			if (_soundManagerSndSystemField == null) {
++				this.trySoundSystemReflect = false;
++				System.out.println("[Minecrift]: FAILED to reflect sndSystem");
++			}
++			else {
++				System.out.println("[Minecrift]: Reflected sndSystem");
++			}
++		}
++
++		if (_soundManagerSndSystemField != null && sndManager != null) {
++			try {
++				sndSystem = (SoundSystem)_soundManagerSndSystemField.get(sndManager);
++			}
++			catch (IllegalArgumentException e) { }
++			catch (IllegalAccessException e) { }
++		}
++
++		// TODO: Set based on head orient (headphones) or body orient (speakers)
++		// ...what? ^
++
++		Vec3 up = roomScale.getCustomHMDVector(Vec3.createVectorHelper(0, 1, 0));
++		Vec3 hmdPos = roomScale.getHMDPos_World();
++		Vec3 hmdDir = roomScale.getHMDDir_World();
++		//synchronized (SoundSystemConfig.THREAD_SYNC) {
++		if (/*SoundManger.soundLibrary != null &&*/ sndSystem != null /* && this.mc.gameSettings.getSoundVolume(SoundCategory // Which sound category?) != 0f // this.mc.gameSettings.soundVolume != 0f */)
++		{
++			// The sound system is on a separate thread? Sync issues? Can get to crash by turning analyglph mode on?
++			try {
++				sndSystem.setListenerPosition((float)hmdPos.xCoord, (float)hmdPos.yCoord, (float)hmdPos.zCoord);
++				sndSystem.setListenerOrientation((float)hmdDir.xCoord, (float)hmdDir.yCoord, (float)hmdDir.zCoord, (float)up.xCoord, (float)up.yCoord, (float)up.zCoord);
++			} catch (NullPointerException what) {} // I don't know
++		}
++		//}
++		if( mumbleLink != null ) {
++			mumbleLink.updateMumble((float)hmdPos.xCoord, (float)hmdPos.yCoord, (float)hmdPos.zCoord, (float)hmdDir.xCoord, (float)hmdDir.yCoord, (float)hmdDir.zCoord, (float)up.xCoord, (float)up.yCoord, (float)up.zCoord);
++		}
 +	}
 +
 +	public final String LANCZOS_SAMPLER_VERTEX_SHADER =

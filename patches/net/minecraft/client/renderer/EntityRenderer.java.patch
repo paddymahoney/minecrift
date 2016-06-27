@@ -86,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,741 @@
+@@ -63,736 +88,738 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1007,7 +1007,6 @@
 +	/** MINECRIFT */
 +	public int renderpass = 0;
 +	public EulerOrient currentEulerOrientDegrees = new EulerOrient();
-+	public boolean sndSystemReflect = true;
 +	public boolean guiYawOrientationResetRequested = false;
 +	public boolean hudShowingLastFrame = false; //Used for detecting when UI is shown, fixing the guiYaw
 +	public boolean guiScreenShowingThisFrame = false;
@@ -1035,10 +1034,8 @@
 +	Vec3 eyeCollisionBlockPosLoc;
 +	public float headCollisionThresholdDistance = 0.05f;
 +	public float headCollisionDistance = -1f;
-+	public Field _soundManagerSndSystemField = null;
 +	public float clipDistance = 0f;
 +	public float minClipDistance = 0.05f;
-+	public boolean trySoundSystemReflect = true;
 +	public float lookYawOffset = 0;
 +	public float lookPitchOffset = 0;
 +	public int callCount = 0;
@@ -1549,7 +1546,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +834,14 @@
+@@ -804,16 +831,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1572,7 +1569,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +853,4104 @@
+@@ -825,1829 +850,4002 @@
          {
              clipDistance = 256.0F;
          }
@@ -2493,9 +2490,6 @@
 +			getPointedBlock(par1);   // TODO: This needs to be called once, and with the average position
 +			// information for the entire frame, not individual eye pos camRelX, Y, Z
 +		}
-+
-+		// Update sound engine
-+		setSoundListenerOrientation();
 +		/** END MINECRIFT */
 +		this.mc.mcProfiler.endStartSection("center");
 +
@@ -4106,105 +4100,6 @@
 +		GL11.glVertex3f(-(size / 2f), (size * aspect) / 2f, 0.0f);  // Top Left  Of The Texture and Quad
 +
 +		GL11.glEnd();
-+	}
-+
-+
-+
-+	/**
-+	 * Sets the listener of sounds
-+	 */
-+	public void setSoundListenerOrientation()
-+	{
-+		SoundSystem sndSystem = null;
-+
-+		// Get the soundManager from mc.mcSoundHandler (sndManager or field_147694_f)
-+		// then get SoundSystem from it (sndSystem or field_148620_e)
-+		// Obfuscated names (from MCP908/conf/joined.srg):
-+		//    SoundHandler.sndManager = SoundHandler.field_147694_f = btp/a
-+		//    stem.sndSystem = SoundSySoundSystem.field_148620_e = btj/e
-+
-+		// Use reflection to get the sndManager
-+		if (sndSystemReflect && _soundManagerSndSystemField == null && this.trySoundSystemReflect)
-+		{
-+			try
-+			{
-+				// Get SoundManager from the SoundHandler...
-+				Field soundManagerField = Utils.getDeclaredField(mc.mcSoundHandler.getClass(), 
-+						"sndManager", 
-+						"f", 
-+						"field_147694_f");
-+				if (soundManagerField != null)
-+				{
-+					soundManagerField.setAccessible(true);
-+					this.mc.sndManager = (SoundManager) soundManagerField.get(mc.mcSoundHandler);
-+				}
-+
-+				// ...get SoundSystem from SoundManager
-+				if (this.mc.sndManager != null)
-+				{
-+					_soundManagerSndSystemField = Utils.getDeclaredField(this.mc.sndManager.getClass(),
-+							"sndSystem", 
-+							"e", 
-+							"field_148620_e");
-+					if (_soundManagerSndSystemField != null)
-+					{
-+						_soundManagerSndSystemField.setAccessible(true);
-+					}
-+				}
-+			}
-+			catch (IllegalAccessException e)
-+			{
-+				e.printStackTrace();
-+			}
-+
-+			if (_soundManagerSndSystemField == null) {
-+				this.trySoundSystemReflect = false;
-+				System.out.println("[Minecrift]: FAILED to reflect sndSystem");
-+			}
-+			else {
-+				System.out.println("[Minecrift]: Reflected sndSystem");
-+			}
-+		}
-+
-+		if (_soundManagerSndSystemField != null && this.mc.sndManager != null)
-+		{
-+			try
-+			{
-+				sndSystem = (SoundSystem)_soundManagerSndSystemField.get(this.mc.sndManager);
-+			}
-+			catch (IllegalArgumentException e) { }
-+			catch (IllegalAccessException e) { };
-+		}
-+
-+		float PIOVER180 = (float)(Math.PI/180);
-+
-+		// TODO: Set based on head orient (headphones) or body orient (speakers)
-+
-+		Vec3 up = Vec3.createVectorHelper(0, 1, 0);
-+		up.rotateAroundZ(-(float)cameraRoll * PIOVER180);
-+		up.rotateAroundX(-(float)cameraPitch* PIOVER180);
-+		up.rotateAroundY(-(float)cameraYaw  * PIOVER180);
-+		//synchronized (SoundSystemConfig.THREAD_SYNC) {
-+		if (/*SoundManger.soundLibrary != null &&*/ sndSystem != null /* && this.mc.gameSettings.getSoundVolume(SoundCategory // Which sound category?) != 0f // this.mc.gameSettings.soundVolume != 0f */)
-+		{
-+			// The sound system is on a separate thread? Sync issues? Can get to crash by turning analyglph mode on?
-+
-+			sndSystem.setListenerPosition((float) interpolatedPlayerPos.xCoord, (float) interpolatedPlayerPos.yCoord, (float) interpolatedPlayerPos.zCoord);
-+			Vec3 hmd = mc.roomScale.getHMDDir_World();
-+			sndSystem.setListenerOrientation((float)hmd.xCoord,(float) hmd.yCoord,(float) hmd.zCoord,
-+					(float) up.xCoord, (float) up.yCoord, (float) up.zCoord);
-+		}
-+		//}
-+		if( mc.mumbleLink != null ) {
-+			Vec3 forward = Vec3.createVectorHelper(0, 0 , -1);
-+			forward.rotateAroundZ(-(float)cameraRoll * PIOVER180);
-+			forward.rotateAroundX(-(float)cameraPitch* PIOVER180);
-+			forward.rotateAroundY(-(float)cameraYaw  * PIOVER180);
-+			mc.mumbleLink.updateMumble(
-+					(float)interpolatedPlayerPos.xCoord,  (float)interpolatedPlayerPos.yCoord,  (float)interpolatedPlayerPos.zCoord,
-+					(float)forward.xCoord, (float)forward.yCoord, (float)forward.zCoord,
-+					(float)up.xCoord,      (float)up.yCoord,      (float)up.zCoord);
-+		}
 +	}
 +
 +	public void handleNotificationText()
