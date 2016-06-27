@@ -49,6 +49,7 @@ import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
 import com.mtbs3d.minecrift.gameplay.EntityVRTeleportFX;
 import com.mtbs3d.minecrift.gameplay.VRMovementStyle;
 import com.mtbs3d.minecrift.render.QuaternionHelper;
+import com.mtbs3d.minecrift.utils.Utils;
 
 // VIVE
 public class OpenVRPlayer implements IRoomscaleAdapter
@@ -1241,28 +1242,11 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	
 	private void hackPCMP(){
 
-		Class c = Minecraft.getMinecraft().playerController.getClass();
-		try {
-			//vanilla
-			hitBlockDelay = c.getDeclaredField("i");
-		} catch (NoSuchFieldException e) {
-			try{
-				//forge?
-				hitBlockDelay = c.getDeclaredField("field_78781_i");
-			} catch (NoSuchFieldException e1) {
-				try {
-					//deobf
-					hitBlockDelay = c.getDeclaredField("blockHitDelay");
-				} catch (NoSuchFieldException e3) {
-					System.out.println("REPORT TO JRBUDDA " + e3.toString() + " " +c.getName());
-					e.printStackTrace();
-				}			
-			}
-		}
-		catch (SecurityException e2) {
-
-		}
-
+	hitBlockDelay = Utils.getDeclaredField(Minecraft.getMinecraft().playerController.getClass(), 
+			"blockHitDelay", 
+			"i", 
+			"field_78781_i");
+		
 		if(hitBlockDelay!=null){
 			hitBlockDelay.setAccessible(true);
 		}

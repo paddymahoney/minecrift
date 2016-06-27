@@ -99,7 +99,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +167,4681 @@
+@@ -150,2988 +167,4684 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2940,6 +2940,9 @@
 +			mcProfiler.endSection();
 +
 +			////END MAIN VIVECRAFT RENDERING
++			
++			this.entityRenderer.frameFinish();
++			this.entityRenderer.waitForServerThread();
 +			
 +			this.stream.func_152935_j();
 +			this.stream.func_152922_k();

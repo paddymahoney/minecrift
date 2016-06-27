@@ -179,8 +179,12 @@
  
              this.updateVSync();
          }
-@@ -1033,8 +986,11 @@
-                 this.mc.entityRenderer.stopUseShader();
+@@ -1030,11 +983,14 @@
+ 
+             if (this.ofFastRender)
+             {
+-                this.mc.entityRenderer.stopUseShader();
++                this.mc.entityRenderer.deactivateShader();
              }
  
 -            Config.updateFramebufferSize();
