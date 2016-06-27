@@ -1163,7 +1163,7 @@ public class MCOpenVR
 
 		if(pressedLAppMenu  && !lastpressedLAppMenu) { //handle menu directly
 				
-			if(mc.gameSettings.keyBindSneak.getIsKeyPressed()){				
+			if(pressedLGrip){				
 				setKeyboardOverlayShowing(!keyboardShowing, null);			
 			} else{
 				if(gui || keyboardShowing){
