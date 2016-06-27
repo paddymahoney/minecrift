@@ -461,6 +461,7 @@ public class MCOpenVR
 	
 	public static void poll(long frameIndex)
 	{
+		Minecraft.getMinecraft().mcProfiler.startSection("input");
 		pollInputEvents();
 
 		updateControllerButtonState();
@@ -471,13 +472,15 @@ public class MCOpenVR
 		processTouchpadSampleBuffer();
 
 		// GUI controls
+		Minecraft.getMinecraft().mcProfiler.endStartSection("gui");
 		if( mc.currentScreen != null )
 		{
 			processGui();
 		}
 
+		Minecraft.getMinecraft().mcProfiler.endStartSection("updatePose");
 		updatePose();
-
+		Minecraft.getMinecraft().mcProfiler.endSection();
 	}
 
 	static GuiTextField keyboardGui;
@@ -1348,7 +1351,9 @@ public class MCOpenVR
 		if ( vrsystem == null || vrCompositor == null )
 			return;
 
+		Minecraft.getMinecraft().mcProfiler.startSection("waitForPoses");
 		vrCompositor.WaitGetPoses.apply(hmdTrackedDevicePoseReference, JOpenVRLibrary.k_unMaxTrackedDeviceCount, null, 0);
+		Minecraft.getMinecraft().mcProfiler.endSection();
 
 		for (int nDevice = 0; nDevice < JOpenVRLibrary.k_unMaxTrackedDeviceCount; ++nDevice )
 		{
@@ -1390,7 +1395,6 @@ public class MCOpenVR
 		}
 
 		updateAim();
-
 	}
 
 	/**
