@@ -343,6 +343,7 @@ public class MCOpenVR
 
 			timePerFrame = 1.0 / hmdDisplayFrequency.get(0);
 
+			
 			// disable all this stuff which kills performance
 			hmdTrackedDevicePoseReference.setAutoRead(false);
 			hmdTrackedDevicePoseReference.setAutoWrite(false);
@@ -363,7 +364,7 @@ public class MCOpenVR
 		}
 	}
 
-	private Pointer ptrFomrString(String in){
+	private static Pointer ptrFomrString(String in){
 		Pointer p = new Memory(in.length()+1);
 		p.setString(0, in);
 		return p;
@@ -392,6 +393,13 @@ public class MCOpenVR
 			vrSettings.setAutoSynch(false);
 			vrSettings.read();					
 			System.out.println("OpenVR Settings initialized OK");
+			
+			IntByReference e = new IntByReference();
+		
+			float ret =	vrSettings.GetFloat.apply(ptrFomrString("steamvr"), ptrFomrString("renderTargetMultiplier"), -1f, e);
+
+			int a = 9;
+			
 		} else {
 			throw new Exception(jopenvr.JOpenVRLibrary.VR_GetVRInitErrorAsEnglishDescription(hmdErrorStore.get(0)).getString(0));		
 		}

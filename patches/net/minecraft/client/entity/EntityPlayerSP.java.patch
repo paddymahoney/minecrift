@@ -83,12 +83,12 @@
 +    //VIVECRAFT
 +    Field inuse, inusedur;
 +    private void hackSuperFields(){ //this will work, damnit.
-+    	inuse = Utils.getDeclaredField( this.getClass(), 
++    	inuse = Utils.getDeclaredField( this.getClass().getSuperclass().getSuperclass(), 
 +    			"itemInUse", 
 +    			"f", 
 +    			"field_71074_e");
 +    	
-+     	inusedur = Utils.getDeclaredField( this.getClass(), 
++     	inusedur = Utils.getDeclaredField( this.getClass().getSuperclass().getSuperclass(), 
 +    			"itemInUseCount", 
 +    			"g", 
 +    			"field_71072_f");
@@ -452,7 +452,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +876,258 @@
+@@ -662,4 +876,259 @@
      }
  
      protected void sendHorseJump() {}
@@ -704,6 +704,7 @@
 +    			}
 +
 +    		} else {
++    			this.onGround = true; //
 +    			//do not move player, VRPlayer.moveplayerinroom will move him around.
 +    		}
 +    	}

@@ -86,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,738 @@
+@@ -63,736 +88,771 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1027,8 +1027,6 @@
 +	public float crossY;
 +	public float crossZ;
 +
-+	public FloatBuffer[] eyeproj = new FloatBuffer[2]; //i dislike you.
-+	
 +	private boolean eyeCollision = false;
 +	Block eyeCollisionBlock;
 +	Vec3 eyeCollisionBlockPosLoc;
@@ -1061,9 +1059,44 @@
 +		this.lightmapColors = this.lightmapTexture.getTextureData();
 +		this.theShaderGroup = null;
 +
++		setupClipPlanes();
++		
++		System.out.println("**********NEW ENTITY RENDERER ***********");
++			java.lang.Thread.dumpStack();
++
++		
 +		/** END MINECRIFT */
 +	}
 +
++	//VIVECRAFT
++	public void setupClipPlanes()
++	{
++		this.farPlaneDistance = (float)(mc.gameSettings.renderDistanceChunks * 16);
++
++		if (Config.isFogFancy())
++		{
++			this.farPlaneDistance *= 0.95F;
++		}
++
++		if (Config.isFogFast())
++		{
++			this.farPlaneDistance *= 0.83F;
++		}
++
++		this.clipDistance = this.farPlaneDistance * 2.0F;
++
++		if (this.clipDistance < 128.0F)
++		{
++			this.clipDistance = 128.0F;
++		}
++
++		if (mc.theWorld != null && mc.theWorld.provider != null && mc.theWorld.provider.dimensionId == 1)
++		{
++			this.clipDistance = 256.0F;
++		}
++	}
++	//END VIVECRAFT
++	
 +	public boolean isShaderActive()
 +	{
 +		return OpenGlHelper.shadersSupported && this.theShaderGroup != null;
@@ -1546,7 +1579,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +831,14 @@
+@@ -804,16 +864,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1569,7 +1602,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +850,4004 @@
+@@ -825,1829 +883,4004 @@
          {
              clipDistance = 256.0F;
          }
@@ -1662,7 +1695,7 @@
 +
 +		if (this.mc.stereoProvider.isStereo())
 +		{
-+			GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
++			GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
 +		}
 +		else
 +		{
@@ -1775,7 +1808,7 @@
 +		// Minecrift - use correct projection
 +		if (this.mc.stereoProvider.isStereo())
 +		{
-+			GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
++			GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
 +		}
 +		else
 +		{
@@ -4149,7 +4182,7 @@
 +			GL11.glLoadIdentity();
 +			if (isStereo)
 +			{
-+				GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
++				GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
 +			}
 +			else
 +			{
@@ -4482,7 +4515,7 @@
 +				// Minecrift - use correct projection
 +				if (this.mc.stereoProvider.isStereo())
 +				{
-+					GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
++					GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
 +				}
 +				else
 +				{
@@ -5006,7 +5039,7 @@
 +			GL11.glLoadIdentity();
 +			if (this.mc.stereoProvider.isStereo())
 +			{
-+				GL11.glMultMatrix(eyeproj[mc.currentEye.value()]);
++				GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
 +			}
 +			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +			GL11.glPushMatrix();
