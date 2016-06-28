@@ -1601,7 +1601,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +882,4003 @@
+@@ -825,1829 +882,3962 @@
          {
              clipDistance = 256.0F;
          }
@@ -2492,172 +2492,168 @@
 +		
 +		this.mc.mcProfiler.startSection("lightTex");
 +
-+		if (this.lightmapUpdateNeeded)
-+		{
-+			this.updateLightmap(par1);
-+		}
++			if (this.lightmapUpdateNeeded)
++			{
++				this.updateLightmap(par1);
++			}
++	
++			GL11.glEnable(GL11.GL_CULL_FACE);
++			GL11.glEnable(GL11.GL_DEPTH_TEST);
++			GL11.glEnable(GL11.GL_ALPHA_TEST);
++			GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
++	
++			if (this.mc.renderViewEntity == null)
++			{
++				this.mc.renderViewEntity = this.mc.thePlayer;
++			}
 +
-+		GL11.glEnable(GL11.GL_CULL_FACE);
-+		GL11.glEnable(GL11.GL_DEPTH_TEST);
-+		GL11.glEnable(GL11.GL_ALPHA_TEST);
-+		GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-+
-+		if (this.mc.renderViewEntity == null)
-+		{
-+			this.mc.renderViewEntity = this.mc.thePlayer;
-+		}
-+
-+		this.mc.mcProfiler.endStartSection("pick");
-+		this.getMouseOver(par1);
-+		EntityLivingBase player = this.mc.renderViewEntity;
-+		RenderGlobal rg = this.mc.renderGlobal;
-+		EffectRenderer var6 = this.mc.effectRenderer;
-+
-+		/** MINECRIFT */
-+		interpolatedPlayerPos.xCoord = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double)par1;
-+		interpolatedPlayerPos.yCoord = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double)par1;
-+		interpolatedPlayerPos.zCoord = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double)par1;
-+		interpolatedPlayerPos = Vec3.createVectorHelper(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
-+		
-+		//update interpolatedRoomOrigin
-+		mc.vrPlayer.onFrameUpdate(par1);
-+		
-+		if( this.mc.currentScreen == null )
-+		{
-+			getPointedBlock(par1);   // TODO: This needs to be called once, and with the average position
-+			// information for the entire frame, not individual eye pos camRelX, Y, Z
-+		}
-+		/** END MINECRIFT */
++		this.mc.mcProfiler.endStartSection("getPointedBLock");
++			this.getMouseOver(par1);
++			EntityLivingBase player = this.mc.renderViewEntity;
++			RenderGlobal rg = this.mc.renderGlobal;
++			EffectRenderer var6 = this.mc.effectRenderer;
++	
++			/** MINECRIFT */
++			interpolatedPlayerPos.xCoord = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double)par1;
++			interpolatedPlayerPos.yCoord = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double)par1;
++			interpolatedPlayerPos.zCoord = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double)par1;
++			interpolatedPlayerPos = Vec3.createVectorHelper(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
++			
++			//update interpolatedRoomOrigin
++			mc.vrPlayer.onFrameUpdate(par1);
++			
++			if( this.mc.currentScreen == null )
++			{
++				getPointedBlock(par1);   // TODO: This needs to be called once, and with the average position
++				// information for the entire frame, not individual eye pos camRelX, Y, Z
++			}
++			/** END MINECRIFT */
 +		this.mc.mcProfiler.endStartSection("center");
 +
 +		this.mc.mcProfiler.endStartSection("clear");
-+		/** MINECRIFT SHADERS MOD **/
-+
-+		if (shadersMod) {
-+			//Shaders.setViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
-+			Reflector.callVoid(Reflector.ShadersMod_Shaders_setViewport, new Object[] {0, 0, this.mc.displayFBWidth, this.mc.displayFBHeight});
-+		}
-+		else {
-+			GL11.glViewport(0, 0, this.mc.displayFBWidth, this.mc.displayFBHeight);
-+		}
-+
-+		this.updateFogColor(par1);
-+
-+		if (shadersMod) {
-+			//Shaders.clearRenderBuffer();
-+			Reflector.callVoid(Reflector.ShadersMod_Shaders_clearRenderBuffer, new Object[] {});
-+		} else {			
-+			//Main eye clear - start from here.
-+			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);		
-+		}
-+		
-+		if(mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.vrPlayer.isHMDTracking())	
-+			mc.doStencilForEye(mc.currentEye == EyeType.ovrEye_Left ? 0 : 1); //TODO: dont render this every damn frame.
-+		else GL11.glDisable(GL11.GL_STENCIL_TEST);
-+
-+		
-+		GL11.glEnable(GL11.GL_CULL_FACE);
++			/** MINECRIFT SHADERS MOD **/
++	
++			if (shadersMod) {
++				//Shaders.setViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
++				Reflector.callVoid(Reflector.ShadersMod_Shaders_setViewport, new Object[] {0, 0, this.mc.displayFBWidth, this.mc.displayFBHeight});
++			}
++			else {
++				GL11.glViewport(0, 0, this.mc.displayFBWidth, this.mc.displayFBHeight);
++			}
++	
++			this.updateFogColor(par1);
++	
++			if (shadersMod) {
++				//Shaders.clearRenderBuffer();
++				Reflector.callVoid(Reflector.ShadersMod_Shaders_clearRenderBuffer, new Object[] {});
++			} else {			
++				//Main eye clear - start from here.
++				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);		
++			}
++			
++			if(mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.vrPlayer.isHMDTracking())	
++				mc.doStencilForEye(mc.currentEye == EyeType.ovrEye_Left ? 0 : 1); //TODO: dont render this every damn frame.
++			else GL11.glDisable(GL11.GL_STENCIL_TEST);
++	
++			
++			GL11.glEnable(GL11.GL_CULL_FACE);
 +		this.mc.mcProfiler.endStartSection("camera");	
-+
-+		if (shadersMod) {
-+			//boy that's not gonna work, is it?
-+			//Reflector.callVoid(Reflector.ShadersMod_Shaders_setCamera, new Object[] {par1});
-+		}
-+
-+		/** END MINECRIFT SHADERS MOD **/
-+		
-+		this.setupCameraTransform(par1, 0);
-+		
-+		/** MINECRIFT */ // Save our projection and modelview matrices
-+		GL11.glMatrixMode(GL11.GL_PROJECTION);
-+		GL11.glPushMatrix();
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glPushMatrix();
-+		/** END MINECRIFT */
-+		ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
-+		this.mc.mcProfiler.endStartSection("frustrum");
-+		ClippingHelperImpl.getInstance();
-+
-+		/** MINECRIFT SHADERS MOD **/
-+		if (shadersMod)
-+		{
-+			if((Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass) && (Config.isSkyEnabled() || Config.isSunMoonEnabled() || Config.isStarsEnabled()))
-+			{
-+				this.setupFog(-1, par1);
-+				this.mc.mcProfiler.endStartSection("sky");
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginSky, new Object[] {});
-+				rg.renderSky(par1);
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_endSky, new Object[] {});
-+			}
-+			else
-+			{
-+				GL11.glDisable(GL11.GL_BLEND);
-+			}
-+		}
-+		else
-+		{
-+			if (!Config.isSkyEnabled() && !Config.isSunMoonEnabled() && !Config.isStarsEnabled())
-+			{
-+				GL11.glDisable(GL11.GL_BLEND);
-+			}
-+			else
-+			{
-+				this.setupFog(-1, par1);
-+				this.mc.mcProfiler.endStartSection("sky");
-+				rg.renderSky(par1);
-+			}
-+		}
-+		/** END MINECRIFT SHADERS MOD **/
-+
-+		GL11.glEnable(GL11.GL_FOG);
-+		this.setupFog(1, par1);
-+
-+		if (this.mc.gameSettings.ambientOcclusion != 0)
-+		{
-+			GL11.glShadeModel(GL11.GL_SMOOTH);
-+		}
 +	
-+		/** MINECRIFT */
-+		/** MINECRIFT SHADERS MOD **/
-+
-+		if ( mc.currentEye == EyeType.ovrEye_Left)  //once per render
-+		{
-+			this.mc.mcProfiler.endStartSection("culling");
-+				frustrum = new Frustrum();
-+				
-+				if (shadersMod) {
-+					Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {frustrum, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord});
-+					Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, frustrum, par1});
-+				}
-+				
-+				else {			
-+					frustrum.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
-+					this.mc.renderGlobal.clipRenderersByFrustum(frustrum, par1);
-+				}
++			if (shadersMod) {
++				//boy that's not gonna work, is it?
++				//Reflector.callVoid(Reflector.ShadersMod_Shaders_setCamera, new Object[] {par1});
++			}
 +	
-+			this.mc.mcProfiler.endStartSection("updatechunks");			
-+				
-+				if (shadersMod) {
-+					//Shaders.beginUpdateChunks();
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_beginUpdateChunks, new Object[] {});
-+				}
-+
-+				while (!this.mc.renderGlobal.updateRenderers(player, false) && par2 != 0L)
-+				{
-+					long var17 = par2 - System.nanoTime();
-+	
-+					if (var17 < 0L || var17 > 1000000000L)
-+					{
-+						break;
-+					}
-+				}
-+	
-+				if (shadersMod) {
-+					//Shaders.endUpdateChunks();
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_endUpdateChunks, new Object[] {});
-+				}
 +			/** END MINECRIFT SHADERS MOD **/
-+		}
++			
++			this.setupCameraTransform(par1, 0);
++			
++			/** MINECRIFT */ // Save our projection and modelview matrices
++			GL11.glMatrixMode(GL11.GL_PROJECTION);
++			GL11.glPushMatrix();
++			GL11.glMatrixMode(GL11.GL_MODELVIEW);
++			GL11.glPushMatrix();
++			/** END MINECRIFT */
++			ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
++		
++		this.mc.mcProfiler.endStartSection("frustrum");
++			ClippingHelperImpl.getInstance();
++
++		this.mc.mcProfiler.endStartSection("sky");
++	
++			if (shadersMod)
++			{
++				if((Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass) && (Config.isSkyEnabled() || Config.isSunMoonEnabled() || Config.isStarsEnabled()))
++				{
++					this.setupFog(-1, par1);
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_beginSky, new Object[] {});
++					rg.renderSky(par1);
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_endSky, new Object[] {});
++				}
++				else
++				{
++					GL11.glDisable(GL11.GL_BLEND);
++				}
++			}
++			else
++			{
++				if (!Config.isSkyEnabled() && !Config.isSunMoonEnabled() && !Config.isStarsEnabled())
++				{
++					GL11.glDisable(GL11.GL_BLEND);
++				}
++				else
++				{
++					this.setupFog(-1, par1);
++					rg.renderSky(par1);
++				}
++			}
++	
++			GL11.glEnable(GL11.GL_FOG);
++			this.setupFog(1, par1);
++	
++			if (this.mc.gameSettings.ambientOcclusion != 0)
++			{
++				GL11.glShadeModel(GL11.GL_SMOOTH);
++			}
++	
++		this.mc.mcProfiler.endStartSection("culling");
++			if ( mc.currentEye == EyeType.ovrEye_Left)  //once per render
++			{
++					frustrum = new Frustrum();
++					
++					if (shadersMod) {
++						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {frustrum, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord});
++						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, frustrum, par1});
++					}
++					
++					else {			
++						frustrum.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
++						this.mc.renderGlobal.clipRenderersByFrustum(frustrum, par1);
++					}
++		
++				this.mc.mcProfiler.endStartSection("updatechunks");			
++					
++					if (shadersMod) {
++						//Shaders.beginUpdateChunks();
++						Reflector.callVoid(Reflector.ShadersMod_Shaders_beginUpdateChunks, new Object[] {});
++					}
++	
++					while (!this.mc.renderGlobal.updateRenderers(player, false) && par2 != 0L)
++					{
++						long var17 = par2 - System.nanoTime();
++		
++						if (var17 < 0L || var17 > 1000000000L)
++						{
++							break;
++						}
++					}
++		
++					if (shadersMod) {
++						//Shaders.endUpdateChunks();
++						Reflector.callVoid(Reflector.ShadersMod_Shaders_endUpdateChunks, new Object[] {});
++					}
++				/** END MINECRIFT SHADERS MOD **/
++			}
 +		
 +		this.mc.mcProfiler.endStartSection("renderCloudsCheck");
 +			if (player.posY < 128.0D)
@@ -2670,8 +2666,6 @@
 +			this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
 +			RenderHelper.disableStandardItemLighting();
 +		this.mc.mcProfiler.endStartSection("terrain");
-+
-+	
 +			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +			GL11.glPushMatrix();
 +	
@@ -2705,28 +2699,49 @@
 +			renderOutline = false;
 +		}
 +
-+		// VIVE END - don't render outline if aiming a teleport
-+		/** END MINECRIFT */
-+		if (this.debugViewDirection == 0)
-+		{ //this renders all the entities
-+			debugViewDirection(par1, player, rg, frustrum, hasForge, renderOutline);
++		{ //this renders all the entities and the selection box..
++			GL11.glMatrixMode(GL11.GL_MODELVIEW);
++			GL11.glPopMatrix(); //what are you
++			
++			this.mc.mcProfiler.endStartSection("entities");
++			
++			GL11.glPushMatrix();
++				RenderHelper.enableStandardItemLighting();
++
++			
++				if (hasForge)
++				{
++					Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(0)});
++				}
++			
++				rg.renderEntities(player, frustrum, par1);
++			
++				if (hasForge)
++				{
++					Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(-1)});
++				}
++			
++				RenderHelper.disableStandardItemLighting();
++				this.disableLightmap((double)par1);
++			GL11.glPopMatrix();
++			
++			GL11.glPushMatrix();
++				/** MINECRIFT */
++				if (this.mc.objectMouseOver != null && player.isInsideOfMaterial(Material.water) && player instanceof EntityPlayer && renderOutline)     // Minecrift
++				{
++					EntityPlayer var18 = (EntityPlayer)player;
++					GL11.glDisable(GL11.GL_ALPHA_TEST);
++					this.mc.mcProfiler.endStartSection("outline");
++			
++					if ((!hasForge || !Reflector.callBoolean(Reflector.ForgeHooksClient_onDrawBlockHighlight, new Object[] {rg, var18, this.mc.objectMouseOver, Integer.valueOf(0), var18.inventory.getCurrentItem(), Float.valueOf(par1)})) && renderOutline)    // Minecrift
++					{
++						rg.drawSelectionBox(var18, this.mc.objectMouseOver, 0, par1);
++					}
++					GL11.glEnable(GL11.GL_ALPHA_TEST);
++				}
++			GL11.glPopMatrix();
 +		}
 +
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glPopMatrix();
-+
-+		if (this.cameraZoom == 1.0D && player instanceof EntityPlayer && renderOutline && this.mc.objectMouseOver != null && !player.isInsideOfMaterial(Material.water))   // Minecrift
-+		{
-+			EntityPlayer var18 = (EntityPlayer)player;
-+			GL11.glDisable(GL11.GL_ALPHA_TEST);
-+			this.mc.mcProfiler.endStartSection("outline");
-+
-+			if ((!hasForge || !Reflector.callBoolean(Reflector.ForgeHooksClient_onDrawBlockHighlight, new Object[] {rg, var18, this.mc.objectMouseOver, Integer.valueOf(0), var18.inventory.getCurrentItem(), Float.valueOf(par1)})) && renderOutline)    // Minecrift
-+			{
-+				rg.drawSelectionBox(var18, this.mc.objectMouseOver, 0, par1);
-+			}
-+			GL11.glEnable(GL11.GL_ALPHA_TEST);
-+		}
 +		/** END MINECRIFT */
 +
 +		this.mc.mcProfiler.endStartSection("destroyProgress");
@@ -2746,7 +2761,6 @@
 +			RenderHelper.disableStandardItemLighting();
 +			this.setupFog(0, par1);
 +		this.mc.mcProfiler.endStartSection("particles");
-+			
 +			if (shadersMod) {
 +				//Shaders.beginParticles();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginParticles, new Object[] {});
@@ -2857,22 +2871,10 @@
 +			
 +		WrUpdates.pauseBackgroundUpdates();
 +
-+		if (hasForge && this.debugViewDirection== 0) ///uuhhh this was == 0... which means we do it twice...
-+		{ 
-+			RenderHelper.enableStandardItemLighting();
-+			this.mc.mcProfiler.endStartSection("entities");
-+			Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(1)});
-+			this.mc.renderGlobal.renderEntities(player, frustrum, par1);
-+			Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(-1)});
-+			RenderHelper.disableStandardItemLighting();
-+
-+		}
-+
 +		GL11.glDepthMask(true);
 +		GL11.glEnable(GL11.GL_CULL_FACE);
 +		GL11.glDisable(GL11.GL_BLEND);
 +		GL11.glDisable(GL11.GL_FOG);
-+
 +
 +		if (player.posY >= 128.0D + (double)(this.mc.gameSettings.ofCloudsHeight * 128.0F))
 +		{
@@ -2931,8 +2933,6 @@
 +				}
 +			}
 +		}
-+
-+
 +
 +
 +		/** END MINECRIFT */
@@ -4412,47 +4412,6 @@
 +			// VIVE END - teleport movement
 +	
 +			/** END MINECRIFT */    
-+		}
-+	}
-+
-+	private void debugViewDirection(float par1, EntityLivingBase var4, RenderGlobal var5, Frustrum var14,
-+			boolean hasForge, boolean renderOutline) {
-+		EntityPlayer var18;
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glPopMatrix();
-+		GL11.glPushMatrix();
-+		RenderHelper.enableStandardItemLighting();
-+		this.mc.mcProfiler.endStartSection("entities");
-+	
-+		if (hasForge)
-+		{
-+			Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(0)});
-+		}
-+	
-+		var5.renderEntities(var4, var14, par1);
-+	
-+		if (hasForge)
-+		{
-+			Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(-1)});
-+		}
-+	
-+		RenderHelper.disableStandardItemLighting();
-+		this.disableLightmap((double)par1);
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glPopMatrix();
-+		GL11.glPushMatrix();
-+		/** MINECRIFT */
-+		if (this.mc.objectMouseOver != null && var4.isInsideOfMaterial(Material.water) && var4 instanceof EntityPlayer && renderOutline)     // Minecrift
-+		{
-+			var18 = (EntityPlayer)var4;
-+			GL11.glDisable(GL11.GL_ALPHA_TEST);
-+			this.mc.mcProfiler.endStartSection("outline");
-+	
-+			if ((!hasForge || !Reflector.callBoolean(Reflector.ForgeHooksClient_onDrawBlockHighlight, new Object[] {var5, var18, this.mc.objectMouseOver, Integer.valueOf(0), var18.inventory.getCurrentItem(), Float.valueOf(par1)})) && renderOutline)    // Minecrift
-+			{
-+				var5.drawSelectionBox(var18, this.mc.objectMouseOver, 0, par1);
-+			}
-+			GL11.glEnable(GL11.GL_ALPHA_TEST);
 +		}
 +	}
 +
