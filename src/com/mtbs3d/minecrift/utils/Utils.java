@@ -28,9 +28,7 @@ public class Utils
 				}
 				catch (NoSuchFieldException e2)
 				{
-					e.printStackTrace();
-					e1.printStackTrace();
-					e2.printStackTrace();
+					System.out.println("WARNING: could not reflect field :" + unObfuscatedName + "," + srgName + "," + obfuscatedName + " in " + clazz.toString());
 				};
 			};
 		}

@@ -423,7 +423,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         }
 
         private boolean SetupMinecraftAsLibrary() {
-            File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MINECRAFT_VERSION );
+        /*    File lib_dir = new File(targetDir,"libraries/net/minecraft/Minecraft/"+MINECRAFT_VERSION );
             lib_dir.mkdirs();
             File lib_file = new File(lib_dir,"Minecraft-"+MINECRAFT_VERSION+".jar");
             File mc_jar = null;
@@ -463,7 +463,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
             } catch (Exception e) {
                 finalMessage += " Error: "+e.getLocalizedMessage();
             }
-            return false;
+            return false; 
+			*/
+			return true;
         }
 
         private boolean ExtractVersion() {
