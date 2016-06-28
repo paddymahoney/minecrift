@@ -48,7 +48,7 @@ def process_json( addon, version ):
     json_id = "vivecraft-"+version+addon
     lib_id = "com.mtbs3d:minecrift:"+version
     time = datetime.datetime(1979,6,1).strftime("%Y-%m-%dT%H:%M:%S-05:00")
-    with  open(os.path.join("installer",mc_version+addon+".json"),"rb") as f:
+    with  open(os.path.join("installer","vivecraft-" + mc_version + addon + ".json"),"rb") as f:
         json_obj = json.load(f)
         json_obj["id"] = json_id
         json_obj["time"] = time
@@ -125,8 +125,8 @@ def create_install(mcp_dir):
         # Add json files
         install_out.writestr( "version.json", process_json("", version))
         install_out.writestr( "version-forge.json", process_json("-forge", version))
-        install_out.writestr( "version-nohydra.json", process_json("-nohydra", version))
-        install_out.writestr( "version-forge-nohydra.json", process_json("-forge-nohydra", version))
+        install_out.writestr( "version-shadersmod.json", process_json("-shadersmod", version))
+        install_out.writestr( "version-forge-shadersmod.json", process_json("-forge-shadersmod", version))
         
         # Add release notes
         install_out.write("CHANGES.md", "release_notes.txt")

@@ -35,6 +35,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
     private static final boolean ALLOW_FORGE_INSTALL = true;  // VIVE: disabled, forge install isn't working currently
     private static final boolean ALLOW_HYDRA_INSTALL = false;  // TODO: Change to true once Hydra is fixed up
+	private static final boolean ALLOW_SHADERSMOD_INSTALL = true;  
 
     private static final boolean NEEDS_2010_REDIST = true;
     private static final boolean NEEDS_2012_REDIST = true;
@@ -77,6 +78,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private String version;
     private String mod = "";
     private JCheckBox useForge;
+	private JCheckBox useShadersMod;
     private JCheckBox createProfile;
     private JComboBox forgeVersion;
     private JCheckBox useHydra;
@@ -474,12 +476,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 InputStream version_json;
                 if(useForge.isSelected() /*&& forgeVersion.getSelectedItem() != forgeNotFound*/ ) {
                     String filename;
-                    if( useHydra.isSelected() ) {
+                    if( useShadersMod.isSelected() ) {
+                        filename = "version-forge-shadersmod.json";
+                        mod="-forge-shadersmod";
+                    } else {
                         filename = "version-forge.json";
                         mod="-forge";
-                    } else {
-                        filename = "version-forge-nohydra.json";
-                        mod="-forge-nohydra";
                     }
 
                     version_json = new FilterInputStream( Installer.class.getResourceAsStream(filename) ) {
@@ -497,11 +499,11 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     };
                 } else {
                     String filename;
-                    if( useHydra.isSelected() ) {
-                        filename = "version.json";
+                    if( useShadersMod.isSelected() ) {
+                        filename = "version-shadersmod.json";
+						mod="-shadersmod";
                     } else {
-                        filename = "version-nohydra.json";
-                        mod="-nohydra";
+                        filename = "version.json";
                     }
                     version_json = Installer.class.getResourceAsStream(filename);
                 }
@@ -859,12 +861,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
 			
             if (!downloadedOptifine) {
                 finalMessage = "Installed (but failed to download OptiFine). Restart Minecraft" +
-                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName(useForge.isSelected()) + "' profile.") +
+                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName(useForge.isSelected(), useShadersMod.isSelected()) + "' profile.") +
                         "\nPlease download and install Optifine " + OF_FILE_NAME + " from https://optifine.net/downloads before attempting to play.";
             }
             else {
                 finalMessage = "Installed successfully! Restart Minecraft" +
-                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName(useForge.isSelected()) + "' profile.");
+                        (profileCreated == false ? " and Edit Profile->Use Version " + minecriftVersionName : " and select the '" + getMinecraftProfileName(useForge.isSelected(), useShadersMod.isSelected()) + "' profile.");
             }
 			
             monitor.setProgress(100);
@@ -963,7 +965,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
         try {
             int jsonIndentSpaces = 2;
-            String profileName = getMinecraftProfileName(useForge.isSelected());
+            String profileName = getMinecraftProfileName(useForge.isSelected(), useShadersMod.isSelected());
             File fileJson = new File(mcBaseDirFile, "launcher_profiles.json");
             String json = readAsciiFile(fileJson);
             JSONObject root = new JSONObject(json);
@@ -1163,7 +1165,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         forgeVersion.setAlignmentX(LEFT_ALIGNMENT);
         forgePanel.add(useForge);
         //forgePanel.add(forgeVersion);
-
+		
         // Profile creation / update support
         createProfile = new JCheckBox("Add/update Vivecraft launcher profile", false);
         createProfile.setAlignmentX(LEFT_ALIGNMENT);
@@ -1175,6 +1177,16 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 "current version.<br>" +
                 "</html>");
 
+		useShadersMod = new JCheckBox("Install with ShadersMod 3.29");
+        useShadersMod.setAlignmentX(LEFT_ALIGNMENT);
+        if (!ALLOW_SHADERSMOD_INSTALL)
+			useShadersMod.setEnabled(false);
+        useShadersMod.setToolTipText(
+                "<html>" +
+                "If checked, sets the vivecraft profile to use ShadersMod <br>" +
+                "support." +
+                "</html>");
+				
         useHydra = new JCheckBox("Razer Hydra support",false);
         useHydra.setAlignmentX(LEFT_ALIGNMENT);
         if (!ALLOW_HYDRA_INSTALL)
@@ -1201,7 +1213,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         forgePanel.setAlignmentX(LEFT_ALIGNMENT);
         optPanel.add(createProfile);
         optPanel.add(forgePanel);
-        optPanel.add(useHydra);
+        optPanel.add(useShadersMod);
         optPanel.add(useHrtf);
         this.add(optPanel);
 
@@ -1336,13 +1348,19 @@ public class Installer extends JPanel  implements PropertyChangeListener
         return link;
     }
 
-    private String getMinecraftProfileName(boolean usingForge)
+    private String getMinecraftProfileName(boolean usingForge, boolean sm)
     {
         if(!usingForge) {
-            return "ViveCraft " + MINECRAFT_VERSION;
+			if(sm)
+				return "ViveCraft-ShadersMod " + MINECRAFT_VERSION;
+			else
+				return "ViveCraft " + MINECRAFT_VERSION;
         }
         else {
-            return "ViveCraft-Forge " + MINECRAFT_VERSION;
+			if(sm)
+				return "ViveCraft-Forge " + MINECRAFT_VERSION;
+			else
+				return "ViveCraft-SM-Forge " + MINECRAFT_VERSION;
         }
     }
 

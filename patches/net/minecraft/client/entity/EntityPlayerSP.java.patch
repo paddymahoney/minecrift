@@ -62,7 +62,7 @@
      /** Ticks left before sprinting is disabled. */
      public int sprintingTicksLeft;
      public float renderArmYaw;
-@@ -80,13 +110,68 @@
+@@ -80,13 +110,46 @@
      public float prevTimeInPortal;
      private static final String __OBFID = "CL_00000938";
  
@@ -70,36 +70,14 @@
      public EntityPlayerSP(Minecraft p_i1238_1_, World p_i1238_2_, Session p_i1238_3_, int p_i1238_4_)
      {
          super(p_i1238_2_, p_i1238_3_.getProfile());
-+
-+      //VIVECRAFT
-+        hackSuperFields();
-+      //END VIVECRAFT
-+        
          this.mc = p_i1238_1_;
          this.dimension = p_i1238_4_;
 +        
      }
  
 +    //VIVECRAFT
-+    Field inuse, inusedur;
-+    private void hackSuperFields(){ //this will work, damnit.
-+    	inuse = Utils.getDeclaredField( this.getClass().getSuperclass().getSuperclass(), 
-+    			"itemInUse", 
-+    			"f", 
-+    			"field_71074_e");
-+    	
-+     	inusedur = Utils.getDeclaredField( this.getClass().getSuperclass().getSuperclass(), 
-+    			"itemInUseCount", 
-+    			"g", 
-+    			"field_71072_f");
-+    	
-+    	if(inuse!=null){
-+			inuse.setAccessible(true);
-+    		inusedur.setAccessible(true);
-+    	}
-+    }
-+
-+    
++    protected Field inuse, inusedur;
++        
 +    public void setItemInUseClient(ItemStack item){
 +    	if(this.inuse==null){
 +    		return;
@@ -131,7 +109,7 @@
      public void updateEntityActionState()
      {
          super.updateEntityActionState();
-@@ -99,6 +184,7 @@
+@@ -99,6 +162,7 @@
          this.renderArmYaw = (float)((double)this.renderArmYaw + (double)(this.rotationYaw - this.renderArmYaw) * 0.5D);
      }
  
@@ -139,7 +117,7 @@
      /**
       * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
       * use this to react to sunlight and start to burn.
-@@ -182,7 +268,9 @@
+@@ -182,7 +246,9 @@
              }
  
              boolean var1 = this.movementInput.jump;
@@ -150,7 +128,7 @@
              boolean var3 = this.movementInput.moveForward >= var2;
              this.movementInput.updatePlayerMoveState();
  
-@@ -195,20 +283,28 @@
+@@ -195,20 +261,28 @@
  
              if (this.movementInput.sneak && this.yOffset2 < 0.2F)
              {
@@ -185,7 +163,7 @@
                  }
                  else
                  {
-@@ -252,7 +348,7 @@
+@@ -252,7 +326,7 @@
                      this.motionY += 0.15D;
                  }
              }
@@ -194,7 +172,7 @@
              if (this.isRidingHorse())
              {
                  if (this.horseJumpPowerCounter < 0)
-@@ -296,6 +392,10 @@
+@@ -296,6 +370,10 @@
  
              super.onLivingUpdate();
  
@@ -205,7 +183,7 @@
              if (this.onGround && this.capabilities.isFlying)
              {
                  this.capabilities.isFlying = false;
-@@ -341,7 +441,14 @@
+@@ -341,7 +419,14 @@
              var1 *= 1.0F - var4 * 0.15F;
          }
  
@@ -221,7 +199,7 @@
      }
  
      /**
-@@ -524,70 +631,168 @@
+@@ -524,70 +609,168 @@
      {
          return this.worldObj.getBlock(p_71153_1_, p_71153_2_, p_71153_3_).isNormalCube();
      }
@@ -436,7 +414,7 @@
  
          return false;
      }
-@@ -640,6 +845,15 @@
+@@ -640,6 +823,15 @@
  
      public void playSound(String name, float volume, float pitch)
      {
@@ -452,7 +430,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +876,259 @@
+@@ -662,4 +854,259 @@
      }
  
      protected void sendHorseJump() {}
