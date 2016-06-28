@@ -86,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,771 @@
+@@ -63,736 +88,770 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1005,7 +1005,6 @@
 +	private long lastErrorCheckTimeMs = 0L;
 +
 +	/** MINECRIFT */
-+	public int renderpass = 0;
 +	public EulerOrient currentEulerOrientDegrees = new EulerOrient();
 +	public boolean guiYawOrientationResetRequested = false;
 +	public boolean hudShowingLastFrame = false; //Used for detecting when UI is shown, fixing the guiYaw
@@ -1579,7 +1578,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +864,14 @@
+@@ -804,16 +863,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1602,7 +1601,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +883,4004 @@
+@@ -825,1829 +882,4003 @@
          {
              clipDistance = 256.0F;
          }
@@ -2480,6 +2479,8 @@
 +		this.mc.ingameGUI.renderStreamIndicator((float)var3, (float)var4);
 +	}
 +
++	Frustrum frustrum = new Frustrum();
++	
 +	public void renderWorld(float par1, long par2)
 +	{
 +		/** MINECRIFT SHADERS MOD **/
@@ -2488,6 +2489,7 @@
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_beginRender, new Object[] {this.mc, par1, par2});
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
++		
 +		this.mc.mcProfiler.startSection("lightTex");
 +
 +		if (this.lightmapUpdateNeeded)
@@ -2541,27 +2543,31 @@
 +
 +		this.updateFogColor(par1);
 +
-+		//Main eye clear - start from here.
-+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-+
++		if (shadersMod) {
++			//Shaders.clearRenderBuffer();
++			Reflector.callVoid(Reflector.ShadersMod_Shaders_clearRenderBuffer, new Object[] {});
++		} else {			
++			//Main eye clear - start from here.
++			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);		
++		}
++		
 +		if(mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.vrPlayer.isHMDTracking())	
 +			mc.doStencilForEye(mc.currentEye == EyeType.ovrEye_Left ? 0 : 1); //TODO: dont render this every damn frame.
 +		else GL11.glDisable(GL11.GL_STENCIL_TEST);
 +
-+		if (shadersMod) {
-+			//Shaders.clearRenderBuffer();
-+			Reflector.callVoid(Reflector.ShadersMod_Shaders_clearRenderBuffer, new Object[] {});
-+		}
++		
 +		GL11.glEnable(GL11.GL_CULL_FACE);
 +		this.mc.mcProfiler.endStartSection("camera");	
 +
-+		this.setupCameraTransform(par1, 0);
-+
 +		if (shadersMod) {
-+			//Shaders.setCamera(par1);
-+			Reflector.callVoid(Reflector.ShadersMod_Shaders_setCamera, new Object[] {par1});
++			//boy that's not gonna work, is it?
++			//Reflector.callVoid(Reflector.ShadersMod_Shaders_setCamera, new Object[] {par1});
 +		}
++
 +		/** END MINECRIFT SHADERS MOD **/
++		
++		this.setupCameraTransform(par1, 0);
++		
 +		/** MINECRIFT */ // Save our projection and modelview matrices
 +		GL11.glMatrixMode(GL11.GL_PROJECTION);
 +		GL11.glPushMatrix();
@@ -2575,14 +2581,12 @@
 +		/** MINECRIFT SHADERS MOD **/
 +		if (shadersMod)
 +		{
-+			if(/*!Shaders.isShadowPass*/!(Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass) && (Config.isSkyEnabled() || Config.isSunMoonEnabled() || Config.isStarsEnabled()))
++			if((Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass) && (Config.isSkyEnabled() || Config.isSunMoonEnabled() || Config.isStarsEnabled()))
 +			{
 +				this.setupFog(-1, par1);
 +				this.mc.mcProfiler.endStartSection("sky");
-+				//Shaders.beginSky();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginSky, new Object[] {});
 +				rg.renderSky(par1);
-+				//Shaders.endSky();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_endSky, new Object[] {});
 +			}
 +			else
@@ -2612,88 +2616,85 @@
 +		{
 +			GL11.glShadeModel(GL11.GL_SMOOTH);
 +		}
-+
-+		this.mc.mcProfiler.endStartSection("culling");
-+		Frustrum frustrum = new Frustrum();
++	
 +		/** MINECRIFT */
 +		/** MINECRIFT SHADERS MOD **/
-+		if (shadersMod) {
-+			//ShadersRender.setFrustrumPosition(var14, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
-+			//ShadersRender.clipRenderersByFrustrum(this.mc.renderGlobal, var14, par1);
-+			Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {frustrum, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord});
-+			Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, frustrum, par1});
-+		}
-+		else {
-+			
-+			frustrum.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
-+			
-+			this.mc.renderGlobal.clipRenderersByFrustum(frustrum, par1);
-+		}
-+		/** END MINECRIFT SHADERS MOD **/
 +
-+		//    if (eye == 0 && renderpass == 0)  //why one eye?
-+		if ( renderpass == 0)  
++		if ( mc.currentEye == EyeType.ovrEye_Left)  //once per render
 +		{
-+			/** END MINECRIFT */
-+			/** MINECRIFT SHADERS MOD **/
-+			if (shadersMod) {
-+				//Shaders.beginUpdateChunks();
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginUpdateChunks, new Object[] {});
-+			}
-+			this.mc.mcProfiler.endStartSection("updatechunks");
-+
-+			while (!this.mc.renderGlobal.updateRenderers(player, false) && par2 != 0L)
-+			{
-+				long var17 = par2 - System.nanoTime();
-+
-+				if (var17 < 0L || var17 > 1000000000L)
-+				{
-+					break;
++			this.mc.mcProfiler.endStartSection("culling");
++				frustrum = new Frustrum();
++				
++				if (shadersMod) {
++					Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {frustrum, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord});
++					Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, frustrum, par1});
 +				}
-+			}
++				
++				else {			
++					frustrum.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
++					this.mc.renderGlobal.clipRenderersByFrustum(frustrum, par1);
++				}
++	
++			this.mc.mcProfiler.endStartSection("updatechunks");			
++				
++				if (shadersMod) {
++					//Shaders.beginUpdateChunks();
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_beginUpdateChunks, new Object[] {});
++				}
 +
-+			if (shadersMod) {
-+				//Shaders.endUpdateChunks();
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_endUpdateChunks, new Object[] {});
-+			}
++				while (!this.mc.renderGlobal.updateRenderers(player, false) && par2 != 0L)
++				{
++					long var17 = par2 - System.nanoTime();
++	
++					if (var17 < 0L || var17 > 1000000000L)
++					{
++						break;
++					}
++				}
++	
++				if (shadersMod) {
++					//Shaders.endUpdateChunks();
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_endUpdateChunks, new Object[] {});
++				}
 +			/** END MINECRIFT SHADERS MOD **/
 +		}
-+
-+		if (player.posY < 128.0D)
-+		{
-+			this.renderCloudsCheck(rg, par1);
-+		}
-+
++		
++		this.mc.mcProfiler.endStartSection("renderCloudsCheck");
++			if (player.posY < 128.0D)
++			{
++				this.renderCloudsCheck(rg, par1);
++			}
 +		this.mc.mcProfiler.endStartSection("prepareterrain");
-+		this.setupFog(0, par1);
-+		GL11.glEnable(GL11.GL_FOG);
-+		this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
-+		RenderHelper.disableStandardItemLighting();
++			this.setupFog(0, par1);
++			GL11.glEnable(GL11.GL_FOG);
++			this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
++			RenderHelper.disableStandardItemLighting();
 +		this.mc.mcProfiler.endStartSection("terrain");
 +
-+
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glPushMatrix();
-+
-+		/** MINECRIFT SHADERS MOD **/
-+		if (shadersMod) {
-+			//Shaders.beginTerrain();
-+			Reflector.callVoid(Reflector.ShadersMod_Shaders_beginTerrain, new Object[] {});
-+		}
-+
-+		rg.sortAndRender(player, 0, (double)par1);
-+
-+		if (shadersMod) {
-+			//Shaders.endTerrain();
-+			Reflector.callVoid(Reflector.ShadersMod_Shaders_endTerrain, new Object[] {});
-+		}
-+		/** END MINECRIFT SHADERS MOD **/
-+
-+
-+		GL11.glShadeModel(GL11.GL_FLAT);
-+		GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
++	
++			GL11.glMatrixMode(GL11.GL_MODELVIEW);
++			GL11.glPushMatrix();
++	
++			/** MINECRIFT SHADERS MOD **/
++			if (shadersMod) {
++				//Shaders.beginTerrain();
++				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginTerrain, new Object[] {});
++			}
++	
++			rg.sortAndRender(player, 0, (double)par1); //Render blocks
++	
++			if (shadersMod) {
++				//Shaders.endTerrain();
++				Reflector.callVoid(Reflector.ShadersMod_Shaders_endTerrain, new Object[] {});
++			}
++			/** END MINECRIFT SHADERS MOD **/
++	
++	
++			GL11.glShadeModel(GL11.GL_FLAT);
++			GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
++			
 +		boolean hasForge = Reflector.ForgeHooksClient.exists();
-+		EntityPlayer var18;
++
 +
 +		/** MINECRIFT */
 +		boolean renderOutline = this.mc.vrSettings.renderBlockOutlineMode == VRSettings.RENDER_BLOCK_OUTLINE_MODE_ALWAYS ||
@@ -2703,7 +2704,6 @@
 +		{
 +			renderOutline = false;
 +		}
-+
 +
 +		// VIVE END - don't render outline if aiming a teleport
 +		/** END MINECRIFT */
@@ -2715,10 +2715,9 @@
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glPopMatrix();
 +
-+
 +		if (this.cameraZoom == 1.0D && player instanceof EntityPlayer && renderOutline && this.mc.objectMouseOver != null && !player.isInsideOfMaterial(Material.water))   // Minecrift
 +		{
-+			var18 = (EntityPlayer)player;
++			EntityPlayer var18 = (EntityPlayer)player;
 +			GL11.glDisable(GL11.GL_ALPHA_TEST);
 +			this.mc.mcProfiler.endStartSection("outline");
 +
@@ -2731,15 +2730,14 @@
 +		/** END MINECRIFT */
 +
 +		this.mc.mcProfiler.endStartSection("destroyProgress");
-+		GL11.glEnable(GL11.GL_BLEND);
-+		OpenGlHelper.glBlendFunc(770, 1, 1, 0);
-+		rg.drawBlockDamageTexture(Tessellator.instance, player, par1);
-+		GL11.glDisable(GL11.GL_BLEND);
-+		/** MINECRIFT SHADERS MOD **/
-+		if (this.debugViewDirection == 0)
-+		{
++			GL11.glEnable(GL11.GL_BLEND);
++			OpenGlHelper.glBlendFunc(770, 1, 1, 0);
++			rg.drawBlockDamageTexture(Tessellator.instance, player, par1);
++			GL11.glDisable(GL11.GL_BLEND);
++		this.mc.mcProfiler.endStartSection("litParticles");
 +			this.enableLightmap((double)par1);
-+			this.mc.mcProfiler.endStartSection("litParticles");
++			
++		/** MINECRIFT SHADERS MOD **/
 +			if (shadersMod) {
 +				//Shaders.beginLitParticles();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginLitParticles, new Object[] {});
@@ -2747,21 +2745,23 @@
 +			var6.renderLitParticles(player, par1);
 +			RenderHelper.disableStandardItemLighting();
 +			this.setupFog(0, par1);
-+			this.mc.mcProfiler.endStartSection("particles");
++		this.mc.mcProfiler.endStartSection("particles");
++			
 +			if (shadersMod) {
 +				//Shaders.beginParticles();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginParticles, new Object[] {});
 +			}
++			
 +			var6.renderParticles(player, par1);
++			
 +			if (shadersMod) {
 +				//Shaders.endParticles();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_endParticles, new Object[] {});
 +			}
++			
 +			this.disableLightmap((double)par1);
-+		}
-+
-+		GL11.glDepthMask(false);
-+		GL11.glEnable(GL11.GL_CULL_FACE);
++			GL11.glDepthMask(false);
++			GL11.glEnable(GL11.GL_CULL_FACE);
 +		this.mc.mcProfiler.endStartSection("weather");
 +		if (shadersMod) {
 +			//Shaders.beginWeather();
@@ -2779,9 +2779,8 @@
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand0, new Object[] {this, par1, 0});
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_preWater, new Object[] {});
 +		}
-+
-+
 +		/** END MINECRIFT SHADERS MOD **/
++		
 +		GL11.glDisable(GL11.GL_BLEND);
 +		GL11.glEnable(GL11.GL_CULL_FACE);
 +		OpenGlHelper.glBlendFunc(770, 771, 1, 0);
@@ -2792,74 +2791,74 @@
 +		this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
 +		WrUpdates.resumeBackgroundUpdates();           
 +
-+		if (Config.isWaterFancy())
-+		{
-+			this.mc.mcProfiler.endStartSection("water");
-+
-+			if (this.mc.gameSettings.ambientOcclusion != 0)
++		this.mc.mcProfiler.endStartSection("water");
++			
++			if (Config.isWaterFancy())
 +			{
-+				GL11.glShadeModel(GL11.GL_SMOOTH);
-+			}
-+
-+			GL11.glEnable(GL11.GL_BLEND);
-+			OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-+
-+			if (this.mc.gameSettings.anaglyph)
-+			{
-+				if (anaglyphField == 0)
++				if (this.mc.gameSettings.ambientOcclusion != 0)
 +				{
-+					GL11.glColorMask(false, true, true, true);
++					GL11.glShadeModel(GL11.GL_SMOOTH);
++				}
++	
++				GL11.glEnable(GL11.GL_BLEND);
++				OpenGlHelper.glBlendFunc(770, 771, 1, 0);
++	
++				if (this.mc.gameSettings.anaglyph)
++				{
++					if (anaglyphField == 0)
++					{
++						GL11.glColorMask(false, true, true, true);
++					}
++					else
++					{
++						GL11.glColorMask(true, false, false, true);
++					}
++					/** MINECRIFT SHADERS MOD **/
++					if (shadersMod) {
++						//Shaders.beginWater();
++						Reflector.callVoid(Reflector.ShadersMod_Shaders_beginWater, new Object[] {});
++					}
++					rg.renderAllSortedRenderers(1, (double)par1);
++					if (shadersMod) {
++						//Shaders.endWater();
++						Reflector.callVoid(Reflector.ShadersMod_Shaders_endWater, new Object[] {});
++					}
 +				}
 +				else
 +				{
-+					GL11.glColorMask(true, false, false, true);
++					if (shadersMod) {
++						//Shaders.beginWater();
++						Reflector.callVoid(Reflector.ShadersMod_Shaders_beginWater, new Object[] {});
++					}
++					rg.renderAllSortedRenderers(1, (double)par1);
++					if (shadersMod) {
++						//Shaders.endWater();
++						Reflector.callVoid(Reflector.ShadersMod_Shaders_endWater, new Object[] {});
++					}
 +				}
-+				/** MINECRIFT SHADERS MOD **/
-+				if (shadersMod) {
-+					//Shaders.beginWater();
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_beginWater, new Object[] {});
-+				}
-+				rg.renderAllSortedRenderers(1, (double)par1);
-+				if (shadersMod) {
-+					//Shaders.endWater();
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_endWater, new Object[] {});
-+				}
++	
++				GL11.glDisable(GL11.GL_BLEND);
++				GL11.glShadeModel(GL11.GL_FLAT);
 +			}
 +			else
 +			{
 +				if (shadersMod) {
 +					//Shaders.beginWater();
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_beginWater, new Object[] {});
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_beginWater, new Object[]{});
 +				}
 +				rg.renderAllSortedRenderers(1, (double)par1);
 +				if (shadersMod) {
 +					//Shaders.endWater();
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_endWater, new Object[] {});
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_endWater, new Object[]{});
 +				}
 +			}
 +
-+			GL11.glDisable(GL11.GL_BLEND);
-+			GL11.glShadeModel(GL11.GL_FLAT);
-+		}
-+		else
-+		{
-+			this.mc.mcProfiler.endStartSection("water");
-+			if (shadersMod) {
-+				//Shaders.beginWater();
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginWater, new Object[]{});
-+			}
-+			rg.renderAllSortedRenderers(1, (double)par1);
-+			if (shadersMod) {
-+				//Shaders.endWater();
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_endWater, new Object[]{});
-+			}
-+		}
-+
 +		/** END MINECRIFT SHADERS MOD **/
++			
 +		WrUpdates.pauseBackgroundUpdates();
 +
-+		if (hasForge && this.debugViewDirection == 0)
-+		{
++		if (hasForge && this.debugViewDirection== 0) ///uuhhh this was == 0... which means we do it twice...
++		{ 
 +			RenderHelper.enableStandardItemLighting();
 +			this.mc.mcProfiler.endStartSection("entities");
 +			Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(1)});
@@ -2888,7 +2887,6 @@
 +		}          
 +
 +		eyeCollisionBlock = getEyeCollisionBlock(mc.currentEye);
-+
 +
 +		eyeCollision = (eyeCollisionBlock != null && eyeCollisionBlock.isNormalCube());
 +

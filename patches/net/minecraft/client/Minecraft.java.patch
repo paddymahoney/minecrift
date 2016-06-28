@@ -101,7 +101,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +169,4742 @@
+@@ -150,2988 +169,4740 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2272,21 +2272,20 @@
 +		GL11.glLoadIdentity();
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		this.checkGLError("Startup");
++		
 +		/** MINECRIFT SHADERS MOD **/
 +		if (Reflector.shadersModExists()) {
-+			//Shaders.startup(this);
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_startup, new Object[] {this});
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
++		
 +		/** MINECRIFT FORGE **/
 +		if (Forge) {
-+			//bar.step("Render Global instance");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Render Global instance"});
 +		}
 +
 +		this.renderGlobal = new RenderGlobal(this);
 +		if (Forge) {
-+			//bar.step("Building Blocks Texture");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Building Blocks Texture"});
 +		}
 +		if (Forge) {
@@ -3019,7 +3018,6 @@
 +
 +			if (this.entityRenderer != null)
 +			{
-+				this.entityRenderer.renderpass = eye;
 +				this.entityRenderer.theShaderGroup = shaderGroup;
 +			}
 +

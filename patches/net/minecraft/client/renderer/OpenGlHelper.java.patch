@@ -1,13 +1,14 @@
 --- a/net/minecraft/client/renderer/OpenGlHelper.java
 +++ b/net/minecraft/client/renderer/OpenGlHelper.java
-@@ -766,6 +766,9 @@
+@@ -766,6 +766,10 @@
  
      public static boolean isFramebufferEnabled()
      {
 -        return Config.isFastRender() ? false : framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
 +        /** MINECRIFT **/
++    	return true;
 +        // Disable fast render mod - everything breaks!!
-+        return /*Config.isFastRender() ? false :*/ framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
++       // return /*Config.isFastRender() ? false :*/ framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
 +        /** END MINECRIFT **/
      }
  }

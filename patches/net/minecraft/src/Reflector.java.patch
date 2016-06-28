@@ -1,6 +1,6 @@
 --- a/net/minecraft/src/Reflector.java
 +++ b/net/minecraft/src/Reflector.java
-@@ -4,22 +4,48 @@
+@@ -4,25 +4,53 @@
  import java.lang.reflect.Field;
  import java.lang.reflect.InvocationTargetException;
  import java.lang.reflect.Method;
@@ -49,7 +49,12 @@
  
  public class Reflector
  {
-@@ -136,10 +162,284 @@
++	private final static boolean DEBUG = false; 
++	
+     public static ReflectorClass ModLoader = new ReflectorClass("ModLoader");
+     public static ReflectorMethod ModLoader_renderWorldBlock = new ReflectorMethod(ModLoader, "renderWorldBlock");
+     public static ReflectorMethod ModLoader_renderInvBlock = new ReflectorMethod(ModLoader, "renderInvBlock");
+@@ -136,12 +164,287 @@
      public static ReflectorMethod ForgeItemStack_hasEffect = new ReflectorMethod(ForgeItemStack, "hasEffect", new Class[] {Integer.TYPE});
      public static ReflectorClass ForgeItemRecord = new ReflectorClass(ItemRecord.class);
      public static ReflectorMethod ForgeItemRecord_getRecordResource = new ReflectorMethod(ForgeItemRecord, "getRecordResource", new Class[] {String.class});
@@ -333,4 +338,225 @@
 +
      public static void callVoid(ReflectorMethod refMethod, Object ... params)
      {
++    	
          try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -150,7 +453,7 @@
+             {
+                 return;
+             }
+-
++            if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+             e.invoke((Object)null, params);
+         }
+         catch (Throwable var3)
+@@ -161,6 +464,7 @@
+ 
+     public static boolean callBoolean(ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -171,6 +475,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Boolean retVal = (Boolean)e.invoke((Object)null, params);
+                 return retVal.booleanValue();
+             }
+@@ -184,6 +489,7 @@
+ 
+     public static int callInt(ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -194,6 +500,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Integer retVal = (Integer)e.invoke((Object)null, params);
+                 return retVal.intValue();
+             }
+@@ -207,6 +514,7 @@
+ 
+     public static float callFloat(ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -217,6 +525,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Float retVal = (Float)e.invoke((Object)null, params);
+                 return retVal.floatValue();
+             }
+@@ -230,6 +539,7 @@
+ 
+     public static double callDouble(ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -240,6 +550,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Double retVal = (Double)e.invoke((Object)null, params);
+                 return retVal.doubleValue();
+             }
+@@ -253,6 +564,7 @@
+ 
+     public static String callString(ReflectorMethod refMethod, Object ... params)
+     {
++
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -263,6 +575,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " + refMethod.getTargetMethod().getName());
+                 String retVal = (String)e.invoke((Object)null, params);
+                 return retVal;
+             }
+@@ -276,6 +589,7 @@
+ 
+     public static Object call(ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -286,6 +600,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " + refMethod.getTargetMethod().getName());
+                 Object retVal = e.invoke((Object)null, params);
+                 return retVal;
+             }
+@@ -299,6 +614,7 @@
+ 
+     public static void callVoid(Object obj, ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             if (obj == null)
+@@ -312,7 +628,7 @@
+             {
+                 return;
+             }
+-
++            if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+             e.invoke(obj, params);
+         }
+         catch (Throwable var4)
+@@ -323,6 +639,7 @@
+ 
+     public static boolean callBoolean(Object obj, ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -333,6 +650,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Boolean retVal = (Boolean)e.invoke(obj, params);
+                 return retVal.booleanValue();
+             }
+@@ -346,6 +664,7 @@
+ 
+     public static int callInt(Object obj, ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -356,6 +675,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Integer retVal = (Integer)e.invoke(obj, params);
+                 return retVal.intValue();
+             }
+@@ -369,6 +689,7 @@
+ 
+     public static float callFloat(Object obj, ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -379,6 +700,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Float retVal = (Float)e.invoke(obj, params);
+                 return retVal.floatValue();
+             }
+@@ -392,6 +714,7 @@
+ 
+     public static double callDouble(Object obj, ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -402,6 +725,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Double retVal = (Double)e.invoke(obj, params);
+                 return retVal.doubleValue();
+             }
+@@ -415,6 +739,7 @@
+ 
+     public static String callString(Object obj, ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -425,6 +750,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 String retVal = (String)e.invoke(obj, params);
+                 return retVal;
+             }
+@@ -438,6 +764,7 @@
+ 
+     public static Object call(Object obj, ReflectorMethod refMethod, Object ... params)
+     {
++    	
+         try
+         {
+             Method e = refMethod.getTargetMethod();
+@@ -448,6 +775,7 @@
+             }
+             else
+             {
++            	if(DEBUG) System.out.println("[Vivecraft Reflector] " +refMethod.getTargetMethod().getName());
+                 Object retVal = e.invoke(obj, params);
+                 return retVal;
+             }
