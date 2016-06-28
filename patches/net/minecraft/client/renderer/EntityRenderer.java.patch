@@ -1601,7 +1601,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +882,3962 @@
+@@ -825,1829 +882,3951 @@
          {
              clipDistance = 256.0F;
          }
@@ -2483,6 +2483,8 @@
 +	
 +	public void renderWorld(float par1, long par2)
 +	{
++		boolean hasForge = Reflector.ForgeHooksClient.exists();
++		
 +		/** MINECRIFT SHADERS MOD **/
 +		boolean shadersMod = Reflector.shadersModExists();
 +		if (shadersMod) {
@@ -2524,7 +2526,7 @@
 +			
 +			if( this.mc.currentScreen == null )
 +			{
-+				getPointedBlock(par1);   // TODO: This needs to be called once, and with the average position
++			if(mc.currentEye == EyeType.ovrEye_Left)	getPointedBlock(par1);   
 +				// information for the entire frame, not individual eye pos camRelX, Y, Z
 +			}
 +			/** END MINECRIFT */
@@ -2578,9 +2580,7 @@
 +		
 +		this.mc.mcProfiler.endStartSection("frustrum");
 +			ClippingHelperImpl.getInstance();
-+
 +		this.mc.mcProfiler.endStartSection("sky");
-+	
 +			if (shadersMod)
 +			{
 +				if((Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass) && (Config.isSkyEnabled() || Config.isSunMoonEnabled() || Config.isStarsEnabled()))
@@ -2668,47 +2668,30 @@
 +		this.mc.mcProfiler.endStartSection("terrain");
 +			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +			GL11.glPushMatrix();
-+	
-+			/** MINECRIFT SHADERS MOD **/
-+			if (shadersMod) {
-+				//Shaders.beginTerrain();
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginTerrain, new Object[] {});
-+			}
-+	
-+			rg.sortAndRender(player, 0, (double)par1); //Render blocks
-+	
-+			if (shadersMod) {
-+				//Shaders.endTerrain();
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_endTerrain, new Object[] {});
-+			}
-+			/** END MINECRIFT SHADERS MOD **/
-+	
-+	
-+			GL11.glShadeModel(GL11.GL_FLAT);
-+			GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-+			
-+		boolean hasForge = Reflector.ForgeHooksClient.exists();
 +
++				if (shadersMod) {
++					//Shaders.beginTerrain();
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_beginTerrain, new Object[] {});
++				}
++		
++				rg.sortAndRender(player, 0, (double)par1); //Render blocks
++		
++				if (shadersMod) {
++					//Shaders.endTerrain();
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_endTerrain, new Object[] {});
++				}
 +
-+		/** MINECRIFT */
-+		boolean renderOutline = this.mc.vrSettings.renderBlockOutlineMode == VRSettings.RENDER_BLOCK_OUTLINE_MODE_ALWAYS ||
-+				(this.mc.vrSettings.renderBlockOutlineMode == VRSettings.RENDER_BLOCK_OUTLINE_MODE_HUD && !this.mc.vrSettings.hideGui);
-+		// VIVE START - don't render outline if aiming a teleport
-+		if (mc.vrPlayer.movementTeleportProgress>0.0f)
-+		{
-+			renderOutline = false;
-+		}
++				GL11.glShadeModel(GL11.GL_FLAT);
++				GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
++			/** MINECRIFT */
 +
-+		{ //this renders all the entities and the selection box..
-+			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+			GL11.glPopMatrix(); //what are you
-+			
-+			this.mc.mcProfiler.endStartSection("entities");
-+			
++		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++		GL11.glPopMatrix(); 
++		
++		this.mc.mcProfiler.endStartSection("entities");
 +			GL11.glPushMatrix();
 +				RenderHelper.enableStandardItemLighting();
-+
-+			
++	
 +				if (hasForge)
 +				{
 +					Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(0)});
@@ -2724,9 +2707,16 @@
 +				RenderHelper.disableStandardItemLighting();
 +				this.disableLightmap((double)par1);
 +			GL11.glPopMatrix();
-+			
++		this.mc.mcProfiler.endStartSection("outline");	
 +			GL11.glPushMatrix();
 +				/** MINECRIFT */
++				boolean renderOutline = 
++						this.mc.vrSettings.renderBlockOutlineMode == VRSettings.RENDER_BLOCK_OUTLINE_MODE_ALWAYS ||
++						(this.mc.vrSettings.renderBlockOutlineMode == VRSettings.RENDER_BLOCK_OUTLINE_MODE_HUD && 
++						!this.mc.vrSettings.hideGui);
++		
++				if (mc.vrPlayer.movementTeleportProgress>0.0f)	renderOutline = false;		// VIVE  - don't render outline if aiming a teleport
++	
 +				if (this.mc.objectMouseOver != null && player.isInsideOfMaterial(Material.water) && player instanceof EntityPlayer && renderOutline)     // Minecrift
 +				{
 +					EntityPlayer var18 = (EntityPlayer)player;
@@ -2740,9 +2730,8 @@
 +					GL11.glEnable(GL11.GL_ALPHA_TEST);
 +				}
 +			GL11.glPopMatrix();
-+		}
-+
-+		/** END MINECRIFT */
++	
++			/** END MINECRIFT */
 +
 +		this.mc.mcProfiler.endStartSection("destroyProgress");
 +			GL11.glEnable(GL11.GL_BLEND);
@@ -4401,7 +4390,7 @@
 +			
 +			// Set up crosshair position
 +			float SLIGHTLY_CLOSER = 0.001f;
-+			Vec3 cameraPos = mc.roomScale.getEyePos_World(mc.currentEye);
++			Vec3 cameraPos = mc.roomScale.getHMDPos_World();
 +			centerEyePosToCrossDirection = cameraPos.subtract(crossVec).normalize();   // VIVE use camerapos
 +			crossX = (float)(crossVec.xCoord - (centerEyePosToCrossDirection.xCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.xCoord);
 +			crossY = (float)(crossVec.yCoord - (centerEyePosToCrossDirection.yCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.yCoord);
