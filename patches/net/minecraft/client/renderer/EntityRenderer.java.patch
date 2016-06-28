@@ -86,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,770 @@
+@@ -63,736 +88,769 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1037,7 +1037,6 @@
 +	public float lookPitchOffset = 0;
 +	public int callCount = 0;
 +	public boolean warningsEnabled = false;
-+	private Vec3 centerEyePosToCrossDirection;
 +	public Vec3 crossVec;
 +	/** END MINECRIFT */
 +
@@ -1578,7 +1577,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +863,14 @@
+@@ -804,16 +862,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1601,7 +1600,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +882,3951 @@
+@@ -825,1829 +881,3949 @@
          {
              clipDistance = 256.0F;
          }
@@ -2717,7 +2716,7 @@
 +		
 +				if (mc.vrPlayer.movementTeleportProgress>0.0f)	renderOutline = false;		// VIVE  - don't render outline if aiming a teleport
 +	
-+				if (this.mc.objectMouseOver != null && player.isInsideOfMaterial(Material.water) && player instanceof EntityPlayer && renderOutline)     // Minecrift
++				if (this.mc.objectMouseOver != null && !player.isInsideOfMaterial(Material.water) && player instanceof EntityPlayer && renderOutline)     // Minecrift
 +				{
 +					EntityPlayer var18 = (EntityPlayer)player;
 +					GL11.glDisable(GL11.GL_ALPHA_TEST);
@@ -4015,9 +4014,10 @@
 +				entity.rotationYawHead = (float)cameraYaw;
 +				entity.rotationPitch = (float)cameraPitch;
 +			} else { //default to looking 'at' the crosshair position.
-+				if(centerEyePosToCrossDirection != null){
-+					float pitch = - (float)Math.toDegrees(Math.asin(centerEyePosToCrossDirection.yCoord/centerEyePosToCrossDirection.lengthVector()));
-+					float yaw = - (float)Math.toDegrees(Math.atan2(centerEyePosToCrossDirection.xCoord, centerEyePosToCrossDirection.zCoord));    
++				if(crossVec != null){
++					Vec3 playerToCrosshair = interpolatedPlayerPos.subtract(crossVec); //backwards
++					float pitch = - (float)Math.toDegrees(Math.asin(playerToCrosshair.yCoord/playerToCrosshair.lengthVector()));
++					float yaw = - (float)Math.toDegrees(Math.atan2(playerToCrosshair.xCoord, playerToCrosshair.zCoord));    
 +					entity.rotationYaw = yaw;
 +					entity.rotationYawHead = yaw;
 +					entity.rotationPitch = pitch;
@@ -4374,7 +4374,6 @@
 +					}
 +				}
 +			}
-+	
 +			
 +			if (pointedEntity != null && hitLocation !=null )
 +				crossVec = hitLocation;
@@ -4390,8 +4389,7 @@
 +			
 +			// Set up crosshair position
 +			float SLIGHTLY_CLOSER = 0.001f;
-+			Vec3 cameraPos = mc.roomScale.getHMDPos_World();
-+			centerEyePosToCrossDirection = cameraPos.subtract(crossVec).normalize();   // VIVE use camerapos
++			Vec3 centerEyePosToCrossDirection =  mc.roomScale.getHMDPos_World().subtract(crossVec).normalize();   // VIVE use camerapos
 +			crossX = (float)(crossVec.xCoord - (centerEyePosToCrossDirection.xCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.xCoord);
 +			crossY = (float)(crossVec.yCoord - (centerEyePosToCrossDirection.yCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.yCoord);
 +			crossZ = (float)(crossVec.zCoord - (centerEyePosToCrossDirection.zCoord*SLIGHTLY_CLOSER) - interpolatedPlayerPos.zCoord);
@@ -4399,7 +4397,6 @@
 +			// VIVE START - teleport movement
 +			if (!mc.vrPlayer.getFreeMoveMode() && mc.gameSettings.keyBindForward.getIsKeyPressed()) { mc.vrPlayer.updateTeleportDestinations(this, mc, mc.renderViewEntity);}
 +			// VIVE END - teleport movement
-+	
 +			/** END MINECRIFT */    
 +		}
 +	}
