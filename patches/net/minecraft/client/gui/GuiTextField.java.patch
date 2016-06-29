@@ -26,21 +26,20 @@
  
      /** Has the current text being edited on the textbox. */
      private String text = "";
-@@ -473,6 +476,13 @@
+@@ -473,6 +476,12 @@
          if (this.canLoseFocus)
          {
              this.setFocused(var4);
 +        }  else {
-+        	
++       	
 +           // VIVE START - show keyboard
 +            MCOpenVR.setKeyboardOverlayShowing(true, this);
 +          // VIVE END - show keyboard
-+          
-+        	
++	
          }
  
          if (this.isFocused && p_146192_3_ == 0)
-@@ -486,7 +496,8 @@
+@@ -486,7 +495,8 @@
  
              String var6 = this.fontRendererInstance.trimStringToWidth(this.text.substring(this.lineScrollOffset), this.getWidth());
              this.setCursorPosition(this.fontRendererInstance.trimStringToWidth(var6, var5).length() + this.lineScrollOffset);
@@ -50,7 +49,7 @@
      }
  
      /**
-@@ -673,6 +684,11 @@
+@@ -673,6 +683,11 @@
          }
  
          this.isFocused = p_146195_1_;

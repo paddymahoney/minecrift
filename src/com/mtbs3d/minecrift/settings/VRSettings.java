@@ -181,7 +181,7 @@ public class VRSettings
     public float vrWorldScale = 1.0f;
     public float vrWorldRotation = 0f;
     public float vrWorldRotationIncrement = 45f;
-    
+    public String[] vrQuickCommands;
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -739,7 +739,16 @@ public class VRSettings
                        }
                                          
                        this.buttonMappings[vb.Button.ordinal()] = vb;
-                    }                  
+                    }       
+                    if(optionTokens[0].startsWith("QUICKCOMMAND_")){
+                    	 String[] pts = optionTokens[0].split("_");
+                    	 int i = Integer.parseInt(pts[1]);
+                    	 if (optionTokens.length == 1) 
+                        	 vrQuickCommands[i] = "";
+                    	 else
+                        	 vrQuickCommands[i] = optionTokens[1];
+
+                    }
                     
                     //END JRBUDDA
          
@@ -1573,9 +1582,16 @@ public class VRSettings
             var5.println("worldScale:" + this.vrWorldScale);
             var5.println("worldRotation:" + this.vrWorldRotation);
             var5.println("worldRotationIncrement:" + this.vrWorldRotationIncrement);
+
+            if (vrQuickCommands == null) vrQuickCommands = getQuickCommandsDefaults(); //defaults
+            
+            for (int i = 0; i < 11 ; i++){
+            	var5.println("QUICKCOMMAND_" + i + ":" + vrQuickCommands[i]);
+            }
+   
            
             if (buttonMappings == null) resetBindings(); //defaults
-            
+              
             for (int i = 0; i<16;i++){
             	VRControllerButtonMapping vb = buttonMappings[i];
             	var5.println(vb.toString());
@@ -2161,6 +2177,25 @@ public class VRSettings
         return true;
     }
     
+    public String[] getQuickCommandsDefaults(){
+    	
+    	String[] out = new String[12];
+    	out[0] = "/gamemode 0";
+    	out[1] = "/gamemode 1";
+    	out[2] = "/help";
+    	out[3] = "/home";
+    	out[4] = "/sethome";
+    	out[5] = "/spawn";
+    	out[6] = "hi!";
+    	out[7] = "bye!";
+    	out[8] = "folow me!";
+    	out[9] = "take this!";
+    	out[10] = "thank you!";
+    	out[11] = "praise the sun!";
+
+    	return out;
+    	
+    }
 
     private VRControllerButtonMapping[] getBindingsDefaults(){
    	

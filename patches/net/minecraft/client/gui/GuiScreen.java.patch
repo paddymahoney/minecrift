@@ -17,7 +17,15 @@
  import net.minecraft.util.EnumChatFormatting;
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
-@@ -51,6 +56,13 @@
+@@ -44,13 +49,20 @@
+     public boolean allowUserInput;
+ 
+     /** The FontRenderer used by GuiScreen */
+-    protected FontRenderer fontRendererObj;
++    public FontRenderer fontRendererObj;
+ 
+     /** The button that was just pressed. */
+     private GuiButton selectedButton;
      private int eventButton;
      private long lastMouseEvent;
  

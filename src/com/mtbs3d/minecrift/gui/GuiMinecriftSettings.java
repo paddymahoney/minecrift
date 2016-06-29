@@ -30,7 +30,7 @@ public class GuiMinecriftSettings extends BaseGuiSettings implements GuiEventEx
             // VIVE START - hide options not relevant to teleport/room scale
             new VROption(202,                                      VROption.Position.POS_RIGHT,  2,  VROption.ENABLED, "HUD Settings..."),
             new VROption(206,                                      VROption.Position.POS_LEFT,   1f, VROption.ENABLED, "Stereo Rendering..."),
-            new VROption(VRSettings.VrOptions.VR_RENDERER,         VROption.Position.POS_RIGHT,  1f, VROption.DISABLED, null),
+            new VROption(207,								         VROption.Position.POS_RIGHT,  1f, VROption.ENABLED, "Quick Commands"),
             new VROption(209,                                      VROption.Position.POS_LEFT,   2f, VROption.ENABLED, "Locomotion Settings..."),
             new VROption(210, 							           VROption.Position.POS_RIGHT,  3f, VROption.ENABLED, "Chat/Crosshair Settings..."),
             new VROption(220, 							           VROption.Position.POS_LEFT,   3f, VROption.ENABLED, "Controller Buttons..."),
@@ -161,6 +161,13 @@ public class GuiMinecriftSettings extends BaseGuiSettings implements GuiEventEx
 
                     Minecraft.getMinecraft().vrSettings.saveOptions();
 	                this.mc.displayGuiScreen(new GuiRenderOpticsSettings(this, this.guivrSettings, this.settings));
+
+            } 
+            else if (par1GuiButton.id == 207)
+            {
+
+                    Minecraft.getMinecraft().vrSettings.saveOptions();
+	                this.mc.displayGuiScreen(new GuiQuickCommandEditor(this, this.guivrSettings));
 
             } 
             else if (par1GuiButton.id == 200)

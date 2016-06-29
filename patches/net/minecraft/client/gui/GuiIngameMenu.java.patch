@@ -4,7 +4,7 @@
  package net.minecraft.client.gui;
  
 +import com.google.common.base.Enums;
-+import com.mtbs3d.minecrift.gui.GuiQuickCommands;
++import com.mtbs3d.minecrift.gui.GuiQuickCommandsInGame;
 +
 +import net.minecraft.client.Minecraft;
  import net.minecraft.client.gui.achievement.GuiAchievements;
@@ -99,7 +99,7 @@
 +            	this.mc.displayGuiScreen(new GuiChat());
 +            	break;
 +            case 101:
-+            	this.mc.displayGuiScreen(new GuiQuickCommands());
++            	this.mc.displayGuiScreen(new GuiQuickCommandsInGame());
 +            	this.initGui();
 +            	break;
 +
