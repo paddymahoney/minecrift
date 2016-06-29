@@ -49,7 +49,7 @@
  
  public class Reflector
  {
-+	private final static boolean DEBUG = false; 
++	public final static boolean DEBUG = false; 
 +	
      public static ReflectorClass ModLoader = new ReflectorClass("ModLoader");
      public static ReflectorMethod ModLoader_renderWorldBlock = new ReflectorMethod(ModLoader, "renderWorldBlock");

@@ -127,3 +127,25 @@
          }
      }
  
+@@ -312,4 +381,21 @@
+     {
+         this.spriteList.add(new ModelSprite(this, this.textureOffsetX, this.textureOffsetY, posX, posY, posZ, sizeX, sizeY, sizeZ, sizeAdd));
+     }
++    
++    //SHADERSMOD
++    public int getDisplayList() {
++        return this.displayList;
++     }
++
++     public void resetDisplayList() {
++        if(this.compiled) {
++           GLAllocation.deleteDisplayLists(this.displayList);
++           this.displayList = 0;
++           this.compiled = false;
++        }
++
++     }
++    ///END SHADERSMOD
++    
++    
+ }

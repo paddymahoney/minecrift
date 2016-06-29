@@ -316,7 +316,7 @@ public class FBOParams
                     error = ("[ERROR] Framebuffer incomplete: Unsupported by FBO implementation.");
                     success = false;
                     break;
-
+   
                 default:
                     error = ("[ERROR] Framebuffer incomplete: Unknown error.");
                     success = false;

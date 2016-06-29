@@ -88,8 +88,24 @@ public class MinecriftClassTransformer implements IClassTransformer
     	else {
     		// Perform any additional mods using ASM
     		minecriftClass = performAsmModification(minecriftClass, transformedName);
-    		if(bytes.length != minecriftClass.length)
-    		debug(String.format("Minecrift: Overwrite " + name +" "+ transformedName + " " + bytes.length + " > "  + minecriftClass.length));
+    		if(bytes.length != minecriftClass.length){
+    		
+//    			FileOutputStream fos;
+//				try {
+//					fos = new FileOutputStream("e:\\vivecraft\\temp\\" + transformedName + ".class");
+//	    			fos.write(bytes);
+//	    			fos.close();   			
+//				} catch (FileNotFoundException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+
+    			debug(String.format("[Vivecraft tweaker]: Overwrite " + name +" "+ transformedName + " " + bytes.length + " > "  + minecriftClass.length));
+    		
+    		}
 
     		//writeToFile("original", transformedName, name, bytes);
     		//writeToFile("transformed", transformedName, name, minecriftClass);

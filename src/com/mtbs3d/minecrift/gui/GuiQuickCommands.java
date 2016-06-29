@@ -4,6 +4,7 @@ import com.google.common.base.Enums;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiOptions;
 import net.minecraft.client.gui.GuiScreen;
@@ -109,7 +110,7 @@ public class GuiQuickCommands extends GuiScreen
         switch (button.id)
         {
             case 102:
-            	this.mc.displayGuiScreen(new GuiMainMenu());
+            	this.mc.displayGuiScreen(new GuiIngameMenu());
             	break;
             default:
             	if(button.id >= 200) {

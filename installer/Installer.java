@@ -1177,7 +1177,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 "current version.<br>" +
                 "</html>");
 
-		useShadersMod = new JCheckBox("Install with ShadersMod 3.29");
+		useShadersMod = new JCheckBox("Install with ShadersMod 2.3.29");
         useShadersMod.setAlignmentX(LEFT_ALIGNMENT);
         if (!ALLOW_SHADERSMOD_INSTALL)
 			useShadersMod.setEnabled(false);

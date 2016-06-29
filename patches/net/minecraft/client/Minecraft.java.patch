@@ -101,7 +101,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +169,4737 @@
+@@ -150,2988 +169,4753 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -128,12 +128,9 @@
 +import org.lwjgl.opengl.*;
  import org.lwjgl.util.glu.GLU;
 +import org.lwjgl.util.vector.Quaternion;
-+
-+import paulscode.sound.SoundSystem;
-+import static java.lang.Math.ceil;
  
- public class Minecraft implements IPlayerUsage
- {
+-public class Minecraft implements IPlayerUsage
+-{
 -    private static final Logger logger = LogManager.getLogger();
 -    private static final ResourceLocation locationMojangPng = new ResourceLocation("textures/gui/title/mojang.png");
 -    public static final boolean isRunningOnMac = Util.getOSType() == Util.EnumOS.OSX;
@@ -1533,11 +1530,12 @@
 -                    }
 -            }
 -        }
--
++import paulscode.sound.SoundSystem;
+ 
 -        if (var1)
 -        {
 -            ItemStack var7 = this.thePlayer.inventory.getCurrentItem();
--
+ 
 -            if (var7 != null && this.playerController.sendUseItem(this.thePlayer, this.theWorld, var7))
 -            {
 -                this.entityRenderer.itemRenderer.resetEquippedProgress2();
@@ -1553,7 +1551,8 @@
 -        try
 -        {
 -            this.fullscreen = !this.fullscreen;
--
++import static java.lang.Math.ceil;
+ 
 -            if (this.fullscreen)
 -            {
 -                this.updateDisplayMode();
@@ -1629,6 +1628,8 @@
 -    private void updateFramebufferSize()
 -    {
 -        this.framebufferMc.createBindFramebuffer(this.displayWidth, this.displayHeight);
++public class Minecraft implements IPlayerUsage
++{
 +	private static final Logger logger = LogManager.getLogger();
 +	private static final ResourceLocation locationMojangPng = new ResourceLocation("textures/gui/title/mojang.png");
 +	public static final boolean isRunningOnMac = Util.getOSType() == Util.EnumOS.OSX;
@@ -2889,7 +2890,10 @@
 +			// Render GUI to FBO if necessary
 +				this.framebufferMc = this.guiFramebuffer; //draw to 2d gui.
 +				this.framebufferMc.bindFramebuffer(true);
++							
 +				this.entityRenderer.drawFramebuffer(this.timer.renderPartialTicks, var6);   // VIVE - added param for debug info
++				
++				checkGLError("post 2d ");
 +			this.mcProfiler.endSection();
 +			//if (!this.stereoProvider.isGuiOrtho()) { // Useless here
 +			//	if (fmlCommonHandler != null) {
@@ -2949,7 +2953,7 @@
 +
 +			////END MAIN VIVECRAFT RENDERING
 +			
-+			this.entityRenderer.frameFinish();
++			this.entityRenderer.frameFinish(); //does nothing
 +			this.entityRenderer.waitForServerThread();
 +			
 +			this.stream.func_152935_j();
@@ -2974,6 +2978,7 @@
 +			}
 +
 +			this.mcProfiler.endSection(); //root
++			
 +			/** MINECRIFT */
 +			//        if (this.isFramerateLimitBelowMax())
 +			//        {
@@ -2996,13 +3001,13 @@
 +
 +	private boolean renderSingleView(int eye) {
 +		boolean shouldupdate;
-+			int x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);				
-+			while (x >1){
-+				GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
-+				x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);	
-+			}
-+			clearGLError();
-+			
++//			int x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);				
++//			while (x >1){
++//				GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++//				x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);	
++//			}
++//			clearGLError();
++			checkGLError("pre eye " + eye);
 +			this.mcProfiler.startSection("setup");
 +			this.framebufferMc.bindFramebuffer(true);	//draw to eye texture.
 +			
@@ -3021,7 +3026,6 @@
 +				this.entityRenderer.theShaderGroup = shaderGroup;
 +			}
 +
-+			GL11.glPushMatrix();
 +			GL11.glClearColor(0f, 0, 0, 1f);	
 +			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 +								
@@ -3030,7 +3034,7 @@
 +				{
 +					this.gameSettings.thirdPersonView = 0;
 +				}
-+		
++					
 +				// Update our orientation and position variables from the sensor polled data
 +				this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
 +				
@@ -3049,10 +3053,15 @@
 +						}
 +					}
 +					this.mcProfiler.startSection("updateCameraAndRender");
-+
++					
++			
++					
 +						///THIS IS WHERE EVERYTHING IS RENDERED
 +						this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
-+					
++
++						checkGLError("postucr " + eye);
++						
++						
 +					this.mcProfiler.endSection();
 +					
 +					if (!this.stereoProvider.isStereo()) {
@@ -3063,29 +3072,33 @@
 +					/** END MINECRIFT FORGE **/
 +				}
 +
-+
++				checkGLError("prepostprocess " + eye);
++				
 +			this.mcProfiler.startSection("postProcessing");
 +				GL11.glPushMatrix();
 +				 	doPostProcessing(frameIndex, this.currentEye);
 +				GL11.glPopMatrix();
 +			this.mcProfiler.endSection();
 +			
++			checkGLError("postpostprocess " + eye);
++			
 +			//GL11.glPushMatrix();
 +				//this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);   // <-- TODO: What does this do? Some sort of stream status overlay? REENABLE, move to GUI FBO?
 +			//GL11.glPopMatrix();
 +							
 +			this.mcProfiler.startSection("framebufferDraw");
-+			framebufferEye.bindFramebuffer(true); //draw to eye tex
-+			framebuffer.framebufferRender(framebufferEye.framebufferWidth, framebufferEye.framebufferHeight);
++				framebufferEye.bindFramebuffer(true); //draw to eye tex
++				framebuffer.framebufferRender(framebufferEye.framebufferWidth, framebufferEye.framebufferHeight);
++				framebufferEye.unbindFramebuffer();
 +			this.mcProfiler.endSection();
 +			
-+			//this.mcProfiler.startSection("OpenGL Finish");
-+			//	GL11.glFinish();
-+			//this.mcProfiler.endSection();
-+			
++			this.mcProfiler.startSection("OpenGL Finish");
++			//	GL11.glFinish();//DO NOT LEAVE THIS UNCOMMENTED
++			this.mcProfiler.endSection();
++					
 +			this.mcProfiler.startSection("compositorSubmit");
 +				if(this.stereoProvider.isStereo())
-+					this.stereoProvider.endFrame(this.currentEye);
++				this.stereoProvider.endFrame(this.currentEye);
 +				else
 +					this.stereoProvider.endFrame();
 +			this.mcProfiler.endSection();
@@ -3094,11 +3107,13 @@
 +				shouldupdate =	copyToMirror(this.currentEye);
 +			this.mcProfiler.endSection();
 +			
-+			x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
-+			if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
-+			x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
-+			if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
-+			clearGLError();
++
++//			if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++//			x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
++//			if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
++//			clearGLError();
++
++			checkGLError("post-eye " + eye);
 +			
 +		return shouldupdate;
 +	}
@@ -6991,7 +7006,7 @@
 +			this.checkGLError("Render Texture setup");
 +
 +
-+			this.framebufferEye = new Framebuffer("L Eye", EyeTextureSize.w, EyeTextureSize.h, true, false, multiSample, multiSampleCount, this.vrSettings.useFsaa ? null : renderTexProvider);
++			this.framebufferEye = new Framebuffer("L Eye", EyeTextureSize.w, EyeTextureSize.h, true,  true, multiSample, multiSampleCount, this.vrSettings.useFsaa ? null : renderTexProvider);
 +			print(this.framebufferEye.toString());
 +			this.checkGLError("Left Eye framebuffer setup");
 +			
