@@ -430,7 +430,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +854,266 @@
+@@ -662,4 +854,268 @@
      }
  
      protected void sendHorseJump() {}
@@ -649,7 +649,7 @@
 +    		super.setPosition(x, y, z);
 +    		OpenVRPlayer.get().setRoomOrigin(
 +    				posX + ox, 
-+    				this.boundingBox.minY, 
++    				this.ridingEntity.boundingBox.minY, 
 +    				posZ  + oz, false);
 +
 +    	} else
@@ -673,9 +673,11 @@
 +    		super.moveEntity(x,y,z);
 +
 +    		if (client){	
++    			double oy = this.boundingBox.minY;
++    			if (this.isRiding()) oy = this.ridingEntity.boundingBox.minY;
 +    			OpenVRPlayer.get().setRoomOrigin(
 +    					posX + ox, 
-+    					this.boundingBox.minY, 
++    					oy, 
 +    					posZ  + oz, false);
 +    					}
 +    	} else {

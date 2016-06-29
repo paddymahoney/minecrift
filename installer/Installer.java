@@ -77,8 +77,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private String jar_id;
     private String version;
     private String mod = "";
-    private JCheckBox useForge;
-	private JCheckBox useShadersMod;
+    private JRadioButton useForge;
+	private JRadioButton useShadersMod;
+	private JRadioButton useVanilla;
+	private ButtonGroup bg = new ButtonGroup();
     private JCheckBox createProfile;
     private JComboBox forgeVersion;
     private JCheckBox useHydra;
@@ -474,17 +476,12 @@ public class Installer extends JPanel  implements PropertyChangeListener
             if( jar_id != null )
             {
                 InputStream version_json;
-                if(useForge.isSelected() /*&& forgeVersion.getSelectedItem() != forgeNotFound*/ ) {
+                if(useForge.isSelected() /*&& forgeVersion.getSelectedItem() != forgeNotFound*/ ) 
+                	{
                     String filename;
-                    if( useShadersMod.isSelected() ) {
-                        filename = "version-forge-shadersmod.json";
-                        mod="-forge-shadersmod";
-                    } else {
                         filename = "version-forge.json";
                         mod="-forge";
-                    }
-
-                    version_json = new FilterInputStream( Installer.class.getResourceAsStream(filename) ) {
+                        version_json = new FilterInputStream( Installer.class.getResourceAsStream(filename) ) {
                         public int read(byte[] buff) throws IOException {
                             int ret = in.read(buff);
                             if( ret > 0 ) {
@@ -898,11 +895,11 @@ public class Installer extends JPanel  implements PropertyChangeListener
     {
         JOptionPane optionPane = new JOptionPane(this, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, new String[]{"Install", "Cancel"});
 
-        emptyFrame = new Frame("Minecraft VR Installer");
+        emptyFrame = new Frame("Vivecraft Installer");
         emptyFrame.setUndecorated(true);
         emptyFrame.setVisible(true);
         emptyFrame.setLocationRelativeTo(null);
-        dialog = optionPane.createDialog(emptyFrame, "Minecraft VR Installer");
+        dialog = optionPane.createDialog(emptyFrame, "Vivecraft Installer");
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
         if (((String)optionPane.getValue()).equalsIgnoreCase("Install"))
@@ -1081,19 +1078,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
             releaseNotes = null;
         }
 
-        JLabel tag = new JLabel("Welcome! This will install Minecraft VR "+ version);
+        JLabel tag = new JLabel("Welcome! This will install Vivecraft "+ version);
         tag.setAlignmentX(CENTER_ALIGNMENT);
         tag.setAlignmentY(CENTER_ALIGNMENT);
         logoSplash.add(tag);
-
-        JLabel releaseNotesLink = null;
-        if (releaseNotes != null) {
-            releaseNotesLink = linkify("Release Notes", releaseNotes.toURI().toString(), releaseNotes.toURI().toString());
-            releaseNotesLink.setAlignmentX(CENTER_ALIGNMENT);
-            releaseNotesLink.setAlignmentY(CENTER_ALIGNMENT);
-            releaseNotesLink.setHorizontalAlignment(SwingConstants.CENTER);
-            logoSplash.add(releaseNotesLink);
-        }
         
         logoSplash.add(Box.createRigidArea(new Dimension(5,20)));
         tag = new JLabel("Select path to minecraft. (The default here is almost always what you want.)");
@@ -1150,7 +1138,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         JPanel forgePanel = new JPanel();
         forgePanel.setLayout( new BoxLayout(forgePanel, BoxLayout.X_AXIS));
         //Create forge: no/yes buttons
-        useForge = new JCheckBox("Install with Forge " + FORGE_VERSION,false);
+        useForge = new JRadioButton("Install Vivecraft with Forge " + FORGE_VERSION,false);
         forgeVersion = new JComboBox();
         if (!ALLOW_FORGE_INSTALL)
             useForge.setEnabled(false);
@@ -1177,8 +1165,9 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 "current version.<br>" +
                 "</html>");
 
-		useShadersMod = new JCheckBox("Install with ShadersMod 2.3.29");
+		useShadersMod = new JRadioButton("Install Vivecraft with ShadersMod 2.3.29");
         useShadersMod.setAlignmentX(LEFT_ALIGNMENT);
+        useShadersMod.setEnabled(false);
         if (!ALLOW_SHADERSMOD_INSTALL)
 			useShadersMod.setEnabled(false);
         useShadersMod.setToolTipText(
@@ -1186,7 +1175,20 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 "If checked, sets the vivecraft profile to use ShadersMod <br>" +
                 "support." +
                 "</html>");
-				
+		
+		useVanilla = new JRadioButton("Install Vivecraft");
+		useVanilla.setAlignmentX(LEFT_ALIGNMENT);
+		useVanilla.setEnabled(true);
+		useVanilla.setSelected(true);
+        useVanilla.setToolTipText(
+                "<html>" +
+                "Install the normal version of Vivecraft" +
+                "</html>");
+        
+        bg.add(useVanilla);
+        bg.add(useShadersMod);
+        bg.add(useForge);
+        
         useHydra = new JCheckBox("Razer Hydra support",false);
         useHydra.setAlignmentX(LEFT_ALIGNMENT);
         if (!ALLOW_HYDRA_INSTALL)
@@ -1211,23 +1213,32 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
         //Add option panels option panel
         forgePanel.setAlignmentX(LEFT_ALIGNMENT);
-        optPanel.add(createProfile);
+        optPanel.add(useVanilla);
         optPanel.add(forgePanel);
         optPanel.add(useShadersMod);
+        optPanel.add(createProfile);
         optPanel.add(useHrtf);
         this.add(optPanel);
 
-
         this.add(Box.createVerticalGlue());
-        JLabel website = linkify("Minecraft VR is Open Source (LGPL)! Check back here for updates.","http://minecraft-vr.com","http://minecraft-vr.com") ;
-        JLabel optifine = linkify("We make use of OptiFine for performance. Please consider donating to them!","http://optifine.net/donate.php","http://optifine.net/donate.php");
+        JLabel github = linkify("Vivecraft is open source. find it on Github","https://github.com/jrbudda/minecrift/releases","Vivecraft Github");
+        JLabel wiki = linkify("Vivecraft wiki page","https://www.reddit.com/r/Vive/wiki/minecrift_for_vive","Reddit Vivecraft Wiki");
+        JLabel donate = linkify("If you think Vivecraft is awesome, please consider donating.","https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=JVBJLN5HJJS52&lc=US&item_name=jrbudda&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)","jrbudda's Paypal");
+        JLabel optifine = linkify("Vivecraft includes OptiFine for performance. Consider donating to them as well.","http://optifine.net/donate.php","http://optifine.net/donate.php");
 
-        website.setAlignmentX(CENTER_ALIGNMENT);
-        website.setHorizontalAlignment(SwingConstants.CENTER);
+        github.setAlignmentX(CENTER_ALIGNMENT);
+        github.setHorizontalAlignment(SwingConstants.CENTER);
+        wiki.setAlignmentX(CENTER_ALIGNMENT);
+        wiki.setHorizontalAlignment(SwingConstants.CENTER);
+        donate.setAlignmentX(CENTER_ALIGNMENT);
+        donate.setHorizontalAlignment(SwingConstants.CENTER);
         optifine.setAlignmentX(CENTER_ALIGNMENT);
         optifine.setHorizontalAlignment(SwingConstants.CENTER);
+         
         this.add(Box.createRigidArea(new Dimension(5,20)));
-        this.add( website );
+        this.add( github );
+        this.add( wiki );
+        this.add( donate );
         this.add( optifine );
 
         this.setAlignmentX(LEFT_ALIGNMENT);
@@ -1356,12 +1367,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 			else
 				return "ViveCraft " + MINECRAFT_VERSION;
         }
-        else {
-			if(sm)
-				return "ViveCraft-Forge " + MINECRAFT_VERSION;
-			else
-				return "ViveCraft-SM-Forge " + MINECRAFT_VERSION;
-        }
+        else return "ViveCraft-Forge " + MINECRAFT_VERSION;
     }
 
     public static String readAsciiFile(File file)

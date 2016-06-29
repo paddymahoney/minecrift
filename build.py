@@ -126,7 +126,6 @@ def create_install(mcp_dir):
         install_out.writestr( "version.json", process_json("", version))
         install_out.writestr( "version-forge.json", process_json("-forge", version))
         install_out.writestr( "version-shadersmod.json", process_json("-shadersmod", version))
-        install_out.writestr( "version-forge-shadersmod.json", process_json("-forge-shadersmod", version))
         
         # Add release notes
         install_out.write("CHANGES.md", "release_notes.txt")
