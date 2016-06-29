@@ -254,7 +254,7 @@
 +            this.drawString(var8,"Offhand Look: " + v3Format(mc.roomScale.getControllerOffhandDir_World()) , 2, 188	, 14737632);
 +            this.drawString(var8,"World Scale: " + mc.vrSettings.vrWorldScale + " World Rotation " + mc.vrSettings.vrWorldRotation , 2, 196	, 14737632);
 + //           this.drawString(var8,"Gui " + MCOpenVR.guiPos_World.x + " " + MCOpenVR.guiPos_World.y + " " + MCOpenVR.guiPos_World.z, 2, 204	, 14737632);
-+            this.drawString(var8,"Swing " + mc.vrPlayer.tickDist * 20 + " " + mc.vrPlayer.lastmot, 2, 204	, 14737632);
++            this.drawString(var8,"Swing " + mc.vrPlayer.tickDist * 20, 2, 204	, 14737632);
 +            this.drawString(var8,"R Touchpad x " + String.format("%.2f",MCOpenVR.rtbX) + " y " + String.format("%.2f",MCOpenVR.rtbY), 2, 212	, 14737632);
 + 
 +            }

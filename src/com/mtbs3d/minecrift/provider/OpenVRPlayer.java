@@ -68,7 +68,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     public int movementTeleportArcSteps = 0;
     private boolean freeMoveMode = true;        // true when connected to another server that doesn't have this mod
 	public boolean useLControllerForRestricedMovement = true;
-    public double lastTeleportArcDisplayOffset = 0;
     public boolean noTeleportClient = true;
     
     private float teleportEnergy;
@@ -85,7 +84,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
             movementTeleportArc[i] = Vec3.createVectorHelper(0,0,0);
         }
     }
-   
     
     public void setRoomOrigin(double x, double y, double z, boolean reset ) { 
     	if (reset){
@@ -389,7 +387,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         mc.mcProfiler.endSection();
     }
 
-    private boolean wasYMoving;
     private int roomScaleMovementDelay = 0;
     
     private void doPlayerMoveInRoom(EntityPlayerSP player){
@@ -854,8 +851,10 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     public float weapongSwingLen;
 	public Vec3 weaponEnd;
 	public Vec3 weaponEndlast;
+	public Vec3 weaponEnd_room;
+	public Vec3 weaponEndlast_room;
 	public float tickDist;
-    public float lastmot;
+
 	
     public int disableSwing = 3;
     
@@ -872,37 +871,29 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         Vec3 handPos = this.getControllerMainPos_World();
         Vec3 handDirection = this.getControllerMainDir_World();
         
-        float thismot =(float) (40* Math.sqrt(player.motionX * player.motionX + player.motionZ * player.motionZ));
-        if(!player.onGround) //higher threshold when jumping and falling.
-        	thismot =(float) (40* Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ));	
-        
-        float mot = Math.max(thismot, lastmot);
-       
-        lastmot = thismot;
-        
         ItemStack is = player.inventory.getCurrentItem();
         Item item = null;
 
-        double speedthresh = (float) (is==null ? 3.5f + mot: 4.2f + mot); //account for lower apparent speed due to shorter fulcrum.         
-        float weaponLength = is == null ?  0 : 0.3f; //no reach for hand
-        float entityReachAdd =0f;
+        double speedthresh = 2.2f   ;
+        float weaponLength;
+        float entityReachAdd;
       
         if(is!=null )item = is.getItem();
         
         if (item instanceof ItemSword){
         		entityReachAdd = 2.5f;
         		weaponLength = 0.3f;
-               	speedthresh = 3f + mot;
         } else if (item instanceof ItemTool ||
         		item instanceof ItemHoe
         		){
         	entityReachAdd = 1.8f;
         	weaponLength = 0.3f;
-        	speedthresh = 3f + mot;
+        } else if (item !=null){
+        	weaponLength = 0.1f;
+        	entityReachAdd = 0.4f;
         } else {
         	weaponLength = 0.0f;
         	entityReachAdd = 0.3f;
-        	speedthresh = 1.5f + mot;
         }
 
         weaponLength *= this.worldScale;
@@ -913,21 +904,29 @@ public class OpenVRPlayer implements IRoomscaleAdapter
                 handPos.yCoord + handDirection.yCoord * weaponLength,
                 handPos.zCoord + handDirection.zCoord * weaponLength);     
         
+        Vec3 localhandPos = this.getControllerPos_Room(0);
+        
+        weaponEnd_room = Vec3.createVectorHelper(
+        		localhandPos.xCoord, 
+        		localhandPos.yCoord, 
+        		localhandPos.zCoord);
+        
         if (disableSwing > 0 ) {
         	disableSwing--;
         	if(disableSwing<0)disableSwing = 0;
         	weaponEndlast = Vec3.createVectorHelper(weaponEnd.xCoord,	 weaponEnd.yCoord, 	 weaponEnd.zCoord);
-        	lastmot = mot;
+        	weaponEndlast_room = Vec3.createVectorHelper(weaponEnd_room.xCoord,	 weaponEnd_room.yCoord, weaponEnd_room.zCoord);
         	return;
         }
         
-        tickDist = (float) (weaponEndlast.subtract(weaponEnd).lengthVector());
+        tickDist = (float) (weaponEndlast_room.subtract(weaponEnd_room).lengthVector());
         
         float speed = (float) (tickDist * 20);
         
-     	weaponEndlast = Vec3.createVectorHelper(weaponEnd.xCoord,	 weaponEnd.yCoord, 	 weaponEnd.zCoord);
+     	weaponEndlast = Vec3.createVectorHelper(weaponEnd.xCoord, weaponEnd.yCoord, weaponEnd.zCoord);
+     	weaponEndlast_room = Vec3.createVectorHelper(weaponEnd_room.xCoord,	 weaponEnd_room.yCoord, weaponEnd_room.zCoord);
         
-        int passes = (int) (tickDist / .1f);
+        int passes = (int) (tickDist / .1f); //TODO someday....
                  
         int bx = (int) MathHelper.floor_double(weaponEnd.xCoord);
         int by = (int) MathHelper.floor_double(weaponEnd.yCoord);
@@ -983,18 +982,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         		{
         			if (!(block.getMaterial() == material.air) && !block.getMaterial().isLiquid())
         			{
-        				if(canact){
-//        					float hardness = block.getPlayerRelativeBlockHardness(mc.thePlayer, mc.thePlayer.worldObj, col.blockX, col.blockY, col.blockZ);
-//        				//	System.out.println("hardness=" + hardness);
-//        					if (hardness * 4.0f > 1.0f)
-//        					{
-//    							mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
-//        						mc.playerController.onPlayerDestroyBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
-//        					} else
-//        					{
-//        						//is this viable?
-
-        					
+        				if(canact){       					
         						for (int i = 0; i < 4; i++)
         						{
         							//set delay to 0
@@ -1017,12 +1005,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         							
         							//something effects
         							mc.effectRenderer.addBlockHitEffects(col.blockX, col.blockY, col.blockZ, col.sideHit);
-        				
-
-
-        							
+   
         						}
-//        					}
         				
              				this.triggerHapticPulse(0, 1000);
             			//   System.out.println("Hit block speed =" + speed + " mot " + mot + " thresh " + speedthresh) ;            				
@@ -1033,9 +1017,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         		}
         	}
         }
-        
-        	
-        	
+               	
         if (!inAnEntity && !insolidBlock)
         {
             lastWeaponEndAir.xCoord = weaponEnd.xCoord;
@@ -1102,29 +1084,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 		Vec3 dir = getHMDDir_World();
 		return (float)Math.toDegrees(Math.asin(dir.yCoord/dir.lengthVector())); 
 	}
-
-//	@Override
-//	public Vec3 getControllerPos_World_interpolated(int c) {
-//		Vec3 out = vecMult(MCOpenVR.getAimSource(c),worldScale);
-//		out.rotateAroundY(worldRotationRadians);
-//		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);	
-//	}
-//
-//	@Override
-//	public Vec3 getEyePos_World_interpolated(EyeType eye) {
-//		Vec3 out = vecMult(MCOpenVR.getEyePosition(eye),worldScale);
-//		out.rotateAroundY(worldRotationRadians);
-//		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
-//
-//	}
-//	
-//	@Override
-//	public Vec3 getHMDPos_World_interpolated() {
-//		Vec3 out = vecMult(MCOpenVR.getCenterEyePosition(),worldScale);
-//		out.rotateAroundY(worldRotationRadians);
-//		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
-//	}
-	
 	
 	@Override
 	public boolean isControllerMainTracking() {
@@ -1318,8 +1277,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	}
 	
-	
 	Field hitBlockDelay, isHittingBlock;
+	public double lastTeleportArcDisplayOffset;
     //JRBUDDA: This is the only thing this file does, necessary? Use reflection to modify field directly from elsewhere?
     // VIVE START - function to allow damaging blocks immediately
 	private void clearBlockHitDelay() { 
