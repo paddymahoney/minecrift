@@ -562,17 +562,16 @@
      }
  
      /**
-@@ -2933,6 +3134,9 @@
+@@ -2932,7 +3133,7 @@
+                 {
                      this.theWorld.playSound((double)par3 + 0.5D, (double)par4 + 0.5D, (double)par5 + 0.5D, "random.door_close", 1.0F, this.theWorld.rand.nextFloat() * 0.1F + 0.9F, false);
                  }
- 
-+            	this.mc.vrPlayer.triggerHapticPulse(0,1000);    
-+                this.mc.vrPlayer.triggerHapticPulse(1,1000);   
+-
 +                
                  break;
  
              case 1004:
-@@ -3026,12 +3230,13 @@
+@@ -3026,12 +3227,13 @@
  
              case 2001:
                  var8 = Block.getBlockById(par6 & 4095);
@@ -588,7 +587,7 @@
                  this.mc.effectRenderer.addBlockDestroyEffects(par3, par4, par5, var8, par6 >> 12 & 255);
                  break;
  
-@@ -3128,6 +3333,9 @@
+@@ -3128,6 +3330,9 @@
  
                      for (int var24 = 0; var24 < var23; ++var24)
                      {

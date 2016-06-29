@@ -1807,7 +1807,8 @@ public class MCOpenVR
    		mc.mcProfiler.startSection("applyGUIModelView");
 	
 			Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
-	   		
+			Vec3 eye =mc.entityRenderer.getEyeRenderPos();
+			
 			if(mc.theWorld == null)
 				mc.vrSettings.vrWorldRotation = 0;
 			
@@ -1856,6 +1857,7 @@ public class MCOpenVR
 			// HUD view - attach to head or controller
 			else if (mc.theWorld!=null && (mc.currentScreen==null || mc.vrSettings.floatInventory == false))
 			{
+				eye = mc.roomScale.getEyePos_World(eyeType); //dont need interpolation.
 				guiScale = mc.vrSettings.vrWorldScale;
 				if (mc.vrSettings.hudLockToHead)
 				{
@@ -1881,6 +1883,7 @@ public class MCOpenVR
 				}
 				else //hud on hand
 				{
+
 					Matrix4f out = MCOpenVR.getAimRotation(1);
 					Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
 					Matrix4f MguiRotationPose =  Matrix4f.multiply(rot,out);
@@ -1909,7 +1912,6 @@ public class MCOpenVR
 			GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
 		
 			// offset from eye to gui pos
-			Vec3 eye = mc.vrPlayer.getEyePos_World(eyeType);
 			//eye.rotateAroundY((float) Math.toRadians(-mc.vrSettings.vrWorldRotation));
 			GL11.glTranslatef((float) (guiPos_World.x - eye.xCoord), (float)(guiPos_World.y - eye.yCoord), (float)(guiPos_World.z - eye.zCoord));
 			GL11.glPushMatrix();

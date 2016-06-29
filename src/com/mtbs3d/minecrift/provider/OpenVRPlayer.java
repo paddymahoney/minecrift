@@ -355,7 +355,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
             //execute teleport      
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
 
-            
             if(mc.vrSettings.vrLimitedSurvivalTeleport){
               player.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));    
               
@@ -363,7 +362,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
               	teleportEnergy -= movementTeleportDistance * 4;	
               }              
             }
-               
             
           //  System.out.println("teleport " + dest.toString());
             player.fallDistance = 0.0F;
@@ -396,7 +394,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     
     private void doPlayerMoveInRoom(EntityPlayerSP player){
     	// this needs... work...
-    	if(true) return;
+    	//if(true) return;
     	if(roomScaleMovementDelay > 0){
     		roomScaleMovementDelay--;
     		return;
