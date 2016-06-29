@@ -1,0 +1,99 @@
+--- a/net/minecraft/client/gui/inventory/GuiContainer.java
++++ b/net/minecraft/client/gui/inventory/GuiContainer.java
+@@ -3,7 +3,9 @@
+ import java.util.HashSet;
+ import java.util.Iterator;
+ import java.util.Set;
++
+ import net.minecraft.client.Minecraft;
++import net.minecraft.client.gui.FontRenderer;
+ import net.minecraft.client.gui.GuiScreen;
+ import net.minecraft.client.renderer.OpenGlHelper;
+ import net.minecraft.client.renderer.RenderHelper;
+@@ -12,10 +14,12 @@
+ import net.minecraft.inventory.Container;
+ import net.minecraft.inventory.Slot;
+ import net.minecraft.item.ItemStack;
++import net.minecraft.src.Reflector;
+ import net.minecraft.util.EnumChatFormatting;
+ import net.minecraft.util.IIcon;
+ import net.minecraft.util.MathHelper;
+ import net.minecraft.util.ResourceLocation;
++
+ import org.lwjgl.input.Keyboard;
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.opengl.GL12;
+@@ -140,7 +144,11 @@
+             }
+         }
+ 
++        //Forge: Force lighting to be disabled as there are some issue where lighting would
++        //incorrectly be applied based on items that are in the inventory.
++        GL11.glDisable(GL11.GL_LIGHTING);
+         this.drawGuiContainerForegroundLayer(mouseX, mouseY);
++        GL11.glEnable(GL11.GL_LIGHTING);
+         InventoryPlayer var15 = this.mc.thePlayer.inventory;
+         ItemStack var16 = this.draggedStack == null ? var15.getItemStack() : this.draggedStack;
+ 
+@@ -208,8 +216,13 @@
+         GL11.glTranslatef(0.0F, 0.0F, 32.0F);
+         this.zLevel = 200.0F;
+         itemRender.zLevel = 200.0F;
+-        itemRender.renderItemAndEffectIntoGUI(this.fontRendererObj, this.mc.getTextureManager(), stack, x, y);
+-        itemRender.renderItemOverlayIntoGUI(this.fontRendererObj, this.mc.getTextureManager(), stack, x, y - (this.draggedStack == null ? 0 : 8), altText);
++        /** FORGE **/
++        FontRenderer font = null;
++        if (Reflector.forgeExists() && stack != null) font = (FontRenderer)Reflector.call(stack.getItem(), Reflector.MinecraftItem_Forge_getFontRenderer, new Object[] {stack});
++        if (font == null) font = this.fontRendererObj;
++        itemRender.renderItemAndEffectIntoGUI(font, this.mc.getTextureManager(), stack, x, y);
++        itemRender.renderItemOverlayIntoGUI(font, this.mc.getTextureManager(), stack, x, y - (this.draggedStack == null ? 0 : 8), altText);
++        /** END FORGE **/
+         this.zLevel = 0.0F;
+         itemRender.zLevel = 0.0F;
+     }
+@@ -281,8 +294,10 @@
+             if (var9 != null)
+             {
+                 GL11.glDisable(GL11.GL_LIGHTING);
++                GL11.glEnable(GL11.GL_BLEND); // Forge: Blending needs to be enabled for this.
+                 this.mc.getTextureManager().bindTexture(TextureMap.locationItemsTexture);
+                 this.drawTexturedModelRectFromIcon(var2, var3, var9, 16, 16);
++                GL11.glDisable(GL11.GL_BLEND); // Forge: And clean that up
+                 GL11.glEnable(GL11.GL_LIGHTING);
+                 var6 = true;
+             }
+@@ -412,7 +427,7 @@
+                         }
+                         else
+                         {
+-                            boolean var12 = var11 != -999 && (Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54));
++                            boolean var12 = var11 != -999 && (Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54) || pressShiftFake);
+                             byte var13 = 0;
+ 
+                             if (var12)
+@@ -510,6 +525,7 @@
+      */
+     protected void mouseReleased(int mouseX, int mouseY, int state)
+     {
++    	super.mouseReleased(mouseX, mouseY, state); //Forge, Call parent to release buttons
+         Slot var4 = this.getSlotAtPosition(mouseX, mouseY);
+         int var5 = this.guiLeft;
+         int var6 = this.guiTop;
+@@ -531,7 +547,7 @@
+ 
+         if (this.doubleClick && var4 != null && state == 0 && this.inventorySlots.func_94530_a((ItemStack)null, var4))
+         {
+-            if (isShiftKeyDown())
++            if (isShiftKeyDown() || pressShiftFake)
+             {
+                 if (var4 != null && var4.inventory != null && this.shiftClickedSlot != null)
+                 {
+@@ -638,7 +654,7 @@
+                 }
+                 else
+                 {
+-                    var9 = var8 != -999 && (Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54));
++                    var9 = var8 != -999 && (Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54) || pressShiftFake);
+ 
+                     if (var9)
+                     {
