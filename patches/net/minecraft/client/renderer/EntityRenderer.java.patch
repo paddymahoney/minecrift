@@ -2479,7 +2479,7 @@
 +		this.mc.ingameGUI.renderStreamIndicator((float)var3, (float)var4);
 +	}
 +
-+	Frustrum frustrum = new Frustrum();
++	Frustrum currentFrustum = new Frustrum();
 +	
 +	public void renderWorld(float par1, long par2)
 +	{
@@ -2620,16 +2620,16 @@
 +		this.mc.mcProfiler.endStartSection("culling");
 +			if ( mc.currentEye == EyeType.ovrEye_Left)  //once per render
 +			{
-+					frustrum = new Frustrum();
++					currentFrustum = new Frustrum();
 +					
 +					if (shadersMod) {
-+						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {frustrum, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord});
-+						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, frustrum, par1});
++						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {currentFrustum, interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord});
++						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, currentFrustum, par1});
 +					}
 +					
 +					else {			
-+						frustrum.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
-+						this.mc.renderGlobal.clipRenderersByFrustum(frustrum, par1);
++						currentFrustum.setPosition(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
++						this.mc.renderGlobal.clipRenderersByFrustum(currentFrustum, par1);
 +					}
 +		
 +				this.mc.mcProfiler.endStartSection("updatechunks");			
@@ -2698,7 +2698,7 @@
 +					Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(0)});
 +				}
 +			
-+				rg.renderEntities(player, frustrum, par1);
++				rg.renderEntities(player, currentFrustum, par1);
 +			
 +				if (hasForge)
 +				{
