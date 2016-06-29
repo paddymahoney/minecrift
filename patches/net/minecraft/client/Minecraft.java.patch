@@ -101,7 +101,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +169,4740 @@
+@@ -150,2988 +169,4737 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -5806,9 +5806,6 @@
 +	 */
 +	public void loadWorld(WorldClient worldClientIn)
 +	{
-+		// VIVE START - reset room origin
-+		vrPlayer.setRoomOrigin(0, 0, 0, true);
-+		// VIVE END - reset room origin
 +		this.loadWorld(worldClientIn, "");
 +	}
 +

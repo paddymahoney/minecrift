@@ -1112,13 +1112,21 @@ public class VRSettings
                 return vrComfortTransitionAngleDegs;
             // VIVE START - new options
             case WORLD_SCALE:
-            	if(vrWorldScale < 1.5){
-            		return -1/vrWorldScale  + 10 ;
-            	} else if (vrWorldScale == 1.5f){
-            		return 10;  
-            	} else {
-            		return(vrWorldScale/2 + 10);            		
-            	}
+            	
+            	if(vrWorldScale ==  0.1f) return 0;
+            	if(vrWorldScale ==  0.25f) return 1;
+            	if(vrWorldScale >=  0.5f && vrWorldScale <=  2.0f) return (vrWorldScale / 0.1f) - 3f;
+            	if(vrWorldScale == 3) return 18;
+            	if(vrWorldScale == 4) return 19;
+            	if(vrWorldScale == 6) return 20;
+            	if(vrWorldScale == 8) return 21;
+            	if(vrWorldScale == 10) return 22;
+            	if(vrWorldScale == 12) return 23;
+            	if(vrWorldScale == 16) return 24;
+            	if(vrWorldScale == 20) return 25;
+
+            	return 7;
+ 
             case WORLD_ROTATION:
                 return vrWorldRotation;
             case WORLD_ROTATION_INCREMENT:
@@ -1413,13 +1421,18 @@ public class VRSettings
                 break;
             // VIVE START - new options
             case WORLD_SCALE:
-            	if(par2 < 10){
-            		this.vrWorldScale = 1 / (10-par2);
-            	} else if (par2 == 10){
-            		this.vrWorldScale = 1.5f;   
-            	} else {
-            		this.vrWorldScale = (par2 - 10) * 2;            		
-            	}
+            	if(par2 ==  0) vrWorldScale = 0.1f;
+            	else if(par2 ==  1) vrWorldScale = 0.25f;
+            	else if(par2 >=  2 && par2 <=  17) vrWorldScale = (float) (par2 * 0.1 + 0.3);
+            	else if(par2 == 18) vrWorldScale = 3f;
+            	else if(par2 == 19) vrWorldScale = 4f;
+            	else if(par2 == 20) vrWorldScale = 6f;
+            	else if(par2 == 21) vrWorldScale = 8f;
+            	else if(par2 == 22) vrWorldScale = 10f;
+            	else if(par2 == 23) vrWorldScale = 12f;
+            	else if(par2 == 24) vrWorldScale = 16f;
+            	else if(par2 == 25) vrWorldScale = 20f;
+            	else vrWorldScale = 1;           	
                 break;
             case WORLD_ROTATION:
                 this.vrWorldRotation = par2;

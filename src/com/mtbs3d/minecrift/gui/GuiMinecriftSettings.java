@@ -90,7 +90,7 @@ public class GuiMinecriftSettings extends BaseGuiSettings implements GuiEventEx
                 
     			if(o == VrOptions.WORLD_SCALE){
                      minValue = 0f;
-                     maxValue = 20f;
+                     maxValue = 25f;
                      increment = 1f;
     			}
     			else if (o == VrOptions.WORLD_ROTATION){

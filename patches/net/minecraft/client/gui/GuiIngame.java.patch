@@ -77,7 +77,7 @@
      private static final String __OBFID = "CL_00000661";
  
      public GuiIngame(Minecraft p_i46379_1_)
-@@ -78,6 +86,35 @@
+@@ -78,6 +86,34 @@
          this.streamIndicator = new GuiStreamIndicator(this.mc);
      }
  
@@ -93,7 +93,6 @@
 +		OpenGlHelper.glBlendFunc(GL11.GL_ONE_MINUS_DST_COLOR, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0); //color blend for corsshair transparency
 +		GL11.glDisable(GL11.GL_DEPTH_TEST); //no occlusion on menu cursor		
 +		GL11.glDisable(GL11.GL_LIGHTING);
-+	
 +		GL11.glColorMask(true,  true,  true,  false); // DISBALE CHANIGNG UNDERLYING ALPHA VALUE
 +		
 +		//GL11.glColor4f(.8f, .8f, .8f, 1f);
@@ -113,7 +112,7 @@
      /**
       * Render the ingame overlay with quick icon bar, ...
       */
-@@ -121,20 +158,36 @@
+@@ -121,20 +157,36 @@
          int var13;
  
          if (!this.mc.playerController.enableEverythingIsScrewedUpMode())
@@ -155,7 +154,7 @@
              this.mc.mcProfiler.endSection();
  
              if (this.mc.playerController.shouldDrawHUD())
-@@ -143,19 +196,20 @@
+@@ -143,19 +195,20 @@
              }
  
              this.mc.mcProfiler.startSection("actionBar");
@@ -188,7 +187,7 @@
              GL11.glDisable(GL11.GL_BLEND);
          }
  
-@@ -312,11 +366,14 @@
+@@ -312,11 +365,14 @@
          {
              this.mc.mcProfiler.startSection("debug");
              GL11.glPushMatrix();
@@ -208,7 +207,7 @@
              long var36 = Runtime.getRuntime().maxMemory();
              long var41 = Runtime.getRuntime().totalMemory();
              long var44 = Runtime.getRuntime().freeMemory();
-@@ -326,12 +383,27 @@
+@@ -326,12 +382,27 @@
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 2, 14737632);
              var20 = "Allocated memory: " + var41 * 100L / var36 + "% (" + var41 / 1024L / 1024L + "MB)";
              this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 12, 14737632);
@@ -239,20 +238,20 @@
              int var25 = MathHelper.floor_double((double)(this.mc.thePlayer.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
              this.drawString(var8, "f: " + var25 + " (" + Direction.directions[var25] + ") / " + MathHelper.wrapAngleTo180_float(this.mc.thePlayer.rotationYaw), 2, 88, 14737632);
  
-@@ -347,6 +419,22 @@
+@@ -347,6 +418,22 @@
              {
                  this.drawString(var8, String.format("shader: %s", new Object[] {this.mc.entityRenderer.getShaderGroup().getShaderGroupName()}), 2, 112, 14737632);
              }
 +            if(true){
-+            this.drawString(var8,"Room: " + v3Format( mc.vrPlayer.getRoomOriginPos_World()) , 2, 124, 14737632);
-+            this.drawString(var8,"HMD: " + v3Format(mc.vrPlayer.getHMDPos_Room()) + v3Format(mc.vrPlayer.getHMDPos_World()) , 2, 132, 14737632);
-+            this.drawString(var8,"Main: " +v3Format( mc.vrPlayer.getControllerPos_Room(0) )+ v3Format(mc.vrPlayer.getControllerMainPos_World()) , 2, 140, 14737632);
-+            this.drawString(var8,"Offhand: " +v3Format( mc.vrPlayer.getControllerPos_Room(1)) + v3Format(mc.vrPlayer.getControllerOffhandPos_World()) , 2, 148, 14737632);
-+            this.drawString(var8,"Player: "  + v3Format(mc.vrPlayer.getRoomOriginPos_World().subtract(mc.entityRenderer.interpolatedPlayerPos)) + v3Format(mc.entityRenderer.interpolatedPlayerPos) , 2, 156	, 14737632);
++            this.drawString(var8,"Room: " + v3Format( mc.roomScale.getRoomOriginPos_World()) , 2, 124, 14737632);
++            this.drawString(var8,"HMD: " + v3Format(mc.roomScale.getHMDPos_Room()) + v3Format(mc.roomScale.getHMDPos_World()) , 2, 132, 14737632);
++            this.drawString(var8,"Main: " +v3Format( mc.roomScale.getControllerPos_Room(0) )+ v3Format(mc.roomScale.getControllerMainPos_World()) , 2, 140, 14737632);
++            this.drawString(var8,"Offhand: " +v3Format( mc.roomScale.getControllerPos_Room(1)) + v3Format(mc.roomScale.getControllerOffhandPos_World()) , 2, 148, 14737632);
++            this.drawString(var8,"Player: "  + v3Format(mc.roomScale.getRoomOriginPos_World().subtract(mc.entityRenderer.interpolatedPlayerPos)) + v3Format(mc.entityRenderer.interpolatedPlayerPos) , 2, 156	, 14737632);
 +            this.drawString(var8,"Crosshair: " + v3Format(mc.entityRenderer.crossVec) , 2, 164	, 14737632);
-+            this.drawString(var8,"HMD Look: " +v3Format( mc.vrPlayer.getHMDDir_World()) , 2, 172	, 14737632);
-+            this.drawString(var8,"Main Look: " + v3Format(mc.vrPlayer.getControllerMainDir_World()), 2, 180	, 14737632);
-+            this.drawString(var8,"Offhand Look: " + v3Format(mc.vrPlayer.getControllerOffhandDir_World()) , 2, 188	, 14737632);
++            this.drawString(var8,"HMD Look: " +v3Format( mc.roomScale.getHMDDir_World()) , 2, 172	, 14737632);
++            this.drawString(var8,"Main Look: " + v3Format(mc.roomScale.getControllerMainDir_World()), 2, 180	, 14737632);
++            this.drawString(var8,"Offhand Look: " + v3Format(mc.roomScale.getControllerOffhandDir_World()) , 2, 188	, 14737632);
 +            this.drawString(var8,"World Scale: " + mc.vrSettings.vrWorldScale + " World Rotation " + mc.vrSettings.vrWorldRotation , 2, 196	, 14737632);
 + //           this.drawString(var8,"Gui " + MCOpenVR.guiPos_World.x + " " + MCOpenVR.guiPos_World.y + " " + MCOpenVR.guiPos_World.z, 2, 204	, 14737632);
 +            this.drawString(var8,"Swing " + mc.vrPlayer.tickDist * 20 + " " + mc.vrPlayer.lastmot, 2, 204	, 14737632);
@@ -262,7 +261,7 @@
  
              GL11.glPopMatrix();
              this.mc.mcProfiler.endSection();
-@@ -501,9 +589,10 @@
+@@ -501,9 +588,10 @@
      {
          this.streamIndicator.render((int)(p_152126_1_ - 10.0F), 10);
      }
@@ -276,7 +275,7 @@
          Scoreboard var5 = p_96136_1_.getScoreboard();
          Collection var6 = var5.getSortedScores(p_96136_1_);
  
-@@ -549,9 +638,10 @@
+@@ -549,9 +637,10 @@
              }
          }
      }
@@ -290,7 +289,7 @@
          boolean var3 = this.mc.thePlayer.hurtResistantTime / 3 % 2 == 1;
  
          if (this.mc.thePlayer.hurtResistantTime < 10)
-@@ -830,7 +920,9 @@
+@@ -830,7 +919,9 @@
      /**
       * Renders dragon's (boss) health on the HUD
       */
@@ -301,7 +300,7 @@
      {
          if (BossStatus.bossName != null && BossStatus.statusBarTime > 0)
          {
-@@ -856,9 +948,15 @@
+@@ -856,9 +947,15 @@
              this.mc.getTextureManager().bindTexture(icons);
          }
      }
@@ -319,7 +318,7 @@
          GL11.glDisable(GL11.GL_DEPTH_TEST);
          GL11.glDepthMask(false);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -881,8 +979,15 @@
+@@ -881,8 +978,15 @@
      /**
       * Renders the vignette. Args: vignetteBrightness, width, height
       */
@@ -336,7 +335,7 @@
          p_73829_1_ = 1.0F - p_73829_1_;
  
          if (p_73829_1_ < 0.0F)
-@@ -913,8 +1018,9 @@
+@@ -913,8 +1017,9 @@
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
      }
@@ -348,7 +347,7 @@
      {
          if (p_130015_1_ < 1.0F)
          {
-@@ -950,7 +1056,9 @@
+@@ -950,7 +1055,9 @@
      /**
       * Renders the specified item of the inventory slot at the specified location. Args: slot, x, y, partialTick
       */
@@ -359,7 +358,7 @@
      {
          ItemStack var5 = this.mc.thePlayer.inventory.mainInventory[p_73832_1_];
  
-@@ -1039,4 +1147,23 @@
+@@ -1039,4 +1146,23 @@
      {
          return this.updateCounter;
      }

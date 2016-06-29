@@ -430,7 +430,7 @@
          this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, name, volume, pitch, false);
      }
  
-@@ -662,4 +854,259 @@
+@@ -662,4 +854,264 @@
      }
  
      protected void sendHorseJump() {}
@@ -619,16 +619,21 @@
 +    @Override
 +    public void setLocationAndAngles(double x, double y, double z, float yaw, float pitch)
 +    {
-+    	Vec3 roomOrigin = OpenVRPlayer.get().getRoomOriginPos_World();
-+    	double ox = roomOrigin.xCoord - posX;
-+    	double oz = roomOrigin.zCoord - posZ;
++    	 	
++//    	Vec3 roomOrigin = OpenVRPlayer.get().getRoomOriginPos_World();
++//    	double ox = roomOrigin.xCoord - posX;
++//    	double oz = roomOrigin.zCoord - posZ;
++//    	
 +    	super.setLocationAndAngles(x, y, z, yaw, pitch);
++    	
 +    	if(!initFromServer) return;
 +    	else { //still init.
-+    		OpenVRPlayer.get().setRoomOrigin(
-+    				posX + ox, 
-+    				this.boundingBox.minY, 
-+    				posZ  + oz, false);
++            mc.vrPlayer.snapRoomOriginToPlayerEntity(this, true);
++            
++//    		OpenVRPlayer.get().setRoomOrigin(
++//    				posX + ox, 
++//    				this.boundingBox.minY, 
++//    				posZ  + oz, false);
 +    	}
 +    }
 +    

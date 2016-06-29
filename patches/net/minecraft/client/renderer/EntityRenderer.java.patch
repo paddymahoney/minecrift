@@ -86,7 +86,7 @@
  import net.minecraft.util.AxisAlignedBB;
  import net.minecraft.util.ChatComponentText;
  import net.minecraft.util.MathHelper;
-@@ -63,736 +88,769 @@
+@@ -63,736 +88,770 @@
  import net.minecraft.world.biome.BiomeGenBase;
  import org.apache.logging.log4j.LogManager;
  import org.apache.logging.log4j.Logger;
@@ -1014,6 +1014,7 @@
 +	public boolean inWorldGuiScreenShowingThisFrame = false;
 +	public float inGameMenuHeadYaw = 0.0f; //Not including mouse
 +	public Vec3 interpolatedPlayerPos = Vec3.createVectorHelper(0, 0, 0);
++    private Vec3 interPolatedRoomOrigin = Vec3.createVectorHelper(0,0,0);
 +	public double cameraRoll;
 +	public float headYaw = 0.0F; //relative to head tracker reference frame, absolute
 +	public float headPitch = 0.0F;
@@ -1577,7 +1578,7 @@
          this.farPlaneDistance = (float)(this.mc.gameSettings.renderDistanceChunks * 16);
  
          if (Config.isFogFancy())
-@@ -804,16 +862,14 @@
+@@ -804,16 +863,14 @@
          {
              this.farPlaneDistance *= 0.83F;
          }
@@ -1600,7 +1601,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +881,3949 @@
+@@ -825,1829 +882,3914 @@
          {
              clipDistance = 256.0F;
          }
@@ -2518,13 +2519,14 @@
 +			interpolatedPlayerPos.xCoord = player.lastTickPosX + (player.posX - player.lastTickPosX) * (double)par1;
 +			interpolatedPlayerPos.yCoord = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double)par1;
 +			interpolatedPlayerPos.zCoord = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double)par1;
-+			interpolatedPlayerPos = Vec3.createVectorHelper(interpolatedPlayerPos.xCoord, interpolatedPlayerPos.yCoord, interpolatedPlayerPos.zCoord);
-+			
-+			//update interpolatedRoomOrigin
-+			mc.vrPlayer.onFrameUpdate(par1);
++
++			interPolatedRoomOrigin.xCoord = mc.vrPlayer.lastroomOrigin.xCoord + (mc.vrPlayer.roomOrigin.xCoord - mc.vrPlayer.lastroomOrigin.xCoord ) * (double)par1;
++			interPolatedRoomOrigin.yCoord = mc.vrPlayer.lastroomOrigin.yCoord + (mc.vrPlayer.roomOrigin.yCoord - mc.vrPlayer.lastroomOrigin.yCoord ) * (double)par1;		
++			interPolatedRoomOrigin.zCoord = mc.vrPlayer.lastroomOrigin.zCoord + (mc.vrPlayer.roomOrigin.zCoord - mc.vrPlayer.lastroomOrigin.zCoord ) * (double)par1;
 +			
 +			if( this.mc.currentScreen == null )
 +			{
++		
 +			if(mc.currentEye == EyeType.ovrEye_Left)	getPointedBlock(par1);   
 +				// information for the entire frame, not individual eye pos camRelX, Y, Z
 +			}
@@ -4427,7 +4429,7 @@
 +		if (this.mc.gameSettings.thirdPersonView == 2)	GL11.glRotatef((float) -this.headRoll, 0.0F, 0.0F, 1.0F);
 +		else GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
 +			
-+		Vec3 campos = getCameraPos_Render();
++		Vec3 campos =  this.getEyeRenderPos().subtract(interpolatedPlayerPos);
 +	//	Vec3 center = mc.roomScale.getRoomOriginPos_World();
 +		// Position
 +	
@@ -4444,6 +4446,18 @@
 +		}
 +	}
 +
++	private Vec3 getControllerRenderPos(int c){
++		Vec3 out = mc.roomScale.getControllerPos_Room(c);
++		out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
++		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
++	}
++	
++	private Vec3 getEyeRenderPos(){
++		Vec3 out = mc.roomScale.getEyePos_Room(mc.currentEye);
++		out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
++		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
++	}
++	
 +	/** Renders the pre-generated 2-d framebuffer into the world at the appropriate location..
 +	 * @param par1
 +	 */
@@ -4580,7 +4594,6 @@
 +				GL11.glLoadIdentity();
 +				GL11.glTranslatef(0.0F, 0.0F, -2000.0F);
 +
-+
 +				if (this.mc.theWorld != null && this.mc.currentScreen != null)
 +					this.inWorldGuiScreenShowingThisFrame = true; // In game menus will open at look forward orient, with no depth check applied
 +				else
@@ -4620,9 +4633,8 @@
 +					if (mc.stereoProvider.isStereo()) {
 +						if (fmlCommonHandler != null) {
 +							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{renderPartialTicks});		
-+					}
-+				
 +						}
++					}
 +
 +					/** END MINECRIFT FORGE **/
 +					GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
@@ -4695,7 +4707,6 @@
 +
 +					GL11.glDisable(GL11.GL_LIGHTING); //inventory messes up fog color sometimes... This fixes
 +					GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-+
 +				}
 +			}
 +		}
@@ -4833,28 +4844,14 @@
 +
 +		return viewAdjust;
 +	}
-+
-+	public Vec3 getCameraPos_Render(){
-+		Vec3 out = mc.roomScale.getEyePos_World(mc.currentEye).subtract(mc.renderViewEntity.getPosition(1));
-+		return out;
-+	}
-+	
-+	public Vec3 getMainHandPos_Render(){
-+		Vec3 out =  mc.roomScale.getControllerMainPos_World().subtract(mc.renderViewEntity.getPosition(1));
-+		return out;
-+	}
-+	
-+	public Vec3 getOffHandPos_Render(){
-+		Vec3 out =  mc.roomScale.getControllerOffhandPos_World().subtract(mc.renderViewEntity.getPosition(1));
-+		return out;
-+	}
-+	
 +	
 +	//please push your matrix first. and pop after.
 +	public void SetupRenderingAtController(int controller){
-+		Vec3 aimSource = getMainHandPos_Render();
-+		if(controller == 1)aimSource= getOffHandPos_Render(); //TODO: cmon lazy.
-+	
++		
++		Vec3 aimSource = this.getControllerRenderPos(controller).
++						subtract(interpolatedPlayerPos);
++
++		
 +		if (aimSource!=null)
 +		{ //move from head to hand origin.
 +				GL11.glTranslatef(
@@ -5008,7 +5005,7 @@
 +		
 +					tes.setColorRGBA(255 - 127 * c,255 - 127 * c,255 - 127 * c,255);
 +					
-+					Vec3 controllerPos = mc.roomScale.getEyePos_World(mc.currentEye).subtract(mc.roomScale.getControllerPos_World(c));
++					Vec3 controllerPos = this.getEyeRenderPos().subtract(this.getControllerRenderPos(c));
 +					
 +					GL11.glPushMatrix();
 +						GL11.glTranslatef(
@@ -5460,40 +5457,9 @@
 +	
 +	}
 +
-+	public Vec3 getCameraBlock(){
-+		Vec3 cam = mc.roomScale.getHMDPos_World();
-+		return Vec3.createVectorHelper(Math.floor(cam.xCoord), Math.floor(cam.yCoord), Math.floor(cam.zCoord));
-+	}
-+
 +	public Vec3 getEyeBlock(EyeType eye){
 +		Vec3 cam = mc.roomScale.getEyePos_World(eye);
 +		return Vec3.createVectorHelper(Math.floor(cam.xCoord), Math.floor(cam.yCoord), Math.floor(cam.zCoord));
-+	}
-+
-+	public boolean cameraIsInOpaqueBlock(){
-+	
-+		//        for (int var1 = 0; var1 < 8; ++var1)
-+		//        {
-+		//            float var2 = ((float)((var1 >> 0) % 2) - 0.5F) * this.width * 0.8F;
-+		//            float var3 = ((float)((var1 >> 1) % 2) - 0.5F) * 0.1F;
-+		//            float var4 = ((float)((var1 >> 2) % 2) - 0.5F) * this.width * 0.8F;
-+	
-+		Vec3 campos = getCameraBlock();
-+	
-+		//            int var5 = MathHelper.floor_double(this.posX + (double)var2);
-+		//            //VIVE Crawling experiemnt
-+		//            int var6 = MathHelper.floor_double(this.boundingBox.minY + (double)this.height + (double)var3);
-+		//            //END VIVE
-+		//            int var7 = MathHelper.floor_double(this.posZ + (double)var4);
-+	
-+		if ( this.mc.thePlayer.worldObj.getBlock((int)campos.xCoord, (int)campos.yCoord, (int)campos.zCoord).isNormalCube())
-+		{
-+			return true;
-+		}
-+	
-+		//    }
-+	
-+		return false;
 +	}
 +
 +	public void renderCrosshairAtDepth()

@@ -1519,6 +1519,7 @@ public class MCOpenVR
 	
 	static void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen)
 	{
+		KeyBinding.unPressAllKeys();
 		if (previousScreen==null && newScreen != null
 				|| (newScreen != null && newScreen instanceof GuiContainerCreative) || newScreen instanceof GuiChat) {			
 
@@ -1809,8 +1810,8 @@ public class MCOpenVR
 				Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
 				Matrix4f max = Matrix4f.multiply(rot, hmdRotation);
 				
-				Vec3 v = mc.vrPlayer.getHMDPos_World();
-				Vec3 d = mc.vrPlayer.getHMDDir_World();
+				Vec3 v = mc.roomScale.getHMDPos_World();
+				Vec3 d = mc.roomScale.getHMDDir_World();
 				guiPos_World.x = (float) (v.xCoord + d.xCoord*mc.vrSettings.vrWorldScale);
 				guiPos_World.y = (float) (v.yCoord + d.yCoord*mc.vrSettings.vrWorldScale);
 				guiPos_World.z = (float) (v.zCoord + d.zCoord*mc.vrSettings.vrWorldScale);
