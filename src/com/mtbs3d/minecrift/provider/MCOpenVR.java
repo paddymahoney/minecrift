@@ -1542,6 +1542,10 @@ public class MCOpenVR
 	static void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen)
 	{
 		KeyBinding.unPressAllKeys();
+		KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+		KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+		KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+		KeyboardSimulator.robot.keyRelease(KeyEvent.VK_SHIFT);
 		if (previousScreen==null && newScreen != null
 				|| (newScreen != null && newScreen instanceof GuiContainerCreative) || newScreen instanceof GuiChat) {			
 
