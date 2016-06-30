@@ -347,24 +347,22 @@
          if (Reflector.ForgeWorldProvider_getSkyRenderer.exists())
          {
              WorldProvider var2 = this.mc.theWorld.provider;
-@@ -1495,6 +1611,11 @@
+@@ -1495,6 +1611,10 @@
              }
  
              GL11.glDisable(GL11.GL_FOG);
 +            /** MINECRIFT SHADERS MOD **/
 +            if (shadersMod) {
-+                //Shaders.disableFog();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_disableFog, new Object[] {});
 +            }
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_BLEND);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1544,13 +1665,27 @@
+@@ -1544,13 +1664,24 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
 +            if (shadersMod) {
-+                //Shaders.enableTexture2D();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_enableTexture2D, new Object[] {});
 +            }
              GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -375,24 +373,21 @@
 +            /** MINECRIFT SHADERS MOD **/
              GL11.glDisable(GL11.GL_TEXTURE_2D);
 +            if (shadersMod) {
-+                //Shaders.disableTexture2D();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_disableTexture2D, new Object[] {});
 +            }
              Vec3 var21 = this.theWorld.getSkyColor(this.mc.renderViewEntity, par1);
              var21 = CustomColorizer.getSkyColor(var21, this.mc.theWorld, this.mc.renderViewEntity.posX, this.mc.renderViewEntity.posY + 1.0D, this.mc.renderViewEntity.posZ);
 +            if (shadersMod) {
-+                //Shaders.setSkyColor(var21);
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_setSkyColor, new Object[] {var21});
 +            }
              float var231 = (float)var21.xCoord;
              float var4 = (float)var21.yCoord;
              float var5 = (float)var21.zCoord;
-@@ -1570,14 +1705,26 @@
+@@ -1570,14 +1701,23 @@
              Tessellator var241 = Tessellator.instance;
              GL11.glDepthMask(false);
              GL11.glEnable(GL11.GL_FOG);
 +            if (shadersMod) {
-+                //Shaders.enableFog();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_enableFog, new Object[] {});
 +            }
              GL11.glColor3f(var231, var4, var5);
@@ -400,7 +395,6 @@
              if (Config.isSkyEnabled())
              {
 +                if (shadersMod) {
-+                    //Shaders.preSkyList();
 +                    Reflector.callVoid(Reflector.ShadersMod_Shaders_preSkyList, new Object[] {});
 +                }
                  GL11.glCallList(this.glSkyList);
@@ -408,85 +402,85 @@
  
              GL11.glDisable(GL11.GL_FOG);
 +            if (shadersMod) {
-+                //Shaders.disableFog();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_disableFog, new Object[] {});
 +            }
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_BLEND);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1595,6 +1742,10 @@
+@@ -1595,6 +1735,9 @@
              if (var251 != null && Config.isSunMoonEnabled())
              {
                  GL11.glDisable(GL11.GL_TEXTURE_2D);
 +                if (shadersMod) {
-+                    //Shaders.disableTexture2D();
 +                    Reflector.callVoid(Reflector.ShadersMod_Shaders_disableTexture2D, new Object[] {});
 +                }
                  GL11.glShadeModel(GL11.GL_SMOOTH);
                  GL11.glPushMatrix();
                  GL11.glRotatef(90.0F, 1.0F, 0.0F, 0.0F);
-@@ -1634,6 +1785,10 @@
+@@ -1634,6 +1777,11 @@
              }
  
              GL11.glEnable(GL11.GL_TEXTURE_2D);
 +            if (shadersMod) {
-+                //Shaders.enableTexture2D();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_enableTexture2D, new Object[] {});
-+            }
++            } 
++               
++            
              OpenGlHelper.glBlendFunc(770, 1, 1, 0);
              GL11.glPushMatrix();
              var8 = 1.0F - this.theWorld.getRainStrength(par1);
-@@ -1643,8 +1798,16 @@
+@@ -1643,8 +1791,17 @@
              GL11.glColor4f(1.0F, 1.0F, 1.0F, var8);
              GL11.glTranslatef(var9, var10, var11);
              GL11.glRotatef(-90.0F, 0.0F, 1.0F, 0.0F);
++            
 +            if (shadersMod) {
-+                //Shaders.preCelestialRotate();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_preCelestialRotate, new Object[] {});
 +            }
++            
              CustomSky.renderSky(this.theWorld, this.renderEngine, this.theWorld.getCelestialAngle(par1), var8);
              GL11.glRotatef(this.theWorld.getCelestialAngle(par1) * 360.0F, 1.0F, 0.0F, 0.0F);
++            
 +            if (shadersMod) {
-+                //Shaders.postCelestialRotate();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_postCelestialRotate, new Object[] {});
 +            }
  
              if (Config.isSunMoonEnabled())
              {
-@@ -1674,6 +1837,10 @@
+@@ -1674,6 +1831,9 @@
              }
  
              GL11.glDisable(GL11.GL_TEXTURE_2D);
 +            if (shadersMod) {
-+                //Shaders.disableTexture2D();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_disableTexture2D, new Object[] {});
 +            }
              var20 = this.theWorld.getStarBrightness(par1) * var8;
  
              if (var20 > 0.0F && Config.isStarsEnabled() && !CustomSky.hasSkyLayers(this.theWorld))
-@@ -1686,8 +1853,16 @@
+@@ -1686,8 +1846,18 @@
              GL11.glDisable(GL11.GL_BLEND);
              GL11.glEnable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_FOG);
++            
 +            if (shadersMod) {
-+                //Shaders.enableFog();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_enableFog, new Object[] {});
 +            }
++            
              GL11.glPopMatrix();
              GL11.glDisable(GL11.GL_TEXTURE_2D);
++            
 +            if (shadersMod) {
-+                //Shaders.disableTexture2D();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_disableTexture2D, new Object[] {});
 +            }
++            
              GL11.glColor3f(0.0F, 0.0F, 0.0F);
              double var28 = this.mc.thePlayer.getPosition(par1).yCoord - this.theWorld.getHorizon();
  
-@@ -1749,7 +1924,12 @@
+@@ -1749,7 +1919,11 @@
  
              GL11.glPopMatrix();
              GL11.glEnable(GL11.GL_TEXTURE_2D);
 +            if (shadersMod) {
-+                //Shaders.enableTexture2D();
 +                Reflector.callVoid(Reflector.ShadersMod_Shaders_enableTexture2D, new Object[] {});
 +            }
              GL11.glDepthMask(true);
@@ -494,7 +488,15 @@
          }
      }
  
-@@ -2075,7 +2255,9 @@
+@@ -1849,6 +2023,7 @@
+                     double exactPlayerY1 = entityliving1.prevPosY + (entityliving1.posY - entityliving1.prevPosY) * (double)partialTicks1;
+                     exactPlayerZ1 = entityliving1.prevPosZ + (entityliving1.posZ - entityliving1.prevPosZ) * (double)partialTicks1;
+                     dc = (double)((float)(this.cloudTickCounter - this.cloudTickCounterGlList) + partialTicks1);
++                    //Shuld this be camera pos?
+                     float cdx1 = (float)(exactPlayerX1 - this.cloudPlayerX + dc * 0.03D);
+                     float cdy = (float)(exactPlayerY1 - this.cloudPlayerY);
+                     float cdz1 = (float)(exactPlayerZ1 - this.cloudPlayerZ);
+@@ -2075,7 +2250,9 @@
      {
          this.renderViewEntity = entityliving;
  
@@ -505,7 +507,7 @@
          {
              return WrUpdates.updateRenderers(this, entityliving, flag);
          }
-@@ -2202,6 +2384,8 @@
+@@ -2202,6 +2379,8 @@
  
      public void drawBlockDamageTexture(Tessellator par1Tessellator, EntityLivingBase par2EntityPlayer, float par3)
      {
@@ -514,7 +516,7 @@
          double var4 = par2EntityPlayer.lastTickPosX + (par2EntityPlayer.posX - par2EntityPlayer.lastTickPosX) * (double)par3;
          double var6 = par2EntityPlayer.lastTickPosY + (par2EntityPlayer.posY - par2EntityPlayer.lastTickPosY) * (double)par3;
          double var8 = par2EntityPlayer.lastTickPosZ + (par2EntityPlayer.posZ - par2EntityPlayer.lastTickPosZ) * (double)par3;
-@@ -2216,6 +2400,10 @@
+@@ -2216,6 +2395,10 @@
              GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
              GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
              GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -525,7 +527,7 @@
              par1Tessellator.startDrawingQuads();
              par1Tessellator.setTranslation(-var4, -var6, -var8);
              par1Tessellator.disableColor();
-@@ -2245,6 +2433,10 @@
+@@ -2245,6 +2428,10 @@
  
              par1Tessellator.draw();
              par1Tessellator.setTranslation(0.0D, 0.0D, 0.0D);
@@ -536,7 +538,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glPolygonOffset(0.0F, 0.0F);
              GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
-@@ -2252,6 +2444,7 @@
+@@ -2252,6 +2439,7 @@
              GL11.glDepthMask(true);
              GL11.glPopMatrix();
          }
@@ -544,7 +546,7 @@
      }
  
      /**
-@@ -2259,6 +2452,8 @@
+@@ -2259,6 +2447,8 @@
       */
      public void drawSelectionBox(EntityPlayer par1EntityPlayer, MovingObjectPosition par2MovingObjectPosition, int par3, float par4)
      {
@@ -553,7 +555,7 @@
          if (par3 == 0 && par2MovingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
          {
              GL11.glEnable(GL11.GL_BLEND);
-@@ -2266,6 +2461,10 @@
+@@ -2266,6 +2456,10 @@
              GL11.glColor4f(0.0F, 0.0F, 0.0F, 0.4F);
              GL11.glLineWidth(2.0F);
              GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -564,7 +566,7 @@
              GL11.glDepthMask(false);
              float var5 = 0.002F;
              Block var6 = this.theWorld.getBlock(par2MovingObjectPosition.blockX, par2MovingObjectPosition.blockY, par2MovingObjectPosition.blockZ);
-@@ -2281,8 +2480,13 @@
+@@ -2281,8 +2475,13 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -578,7 +580,7 @@
      }
  
      /**
-@@ -2932,7 +3136,7 @@
+@@ -2932,7 +3131,7 @@
                  {
                      this.theWorld.playSound((double)par3 + 0.5D, (double)par4 + 0.5D, (double)par5 + 0.5D, "random.door_close", 1.0F, this.theWorld.rand.nextFloat() * 0.1F + 0.9F, false);
                  }
@@ -587,7 +589,7 @@
                  break;
  
              case 1004:
-@@ -3026,12 +3230,13 @@
+@@ -3026,12 +3225,13 @@
  
              case 2001:
                  var8 = Block.getBlockById(par6 & 4095);
@@ -603,7 +605,7 @@
                  this.mc.effectRenderer.addBlockDestroyEffects(par3, par4, par5, var8, par6 >> 12 & 255);
                  break;
  
-@@ -3128,6 +3333,9 @@
+@@ -3128,6 +3328,9 @@
  
                      for (int var24 = 0; var24 < var23; ++var24)
                      {

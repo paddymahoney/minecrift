@@ -1032,11 +1032,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	
 	public void setFreeMoveMode(boolean free) { 
 		boolean was = freeMoveMode;
-		if(noTeleportClient){
-			freeMoveMode = true;
-		} else {
-			freeMoveMode = free;
-		}
+		freeMoveMode = free;
 		if(free != was)
 			Minecraft.getMinecraft().getNetHandler().addToSendQueue(new C17PacketCustomPayload("MC|Vive|FreeMove", (byte[]) (freeMoveMode ?  new byte[]{1} : new byte[]{0} )));	
 	}

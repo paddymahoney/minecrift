@@ -101,7 +101,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +169,4763 @@
+@@ -150,2988 +169,4762 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1910,7 +1910,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda25r1";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda26";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -2276,7 +2276,7 @@
 +		this.checkGLError("Startup");
 +		
 +		/** MINECRIFT SHADERS MOD **/
-+		if (Reflector.shadersModExists()) {
++		if (Reflector.shadersModExists()) { //creates shaderpacks dir and loads config.
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_startup, new Object[] {this});
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
@@ -2298,19 +2298,16 @@
 +		}
 +		
 +		if (Forge) {
-+			//bar.step("Anisotropy and Mipmaps");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Anisotropy and Mipmaps"});
 +		}
 +		
 +		this.textureMapBlocks.setAnisotropicFiltering(this.gameSettings.anisotropicFiltering);
 +		this.textureMapBlocks.setMipmapLevels(this.gameSettings.mipmapLevels);
 +		if (Forge) {
-+			//bar.step("Loading Blocks Texture");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Entity Renderer"});
 +		}
 +		this.renderEngine.loadTextureMap(TextureMap.locationBlocksTexture, this.textureMapBlocks);
 +		if (Forge) {
-+			//bar.step("Loading Items Texture");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Items Texture"});
 +		}
 +		if (Forge) {
@@ -2320,14 +2317,12 @@
 +			this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items"));
 +		}
 +		if (Forge) {
-+			//bar.step("Viewport");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Viewport"});
 +		}
 +		GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
 +		this.effectRenderer = new EffectRenderer(this.theWorld, this.renderEngine);
 +		if( fmlClientHandler != null )
 +		{
-+			//cpw.mods.fml.common.ProgressManager.pop(bar);
 +			Reflector.callVoid(Reflector.FMLCommonProgressManager_pop, new Object[]{bar});
 +			Reflector.callVoid(fmlClientHandler, Reflector.FMLClientHandler_finishMinecraftLoading, new Object[0]);
 +		}
@@ -5054,78 +5049,6 @@
 -    public ListenableFuture addScheduledTask(Callable callableToSchedule)
 -    {
 -        Validate.notNull(callableToSchedule);
--
--        if (!this.isCallingFromMinecraftThread())
--        {
--            ListenableFutureTask var2 = ListenableFutureTask.create(callableToSchedule);
--            Queue var3 = this.scheduledTasks;
--
--            synchronized (this.scheduledTasks)
--            {
--                this.scheduledTasks.add(var2);
--                return var2;
--            }
--        }
--        else
--        {
--            try
--            {
--                return Futures.immediateFuture(callableToSchedule.call());
--            }
--            catch (Exception var6)
--            {
--                return Futures.immediateFailedCheckedFuture(var6);
--            }
--        }
--    }
--
--    public ListenableFuture addScheduledTask(Runnable runnableToSchedule)
--    {
--        Validate.notNull(runnableToSchedule);
--        return this.addScheduledTask(Executors.callable(runnableToSchedule));
--    }
--
--    public boolean isCallingFromMinecraftThread()
--    {
--        return Thread.currentThread() == this.mcThread;
--    }
--
--    public MinecraftSessionService getSessionService()
--    {
--        return this.sessionService;
--    }
--
--    public SkinManager getSkinManager()
--    {
--        return this.skinManager;
--    }
--
--    static final class SwitchMovingObjectType
--    {
--        static final int[] field_152390_a = new int[MovingObjectPosition.MovingObjectType.values().length];
--        private static final String __OBFID = "CL_00000638";
--
--        static
--        {
--            try
--            {
--                field_152390_a[MovingObjectPosition.MovingObjectType.ENTITY.ordinal()] = 1;
--            }
--            catch (NoSuchFieldError var2)
--            {
--                ;
--            }
--
--            try
--            {
--                field_152390_a[MovingObjectPosition.MovingObjectType.BLOCK.ordinal()] = 2;
--            }
--            catch (NoSuchFieldError var1)
--            {
--                ;
--            }
--        }
--    }
 +        }*/
 +		/** END MINECRIFT */
 +	}
@@ -7746,6 +7669,7 @@
 +		}
 +	}
 +
++	
 +	public final String LANCZOS_SAMPLER_VERTEX_SHADER =
 +			"#version 120\n" +
 +					"\n" +
@@ -7832,4 +7756,78 @@
 +		s = s.replace("\n", "\n[Minecrift] ");
 +		System.out.println("[Minecrift] " + s);
 +	}
- }
++	
++}
+ 
+-        if (!this.isCallingFromMinecraftThread())
+-        {
+-            ListenableFutureTask var2 = ListenableFutureTask.create(callableToSchedule);
+-            Queue var3 = this.scheduledTasks;
+ 
+-            synchronized (this.scheduledTasks)
+-            {
+-                this.scheduledTasks.add(var2);
+-                return var2;
+-            }
+-        }
+-        else
+-        {
+-            try
+-            {
+-                return Futures.immediateFuture(callableToSchedule.call());
+-            }
+-            catch (Exception var6)
+-            {
+-                return Futures.immediateFailedCheckedFuture(var6);
+-            }
+-        }
+-    }
+-
+-    public ListenableFuture addScheduledTask(Runnable runnableToSchedule)
+-    {
+-        Validate.notNull(runnableToSchedule);
+-        return this.addScheduledTask(Executors.callable(runnableToSchedule));
+-    }
+-
+-    public boolean isCallingFromMinecraftThread()
+-    {
+-        return Thread.currentThread() == this.mcThread;
+-    }
+-
+-    public MinecraftSessionService getSessionService()
+-    {
+-        return this.sessionService;
+-    }
+-
+-    public SkinManager getSkinManager()
+-    {
+-        return this.skinManager;
+-    }
+-
+-    static final class SwitchMovingObjectType
+-    {
+-        static final int[] field_152390_a = new int[MovingObjectPosition.MovingObjectType.values().length];
+-        private static final String __OBFID = "CL_00000638";
+-
+-        static
+-        {
+-            try
+-            {
+-                field_152390_a[MovingObjectPosition.MovingObjectType.ENTITY.ordinal()] = 1;
+-            }
+-            catch (NoSuchFieldError var2)
+-            {
+-                ;
+-            }
+-
+-            try
+-            {
+-                field_152390_a[MovingObjectPosition.MovingObjectType.BLOCK.ordinal()] = 2;
+-            }
+-            catch (NoSuchFieldError var1)
+-            {
+-                ;
+-            }
+-        }
+-    }
+-}

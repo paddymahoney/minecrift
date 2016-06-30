@@ -150,6 +150,6 @@
  "minimumLauncherVersion": 13, 
  "time": "1979-06-01T00:00:00-05:00", 
  "type": "release", 
- "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type}  --tweakClass optifine.OptiFineTweaker --tweakClass shadersmodcore.loading.SMCTweaker --tweakClass com.mtbs3d.minecrift.tweaker.MinecriftForgeTweaker", 
+ "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type} --tweakClass optifine.OptiFineTweaker  --tweakClass shadersmodcore.loading.SMCTweaker --tweakClass com.mtbs3d.minecrift.tweaker.MinecriftForgeTweaker", 
  "releaseTime": "1979-06-01T00:00:00-05:00"
 }
