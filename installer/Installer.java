@@ -1167,7 +1167,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
 		useShadersMod = new JRadioButton("Install Vivecraft with ShadersMod 2.3.29");
         useShadersMod.setAlignmentX(LEFT_ALIGNMENT);
-        useShadersMod.setEnabled(false);
         if (!ALLOW_SHADERSMOD_INSTALL)
 			useShadersMod.setEnabled(false);
         useShadersMod.setToolTipText(

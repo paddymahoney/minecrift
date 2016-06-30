@@ -101,7 +101,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +169,4753 @@
+@@ -150,2988 +169,4763 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1657,6 +1657,7 @@
 +	private CrashReport crashReporter;
 +	public int displayWidth;
 +	public int displayHeight;
++	
 +	private Timer timer = new Timer(20.0F);
 +
 +	/** Instance of PlayerUsageSnooper. */
@@ -1693,10 +1694,10 @@
 +	private int dropCounter;
 +
 +	/** Display width */
-+	private int tempDisplayWidth;
++	public int tempDisplayWidth;
 +
 +	/** Display height */
-+	private int tempDisplayHeight;
++	public int tempDisplayHeight;
 +
 +	/** Instance of IntegratedServer. */
 +	private IntegratedServer theIntegratedServer;
@@ -1909,7 +1910,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda25";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda25r1";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -2295,10 +2296,12 @@
 +		else {
 +			this.textureMapBlocks = new TextureMap(0, "textures/blocks");
 +		}
++		
 +		if (Forge) {
 +			//bar.step("Anisotropy and Mipmaps");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Anisotropy and Mipmaps"});
 +		}
++		
 +		this.textureMapBlocks.setAnisotropicFiltering(this.gameSettings.anisotropicFiltering);
 +		this.textureMapBlocks.setMipmapLevels(this.gameSettings.mipmapLevels);
 +		if (Forge) {
@@ -2827,6 +2830,14 @@
 +				this.shutdown();
 +			}
 +
++			{
++				//avoid having to changed OpenGLHelper
++				gameSettings.ofFastRender = false;
++				gameSettings.fboEnable = true;
++				OpenGlHelper.framebufferSupported = true;
++			}
++			
++			
 +			/** MINECRIFT */ // setup the display, render buffers, shaders etc.
 +			this.frameIndex++;
 +			setupRenderConfiguration();
@@ -3075,12 +3086,11 @@
 +				checkGLError("prepostprocess " + eye);
 +				
 +			this.mcProfiler.startSection("postProcessing");
-+				GL11.glPushMatrix();
 +				 	doPostProcessing(frameIndex, this.currentEye);
-+				GL11.glPopMatrix();
 +			this.mcProfiler.endSection();
 +			
-+			checkGLError("postpostprocess " + eye);
++			
++				checkGLError("postpostprocess " + eye);
 +			
 +			//GL11.glPushMatrix();
 +				//this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);   // <-- TODO: What does this do? Some sort of stream status overlay? REENABLE, move to GUI FBO?
@@ -3088,8 +3098,7 @@
 +							
 +			this.mcProfiler.startSection("framebufferDraw");
 +				framebufferEye.bindFramebuffer(true); //draw to eye tex
-+				framebuffer.framebufferRender(framebufferEye.framebufferWidth, framebufferEye.framebufferHeight);
-+				framebufferEye.unbindFramebuffer();
++					framebuffer.framebufferRender(framebufferEye.framebufferWidth, framebufferEye.framebufferHeight);
 +			this.mcProfiler.endSection();
 +			
 +			this.mcProfiler.startSection("OpenGL Finish");
@@ -3104,7 +3113,7 @@
 +			this.mcProfiler.endSection();
 +				
 +			this.mcProfiler.startSection("mirror");
-+				shouldupdate =	copyToMirror(this.currentEye);
++				shouldupdate = copyToMirror(this.currentEye);
 +			this.mcProfiler.endSection();
 +			
 +
@@ -6895,7 +6904,7 @@
 +			FovPort rightFov = null;
 +
 +			if (!this.stereoProvider.isInitialized()) {
-+				throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), " " + this.stereoProvider.isInitialized());
++				throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), " " + this.stereoProvider.getinitError());
 +			}
 +
 +			// Scale up the FBO to allow for the distortion
@@ -7506,9 +7515,10 @@
 +						GL11.glEnable(GL11.GL_ALPHA_TEST);
 +						GL11.glEnable(GL11.GL_BLEND);
 +
-+						GL11.glPopMatrix();
-+					GL11.glMatrixMode(GL11.GL_PROJECTION);
-+					GL11.glPopMatrix();					
++						GL11.glMatrixMode(GL11.GL_PROJECTION);
++						GL11.glPopMatrix();		
++					GL11.glMatrixMode(GL11.GL_MODELVIEW);
++					GL11.glPopMatrix();
 +			}
 +		}
 +	}

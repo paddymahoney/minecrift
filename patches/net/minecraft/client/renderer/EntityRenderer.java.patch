@@ -1602,7 +1602,7 @@
          float clipDistance = this.farPlaneDistance * 2.0F;
  
          if (clipDistance < 128.0F)
-@@ -825,1829 +883,3889 @@
+@@ -825,1829 +883,3902 @@
          {
              clipDistance = 256.0F;
          }
@@ -2485,18 +2485,24 @@
 +	public void renderWorld(float par1, long par2)
 +	{
 +		boolean hasForge = Reflector.ForgeHooksClient.exists();
-+		boolean shadersMod = Reflector.shadersModExists();		
++		boolean shadersMod = Reflector.shadersModExists();	
++		boolean shadersModShadowPass = false;
++		if (shadersMod) {
++			shadersModShadowPass = (Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass);
++		}
 +		
 +		/** MINECRIFT SHADERS MOD **/
 +		if (shadersMod) {
++			if(!shadersModShadowPass)this.mc.mcProfiler.startSection("shadersModBeginRender");	
 +			//hack to give shadersmod the correct size.
-+			int w = this.mc.displayWidth;
-+			int h = this.mc.displayHeight;
 +			this.mc.displayWidth = this.mc.displayFBWidth;
-+			this.mc.displayHeight = this.mc.displayHeight;
++			this.mc.displayHeight = this.mc.displayFBHeight;
++				//This actually calls renderWorld again recursivly for the shadow pass 
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginRender, new Object[] {this.mc, par1, par2});
-+			this.mc.displayWidth = w;
-+			this.mc.displayHeight = h;
++			this.mc.displayWidth = mc.tempDisplayWidth;
++			this.mc.displayHeight = mc.tempDisplayHeight;
++			if(!shadersModShadowPass)this.mc.mcProfiler.endSection();
++			
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
 +		
@@ -2544,7 +2550,6 @@
 +		this.mc.mcProfiler.endStartSection("clear");
 +	
 +			if (shadersMod) {
-+				//Shaders.setViewport(0, 0, this.mc.displayWidth, this.mc.displayHeight);
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_setViewport, new Object[] {0, 0, this.mc.displayFBWidth, this.mc.displayFBHeight});
 +			}
 +			else {
@@ -2571,10 +2576,27 @@
 +	
 +			if (shadersMod) {
 +				//boy that's not gonna work, is it?
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_setCamera, new Object[] {par1});
++				float p = mc.renderViewEntity.rotationPitch;
++				float y = mc.renderViewEntity.rotationYaw;
++				float lp = mc.renderViewEntity.prevRotationPitch;
++				float ly = mc.renderViewEntity.prevRotationYaw;
++				
++				mc.renderViewEntity.rotationYaw = (float)cameraYaw;
++				mc.renderViewEntity.rotationPitch = (float)cameraPitch;
++				mc.renderViewEntity.prevRotationYaw = (float)cameraYaw;
++				mc.renderViewEntity.prevRotationPitch = (float)cameraPitch;
++				
++				//GL11.glPushMatrix(); //sorry charlie.
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_setCamera, new Object[] {par1});
++				//GL11.glPopMatrix();
++				
 +				mc.gameSettings.thirdPersonView = 0;
-+			} 
-+			
++				
++				mc.renderViewEntity.rotationYaw = (float)y;
++				mc.renderViewEntity.rotationPitch = (float)p;
++				mc.renderViewEntity.prevRotationYaw = (float)ly;
++				mc.renderViewEntity.prevRotationPitch = (float)lp;
++			} else 			
 +				this.setupCameraTransform(par1, 0);		
 +				//we'll try letting shadersmod do it's thing, then come back and un-do it.
 +				
@@ -2591,7 +2613,7 @@
 +		this.mc.mcProfiler.endStartSection("sky");
 +			if (shadersMod)
 +			{
-+				if((Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass) && (Config.isSkyEnabled() || Config.isSunMoonEnabled() || Config.isStarsEnabled()))
++				if(shadersModShadowPass && (Config.isSkyEnabled() || Config.isSunMoonEnabled() || Config.isStarsEnabled()))
 +				{
 +					this.setupFog(-1, par1);
 +					Reflector.callVoid(Reflector.ShadersMod_Shaders_beginSky, new Object[] {});
@@ -2623,49 +2645,53 @@
 +			{
 +				GL11.glShadeModel(GL11.GL_SMOOTH);
 +			}
-+			
-+		this.mc.mcProfiler.endStartSection("frustrum");
-+			currentFrustum = new Frustrum();	
-+		this.mc.mcProfiler.endStartSection("culling");
 +		
-+			Vec3 f = getEyeRenderPos();
-+			
-+			if (shadersMod) {
-+				Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {currentFrustum, f.xCoord, f.yCoord, f.zCoord});
-+				Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, currentFrustum, par1});
-+			}
-+			else {			
-+				currentFrustum.setPosition(f.xCoord, f.yCoord, f.zCoord);
-+				this.mc.renderGlobal.clipRenderersByFrustum(currentFrustum, par1);
-+			}
-+					
-+			if ( mc.currentEye == EyeType.ovrEye_Left)  //once per render
-+			{
-+					
-+				this.mc.mcProfiler.endStartSection("updatechunks");			
-+					
-+					if (shadersMod) {
-+						//Shaders.beginUpdateChunks();
-+						Reflector.callVoid(Reflector.ShadersMod_Shaders_beginUpdateChunks, new Object[] {});
-+					}
 +	
-+					while (!this.mc.renderGlobal.updateRenderers(player, false) && par2 != 0L)
-+					{
-+						long var17 = par2 - System.nanoTime();
++				this.mc.mcProfiler.endStartSection("frustrum");
++					currentFrustum = new Frustrum();	
++				this.mc.mcProfiler.endStartSection("culling");
 +		
-+						if (var17 < 0L || var17 > 1000000000L)
++					Vec3 f = getEyeRenderPos();
++		
++					if (shadersMod) { // need to do this for both passes cause shadows.
++						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {currentFrustum, f.xCoord, f.yCoord, f.zCoord});
++						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, currentFrustum, par1});
++					}
++					else {			
++						currentFrustum.setPosition(f.xCoord, f.yCoord, f.zCoord);
++						this.mc.renderGlobal.clipRenderersByFrustum(currentFrustum, par1);
++					}
++					
++					if((shadersMod && !shadersModShadowPass) || !shadersMod)
++					{//dont do updatechunks for both shadersmod passes. Shadows will be a frame behind but whatev.
++				
++							
++						if ( mc.currentEye == EyeType.ovrEye_Left)  //once per render
 +						{
-+							break;
++				
++								this.mc.mcProfiler.endStartSection("updatechunks");			
++				
++								if (shadersMod) {
++									Reflector.callVoid(Reflector.ShadersMod_Shaders_beginUpdateChunks, new Object[] {});
++								}
++				
++								while (!this.mc.renderGlobal.updateRenderers(player, false) && par2 != 0L)
++								{
++									long var17 = par2 - System.nanoTime();
++				
++									if (var17 < 0L || var17 > 1000000000L)
++									{
++										break;
++									}
++								}
++				
++								if (shadersMod) {
++									Reflector.callVoid(Reflector.ShadersMod_Shaders_endUpdateChunks, new Object[] {});
++								}
++								/** END MINECRIFT SHADERS MOD **/
 +						}
 +					}
-+		
-+					if (shadersMod) {
-+						//Shaders.endUpdateChunks();
-+						Reflector.callVoid(Reflector.ShadersMod_Shaders_endUpdateChunks, new Object[] {});
-+					}
-+				/** END MINECRIFT SHADERS MOD **/
-+			}
-+		
++					
 +		this.mc.mcProfiler.endStartSection("renderCloudsCheck");
 +			if (player.posY < 128.0D)
 +			{
@@ -2752,7 +2778,6 @@
 +			
 +		/** MINECRIFT SHADERS MOD **/
 +			if (shadersMod) {
-+				//Shaders.beginLitParticles();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginLitParticles, new Object[] {});
 +			}
 +			var6.renderLitParticles(player, par1);
@@ -2760,14 +2785,12 @@
 +			this.setupFog(0, par1);
 +		this.mc.mcProfiler.endStartSection("particles");
 +			if (shadersMod) {
-+				//Shaders.beginParticles();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginParticles, new Object[] {});
 +			}
 +			
 +			var6.renderParticles(player, par1);
 +			
 +			if (shadersMod) {
-+				//Shaders.endParticles();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_endParticles, new Object[] {});
 +			}
 +			
@@ -2776,17 +2799,14 @@
 +			GL11.glEnable(GL11.GL_CULL_FACE);
 +		this.mc.mcProfiler.endStartSection("weather");
 +		if (shadersMod) {
-+			//Shaders.beginWeather();
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_beginWeather, new Object[] {});
 +		}
 +		this.renderRainSnow(par1);
 +		if (shadersMod) {
-+			//Shaders.endWeather();
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_endWeather, new Object[] {});
 +		}
 +		GL11.glDepthMask(true);
 +		if (shadersMod) {
-+			//Shaders.preWater();
 +			Reflector.callVoid(Reflector.ShadersMod_Shaders_preWater, new Object[] {});
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
@@ -2804,7 +2824,6 @@
 +		this.mc.mcProfiler.endStartSection("water");
 +		
 +			if (shadersMod) {
-+				//Shaders.beginWater();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_beginWater, new Object[] {});
 +			}		
 +			
@@ -2829,7 +2848,6 @@
 +			}
 +	
 +			if (shadersMod) {
-+				//Shaders.endWater();
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_endWater, new Object[]{});
 +			}
 +			/** END MINECRIFT SHADERS MOD **/
@@ -2867,18 +2885,15 @@
 +		////END WORLD RENDERING
 +
 +		////START LOCAL RENDERING
-+
-+
 +		this.mc.mcProfiler.endStartSection("hand");
-+			if (this.mc.gameSettings.thirdPersonView == 0) //Vivecraft ignore this setting  && this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_HAND)
++			if (this.mc.gameSettings.thirdPersonView == 0) //Vivecraft ignore this setting -> && this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_HAND)
 +			{
-+				boolean haveRenderedFirstPersonHand = false; //Vivecraft don't support anything rendering hands. // Reflector.callBoolean(Reflector.ForgeHooksClient_renderFirstPersonHand, new Object[]{this.mc.renderGlobal, Float.valueOf(par1), Integer.valueOf(0)});
++				boolean haveRenderedFirstPersonHand = false; //Vivecraft don't support anything rendering hands.-> // Reflector.callBoolean(Reflector.ForgeHooksClient_renderFirstPersonHand, new Object[]{this.mc.renderGlobal, Float.valueOf(par1), Integer.valueOf(0)});
 +				
 +				/** MINECRIFT SHADERS MOD **/
 +				boolean render = true;
 +				if (shadersMod) {
-+					//render = !Shaders.isShadowPass;
-+					render = !(Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass);
++					render = !shadersModShadowPass;
 +				}
 +				if (!haveRenderedFirstPersonHand && render)
 +				{
@@ -2899,19 +2914,17 @@
 +			
 +			/** END MINECRIFT */
 +			if (shadersMod) {
++				this.mc.mcProfiler.endStartSection("shadersModComposite");
 +				//hack to give shadersmod the correct size.
-+				int w = this.mc.displayWidth;
-+				int h = this.mc.displayHeight;
 +				this.mc.displayWidth = this.mc.displayFBWidth;
-+				this.mc.displayHeight = this.mc.displayHeight;
++				this.mc.displayHeight = this.mc.displayFBHeight;
 +					Reflector.callVoid(Reflector.ShadersMod_Shaders_renderCompositeFinal, new Object[] {});
-+				this.mc.displayWidth = w;
-+				this.mc.displayHeight = h;
++				this.mc.displayWidth = mc.tempDisplayWidth;
++				this.mc.displayHeight = mc.tempDisplayHeight;
 +
-+				Reflector.callVoid(Reflector.ShadersMod_Shaders_renderFPOverlay, new Object[] {this, par1, 0});
++				//this calls.... renderHand()....
++				//Reflector.callVoid(Reflector.ShadersMod_Shaders_renderFPOverlay, new Object[] {this, par1, 0});
 +				Reflector.callVoid(Reflector.ShadersMod_Shaders_endRender, new Object[] {});
-+							
-+				mc.getFramebuffer().checkFramebufferComplete();
 +				
 +			}
 +			/** END MINECRIFT SHADERS MOD **/

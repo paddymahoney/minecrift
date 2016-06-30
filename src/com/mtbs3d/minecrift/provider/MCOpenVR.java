@@ -1,6 +1,7 @@
 package com.mtbs3d.minecrift.provider;
 
 import com.mtbs3d.minecrift.api.*;
+import com.mtbs3d.minecrift.control.VRControllerButtonMapping;
 import com.mtbs3d.minecrift.control.ViveButtons;
 import com.mtbs3d.minecrift.render.QuaternionHelper;
 import com.mtbs3d.minecrift.settings.VRSettings;
@@ -186,10 +187,7 @@ public class MCOpenVR
 		return "openvr";
 	}
 
-	
-	public String getInitializationStatus() { return initStatus; }
-
-	
+		
 	public boolean isInitialized() { return initialized; }
 
 	
@@ -199,6 +197,8 @@ public class MCOpenVR
 	static KeyBinding hotbarPrev = new KeyBinding("Hotbar Prev", 209, "key.categories.gameplay");
 	static KeyBinding rotateLeft = new KeyBinding("Rotate Left", 203, "key.categories.movement");
 	static KeyBinding rotateRight = new KeyBinding("Rotate Right", 205, "key.categories.movement");
+	static KeyBinding walkabout = new KeyBinding("Walkabout", 207, "key.categories.movement");
+	static KeyBinding rotateFree = new KeyBinding("Rotate Free", 999, "key.categories.movement");
 	static KeyBinding quickTorch = new KeyBinding("Quick Torch", 210, "key.categories.gameplay");
 
 	public MCOpenVR()
@@ -268,7 +268,7 @@ public class MCOpenVR
 		NativeLibrary.addSearchPath("openvr_api", openVRPath);		
 
 		if(jopenvr.JOpenVRLibrary.VR_IsHmdPresent() == 0){
-			System.out.println( "VR Headset not detected.");
+			initStatus =  "VR Headset not detected.";
 			return false;
 		}
 
@@ -300,12 +300,13 @@ public class MCOpenVR
 		OpenVRUtil.convertSteamVRMatrix3ToMatrix4f(matR, hmdPoseRightEye);
 
 	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, rotateLeft));
-	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, rotateRight));	
+	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, rotateRight));
+	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, rotateFree));	
+	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, walkabout));	
 	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, quickTorch));	
 	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, hotbarNext));	
 	    mc.gameSettings.keyBindings = (KeyBinding[])((KeyBinding[])ArrayUtils.add(mc.gameSettings.keyBindings, hotbarPrev));	
 
-		
 		
 		
 		initialized = true;
@@ -354,12 +355,6 @@ public class MCOpenVR
 				hmdTrackedDevicePoses[i].setAutoSynch(false);
 			}
 
-			//            // init controllers for the first time
-			//            VRInput._updateConnectedControllers();
-			//            
-			//            // init bounds & chaperone info
-			//            VRBounds.init();
-			//            
 			initSuccess = true;
 		}
 	}
@@ -1164,7 +1159,62 @@ public class MCOpenVR
 		if(rotateRight.isPressed()){
 			mc.vrSettings.vrWorldRotation-=mc.vrSettings.vrWorldRotationIncrement;		
 			mc.vrSettings.vrWorldRotation = mc.vrSettings.vrWorldRotation % 360;
+		}
+		
+		if(!gui){
+			if(walkabout.getIsKeyPressed()){
+				float yaw = aimYaw;
+				
+				//oh this is ugly. TODO: cache which hand when binding button.
+				for (VRControllerButtonMapping vb : mc.vrSettings.buttonMappings) {
+					if (vb.key == walkabout) {
+						if(vb.Button.name().contains("_LEFT")){
+							yaw = laimYaw;
+							break;
+						}
+					}
+				}
+				
+				if (!isWalkingAbout){
+					isWalkingAbout = true;
+					walkaboutYawStart = mc.vrSettings.vrWorldRotation + yaw;  
+				}
+				else {
+					mc.vrSettings.vrWorldRotation = walkaboutYawStart - yaw;
+					mc.vrPlayer.checkandUpdateRotateScale();
+				}
+			} else {
+				isWalkingAbout = false;
 			}
+		}
+		
+		if(!gui){
+			if(rotateFree.getIsKeyPressed()){
+				float yaw = aimYaw;
+				
+				//oh this is ugly. TODO: cache which hand when binding button.
+				for (VRControllerButtonMapping vb : mc.vrSettings.buttonMappings) {
+					if (vb.key == rotateFree) {
+						if(vb.Button.name().contains("_LEFT")){
+							yaw = laimYaw;
+							break;
+						}
+					}
+				}
+				
+				if (!isFreeRotate){
+					isFreeRotate = true;
+					walkaboutYawStart = mc.vrSettings.vrWorldRotation - yaw;  
+				}
+				else {
+					mc.vrSettings.vrWorldRotation = walkaboutYawStart + yaw;
+					mc.vrPlayer.checkandUpdateRotateScale();
+				}
+			} else {
+				isFreeRotate = false;
+			}
+		}
+		
 		
 		if(hotbarNext.isPressed()) changeHotbar(-1);
 		
@@ -1238,8 +1288,13 @@ public class MCOpenVR
 					mc.displayInGameMenu();				
 			}
 		}
+		
 	}
 
+	private static boolean isWalkingAbout;
+	private static boolean isFreeRotate;
+	private static float walkaboutYawStart;
+	
 	//jrbuda:: oh hello there you are.
 	private static void pollInputEvents()
 	{
@@ -1374,7 +1429,7 @@ public class MCOpenVR
 	
 	private static void updatePose()
 	{
-		if ( vrsystem == null || vrCompositor == null )
+		if ( vrsystem == null || vrCompositor == null || vrCompositor.WaitGetPoses == null)
 			return;
 
 		Minecraft.getMinecraft().mcProfiler.startSection("waitForPoses");
