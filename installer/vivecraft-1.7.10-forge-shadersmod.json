@@ -3,7 +3,7 @@
   "time": "2015-01-23T05:13:20+00:00",
   "releaseTime": "1960-01-01T07:00:00+00:00",
   "type": "release",
-  "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type} --tweakClass cpw.mods.fml.common.launcher.FMLTweaker --tweakClass optifine.OptiFineForgeTweaker --tweakClass com.mtbs3d.minecrift.tweaker.MinecriftForgeTweaker",
+  "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type} --tweakClass cpw.mods.fml.common.launcher.FMLTweaker --tweakClass optifine.OptiFineForgeTweaker --tweakClass shadersmodcore.loading.SMCTweaker --tweakClass com.mtbs3d.minecrift.tweaker.MinecriftForgeTweaker",
   "libraries": [
     {
       "name": "optifine:OptiFine:1.7.10_HD_U_D1"
@@ -11,6 +11,9 @@
     {
       "name": "net.minecraftforge:forge:1.7.10-10.13.4.1614-1.7.10",
       "url": "http://files.minecraftforge.net/maven/"
+    },
+    {
+     "name": "shadersmodcore:ShadersModCore:2.3.31mc1.7.10-f"
     },
     {
       "name": "net.minecraft:launchwrapper:1.12"
@@ -286,5 +289,6 @@
   "mainClass": "net.minecraft.launchwrapper.Launch",
   "minimumLauncherVersion": 14,
   "assets": "1.7.10",
-  "jar": "1.7.10"
+  "jar": "1.7.10",
+  "downloads": {}
 }

@@ -1133,7 +1133,10 @@ public class VRSettings
             	if(vrWorldScale == 12) return 23;
             	if(vrWorldScale == 16) return 24;
             	if(vrWorldScale == 20) return 25;
-
+            	if(vrWorldScale == 30) return 26;
+            	if(vrWorldScale == 50) return 27;
+            	if(vrWorldScale == 75) return 28;
+            	if(vrWorldScale == 100) return 29;
             	return 7;
  
             case WORLD_ROTATION:
@@ -1441,6 +1444,10 @@ public class VRSettings
             	else if(par2 == 23) vrWorldScale = 12f;
             	else if(par2 == 24) vrWorldScale = 16f;
             	else if(par2 == 25) vrWorldScale = 20f;
+               	else if(par2 == 26) vrWorldScale = 30f;
+               	else if(par2 == 27) vrWorldScale = 50f;
+               	else if(par2 == 28) vrWorldScale = 75f;
+               	else if(par2 == 29) vrWorldScale = 100f;           	         	
             	else vrWorldScale = 1;           	
                 break;
             case WORLD_ROTATION:

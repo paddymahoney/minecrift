@@ -1,5 +1,4 @@
 import org.json.JSONObject;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -77,9 +76,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private String jar_id;
     private String version;
     private String mod = "";
-    private JRadioButton useForge;
-	private JRadioButton useShadersMod;
-	private JRadioButton useVanilla;
+    private JCheckBox useForge;
+	private JCheckBox useShadersMod;
 	private ButtonGroup bg = new ButtonGroup();
     private JCheckBox createProfile;
     private JComboBox forgeVersion;
@@ -88,7 +86,17 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private final boolean QUIET_DEV = false;
 	private File releaseNotes = null;
     private static String releaseNotePathAddition = "";
-
+    private static JLabel instructions;
+	private String smcVanillaURL = "http://www.karyonix.net/shadersmod/files/ShadersMod-v2.3.29mc1.7.10-installer.jar";
+	private String smcForgeURL = "http://www.karyonix.net/shadersmod/files/ShadersModCore-v2.3.31-mc1.7.10-f.jar";	
+	private  final String smcVanillaLib  = "libraries/shadersmodcore/ShadersModCore/2.3.29mc1.7.10";
+    private  final String smcForgelib   = "libraries/shadersmodcore/ShadersModCore/2.3.31mc1.7.10-f";
+	private  final String smcVanillaFile  = "ShadersModCore-2.3.29mc1.7.10.jar";
+    private  final String smcForgeFile   = "ShadersModCore-2.3.31mc1.7.10-f.jar";
+	private  final String smcVanillaMD5  = "4797D91A1F3752EF47242637901199CB";
+    private  final String smcForgeMD5   = "F66374AEA8DDA5F3B7CCB20C230375D7";
+	
+    
     static private final String forgeNotFound = "Forge not found..." ;
 
     private String userHomeDir;
@@ -97,6 +105,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private String appDataDir;
 
     class InstallTask extends SwingWorker<Void, Void>{
+    	
         private boolean DownloadOptiFine()
         {
             boolean success = true;
@@ -159,6 +168,124 @@ public class Installer extends JPanel  implements PropertyChangeListener
             return false;
         }
 
+		  private boolean downloadSMC(boolean forge)
+        {
+			  String dir = null;
+			  String file = null;
+			  String url = null;
+			  String goodmd5 = null;
+			  String temp = "temp.jar";
+			  if (forge) {
+				  dir = smcForgelib;
+				  file = smcForgeFile;
+				  url = smcForgeURL;
+				  goodmd5 = smcForgeMD5;
+			  } else {
+				  dir = smcVanillaLib;
+				  file = smcVanillaFile;
+				  url = smcVanillaURL; 
+				  goodmd5 = smcVanillaMD5;
+			  }
+	  
+            boolean success = true;
+            boolean deleted = false;
+
+            try {
+                File fod = new File(targetDir,dir);
+                fod.mkdirs();
+                File fo = new File(fod,file);
+
+                // Attempt to get the Optifine MD5
+                String md5 = GetMd5(fo);
+                System.out.println(md5 == null ? fo.getCanonicalPath() : fo.getCanonicalPath() + " MD5: " + md5);
+
+                // Test MD5
+                if (md5 == null)
+                {
+                    // Just continue...
+                    System.out.println("ShadersMod not found - downloading");
+                }
+                else if (!md5.equalsIgnoreCase(goodmd5)) {
+                    // Bad copy. Attempt delete just to make sure.
+                    System.out.println("ShadersMod MD5 bad - downloading");
+
+                    try {
+                        deleted = fo.delete();
+                    }
+                    catch (Exception ex1) {
+                        ex1.printStackTrace();
+                    }
+                }
+                else {
+                    // A good copy!
+                    System.out.println("ShadersMod MD5 good! " + md5);
+                    return true;
+                }
+
+                // Need to attempt download...
+                
+                if(forge) {
+                    success = downloadFile(url, fo);
+                	
+                }else {
+                	 File t = new File(fod,temp);
+                	 if( downloadFile(url, t)){
+                		 
+                		 ZipInputStream temp_jar = new ZipInputStream(new FileInputStream(t));
+                		 
+                		   ZipEntry ze = null;
+                           byte data[] = new byte[1024];
+                           while ((ze = temp_jar.getNextEntry()) != null) {
+                               if(ze.getName().equals(file)) //extract the core jar.
+
+                               {
+                            	   FileOutputStream output = new FileOutputStream(fo);
+                                   try
+                                   {
+                                	   byte[] buffer = new byte[2048];
+                                       int len = 0;
+                                       while ((len = temp_jar.read(buffer)) > 0)
+                                       {
+                                           output.write(buffer, 0, len);
+                                       }
+                                   }
+                                   finally
+                                   {
+                                       if(output!=null) output.close();
+                                   }
+                               }
+                           }
+                           temp_jar.close();
+                           t.delete();
+                           return true;                		 
+                	 } else {
+						return false;
+					 }
+            
+                }   
+                
+                //Check (potentially) downloaded shadersmodcore md5
+                md5 = GetMd5(fo);
+                if (success == false || md5 == null || !md5.equalsIgnoreCase(goodmd5)) {
+                    // No good
+                    if (md5 != null)
+                        System.out.println("ShadersMod - bad MD5. Got " + md5 + ", expected " + goodmd5);
+                    try {
+                        deleted = fo.delete();
+                    }
+                    catch (Exception ex1) {
+                        ex1.printStackTrace();
+                    }
+                    return false;
+                }
+
+                return true;
+            } catch (Exception e) {
+                finalMessage += " Error: "+e.getLocalizedMessage();
+            }
+            return false;
+        }
+		
         private boolean downloadFile(String surl, File fo)
         {
             return downloadFile(surl, fo, null);
@@ -479,8 +606,15 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 if(useForge.isSelected() /*&& forgeVersion.getSelectedItem() != forgeNotFound*/ ) 
                 	{
                     String filename;
-                        filename = "version-forge.json";
-                        mod="-forge";
+					
+					  if(!useShadersMod.isSelected()){
+						filename = "version-forge.json";
+						mod="-forge";
+					  }
+					 else{
+						filename = "version-forge-shadersmod.json";
+						mod="-forge-shadersmod";
+					 }
                         version_json = new FilterInputStream( Installer.class.getResourceAsStream(filename) ) {
                         public int read(byte[] buff) throws IOException {
                             int ret = in.read(buff);
@@ -492,7 +626,6 @@ public class Installer extends JPanel  implements PropertyChangeListener
                             }
                             return ret;
                         }
-
                     };
                 } else {
                     String filename;
@@ -797,6 +930,36 @@ public class Installer extends JPanel  implements PropertyChangeListener
                     monitor.setNote("Downloading Optifine...retrying...");
                 }
             }
+            
+            if(useShadersMod.isSelected()){
+	            finalMessage = "Failed: Couldn't download ShadersMod. ";
+	            monitor.setNote("Checking ShadersModCore");
+	            monitor.setProgress(42);
+	            boolean downloadedSMC = false;
+	            monitor.setNote("Downloading ShadersModCore");
+	
+	            for (int i = 1; i <= 3; i++)
+	            {
+	                if (downloadSMC(useForge.isSelected()))
+	                {
+	                    // Got it!
+	                	downloadedSMC = true;
+	                    break;
+	                }
+	
+	                // Failed. Sleep a bit and retry...
+	                if (i < 3) {
+	                    monitor.setNote("Downloading ShadersModCore... waiting...");
+	                    try {
+	                        Thread.sleep(i * 1000);
+	                    }
+	                    catch (InterruptedException e) {
+	                    }
+	                    monitor.setNote("Downloading ShadersModCore...retrying...");
+	                }
+	            }
+            }
+            
             monitor.setProgress(50);
             monitor.setNote("Setting up Vivecraft as a library...");
 			
@@ -902,7 +1065,8 @@ public class Installer extends JPanel  implements PropertyChangeListener
         dialog = optionPane.createDialog(emptyFrame, "Vivecraft Installer");
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);
-        if (((String)optionPane.getValue()).equalsIgnoreCase("Install"))
+        String str =  ((String)optionPane.getValue());
+        if (str !=null && ((String)optionPane.getValue()).equalsIgnoreCase("Install"))
         {
             int option = JOptionPane.showOptionDialog(
                                          null,
@@ -1026,6 +1190,26 @@ public class Installer extends JPanel  implements PropertyChangeListener
         }
     }
 
+    private class updateActionF extends AbstractAction
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+        	updateInstructions();
+        }
+    }
+    
+    private class updateActionSM extends AbstractAction
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+        	updateInstructions();
+        }
+    }
+    
+    
+    
     public Installer(File targetDir)
     {
         ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
@@ -1096,7 +1280,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
         JPanel entryPanel = new JPanel();
         entryPanel.setLayout(new BoxLayout(entryPanel,BoxLayout.X_AXIS));
-
+        
         Installer.targetDir = targetDir;
         selectedDirText = new JTextField();
         selectedDirText.setEditable(false);
@@ -1116,14 +1300,13 @@ public class Installer extends JPanel  implements PropertyChangeListener
         infoLabel.setVerticalTextPosition(JLabel.TOP);
         infoLabel.setAlignmentX(LEFT_ALIGNMENT);
         infoLabel.setAlignmentY(TOP_ALIGNMENT);
-        infoLabel.setForeground(Color.RED);
         infoLabel.setVisible(false);
 
         fileEntryPanel = new JPanel();
         fileEntryPanel.setLayout(new BoxLayout(fileEntryPanel,BoxLayout.Y_AXIS));
         fileEntryPanel.add(infoLabel);
         fileEntryPanel.add(entryPanel);
-
+        
         fileEntryPanel.setAlignmentX(CENTER_ALIGNMENT);
         fileEntryPanel.setAlignmentY(TOP_ALIGNMENT);
         this.add(fileEntryPanel);
@@ -1138,7 +1321,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
         JPanel forgePanel = new JPanel();
         forgePanel.setLayout( new BoxLayout(forgePanel, BoxLayout.X_AXIS));
         //Create forge: no/yes buttons
-        useForge = new JRadioButton("Install Vivecraft with Forge " + FORGE_VERSION,false);
+        useForge = new JCheckBox();
+        AbstractAction actf = new updateActionF();
+        actf.putValue(AbstractAction.NAME, "Install Vivecraft with Forge " + FORGE_VERSION);
+        useForge.setAction(actf);
         forgeVersion = new JComboBox();
         if (!ALLOW_FORGE_INSTALL)
             useForge.setEnabled(false);
@@ -1155,7 +1341,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         //forgePanel.add(forgeVersion);
 		
         // Profile creation / update support
-        createProfile = new JCheckBox("Add/update Vivecraft launcher profile", false);
+        createProfile = new JCheckBox("Add/update Vivecraft launcher profile", true);
         createProfile.setAlignmentX(LEFT_ALIGNMENT);
         createProfile.setSelected(true);
         createProfile.setToolTipText(
@@ -1165,29 +1351,19 @@ public class Installer extends JPanel  implements PropertyChangeListener
                 "current version.<br>" +
                 "</html>");
 
-		useShadersMod = new JRadioButton("Install Vivecraft with ShadersMod 2.3.29");
+		useShadersMod = new JCheckBox();
         useShadersMod.setAlignmentX(LEFT_ALIGNMENT);
         if (!ALLOW_SHADERSMOD_INSTALL)
 			useShadersMod.setEnabled(false);
+        AbstractAction acts = new updateActionSM();
+        acts.putValue(AbstractAction.NAME, "Install Vivecraft with ShadersMod 2.3.29");
+        useShadersMod.setAction(acts);
         useShadersMod.setToolTipText(
                 "<html>" +
                 "If checked, sets the vivecraft profile to use ShadersMod <br>" +
                 "support." +
                 "</html>");
-		
-		useVanilla = new JRadioButton("Install Vivecraft");
-		useVanilla.setAlignmentX(LEFT_ALIGNMENT);
-		useVanilla.setEnabled(true);
-		useVanilla.setSelected(true);
-        useVanilla.setToolTipText(
-                "<html>" +
-                "Install the normal version of Vivecraft" +
-                "</html>");
-        
-        bg.add(useVanilla);
-        bg.add(useShadersMod);
-        bg.add(useForge);
-        
+
         useHydra = new JCheckBox("Razer Hydra support",false);
         useHydra.setAlignmentX(LEFT_ALIGNMENT);
         if (!ALLOW_HYDRA_INSTALL)
@@ -1212,13 +1388,23 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
         //Add option panels option panel
         forgePanel.setAlignmentX(LEFT_ALIGNMENT);
-        optPanel.add(useVanilla);
+        
         optPanel.add(forgePanel);
         optPanel.add(useShadersMod);
         optPanel.add(createProfile);
         optPanel.add(useHrtf);
         this.add(optPanel);
 
+        this.add(Box.createRigidArea(new Dimension(5,20))); 
+        
+        instructions = new JLabel("",SwingConstants.CENTER);
+        instructions.setAlignmentX(CENTER_ALIGNMENT);
+        instructions.setAlignmentY(TOP_ALIGNMENT);
+        instructions.setForeground(Color.RED);
+        instructions.setPreferredSize(new Dimension(20, 20));
+         this.add(instructions);
+        
+        
         this.add(Box.createVerticalGlue());
         JLabel github = linkify("Vivecraft is open source. find it on Github","https://github.com/jrbudda/minecrift/releases","Vivecraft Github");
         JLabel wiki = linkify("Vivecraft wiki page","https://www.reddit.com/r/Vive/wiki/minecrift_for_vive","Reddit Vivecraft Wiki");
@@ -1241,11 +1427,23 @@ public class Installer extends JPanel  implements PropertyChangeListener
         this.add( optifine );
 
         this.setAlignmentX(LEFT_ALIGNMENT);
-
         updateFilePath();
     }
 
 
+    private void updateInstructions(){
+    	String out = "";
+    	if (useForge.isSelected() && !useShadersMod.isSelected()){
+    		out += "Please make sure that ShadersModCore is NOT in your Forge mods folder!";
+    	}
+    	if (useForge.isSelected() && useShadersMod.isSelected()){
+    		out += "Please make sure that ShadersModCore is NOT in your Forge mods folder!";
+    	}
+    	
+    	instructions.setText(out);
+    	
+    }
+    
     private void updateFilePath()
     {
         try
@@ -1302,12 +1500,13 @@ public class Installer extends JPanel  implements PropertyChangeListener
             UIManager.setLookAndFeel(
                     UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) { }
-
+		try {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 createAndShowGUI();
             }
         });
+		     } catch (Exception e) { e.printStackTrace(); }
     }
     public static JLabel linkify(final String text, String URL, String toolTip)
     {
@@ -1365,8 +1564,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
 				return "ViveCraft-ShadersMod " + MINECRAFT_VERSION;
 			else
 				return "ViveCraft " + MINECRAFT_VERSION;
-        }
-        else return "ViveCraft-Forge " + MINECRAFT_VERSION;
+        } else if(sm)
+				return "ViveCraft-SM-Forge " + MINECRAFT_VERSION;
+			else
+				return "ViveCraft-Forge " + MINECRAFT_VERSION;
     }
 
     public static String readAsciiFile(File file)

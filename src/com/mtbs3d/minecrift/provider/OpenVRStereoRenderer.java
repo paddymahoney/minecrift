@@ -56,25 +56,18 @@ public class OpenVRStereoRenderer implements IStereoProvider
 		for (int i = 0; i < 2; i++) {
 			hiddenMeshes[i] = MCOpenVR.vrsystem.GetHiddenAreaMesh.apply(i);
 			hiddenMeshes[i].read();
-
-			hiddenMesheVertecies[i] = new float[hiddenMeshes[i].unTriangleCount * 3 * 2];
-			Pointer arrptr = new Memory(hiddenMeshes[i].unTriangleCount * 3 * 2);
-			hiddenMeshes[i].pVertexData.getPointer().read(0, hiddenMesheVertecies[i], 0, hiddenMesheVertecies[i].length);
-
-			for (int ix = 0;ix < hiddenMesheVertecies[i].length;ix+=2) {
-				hiddenMesheVertecies[i][ix] = hiddenMesheVertecies[i][ix] * info.LeftFovTextureResolution.w * renderScaleFactor;
-				hiddenMesheVertecies[i][ix + 1] = hiddenMesheVertecies[i][ix +1] * info.LeftFovTextureResolution.h * renderScaleFactor;
+			int tc = hiddenMeshes[i].unTriangleCount;
+			if(tc >0){
+				hiddenMesheVertecies[i] = new float[hiddenMeshes[i].unTriangleCount * 3 * 2];
+				Pointer arrptr = new Memory(hiddenMeshes[i].unTriangleCount * 3 * 2);
+				hiddenMeshes[i].pVertexData.getPointer().read(0, hiddenMesheVertecies[i], 0, hiddenMesheVertecies[i].length);
+	
+				for (int ix = 0;ix < hiddenMesheVertecies[i].length;ix+=2) {
+					hiddenMesheVertecies[i][ix] = hiddenMesheVertecies[i][ix] * info.LeftFovTextureResolution.w * renderScaleFactor;
+					hiddenMesheVertecies[i][ix + 1] = hiddenMesheVertecies[i][ix +1] * info.LeftFovTextureResolution.h * renderScaleFactor;
+				}
 			}
 		}
-
-		//		Pointer pointers = new Memory(k_pch_SteamVR_Section.length()+1);
-		//		pointers.setString(0, k_pch_SteamVR_Section);
-		//		Pointer pointerk = new Memory(k_pch_SteamVR_RenderTargetMultiplier_Float.length()+1);
-		//		pointerk.setString(0, k_pch_SteamVR_RenderTargetMultiplier_Float);
-		//		IntByReference err = new IntByReference();
-		//		float test = vrSettings.GetFloat.apply(pointers, pointerk, 99.9f, err);
-		//		vrSettings.SetFloat.apply(pointers, pointerk, renderScaleFactor, err);
-		//		float test2 = vrSettings.GetFloat.apply(pointers, pointerk, 99.9f, err);
 
 		return info;
 	}
@@ -217,6 +210,7 @@ public class OpenVRStereoRenderer implements IStereoProvider
 
 	@Override
 	public float[] getStencilMask(EyeType eye) {
+		if(hiddenMesheVertecies == null) return null;
 		return eye == EyeType.ovrEye_Left ? hiddenMesheVertecies[0] : hiddenMesheVertecies[1];
 	}
 

@@ -131,7 +131,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +210,4743 @@
+@@ -150,2988 +210,4747 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2950,11 +2950,13 @@
 +
 +			this.framebufferMc = this.framebuffer;
 +
++			float nano = this.timer.renderPartialTicks;
++			
 +			/** Minecrift - main stereo render loop **/
 +			for (int i = 0; this.visible && i < viewPortCount; i++)
 +			{
 +				this.mcProfiler.startSection("Eye:" + currentEye.ordinal());
-+					shouldupdate = renderSingleView(i);
++					shouldupdate = renderSingleView(i,nano);
 +				this.mcProfiler.endSection(); //eye
 +			} //end per eye rendering.
 +
@@ -3025,7 +3027,7 @@
 +		mcProfiler.startSection("Idle");
 +	}
 +
-+	private boolean renderSingleView(int eye) {
++	private boolean renderSingleView(int eye, float nano) {
 +		boolean shouldupdate;
 +//			int x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);				
 +//			while (x >1){
@@ -3062,7 +3064,7 @@
 +				}
 +					
 +				// Update our orientation and position variables from the sensor polled data
-+				this.entityRenderer.updatePositionAndOrientation(this.timer.renderPartialTicks, Display.isActive());
++				this.entityRenderer.updatePositionAndOrientation(nano, Display.isActive());
 +				
 +				Object fmlCommonHandler = null;
 +				if (Reflector.FMLCommonHandler_instance.exists()) {
@@ -3075,7 +3077,7 @@
 +					/** MINECRIFT FORGE **/
 +					if (!this.stereoProvider.isStereo()) {
 +						if (fmlCommonHandler != null) {
-+							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{this.timer.renderPartialTicks});
++							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{nano});
 +						}
 +					}
 +					this.mcProfiler.startSection("updateCameraAndRender");
@@ -3083,7 +3085,7 @@
 +			
 +					
 +						///THIS IS WHERE EVERYTHING IS RENDERED
-+						this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
++						this.entityRenderer.updateCameraAndRender(nano);
 +
 +						checkGLError("postucr " + eye);
 +						
@@ -3101,9 +3103,8 @@
 +				checkGLError("prepostprocess " + eye);
 +				
 +			this.mcProfiler.startSection("postProcessing");
-+				 	doPostProcessing(frameIndex, this.currentEye);
++				 	doPostProcessing(frameIndex, this.currentEye, nano);
 +			this.mcProfiler.endSection();
-+			
 +			
 +				checkGLError("postpostprocess " + eye);
 +			
@@ -7083,10 +7084,13 @@
 +	}
 +
 +	public void doStencilForEye(int i) {
++		
++		float[] verts = stereoProvider.getStencilMask(this.currentEye);
++		if (verts == null) return;
++				
 +		this.framebuffer.bindFramebuffer(true);
-+
 +			//START STENCIL TESTING - Yes I know there's about 15 better ways to do this.
-+			float[] verts = stereoProvider.getStencilMask(this.currentEye);
++
 +			if(verts!=null){
 +				GL11.glEnable(GL11.GL_STENCIL_TEST);
 +				GL11.glDisable(GL11.GL_CULL_FACE);
@@ -7363,14 +7367,14 @@
 +		return this.stereoProvider.getCurrentTimeSecs();
 +	}
 +
-+	private void doPostProcessing(long frameIndex, EyeType eye)
++	private void doPostProcessing(long frameIndex, EyeType eye, float nano)
 +	{
 +			
 +		// VIVE start - screen flash when hurt instead of view tilt
 +		EntityLivingBase player = renderViewEntity;
 +		if (player!=null && player.getHealth() > 0.0f)
 +		{
-+			float var3 = (float)player.hurtTime - timer.renderPartialTicks;
++			float var3 = (float)player.hurtTime - nano;
 +			if (var3>0.0f)
 +			{
 +				var3 /= (float) player.maxHurtTime;

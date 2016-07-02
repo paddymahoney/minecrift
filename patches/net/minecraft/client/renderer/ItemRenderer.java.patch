@@ -258,7 +258,7 @@
  
          GL11.glPopMatrix();
      }
-@@ -240,364 +251,494 @@
+@@ -240,364 +251,492 @@
  
          p_78439_0_.draw();
      }
@@ -1067,8 +1067,6 @@
 +		
 +     //JRBUDDA
 +
-+        Vec3 o =  blockLoc.addVector(-mc.entityRenderer.interpolatedPlayerPos.xCoord, -mc.entityRenderer.interpolatedPlayerPos.yCoord, -mc.entityRenderer.interpolatedPlayerPos.zCoord );
-+        
 +		float var5 = - 0.09f;
 +        float var6 = 0.09F;
 +        float var7 = -0.09F;
@@ -1081,7 +1079,7 @@
          var3.startDrawingQuads();
          var3.addVertexWithUV((double)var5, (double)var7, (double)var9, (double)var11, (double)var13);
          var3.addVertexWithUV((double)var6, (double)var7, (double)var9, (double)var10, (double)var13);
-@@ -606,6 +747,7 @@
+@@ -606,6 +745,7 @@
          var3.draw();
          GL11.glPopMatrix();
          GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -1089,7 +1087,7 @@
      }
  
      /**
-@@ -621,13 +763,13 @@
+@@ -621,13 +761,13 @@
          GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();

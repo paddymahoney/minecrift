@@ -154,7 +154,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         this.checkandUpdateRotateScale();
 
 		/** MINECRIFT */
-		mc.thePlayer.stepHeight = mc.vrSettings.walkUpBlocks ? 1f : 0.5f;
+		mc.thePlayer.stepHeight = mc.vrSettings.walkUpBlocks ? 1f * mc.vrSettings.vrWorldScale : 0.5f;
 		if (!this.getFreeMoveMode()) mc.thePlayer.stepHeight = 0.0f;
 		/** END MINECRIFT */
         

@@ -1496,13 +1496,22 @@ public class MCOpenVR
 		if ( eye == EyeType.ovrEye_Left )
 		{
 			hmdToEye = hmdPoseLeftEye;
+		} else if ( eye == EyeType.ovrEye_Right )
+		{
+			hmdToEye = hmdPoseRightEye;
+		} else {
+			hmdToEye = null;
 		}
-
-		Matrix4f pose = Matrix4f.multiply( hmdPose, hmdToEye );
-		Vector3f pos = OpenVRUtil.convertMatrix4ftoTranslationVector(pose);
-
-		// not sure why the negative y is required here -- lets get rid of that thank you.
-		return Vec3.createVectorHelper(pos.x, pos.y, pos.z);
+			
+		if(hmdToEye == null){
+			Matrix4f pose = hmdPose;
+			Vector3f pos = OpenVRUtil.convertMatrix4ftoTranslationVector(pose);
+			return Vec3.createVectorHelper(pos.x, pos.y, pos.z);
+		} else {
+			Matrix4f pose = Matrix4f.multiply( hmdPose, hmdToEye );
+			Vector3f pos = OpenVRUtil.convertMatrix4ftoTranslationVector(pose);
+			return Vec3.createVectorHelper(pos.x, pos.y, pos.z);
+		}
 	}
 
 	/**
@@ -1860,7 +1869,7 @@ public class MCOpenVR
    		mc.mcProfiler.startSection("applyGUIModelView");
 	
 			Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
-			Vec3 eye =mc.entityRenderer.getEyeRenderPos();
+			Vec3 eye =mc.entityRenderer.getEyeRenderPos(eyeType);
 			
 			if(mc.theWorld == null)
 				mc.vrSettings.vrWorldRotation = 0;
