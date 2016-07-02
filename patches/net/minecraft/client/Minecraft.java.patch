@@ -2215,8 +2215,8 @@
 +		this.mcResourceManager.registerReloadListener(this.renderEngine);
 +		this.skinManager = new SkinManager(this.renderEngine, new File(this.fileAssets, "skins"), this.sessionService);
 +		/** MINECRIFT FORGE **/
-+		boolean Forge = Reflector.forgeExists();
-+		if (Forge) {
++		boolean hasForge = false;//Reflector.forgeExists();
++		if (hasForge) {
 +			//cpw.mods.fml.client.SplashProgress.drawVanillaScreen();
 +			Reflector.callVoid(Reflector.FMLClientSplashProgress_drawVanillaScreen, new Object[] {});
 +		}
@@ -2244,7 +2244,7 @@
 +		this.mcResourceManager.registerReloadListener(new FoliageColorReloadListener());
 +		/** MINECRIFT FORGE **/
 +		Object bar = null;
-+		if (Forge) {
++		if (hasForge) {
 +			//cpw.mods.fml.common.ProgressManager.ProgressBar bar = cpw.mods.fml.common.ProgressManager.push("Rendering Setup", 9);
 +			//bar.step("Loading Render Manager");
 +			bar = Reflector.call(Reflector.FMLCommonProgressManager_push, new Object[] {"Rendering Setup", 9, true});
@@ -2253,7 +2253,7 @@
 +		/** END MINECRIFT FORGE **/
 +		RenderManager.instance.itemRenderer = new ItemRenderer(this);
 +		/** MINECRIFT FORGE **/
-+		if (Forge) {
++		if (hasForge) {
 +			//bar.step("Loading Entity Renderer");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Entity Renderer"});
 +		}
@@ -2276,7 +2276,7 @@
 +			}
 +		});
 +		/** MINECRIFT FORGE **/
-+		if (Forge) {
++		if (hasForge) {
 +			//bar.step("Loading GL properties");
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading GL properties"});
 +		}
@@ -2302,41 +2302,41 @@
 +		/** END MINECRIFT SHADERS MOD **/
 +		
 +		/** MINECRIFT FORGE **/
-+		if (Forge) {
++		if (hasForge) {
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Render Global instance"});
 +		}
 +
 +		this.renderGlobal = new RenderGlobal(this);
-+		if (Forge) {
++		if (hasForge) {
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Building Blocks Texture"});
 +		}
-+		if (Forge) {
++		if (hasForge) {
 +			this.textureMapBlocks = new TextureMap(0, "textures/blocks", true);
 +		}
 +		else {
 +			this.textureMapBlocks = new TextureMap(0, "textures/blocks");
 +		}
 +		
-+		if (Forge) {
++		if (hasForge) {
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Anisotropy and Mipmaps"});
 +		}
 +		
 +		this.textureMapBlocks.setAnisotropicFiltering(this.gameSettings.anisotropicFiltering);
 +		this.textureMapBlocks.setMipmapLevels(this.gameSettings.mipmapLevels);
-+		if (Forge) {
++		if (hasForge) {
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Entity Renderer"});
 +		}
 +		this.renderEngine.loadTextureMap(TextureMap.locationBlocksTexture, this.textureMapBlocks);
-+		if (Forge) {
++		if (hasForge) {
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Loading Items Texture"});
 +		}
-+		if (Forge) {
++		if (hasForge) {
 +			this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items", true));
 +		}
 +		else {
 +			this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items"));
 +		}
-+		if (Forge) {
++		if (hasForge) {
 +			Reflector.callVoid(bar, Reflector.FMLCommonProgressManager_ProgressBar_step, new Object[] {"Viewport"});
 +		}
 +		GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
@@ -2387,7 +2387,7 @@
 +			this.displayGuiScreen(new GuiMainMenu());
 +		}
 +
-+		if (Forge) {
++		if (hasForge) {
 +			//cpw.mods.fml.client.SplashProgress.clearVanillaResources(renderEngine, mojangLogo);
 +			Reflector.callVoid(Reflector.FMLClientSplashProgress_clearVanillaResources, new Object[] {renderEngine, mojangLogo});
 +		}

@@ -137,7 +137,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	    
 	    if (worldRotationRadians!= lastworldRotation || worldScale != lastWorldScale) {
 	    	if(mc.thePlayer!=null)snapRoomOriginToPlayerEntity(mc.thePlayer, true);
-	    	
 	    }
 	    lastworldRotation = worldRotationRadians;
 	    lastWorldScale = worldScale;		

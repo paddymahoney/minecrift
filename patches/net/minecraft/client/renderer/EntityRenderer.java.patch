@@ -2129,7 +2129,7 @@
 +	
 +	public void renderWorld(float par1, long par2)
 +	{
-+		boolean hasForge = false; //Reflector.ForgeHooksClient.exists();
++		boolean hasForge = Reflector.ForgeHooksClient.exists();
 +		boolean shadersMod = Reflector.shadersModExists();	
 +		boolean shadersModShadowPass = false;
 +		if (shadersMod) {
@@ -2508,7 +2508,7 @@
 +				
 +		if (player.posY >= 128.0D + (double)(this.mc.gameSettings.ofCloudsHeight * 128.0F))
 +		{
-+			this.mc.mcProfiler.endStartSection("aboveClouds");
++			this.mc.mcProfiler.endStartSection("Clouds");
 +			this.renderCloudsCheck(rg, par1);
 +		}
 +
