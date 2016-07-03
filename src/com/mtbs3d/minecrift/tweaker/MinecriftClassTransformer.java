@@ -1,7 +1,14 @@
 package com.mtbs3d.minecrift.tweaker;
 
 import net.minecraft.launchwrapper.IClassTransformer;
+import net.minecraft.launchwrapper.ITweaker;
+import net.minecraft.launchwrapper.Launch;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
@@ -15,42 +22,70 @@ import org.objectweb.asm.*;
 // minecrift code implements all of the Forge event handlers via reflection so we are 'Forge
 // compatible' for non-core mods. Forge coremods most likely wont play nicely with us however.
 
+
+
+
 public class MinecriftClassTransformer implements IClassTransformer
 {
+	
+    private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("legacy.debugClassLoading", "false"));
+	
+	public enum Stage{
+		main, cache, replace
+	}
+	
+	private Stage currentStage = Stage.main; 
+	
     private ZipFile mcZipFile = null;
 
-    public MinecriftClassTransformer()
+    public MinecriftClassTransformer(){
+    	this(Stage.main);
+    }
+    
+    public MinecriftClassTransformer(Stage stage)
     {
-        try
-        {
-            URLClassLoader e = (URLClassLoader)MinecriftClassTransformer.class.getClassLoader();
-            URL[] urls = e.getURLs();
+    	this.currentStage = stage;
 
-            for (int i = 0; i < urls.length; ++i)
-            {
-                URL url = urls[i];
-                ZipFile zipFile = getMinecriftZipFile(url);
+    	debug("Vivecraft ClassTransformer " + stage);
+    	
+    	if(stage == Stage.main){
+    		try
+    		{
+    			URLClassLoader e = (URLClassLoader)MinecriftClassTransformer.class.getClassLoader();
+    			URL[] urls = e.getURLs();
 
-                if (zipFile != null)
-                {
-                    this.mcZipFile = zipFile;
-                    debug("Minecrift ClassTransformer");
-                    debug("Minecrift URL: " + url);
-                    debug("Minecrift ZIP file: " + zipFile);
-                    break;
-                }
-            }
-        }
-        catch (Exception var6)
-        {
-            var6.printStackTrace();
-        }
+    			for (int i = 0; i < urls.length; ++i)
+    			{
+    				URL url = urls[i];
+    				ZipFile zipFile = getMinecriftZipFile(url);
 
-        if (this.mcZipFile == null)
-        {
-            debug("*** Can not find the Minecrift JAR in the classpath ***");
-            debug("*** Minecrift will not be loaded! ***");
-        }
+    				if (zipFile != null)
+    				{
+    					this.mcZipFile = zipFile;
+
+
+    					debug("Vivecraft URL: " + url);
+    					debug("Vivecraft ZIP file: " + zipFile.getName());
+
+    					break;
+    				}
+    			}
+    		}
+    		catch (Exception var6)
+    		{
+    			var6.printStackTrace();
+    		}
+    		
+        	if (this.mcZipFile == null)
+        	{
+        		debug("*** Can not find the Vivecraft JAR in the classpath ***");
+        		debug("*** Vivecraft will not be loaded! ***");
+        	}
+    		
+    	}
+
+
+    	
     }
 
     private static ZipFile getMinecriftZipFile(URL url)
@@ -76,29 +111,62 @@ public class MinecriftClassTransformer implements IClassTransformer
             return null;
         }
     }
-   
+    
+    public static Map<String,byte[]> cache  = new HashMap<String,byte[]>();
+    
+    public static List<String> myClasses = new ArrayList<String>();
     
     public byte[] transform(String name, String transformedName, byte[] bytes)
     {
-    	byte[] minecriftClass = this.getMinecriftClass(name);
+    	
+    	switch(currentStage){
+		case main:
+			
+		   	byte[] minecriftClass = this.getMinecriftClass(name);
 
-    	if (minecriftClass == null) {
-    		//debug(String.format("Minecrift: Passthrough '%s' -> '%s'", name, transformedName));
+			//writeToFile("original", transformedName, name, bytes);
+	    	
+	    	if (minecriftClass == null) {
+	    		//debug(String.format("Minecrift: Passthrough '%s' -> '%s'", name, transformedName));
+	    	}
+	    	else {
+	    		//debug(String.format("Minecrift: Found '%s' -> '%s'", name, transformedName));
+	    		myClasses.add(name);
+	    		//writeToFile("transformed", transformedName, name, minecriftClass);
+	    		// Perform any additional mods using ASM
+	    		minecriftClass = performAsmModification(minecriftClass, transformedName);
+	    		if(bytes.length != minecriftClass.length){
+	    			if(DEBUG)debug(String.format("Overwrite " + name +" "+ transformedName + " " + bytes.length + " > "  + minecriftClass.length));
+	    			myClasses.add(transformedName);
+	    		}
+	    	}
+	    	return minecriftClass != null ? minecriftClass : bytes;
+			
+		case cache:
+		
+			if(myClasses.contains(transformedName)){
+				if(DEBUG)debug(String.format("Cache '%s' - '%s'", name, transformedName));
+				cache.put(transformedName, bytes);
+			}
+
+			return bytes;
+
+		case replace:
+	
+			if(cache.containsKey(transformedName)){
+				if(DEBUG)debug(String.format("Replace '%s' - '%s'", name, transformedName));
+				return cache.get(transformedName);
+			}
+			
+			return bytes;
+			
+		default:
+			return bytes;
+    	
     	}
-    	else {
-    		// Perform any additional mods using ASM
-    		minecriftClass = performAsmModification(minecriftClass, transformedName);
-    		if(bytes.length != minecriftClass.length){
-    		
-    			debug(String.format("[Vivecraft tweaker]: Overwrite " + name +" "+ transformedName + " " + bytes.length + " > "  + minecriftClass.length));
-
-        		//writeToFile("original", transformedName, name, bytes);
-        		//writeToFile("transformed", transformedName, name, minecriftClass);
-    			
-    		}
-
-    	}
-    	return minecriftClass != null ? minecriftClass : bytes;
+    	
+    	
+ 
     }
 
     private void writeToFile(String dir, String transformedName, String name, byte[] bytes)

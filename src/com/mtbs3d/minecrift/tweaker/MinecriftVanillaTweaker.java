@@ -7,31 +7,28 @@ import net.minecraft.launchwrapper.LaunchClassLoader;
 import java.io.File;
 import java.util.List;
 
-public class MinecriftForgeTweaker implements ITweaker
+public class MinecriftVanillaTweaker implements ITweaker
 {
-		
-	public MinecriftForgeTweaker() {
-
-	}
-	
     public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile)
-    {	
-		
+    {
+        dbg("MinecriftForgeTweaker: acceptOptions");
     }
 
     public void injectIntoClassLoader(LaunchClassLoader classLoader)
     {
-    	
+        dbg("MinecriftForgeTweaker: injectIntoClassLoader");
+        classLoader.registerTransformer("com.mtbs3d.minecrift.tweaker.MinecriftClassTransformer");
     }
 
     public String getLaunchTarget()
     {
-        return "com.mtbs3d.minecrift.main.Main";
+        dbg("MinecriftForgeTweaker: getLaunchTarget");
+        return "net.minecraft.client.main.Main";
     }
 
     public String[] getLaunchArguments()
     {
-
+        dbg("MinecriftForgeTweaker: getLaunchArguments");
         return new String[0];
     }
 

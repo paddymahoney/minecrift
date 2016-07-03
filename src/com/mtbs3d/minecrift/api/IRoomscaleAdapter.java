@@ -33,7 +33,6 @@ public interface IRoomscaleAdapter  {
 	public Vec3 getEyePos_Room(EyeType eye);
 	
     public boolean isControllerMainTracking();
-	public Vec3 getControllerMainPos_World(); 
 	public Vec3 getControllerMainDir_World(); 
 	public float getControllerMainYaw_World(); //degrees
 	public float getControllerMainPitch_World(); //degrees
@@ -41,8 +40,12 @@ public interface IRoomscaleAdapter  {
 	public float getControllerYaw_Room(int controller); //degrees
 	public float getControllerPitch_Room(int controller); //degrees
 	
+	@Deprecated
+	public Vec3 getControllerOffhandPos_World();
+	@Deprecated
+	public Vec3 getControllerMainPos_World(); 
+	
     public boolean isControllerOffhandTracking();
-	public Vec3 getControllerOffhandPos_World(); 
 	public Vec3 getControllerOffhandDir_World(); 
 	public float getControllerOffhandYaw_World(); //degrees
 	public float getControllerOffhandPitch_World(); //degrees

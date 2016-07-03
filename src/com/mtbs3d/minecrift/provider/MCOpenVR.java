@@ -533,7 +533,7 @@ public class MCOpenVR
 	private static void processGui() {
 		Vector3f controllerPos = new Vector3f();
 		//OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
-		Vec3 con = mc.vrPlayer.getControllerMainPos_World();
+		Vec3 con = mc.vrPlayer.getControllerPos_World(0);
 		controllerPos.x	= (float) con.xCoord;
 		controllerPos.y	= (float) con.yCoord;
 		controllerPos.z	= (float) con.zCoord;
@@ -1957,16 +1957,14 @@ public class MCOpenVR
 				
 					guiLocal.yCoord = 0.5*mc.vrSettings.vrWorldScale;
 					
-					Vec3 v =mc.vrPlayer.getControllerOffhandPos_World();
+					Vec3 v =mc.vrPlayer.getControllerPos_World(1);
 					guiPos_World.x = (float) v.xCoord;
 					guiPos_World.y = (float) v.yCoord;
 					guiPos_World.z = (float) v.zCoord;
 					
 				}
 			} 
-	
-		
-			
+
 			// otherwise, looking at inventory screen. use pose calculated when screen was opened
 			//where is this set up... should be here....
 	

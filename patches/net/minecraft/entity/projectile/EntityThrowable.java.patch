@@ -40,7 +40,7 @@
 +     
 +        if (shooter instanceof EntityPlayer)
 +        { 	
-+            Vec3 aimSource = Minecraft.getMinecraft().roomScale.getControllerMainPos_World();
++            Vec3 aimSource = Minecraft.getMinecraft().roomScale.getControllerPos_World(0);
 +            Vec3 controllerDirection = Minecraft.getMinecraft().roomScale.getControllerMainDir_World();
 +            spawnPosition.xCoord = aimSource.xCoord + controllerDirection.xCoord * 0.28f;
 +            spawnPosition.yCoord = aimSource.yCoord - controllerDirection.yCoord * 0.28f;

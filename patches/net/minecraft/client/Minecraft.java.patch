@@ -2083,6 +2083,7 @@
 +	/** MINECRIFT **/
 +	private void startGame() throws Exception
 +	{
++			 
 +		//this.gameSettings = new GameSettings(this, this.mcDataDir);    // All settings initialised in Minecraft.minecriftFirstInit()
 +		/** END MINECRIFT **/
 +
@@ -2215,9 +2216,8 @@
 +		this.mcResourceManager.registerReloadListener(this.renderEngine);
 +		this.skinManager = new SkinManager(this.renderEngine, new File(this.fileAssets, "skins"), this.sessionService);
 +		/** MINECRIFT FORGE **/
-+		boolean hasForge = false;//Reflector.forgeExists();
++		boolean hasForge = Reflector.forgeExists();
 +		if (hasForge) {
-+			//cpw.mods.fml.client.SplashProgress.drawVanillaScreen();
 +			Reflector.callVoid(Reflector.FMLClientSplashProgress_drawVanillaScreen, new Object[] {});
 +		}
 +		else {

@@ -77,7 +77,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +90,4551 @@
+@@ -61,2593 +90,4552 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -921,9 +921,10 @@
 +
 +		setupClipPlanes();
 +		
-+		System.out.println("**********NEW ENTITY RENDERER ***********");
++		if(mc.entityRenderer!=null){
++			System.out.println("**********NEW ENTITY RENDERER ***********");
 +			java.lang.Thread.dumpStack();
-+
++		}
 +		
 +		/** END MINECRIFT */
 +	}
@@ -2192,7 +2193,7 @@
 +				this.mc.displayHeight = mc.tempDisplayHeight;
 +				
 +				this.mc.mcProfiler.endSection();
-+			}
++			} else GL11.glFlush(); //temp remove me
 +	
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
@@ -4042,7 +4043,7 @@
 +			// Darktemp's crosshair fix
 +			// VIVE START - interact source	
 +			
-+			Vec3 aimsource = mc.roomScale.getControllerMainPos_World();
++			Vec3 aimsource = mc.roomScale.getControllerPos_World(0);
 +			Vec3 aimsoucecopy = Vec3.createVectorHelper(aimsource.xCoord, aimsource.yCoord, aimsource.zCoord);
 +			Vec3 aimsourcecopy2 = Vec3.createVectorHelper(aimsource.xCoord, aimsource.yCoord, aimsource.zCoord);
 +			// VIVE END - interact source
@@ -5257,7 +5258,7 @@
 +		{
 +			this.mc.mcProfiler.endStartSection("crosshair");
 +			GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f); //white crosshair, with blending
-+			float crossDepth =(float)crossVec.subtract(mc.roomScale.getControllerMainPos_World()).lengthVector();
++			float crossDepth =(float)crossVec.subtract(mc.roomScale.getControllerPos_World(0)).lengthVector();
 +			if (crossDepth > MAX_CROSSHAIR_DISTANCE) crossDepth = MAX_CROSSHAIR_DISTANCE;
 +			float depthscale = 0.4f + 0.6f*( (MAX_CROSSHAIR_DISTANCE - crossDepth) / MAX_CROSSHAIR_DISTANCE);
 +			float scale = (float) (0.15f* this.mc.vrSettings.crosshairScale * Math.sqrt(mc.vrSettings.vrWorldScale));

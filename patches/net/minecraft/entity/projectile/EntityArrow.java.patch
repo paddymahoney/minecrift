@@ -50,7 +50,7 @@
 +        if (shooter instanceof EntityPlayer)
 +        {
 +        	
-+            Vec3 aimSource = Minecraft.getMinecraft().roomScale.getControllerOffhandPos_World();
++            Vec3 aimSource = Minecraft.getMinecraft().roomScale.getControllerPos_World(1);
 +//        	Matrix4f aimRotation = Minecraft.getMinecraft().lookaimController.getAimRotation(0);
 +//            //Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.PI * -0.0f);
 +//            //aimRotation = Matrix4f.multiply(aimRotation, tilt);

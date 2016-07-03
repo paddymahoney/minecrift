@@ -245,8 +245,8 @@
 +            if(true){
 +            this.drawString(var8,"Room: " + v3Format( mc.roomScale.getRoomOriginPos_World()) , 2, 124, 14737632);
 +            this.drawString(var8,"HMD: " + v3Format(mc.roomScale.getHMDPos_Room()) + v3Format(mc.roomScale.getHMDPos_World()) , 2, 132, 14737632);
-+            this.drawString(var8,"Main: " +v3Format( mc.roomScale.getControllerPos_Room(0) )+ v3Format(mc.roomScale.getControllerMainPos_World()) , 2, 140, 14737632);
-+            this.drawString(var8,"Offhand: " +v3Format( mc.roomScale.getControllerPos_Room(1)) + v3Format(mc.roomScale.getControllerOffhandPos_World()) , 2, 148, 14737632);
++            this.drawString(var8,"Main: " +v3Format( mc.roomScale.getControllerPos_Room(0) )+ v3Format(mc.roomScale.getControllerPos_World(0)) , 2, 140, 14737632);
++            this.drawString(var8,"Offhand: " +v3Format( mc.roomScale.getControllerPos_Room(1)) + v3Format(mc.roomScale.getControllerPos_World(1)) , 2, 148, 14737632);
 +            this.drawString(var8,"Player: "  + v3Format(mc.roomScale.getRoomOriginPos_World().subtract(mc.entityRenderer.interpolatedPlayerPos)) + v3Format(mc.entityRenderer.interpolatedPlayerPos) , 2, 156	, 14737632);
 +            this.drawString(var8,"Crosshair: " + v3Format(mc.entityRenderer.crossVec) , 2, 164	, 14737632);
 +            this.drawString(var8,"HMD Look: " +v3Format( mc.roomScale.getHMDDir_World()) , 2, 172	, 14737632);

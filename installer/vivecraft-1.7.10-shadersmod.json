@@ -1,12 +1,13 @@
 {
+ "inheritsFrom": "1.7.10",
  "assets": "1.7.10", 
-  "id": "1.7.10-Vivecraft-$VERSION",
+ "id": "1.7.10-Vivecraft-$VERSION",
  "libraries": [
   {
    "name": "optifine:OptiFine:1.7.10_HD_U_D1"
   }, 
   {
-   "name": "shadersmodcore:ShadersModCore:2.3.29mc1.7.10"
+     "name": "shadersmodcore:ShadersModCore:2.3.29mc1.7.10"
   },
   {
    "name": "org.ow2.asm:asm-all:5.0.3"
@@ -149,6 +150,6 @@
  "minimumLauncherVersion": 13, 
  "time": "1979-06-01T00:00:00-05:00", 
  "type": "release", 
- "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type} --tweakClass optifine.OptiFineTweaker  --tweakClass shadersmodcore.loading.SMCTweaker --tweakClass com.mtbs3d.minecrift.tweaker.MinecriftForgeTweaker", 
+ "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type}  --tweakClass optifine.OptiFineTweaker --tweakClass shadersmodcore.loading.SMCTweaker --tweakClass com.mtbs3d.minecrift.tweaker.MinecriftVanillaTweaker", 
  "releaseTime": "1979-06-01T00:00:00-05:00"
 }

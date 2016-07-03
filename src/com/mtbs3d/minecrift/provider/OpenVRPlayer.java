@@ -141,9 +141,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	    lastworldRotation = worldRotationRadians;
 	    lastWorldScale = worldScale;		
 	}
-
-	
-	
 	
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
     {
@@ -1085,7 +1082,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 		return MCOpenVR.controllerTracking[0];
 	}
 
-	@Override
+	@Deprecated
 	public Vec3 getControllerMainPos_World() {
 		Vec3 out = vecMult(MCOpenVR.getAimSource(0),worldScale);
 		out.rotateAroundY(worldRotationRadians);
@@ -1114,8 +1111,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	public boolean isControllerOffhandTracking() {
 		return MCOpenVR.controllerTracking[1];
 	}
-
-	@Override
+	
+	@Deprecated
 	public Vec3 getControllerOffhandPos_World() {
 		Vec3 out = vecMult(MCOpenVR.getAimSource(1),worldScale);
 		out.rotateAroundY(worldRotationRadians);
