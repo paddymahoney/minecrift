@@ -77,7 +77,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +90,4552 @@
+@@ -61,2593 +90,4554 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -4237,9 +4237,11 @@
 +				
 +					//END JRBUDDA'S AWESOME MAIN MENU ROOM       
 +					this.mc.guiFramebuffer.bindFramebufferTexture();
++		
 +					GL11.glDisable(GL11.GL_CULL_FACE);
 +					GL11.glEnable(GL11.GL_TEXTURE_2D);
-+			
++					RenderHelper.disableStandardItemLighting();    
++					
 +					// Prevent black border at top / bottom of GUI
 +					GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
 +					GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);

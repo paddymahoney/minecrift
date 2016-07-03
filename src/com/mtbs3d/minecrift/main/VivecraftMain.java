@@ -15,7 +15,7 @@ import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 
-public class Main
+public class VivecraftMain
 {
 	private final static String smcName = "shadersmodcore.transform.SMCClassTransformer";
 	

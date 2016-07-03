@@ -1434,10 +1434,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
     private void updateInstructions(){
     	String out = "";
     	if (useForge.isSelected() && !useShadersMod.isSelected()){
-    		out += "Please make sure that ShadersModCore is NOT in your Forge mods folder!";
+    	//	out += "Please make sure that ShadersModCore is NOT in your Forge mods folder!";
     	}
     	if (useForge.isSelected() && useShadersMod.isSelected()){
-    		out += "Please make sure that ShadersModCore is NOT in your Forge mods folder!";
+    	//	out += "Please make sure that ShadersModCore is NOT in your Forge mods folder!";
     	}
     	
     	instructions.setText(out);

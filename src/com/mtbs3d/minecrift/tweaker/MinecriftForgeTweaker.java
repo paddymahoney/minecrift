@@ -26,7 +26,7 @@ public class MinecriftForgeTweaker implements ITweaker
 
     public String getLaunchTarget()
     {
-        return "com.mtbs3d.minecrift.main.Main";
+        return "com.mtbs3d.minecrift.main.VivecraftMain";
     }
 
     public String[] getLaunchArguments()
