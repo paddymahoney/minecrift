@@ -1208,6 +1208,14 @@ public class Installer extends JPanel  implements PropertyChangeListener
         }
     }
     
+        private class updateActionP extends AbstractAction
+    {
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+        	updateInstructions();
+        }
+    }
     
     
     public Installer(File targetDir)
@@ -1341,7 +1349,10 @@ public class Installer extends JPanel  implements PropertyChangeListener
         //forgePanel.add(forgeVersion);
 		
         // Profile creation / update support
-        createProfile = new JCheckBox("Add/update Vivecraft launcher profile", true);
+        createProfile = new JCheckBox("", true);
+		AbstractAction actp = new updateActionP();
+        actp.putValue(AbstractAction.NAME, "Create Vivecraft launcher profile");
+        createProfile.setAction(actp);
         createProfile.setAlignmentX(LEFT_ALIGNMENT);
         createProfile.setSelected(true);
         createProfile.setToolTipText(
@@ -1401,7 +1412,7 @@ public class Installer extends JPanel  implements PropertyChangeListener
         instructions.setAlignmentX(CENTER_ALIGNMENT);
         instructions.setAlignmentY(TOP_ALIGNMENT);
         instructions.setForeground(Color.RED);
-        instructions.setPreferredSize(new Dimension(20, 20));
+        instructions.setPreferredSize(new Dimension(20, 40));
          this.add(instructions);
         
         
@@ -1428,18 +1439,22 @@ public class Installer extends JPanel  implements PropertyChangeListener
 
         this.setAlignmentX(LEFT_ALIGNMENT);
         updateFilePath();
+		updateInstructions();
     }
 
 
     private void updateInstructions(){
-    	String out = "";
-    	if (useForge.isSelected() && !useShadersMod.isSelected()){
-    	//	out += "Please make sure that ShadersModCore is NOT in your Forge mods folder!";
+	String out = "<html>";
+		if(createProfile.isSelected()){
+			out += "Please make sure the Minecraft Launcher is not running.";
+		}
+    	if (useForge.isSelected()){
+			out += "<br>Please make sure Forge has been installed first.";
     	}
     	if (useForge.isSelected() && useShadersMod.isSelected()){
     	//	out += "Please make sure that ShadersModCore is NOT in your Forge mods folder!";
     	}
-    	
+    	out+="</html>";
     	instructions.setText(out);
     	
     }
