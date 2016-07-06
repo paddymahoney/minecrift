@@ -57,7 +57,7 @@
              }
          }
      }
-@@ -1663,6 +1685,36 @@
+@@ -1663,6 +1685,31 @@
                  }, I18n.format("multiplayer.texturePrompt.line1", new Object[0]), I18n.format("multiplayer.texturePrompt.line2", new Object[0]), 0));
              }
          }
@@ -72,19 +72,14 @@
 +        	byte[] bytes = packetIn.func_149168_d();
 +        	byte[] payload = ArrayUtils.remove(bytes, 0);
 +        	PacketDiscriminators dis = PacketDiscriminators.values()[bytes[0]];
-+        	
 +        	switch (dis){
-+        	case DAMAGE:
-+
-+        		break;
-+        	case POSITIONS:
-+
-+        		break;
 +        	case VERSION:
 +            	this.gameController.vrPlayer.noTeleportClient = false;
 +                this.gameController.vrPlayer.setFreeMoveMode(Minecraft.getMinecraft().vrSettings.vrFreeMove);
 +                this.gameController.printChatMessage("Vivecraft server mod detected: " + new String(payload));
 +        		break;
++        	case REQUESTDATA:
++        		NetworkHelper.serverWantsData = true;
 +        	default:
 +        		break;
 +        	}

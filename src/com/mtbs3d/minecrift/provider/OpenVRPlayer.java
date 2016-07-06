@@ -47,6 +47,7 @@ import org.lwjgl.util.vector.Quaternion;
 
 import com.google.common.base.Charsets;
 import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
+import com.mtbs3d.minecrift.api.NetworkHelper;
 import com.mtbs3d.minecrift.gameplay.EntityVRTeleportFX;
 import com.mtbs3d.minecrift.gameplay.VRMovementStyle;
 import com.mtbs3d.minecrift.render.QuaternionHelper;
@@ -167,11 +168,11 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     	  // player.height = 1.8f;
        }
       
-        // don't do teleport movement if on a server that doesn't have this mod installed
+       
         if (getFreeMoveMode()) {
-        	
         		if(player.movementInput.moveForward ==0) doPlayerMoveInRoom(player);
-        	
+        	      NetworkHelper.sendVRPlayerPositions(this);
+
 			  return; //let mc handle look direction movement
 			// controller vs gaze movement is handled in Entity.java > moveFlying
           }
@@ -381,6 +382,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         {
 			doPlayerMoveInRoom(player);
         }
+	      NetworkHelper.sendVRPlayerPositions(this);
+
         mc.mcProfiler.endSection();
     }
 

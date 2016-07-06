@@ -102,7 +102,7 @@
                  {
                      this.setPlayerLocation(this.lastPosX, this.lastPosY, this.lastPosZ, var11, var12);
                      return;
-@@ -1333,6 +1337,27 @@
+@@ -1333,6 +1337,24 @@
                      var41.updateItemName("");
                  }
              }
@@ -112,16 +112,13 @@
 +            	PacketDiscriminators dis = PacketDiscriminators.values()[packetIn.getData()[0]];
 +            	
 +            	switch (dis){
-+            	case DAMAGE:
-+
-+            		break;
-+            	case POSITIONS:
-+
-+            		break;
 +            	case VERSION:
 +                	String ver = Minecraft.getMinecraft().minecriftVerString;
-+                	sendPacket(NetworkHelper.getVivecraftServerPacket(PacketDiscriminators.VERSION,ver.getBytes(Charsets.UTF_8)));  
++                	sendPacket(NetworkHelper.getVivecraftServerPacket(PacketDiscriminators.VERSION,ver.getBytes(Charsets.UTF_8)));
++                	sendPacket(NetworkHelper.getVivecraftServerPacket(PacketDiscriminators.REQUESTDATA, new byte[]{}));  
++
 +            		break;
++            		
 +            	default:
 +            		break;
 +            	}
