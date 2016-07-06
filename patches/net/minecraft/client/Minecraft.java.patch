@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/Minecraft.java
 +++ b/net/minecraft/client/Minecraft.java
-@@ -1,27 +1,24 @@
+@@ -1,40 +1,97 @@
  package net.minecraft.client;
  
 -import com.google.common.collect.Iterables;
@@ -35,7 +35,9 @@
  import java.util.HashSet;
  import java.util.Iterator;
  import java.util.List;
-@@ -30,11 +27,70 @@
+ import java.util.Queue;
+ import java.util.UUID;
++import java.util.Vector;
  import java.util.concurrent.Callable;
  import java.util.concurrent.Executors;
  import java.util.concurrent.FutureTask;
@@ -60,6 +62,7 @@
 +import org.lwjgl.opengl.GL11;
 +import org.lwjgl.opengl.GL13;
 +import org.lwjgl.opengl.GL20;
++import org.lwjgl.opengl.GL30;
 +import org.lwjgl.opengl.GLContext;
 +import org.lwjgl.opengl.OpenGLException;
 +import org.lwjgl.opengl.PixelFormat;
@@ -82,7 +85,6 @@
 +import com.mtbs3d.minecrift.provider.NullStereoRenderer;
 +import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 +import com.mtbs3d.minecrift.provider.OpenVRStereoRenderer;
-+import com.mtbs3d.minecrift.render.FBOParams;
 +import com.mtbs3d.minecrift.render.RenderConfigException;
 +import com.mtbs3d.minecrift.render.ShaderHelper;
 +import com.mtbs3d.minecrift.settings.VRHotkeys;
@@ -90,12 +92,12 @@
 +import com.mtbs3d.minecrift.utils.TextureSelector;
 +import com.mtbs3d.minecrift.utils.Utils;
 +
-+import de.fruitfly.ovr.enums.EyeType;
 +import de.fruitfly.ovr.structs.FovPort;
 +import de.fruitfly.ovr.structs.GLConfig;
 +import de.fruitfly.ovr.structs.RenderTextureInfo;
 +import de.fruitfly.ovr.structs.RenderTextureSet;
 +import de.fruitfly.ovr.structs.Sizei;
++import de.fruitfly.ovr.structs.Vector3f;
 +import io.netty.util.concurrent.GenericFutureListener;
 +import net.aib42.mumblelink.MumbleLink;
  import net.minecraft.block.Block;
@@ -106,7 +108,7 @@
  import net.minecraft.client.entity.EntityClientPlayerMP;
  import net.minecraft.client.gui.FontRenderer;
  import net.minecraft.client.gui.GuiChat;
-@@ -97,6 +153,7 @@
+@@ -97,6 +154,7 @@
  import net.minecraft.client.settings.GameSettings;
  import net.minecraft.client.settings.KeyBinding;
  import net.minecraft.client.shader.Framebuffer;
@@ -114,7 +116,7 @@
  import net.minecraft.client.stream.IStream;
  import net.minecraft.client.stream.NullStream;
  import net.minecraft.client.stream.TwitchStream;
-@@ -127,6 +184,8 @@
+@@ -127,6 +185,8 @@
  import net.minecraft.profiler.Profiler;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.integrated.IntegratedServer;
@@ -123,7 +125,7 @@
  import net.minecraft.stats.AchievementList;
  import net.minecraft.stats.IStatStringFormat;
  import net.minecraft.stats.StatFileWriter;
-@@ -142,6 +201,7 @@
+@@ -142,6 +202,7 @@
  import net.minecraft.util.Session;
  import net.minecraft.util.Timer;
  import net.minecraft.util.Util;
@@ -131,7 +133,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +210,4747 @@
+@@ -150,2988 +211,4849 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1856,7 +1858,8 @@
 +	public boolean reinitFramebuffers = true;
 +	
 +	private Framebuffer framebuffer;
-+	private Framebuffer framebufferEye;
++	private Framebuffer framebufferEye0;
++	private Framebuffer framebufferEye1;
 +	public Framebuffer guiFramebuffer = null;
 +	
 +	public int lastDisplayFBWidth = 0;
@@ -1881,8 +1884,7 @@
 +	public boolean integratedServerLaunchInProgress = false;
 +	public boolean lastEnableVsync = true;
 +	public int lastMirrorSetting = -1;
-+	//public EyeRenderParams eyeRenderParams = null;
-+	public EyeType currentEye = EyeType.ovrEye_Left;
++
 +	public Cursor nativeMouseCursor = null;
 +	public boolean lastShowMouseNative = true;
 +	public Cursor invisibleMouseCursor = null;
@@ -1898,11 +1900,12 @@
 +	public double PredictedDisplayTimeSeconds = 0d;
 +	public int _Lanczos_shaderProgramId = -1;
 +	public int _LanczosShader_texelWidthOffsetUniform = -1;
++	public int _depthFilter_programId = -1;
++
 +	public int _LanczosShader_texelHeightOffsetUniform = -1;
 +	public int _LanczosShader_inputImageTextureUniform = -1;
-+	private FBOParams mirrorFB = null;
-+	private FBOParams fsaaFirstPassResultFBO;
-+	private FBOParams fsaaSecondPassResultFBO;
++	private Framebuffer mirrorFB = null;
++	private Framebuffer fsaaFirstPassResultFBO;
 +	private final float OCULUS_RED_COLOUR_COMPONENT = (1f/255f)*61f;
 +	private final float OCULUS_GREEN_COLOUR_COMPONENT = (1f/255f)*61f;
 +	private final float OCULUS_BLUE_COLOUR_COMPONENT = (1f/255f)*61f;
@@ -1919,12 +1922,24 @@
 +	public Deque<Long> runTickTimeNanos = new ArrayDeque<Long>();
 +	public long medianRunTickTimeNanos = 0;
 +	public long frameIndex = 0;
-+	private TextureSelector renderTexProvider;
-+	private TextureSelector mirrorTexProvider;
 +	public boolean visible = true;
 +	public ErrorHelper errorHelper;
 +	public static final String RENDER_SETUP_FAILURE_MESSAGE = "Failed to initialise stereo rendering plugin: ";
 +	public static final int ERROR_DISPLAY_TIME_SECS = 10;
++	
++	
++	public renderPass currentPass;
++	
++	public enum renderPass{
++		Left, Right, Center, Third;
++		
++		public int value(){
++			return ordinal();
++		}
++		
++	}
++	
++	
 +
 +	/*
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
@@ -1965,8 +1980,6 @@
 +		Bootstrap.register();
 +		/** MINECRIFT **/
 +		VRSettings.initSettings(this, this.mcDataDir);
-+		renderTexProvider = new TextureSelector();
-+		mirrorTexProvider    = new TextureSelector();
 +		if (!vrSettings.badStereoProviderPluginID.isEmpty()) {
 +			vrSettings.stereoProviderPluginID = vrSettings.badStereoProviderPluginID;
 +			vrSettings.badStereoProviderPluginID = "";
@@ -2936,6 +2949,12 @@
 +				//this.mcSoundHandler.setListener(this.thePlayer, this.timer.renderPartialTicks);
 +				updateSoundListener(); // we update the sound listener from the HMD info
 +			this.mcProfiler.endSection();
++		
++
++			float nano = this.timer.renderPartialTicks;
++			
++			// Update our orientation and position variables from the sensor polled data
++			this.entityRenderer.updatePositionAndOrientation(nano, Display.isActive());
 +			
 +			//I dunno where to put this.
 +			if(this.stereoProvider.isStereo()){
@@ -2944,19 +2963,32 @@
 +
 +	        //VIVECRAFT RENDERING MAIN
 +			if (minecriftDebug) print("FrameIndex: " + frameIndex);
-+			renderTexProvider.setFrameIndex(frameIndex);
 +		
 +			boolean shouldupdate = true;
 +
 +			this.framebufferMc = this.framebuffer;
 +
-+			float nano = this.timer.renderPartialTicks;
++			boolean hasShadersmod = Reflector.shadersModExists();
++			
++			int v = viewPortCount;
++			
++			if(viewPortCount == 2 && this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY){
++				v = 3;
++			}
 +			
 +			/** Minecrift - main stereo render loop **/
-+			for (int i = 0; this.visible && i < viewPortCount; i++)
++			for (int i = 0; this.visible && i < v; i++)
 +			{
-+				this.mcProfiler.startSection("Eye:" + currentEye.ordinal());
-+					shouldupdate = renderSingleView(i,nano);
++				this.currentPass = i==0 ? renderPass.Left : i == 1 ? renderPass.Right : renderPass.Third;
++				
++				this.mcProfiler.startSection("Eye:" + currentPass.ordinal());
++				
++					this.mcProfiler.startSection("setup");
++						this.framebufferMc.bindFramebuffer(true);	//draw to main texture for every pass
++					this.mcProfiler.endSection();
++					
++						shouldupdate = renderSingleView(i,nano);
++												
 +				this.mcProfiler.endSection(); //eye
 +			} //end per eye rendering.
 +
@@ -3029,48 +3061,23 @@
 +
 +	private boolean renderSingleView(int eye, float nano) {
 +		boolean shouldupdate;
-+//			int x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);				
-+//			while (x >1){
-+//				GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
-+//				x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);	
-+//			}
-+//			clearGLError();
-+			checkGLError("pre eye " + eye);
-+			this.mcProfiler.startSection("setup");
-+			this.framebufferMc.bindFramebuffer(true);	//draw to eye texture.
-+			
-+			this.currentEye = this.stereoProvider.eyeRenderOrder(eye);
-+
-+			this.stereoProvider.setCurrentRenderTextureInfo(
-+					this.currentEye.value(),
-+					renderTexProvider.getCurrentSwapIdx(),
-+					this.framebufferMc.depthBuffer,
-+					this.framebufferMc.framebufferTextureWidth,
-+					this.framebufferMc.framebufferTextureHeight); //just returns true
-+			
-+
-+			if (this.entityRenderer != null)
-+			{
-+				this.entityRenderer.theShaderGroup = shaderGroup;
-+			}
-+
-+			GL11.glClearColor(0f, 0, 0, 1f);	
-+			GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-+								
-+				GL11.glEnable(GL11.GL_TEXTURE_2D);
-+				if (this.thePlayer != null && this.thePlayer.isEntityInsideOpaqueBlock())
++	
++				if (this.entityRenderer != null)
 +				{
-+					this.gameSettings.thirdPersonView = 0;
++					this.entityRenderer.theShaderGroup = shaderGroup;
 +				}
-+					
-+				// Update our orientation and position variables from the sensor polled data
-+				this.entityRenderer.updatePositionAndOrientation(nano, Display.isActive());
++	
++				GL11.glClearColor(0f, 0, 0, 1f);	
++				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
++				GL11.glEnable(GL11.GL_TEXTURE_2D);
++						
 +				
 +				Object fmlCommonHandler = null;
 +				if (Reflector.FMLCommonHandler_instance.exists()) {
 +					fmlCommonHandler = Reflector.call(Reflector.FMLCommonHandler_instance, new Object[0]);
-+				}
-+				this.mcProfiler.endSection();
++				}		
++				
++			this.mcProfiler.startSection("updateCameraAndRender");
 +				
 +				if (!this.skipRenderWorld)
 +				{
@@ -3079,19 +3086,13 @@
 +						if (fmlCommonHandler != null) {
 +							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickStart, new Object[]{nano});
 +						}
-+					}
-+					this.mcProfiler.startSection("updateCameraAndRender");
-+					
-+			
-+					
++					}			
 +						///THIS IS WHERE EVERYTHING IS RENDERED
 +						this.entityRenderer.updateCameraAndRender(nano);
-+
++	
 +						checkGLError("postucr " + eye);
 +						
-+						
-+					this.mcProfiler.endSection();
-+					
++										
 +					if (!this.stereoProvider.isStereo()) {
 +						if (fmlCommonHandler != null) {
 +							Reflector.callVoid(fmlCommonHandler, Reflector.FMLCommonHandler_onRenderTickEnd, new Object[]{this.timer.renderPartialTicks});
@@ -3099,23 +3100,26 @@
 +					}
 +					/** END MINECRIFT FORGE **/
 +				}
-+
-+				checkGLError("prepostprocess " + eye);
-+				
-+			this.mcProfiler.startSection("postProcessing");
-+				 	doPostProcessing(frameIndex, this.currentEye, nano);
-+			this.mcProfiler.endSection();
 +			
++		if(currentPass != renderPass.Third) {	
++			
++			this.mcProfiler.endStartSection("postProcessing");
++				doPostProcessing(frameIndex, nano);
 +				checkGLError("postpostprocess " + eye);
-+			
-+			//GL11.glPushMatrix();
-+				//this.entityRenderer.func_152430_c(this.timer.renderPartialTicks);   // <-- TODO: What does this do? Some sort of stream status overlay? REENABLE, move to GUI FBO?
-+			//GL11.glPopMatrix();
-+							
-+			this.mcProfiler.startSection("framebufferDraw");
-+				framebufferEye.bindFramebuffer(true); //draw to eye tex
-+					framebuffer.framebufferRender(framebufferEye.framebufferWidth, framebufferEye.framebufferHeight);
 +			this.mcProfiler.endSection();
++
++			this.mcProfiler.startSection("framebufferDraw");
++			
++				if(!vrSettings.useFsaa){
++					if(currentPass == renderPass.Left)	
++						framebufferEye0.bindFramebuffer(true); //draw to L eye tex
++					else
++						framebufferEye1.bindFramebuffer(true); //draw to R eye tex
++					framebuffer.framebufferRender(framebufferEye0.framebufferWidth, framebufferEye0.framebufferHeight);
++				}
++			this.mcProfiler.endSection();
++		
++	
 +			
 +			this.mcProfiler.startSection("OpenGL Finish");
 +			//	GL11.glFinish();//DO NOT LEAVE THIS UNCOMMENTED
@@ -3123,22 +3127,17 @@
 +					
 +			this.mcProfiler.startSection("compositorSubmit");
 +				if(this.stereoProvider.isStereo())
-+				this.stereoProvider.endFrame(this.currentEye);
++					this.stereoProvider.endFrame(this.currentPass);
 +				else
 +					this.stereoProvider.endFrame();
 +			this.mcProfiler.endSection();
-+				
-+			this.mcProfiler.startSection("mirror");
-+				shouldupdate = copyToMirror(this.currentEye);
-+			this.mcProfiler.endSection();
++	
++		}
 +			
-+
-+//			if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
-+//			x = GL11.glGetInteger(GL11.GL_MODELVIEW_STACK_DEPTH);
-+//			if(x>1)GL11.glPopMatrix(); ///WHO.. WHY??? Find this.
-+//			clearGLError();
-+
-+			checkGLError("post-eye " + eye);
++			this.mcProfiler.startSection("mirror");
++				shouldupdate =copyToMirror(this.currentPass);
++				checkGLError("post-mirror " + eye);
++			this.mcProfiler.endSection();
 +			
 +		return shouldupdate;
 +	}
@@ -6163,7 +6162,7 @@
 +			private static final String __OBFID = "CL_00000646";
 +			public String call()
 +			{
-+				return OpenGlHelper.func_153172_c();
++				return OpenGlHelper.getInitStatus();
 +			}
 +		});
 +		theCrash.getCategory().addCrashSectionCallable("Is Modded", new Callable()
@@ -6729,7 +6728,7 @@
 +	/** MINECRIFT ADDITIONS BELOW */
 +
 +
-+	private boolean copyToMirror(EyeType eye)
++	private boolean copyToMirror(renderPass currentPass2)
 +	{
 +		// VIVE start - render eye buffers to the desktop window
 +
@@ -6737,11 +6736,77 @@
 +		{
 +			if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF &&  this.vrPlayer.isHMDTracking()){
 +				return false;
-+			}else {
++			}else if( this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY && renderViewEntity != null) {
++				
++				if(currentPass2 != renderPass.Third) return false;
++				//heres where the magic lives
++				
++				//TODO lots of unnecessary variables.
++				
++				this.framebufferMc.unbindFramebuffer();	//draw directly to window
++				
++				
++				Vector3f eye = new Vector3f((float)renderViewEntity.posX, 
++							(float)renderViewEntity.posY,
++							(float)renderViewEntity.posZ);
++						
++				Vector3f pos = new Vector3f((float)entityRenderer.interPolatedRoomOrigin.xCoord,
++								(float)entityRenderer.interPolatedRoomOrigin.yCoord + 1.5f,
++								(float)entityRenderer.interPolatedRoomOrigin.zCoord);
++				
++				Vec3 playerv = entityRenderer.getEyeRenderPos(renderPass.Center);
++				
++				Vector3f player = new Vector3f((float)playerv.xCoord, (float)playerv.yCoord, (float)playerv.zCoord);
++				
++				Vector3f cam_player = eye.subtract(player);
++				
++				Vector3f cam_orig = eye.subtract(pos);
++				
++				float dist = cam_player.dot(cam_orig);
++					
++				float total = entityRenderer.clipDistance - entityRenderer.minClipDistance;
++				
++				float percent = dist / total; //TODO: Depth is prolly non linear.
++				if(percent < 0) percent = 0.5f;
++				
++				
++				percent = 0F; //just for testing.
++			
++				
++				GL11.glClearDepth(percent);
++				GL11.glClearColor(255, 0, 255, 0);
++				GL11.glEnable(GL11.GL_DEPTH_TEST);		
++				GL11.glDepthMask(true);
++			//	GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
++				
++				
++				for(int i = 0; i < 2; i++) {
++					
++					if(i == 0) {
++						GL11.glDepthFunc(GL11.GL_GREATER);
++					}	else {
++						GL11.glDepthFunc(GL11.GL_LESS);
++					}
++					GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
++					GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, framebuffer.framebufferObject);
++					
++					GL30.glBlitFramebuffer(0, 0, framebufferMc.framebufferWidth, framebufferMc.framebufferHeight, 0, 0,displayWidth, displayHeight, GL11.GL_COLOR_BUFFER_BIT, GL11.GL_LINEAR);
++					
++				//	framebufferMc.framebufferRender((int)(0 + (displayWidth *i)*0.5f), displayWidth/2, displayHeight,0 );
++						
++				}
++							
++				GL11.glDisable(GL11.GL_DEPTH_TEST);
++				GL11.glDepthMask(true);
++				GL11.glDepthFunc(GL11.GL_LEQUAL);
++				GL11.glClearDepth(1.0D);
++				
++				return true;
++			} else {
 +				int every = 1;
 +				int ports = 2;
 +
-+				if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE){
++				if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE || this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY ){
 +					//ok
 +				} else if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW){
 +					ports = 1;
@@ -6752,10 +6817,10 @@
 +					ports = 1;
 +				}
 +
-+				if(ports == 2 || eye == EyeType.ovrEye_Right){
++				if(ports == 2 || currentPass2 == renderPass.Right){
 +					if((frameIndex % every) == 0){
 +
-+						int i = eye == EyeType.ovrEye_Left ? 0 : 1;
++						int i = currentPass2 == renderPass.Left? 0 : 1;
 +						if(ports==1) i = 0;
 +						
 +						float phase = (getSystemTime() % 1000) / 1000.0f;
@@ -6776,6 +6841,8 @@
 +		return false;
 +	}
 +
++	private int tex0, tex1;
++	
 +	private void setupRenderConfiguration() throws Exception 
 +	{
 +		boolean changeNonDestructiveRenderConfig = false;
@@ -6879,9 +6946,14 @@
 +				this.framebuffer = null;
 +			}
 +
-+			if (this.framebufferEye != null) {
-+				this.framebufferEye.deleteFramebuffer();
-+				this.framebufferEye = null;
++			if (this.framebufferEye0 != null) {
++				this.framebufferEye0.deleteFramebuffer();
++				this.framebufferEye0 = null;
++			}
++			
++			if (this.framebufferEye1 != null) {
++				this.framebufferEye1.deleteFramebuffer();
++				this.framebufferEye1 = null;
 +			}
 +			
 +			this.stereoProvider.deleteRenderTextures(); ///TODO should this do something.. ?
@@ -6896,23 +6968,17 @@
 +			}
 +
 +			if (this.mirrorFB != null) {
-+				this.mirrorFB.delete();
++				this.mirrorFB.deleteFramebuffer();
 +				this.mirrorFB = null;
 +			}
 +
 +			this.stereoProvider.deleteMirrorTexture(); 
 +
 +			if (this.fsaaFirstPassResultFBO != null) {
-+				this.fsaaFirstPassResultFBO.delete();
++				this.fsaaFirstPassResultFBO.deleteFramebuffer();
 +				this.fsaaFirstPassResultFBO = null;
 +			}
-+
-+			if (this.fsaaSecondPassResultFBO != null) {
-+				this.fsaaSecondPassResultFBO.delete();
-+				this.fsaaSecondPassResultFBO = null;
-+			}
-+
-+
++		
 +			_LanczosShader_texelWidthOffsetUniform = -1;
 +			_LanczosShader_texelHeightOffsetUniform = -1;
 +			_LanczosShader_inputImageTextureUniform = -1;
@@ -6922,24 +6988,26 @@
 +			
 +
 +			if (this.stereoProvider.providesMirrorTexture() && this.vrSettings.displayMirrorMode != VRSettings.MIRROR_OFF)
-+			{ //alwasy false
-+				this.mirrorFBWidth = this.displayFBWidth;
-+				this.mirrorFBHeight = this.displayFBHeight;
-+				if (this.vrSettings.displayMirrorMode == VRSettings.MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW ||
-+						this.vrSettings.displayMirrorMode == VRSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW) {
-+					this.mirrorFBWidth *= 2;
-+					this.mirrorFBHeight *= 2;
-+				}
-+				int mirrorTextureId = this.stereoProvider.createMirrorTexture(this.mirrorFBWidth, this.mirrorFBHeight);
-+				if (mirrorTextureId == -1) {
-+					throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), this.stereoProvider.getLastError());
-+				}
-+				print("Provider supplied mirror texture ID: " + mirrorTextureId);
-+
-+				mirrorTexProvider.setTextureId(mirrorTextureId);
-+				mirrorFB = new FBOParams("Mirror FBO", GL11.GL_TEXTURE_2D, GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, this.mirrorFBWidth, this.mirrorFBHeight, mirrorTexProvider);
-+				System.out.println(mirrorFB.toString());
++			{ //always false
++//				this.mirrorFBWidth = this.displayFBWidth;
++//				this.mirrorFBHeight = this.displayFBHeight;
++//				if (this.vrSettings.displayMirrorMode == VRSettings.MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW ||
++//						this.vrSettings.displayMirrorMode == VRSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW) {
++//					this.mirrorFBWidth *= 2;
++//					this.mirrorFBHeight *= 2;
++//				}
++//				int mirrorTextureId = this.stereoProvider.createMirrorTexture(this.mirrorFBWidth, this.mirrorFBHeight);
++//				if (mirrorTextureId == -1) {
++//					throw new RenderConfigException(RENDER_SETUP_FAILURE_MESSAGE + this.stereoProvider.getName(), this.stereoProvider.getLastError());
++//				}
++//				print("Provider supplied mirror texture ID: " + mirrorTextureId);
++//
++//				mirrorTexProvider.setTextureId(mirrorTextureId);
++//			//	mirrorFB = new FBOParams("Mirror FBO", GL11.GL_TEXTURE_2D, GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, this.mirrorFBWidth, this.mirrorFBHeight, mirrorTexProvider);
++//				mirrorFB = new Framebuffer("Mirror FBO", this.mirrorFBWidth, this.mirrorFBHeight,false, false, false, 0 );
++//				System.out.println(mirrorFB.toString());
 +			}
++			
 +			this.checkGLError("Mirror framebuffer setup");
 +
 +			if (this.stereoProvider.providesRenderTextures())
@@ -6954,19 +7022,26 @@
 +				print("L Render texture resolution: " + EyeTextureSize.w + " x " + EyeTextureSize.h);
 +				print("Provider supplied render texture IDs:\n" + renderTextures.toString());
 +
-+				renderTexProvider.setTextureIds(renderTextures.leftEyeTextureIds);
++				tex0 = renderTextures.leftEyeTextureIds.get(0);
++				tex1 = renderTextures.rightEyeTextureIds.get(0);
++
++				//renderTexProvider.setTextureIds(renderTextures.leftEyeTextureIds);
 +			}
 +			else
 +			{
 +				// Generate our textures
-+				renderTexProvider.genTextureIds(GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, EyeTextureSize.w, EyeTextureSize.h, 1);
++				//renderTexProvider.genTextureIds(GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, EyeTextureSize.w, EyeTextureSize.h, 1);
 +			}
 +			this.checkGLError("Render Texture setup");
 +
 +
-+			this.framebufferEye = new Framebuffer("L Eye", EyeTextureSize.w, EyeTextureSize.h, true,  true, multiSample, multiSampleCount, this.vrSettings.useFsaa ? null : renderTexProvider);
-+			print(this.framebufferEye.toString());
++			this.framebufferEye0 = new Framebuffer("L Eye", EyeTextureSize.w, EyeTextureSize.h, false,  false, false, 0, tex0);
++			print(this.framebufferEye0.toString());
 +			this.checkGLError("Left Eye framebuffer setup");
++			
++			this.framebufferEye1 = new Framebuffer("R Eye", EyeTextureSize.w, EyeTextureSize.h, false,  false, false,0, tex1);
++			print(this.framebufferEye1.toString());
++			this.checkGLError("Right Eye framebuffer setup");
 +			
 +			this.displayFBWidth = (int) Math.ceil(EyeTextureSize.w * this.vrSettings.renderScaleFactor);
 +			this.displayFBHeight = (int) Math.ceil(EyeTextureSize.h * this.vrSettings.renderScaleFactor);
@@ -6980,17 +7055,20 @@
 +			this.checkGLError("GUI framebuffer setup");
 +
 +			this.framebuffer.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
-+			this.framebufferEye.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
++			//this.framebufferEye0.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
++			//this.framebufferEye1.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
 +			this.guiFramebuffer.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
++			checkGLError("post color");
 +
-+			this.framebufferEye.selectTexture();	//attaches the rendertexprovider's texture to the fbo
++			_depthFilter_programId = ShaderHelper.initShaders(null, DEPTH_FILTER_SHADER, true);
 +			
++			checkGLError("post select");
 +			entityRenderer.setupClipPlanes();
 +
 +			if (this.stereoProvider.isStereo() && this.stereoProvider.usesDistortion())
 +			{
-+				this.eyeproj[EyeType.ovrEye_Left.value()] = this.stereoProvider.getProjectionMatrix(null, EyeType.ovrEye_Left, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance).transposed().toFloatBuffer();
-+				this.eyeproj[EyeType.ovrEye_Right.value()] = this.stereoProvider.getProjectionMatrix(null, EyeType.ovrEye_Right, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance).transposed().toFloatBuffer();
++				this.eyeproj[0] = this.stereoProvider.getProjectionMatrix(null, 0, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance).transposed().toFloatBuffer();
++				this.eyeproj[1] = this.stereoProvider.getProjectionMatrix(null, 1, this.entityRenderer.minClipDistance, this.entityRenderer.clipDistance).transposed().toFloatBuffer();
 +			}
 +
 +			try
@@ -6999,13 +7077,15 @@
 +				{
 +					// GL21.GL_SRGB8_ALPHA8
 +					// GL11.GL_RGBA8
-+
++					checkGLError("pre FSAA FBO creation");
 +					// Lanczos downsample FBOs
-+					fsaaFirstPassResultFBO = new FBOParams("FSAA Pass1 FBO1 ", GL11.GL_TEXTURE_2D, GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, EyeTextureSize.w, displayFBHeight, null);
-+					fsaaSecondPassResultFBO = new FBOParams("FSAA Pass2 FBO1", GL11.GL_TEXTURE_2D, GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, EyeTextureSize.w, EyeTextureSize.h, renderTexProvider);
-+
++					//fsaaFirstPassResultFBO = new FBOParams("FSAA Pass1 FBO1 ", GL11.GL_TEXTURE_2D, GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, EyeTextureSize.w, displayFBHeight, null);
++					fsaaFirstPassResultFBO = new Framebuffer("FSAA Pass1 FBO",EyeTextureSize.w, displayFBHeight,false, false,false, 0, -1);
++					//fsaaSecondPassResultFBO = new FBOParams("FSAA Pass2 FBO1", GL11.GL_TEXTURE_2D, GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, EyeTextureSize.w, EyeTextureSize.h, renderTexProvider);
++						//TODO: ugh, support multiple color attachments in Framebuffer....
++							
 +					print(this.fsaaFirstPassResultFBO.toString());
-+					print(this.fsaaSecondPassResultFBO.toString());
++					
 +					checkGLError("FSAA FBO creation");
 +
 +					_Lanczos_shaderProgramId = ShaderHelper.initShaders(LANCZOS_SAMPLER_VERTEX_SHADER, LANCZOS_SAMPLER_FRAGMENT_SHADER, true);
@@ -7085,10 +7165,8 @@
 +
 +	public void doStencilForEye(int i) {
 +		
-+		float[] verts = stereoProvider.getStencilMask(this.currentEye);
++		float[] verts = stereoProvider.getStencilMask(this.currentPass);
 +		if (verts == null) return;
-+				
-+		this.framebuffer.bindFramebuffer(true);
 +			//START STENCIL TESTING - Yes I know there's about 15 better ways to do this.
 +
 +			if(verts!=null){
@@ -7116,7 +7194,7 @@
 +
 +				GL11.glStencilFunc(GL11.GL_NOTEQUAL, 0xFF, 1);
 +				GL11.glStencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_KEEP);
-+				GL11.glDepthMask(true); // Don't write to depth buffer
++				GL11.glDepthMask(true); // Do write to depth buffer
 +				GL11.glEnable(GL11.GL_CULL_FACE);
 +				GL11.glStencilMask(0x0); // Dont Write to stencil buffer
 +				
@@ -7367,7 +7445,7 @@
 +		return this.stereoProvider.getCurrentTimeSecs();
 +	}
 +
-+	private void doPostProcessing(long frameIndex, EyeType eye, float nano)
++	private void doPostProcessing(long frameIndex, float nano)
 +	{
 +			
 +		// VIVE start - screen flash when hurt instead of view tilt
@@ -7387,7 +7465,7 @@
 +
 +		if (showSplashScreen && splashFadeAlpha > 0)
 +		{
-+			final Color3f rgb = new Color3f(0f, 0f, 0f);
++		//	final Color3f rgb = new Color3f(0f, 0f, 0f);
 +		//	this.entityRenderer.renderFadeBlend(rgb, splashFadeAlpha);
 +		}
 +	
@@ -7412,7 +7490,7 @@
 +						GL11.glTranslatef(0.0f, 0.0f, -.7f);
 +						// Pass 1 - horizontal
 +						// Now switch to 1st pass FSAA result target framebuffer
-+						this.fsaaFirstPassResultFBO.bindRenderTarget();
++						this.fsaaFirstPassResultFBO.bindFramebuffer(true);
 +		
 +						// Bind the FBO Texture
 +						this.framebuffer.bindFramebufferTexture();
@@ -7422,13 +7500,13 @@
 +						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer
 +		
 +						// Render onto the entire screen framebuffer
-+						GL11.glViewport(0, 0, fsaaFirstPassResultFBO.getFramebufferWidth(), fsaaFirstPassResultFBO.getFramebufferHeight());
++						GL11.glViewport(0, 0, fsaaFirstPassResultFBO.framebufferWidth, fsaaFirstPassResultFBO.framebufferHeight);
 +		
 +						// Set the downsampling shader as in use
 +						ARBShaderObjects.glUseProgramObjectARB(_Lanczos_shaderProgramId);
 +		
 +						// Set up the fragment shader uniforms
-+						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 1.0f / (3.0f * (float) fsaaFirstPassResultFBO.getFramebufferWidth()));
++						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 1.0f / (3.0f * (float) fsaaFirstPassResultFBO.framebufferWidth));
 +						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 0.0f);
 +						ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
 +		
@@ -7440,30 +7518,39 @@
 +		
 +						// Pass 2 - Vertial
 +						// Now switch to 2nd pass screen framebuffer
-+						fsaaSecondPassResultFBO.bindRenderTarget();
-+						fsaaSecondPassResultFBO.selectTexture(); //this is our Eye tex!
-+		
-+						fsaaFirstPassResultFBO.bindTexture();
-+		
-+						GL11.glViewport(0, 0,fsaaSecondPassResultFBO.getFramebufferWidth(), fsaaSecondPassResultFBO.getFramebufferHeight());
++						Framebuffer curr = this.currentPass == renderPass.Left? this.framebufferEye0 : this.framebufferEye1;
++						
++						curr.bindFramebuffer(true);
++						//curr.selectTexture(0); //this is our Eye tex!
++						
++						checkGLError("postselect");
++						fsaaFirstPassResultFBO.bindFramebufferTexture();
++						
++						checkGLError("posttex");
++						
++						GL11.glViewport(0, 0,curr.framebufferWidth, curr.framebufferHeight);
++						
 +						GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
 +						GL11.glClearDepth(1.0D);
 +						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-+		
++						checkGLError("postclear");
 +						// Bind the texture
 +						GL13.glActiveTexture(GL13.GL_TEXTURE0);
-+		
++						checkGLError("postact");
 +						// Set up the fragment shader uniforms for pass 2
 +						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 0.0f);
-+						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 1.0f / (3.0f * (float) fsaaSecondPassResultFBO.getFramebufferHeight()));
++						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 1.0f / (3.0f * (float) framebufferEye0.framebufferHeight));
 +						ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
 +						
 +						drawQuad();
 +		
++						checkGLError("postdraw");
++						
++						
 +						// Stop shader use
 +						ARBShaderObjects.glUseProgramObjectARB(0);
 +						// checkGLError("After Lanczos Pass2");
-+		
++							
 +						GL11.glEnable(GL11.GL_ALPHA_TEST);
 +						GL11.glEnable(GL11.GL_BLEND);
 +
@@ -7697,7 +7784,24 @@
 +			mumbleLink.updateMumble((float)hmdPos.xCoord, (float)hmdPos.yCoord, (float)hmdPos.zCoord, (float)hmdDir.xCoord, (float)hmdDir.yCoord, (float)hmdDir.zCoord, (float)up.xCoord, (float)up.yCoord, (float)up.zCoord);
 +		}
 +	}
++	
++	public final String VERTEX_PASSTHRU_SHADER = 
++					"#version 330\n" +
++					"layout(location = 0) in vec4 in_position;\n" +
++					"void main()\n" +
++					"{\n" +
++					    "gl_Position = in_position;\n" +
++					"}\n" ;
 +
++	public final String DEPTH_FILTER_SHADER = 
++					"#version 330\n" +
++					"uniform vec4 uColor;\n"+
++					"void main (void) \n" + 
++					"{\n" +
++					"if(gl_FragDepth" +
++					"gl_FragColor = uColor;\n " +
++					"}\n"
++				;
 +	
 +	public final String LANCZOS_SAMPLER_VERTEX_SHADER =
 +			"#version 120\n" +

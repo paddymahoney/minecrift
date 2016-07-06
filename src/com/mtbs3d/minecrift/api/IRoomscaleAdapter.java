@@ -8,6 +8,7 @@ import com.mtbs3d.minecrift.render.QuaternionHelper;
 
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.util.BufferUtil;
+import net.minecraft.client.Minecraft.renderPass;
 import net.minecraft.util.Vec3;
 
 /**
@@ -29,8 +30,8 @@ public interface IRoomscaleAdapter  {
 	public FloatBuffer getHMDMatrix_Room();	
 	public FloatBuffer getControllerMatrix_World(int controller);
 	
-	public Vec3 getEyePos_World(EyeType eye);
-	public Vec3 getEyePos_Room(EyeType eye);
+	public Vec3 getEyePos_World(renderPass currentPass);
+	public Vec3 getEyePos_Room(renderPass currentPass);
 	
     public boolean isControllerMainTracking();
 	public Vec3 getControllerMainDir_World(); 

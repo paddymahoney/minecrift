@@ -68,7 +68,8 @@ public class VRSettings
     public static final int MIRROR_ON_FULL_FRAME_RATE = 2;
     public static final int MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW = 3;
     public static final int MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW = 4;
-
+    public static final int MIRROR_MIXED_REALITY= 5;
+    
     public static final int NO_SHADER = -1;
 
     public int version = UNKNOWN_VERSION;
@@ -892,6 +893,8 @@ public class VRSettings
                         return var4 + "SINGLE (1/3)";
                     case MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW:
                         return var4 + "SINGLE (Full)";
+                    case MIRROR_MIXED_REALITY:
+                        return var4 + "MIXED REALITY CAM";
                 }
             case POS_TRACK_HIDE_COLLISION:
                 return this.posTrackBlankOnCollision ? var4 + "YES" : var4 + "NO";
@@ -1204,7 +1207,7 @@ public class VRSettings
                 break;
             case MIRROR_DISPLAY:
                 this.displayMirrorMode++;
-                if (this.displayMirrorMode > MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW)
+                if (this.displayMirrorMode > MIRROR_MIXED_REALITY)
                     this.displayMirrorMode = MIRROR_OFF;
                 break;
             case POS_TRACK_HIDE_COLLISION:

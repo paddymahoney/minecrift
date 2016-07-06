@@ -7,7 +7,7 @@
  import java.nio.IntBuffer;
  import java.util.ArrayList;
  import java.util.Arrays;
-@@ -10,6 +9,19 @@
+@@ -10,10 +9,24 @@
  import java.util.Map;
  import java.util.Random;
  import java.util.concurrent.Callable;
@@ -27,7 +27,12 @@
  import net.minecraft.block.Block;
  import net.minecraft.block.BlockChest;
  import net.minecraft.block.material.Material;
-@@ -88,12 +100,6 @@
+ import net.minecraft.client.Minecraft;
++import net.minecraft.client.Minecraft.renderPass;
+ import net.minecraft.client.audio.ISound;
+ import net.minecraft.client.audio.PositionedSoundRecord;
+ import net.minecraft.client.entity.EntityClientPlayerMP;
+@@ -88,12 +101,6 @@
  import net.minecraft.util.Vec3;
  import net.minecraft.world.IWorldAccess;
  import net.minecraft.world.WorldProvider;
@@ -40,7 +45,7 @@
  
  public class RenderGlobal implements IWorldAccess
  {
-@@ -109,7 +115,9 @@
+@@ -109,7 +116,9 @@
      public final TextureManager renderEngine;
      public CompactArrayList worldRenderersToUpdate = new CompactArrayList(100, 0.8F);
      private WorldRenderer[] sortedWorldRenderers;
@@ -51,7 +56,7 @@
      private int renderChunksWide;
      private int renderChunksTall;
      private int renderChunksDeep;
-@@ -266,6 +274,10 @@
+@@ -266,6 +275,10 @@
      private long lastActionTime = System.currentTimeMillis();
      private static AxisAlignedBB AABB_INFINITE = AxisAlignedBB.getBoundingBox(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
  
@@ -62,7 +67,7 @@
      public RenderGlobal(Minecraft par1Minecraft)
      {
          this.glListClouds = GLAllocation.generateDisplayLists(1);
-@@ -290,18 +302,26 @@
+@@ -290,18 +303,26 @@
              ARBOcclusionQuery.glGenQueriesARB(this.glOcclusionQueryBase);
          }
  
@@ -95,7 +100,7 @@
          int var8;
          int var9;
  
-@@ -321,7 +341,7 @@
+@@ -321,7 +342,7 @@
          GL11.glEndList();
          this.glSkyList2 = this.starGLCallList + 2;
          GL11.glNewList(this.glSkyList2, GL11.GL_COMPILE);
@@ -104,7 +109,7 @@
          var4.startDrawingQuads();
  
          for (var8 = -var6 * var7; var8 <= var6 * var7; var8 += var6)
-@@ -337,7 +357,7 @@
+@@ -337,7 +358,7 @@
  
          var4.draw();
          GL11.glEndList();
@@ -113,7 +118,7 @@
  
      private void renderStars()
      {
-@@ -359,9 +379,9 @@
+@@ -359,9 +380,9 @@
                  var4 *= var12;
                  var6 *= var12;
                  var8 *= var12;
@@ -126,7 +131,7 @@
                  double var20 = Math.atan2(var4, var8);
                  double var22 = Math.sin(var20);
                  double var24 = Math.cos(var20);
-@@ -550,7 +570,7 @@
+@@ -550,7 +571,7 @@
      /**
       * Renders all entities within range and within the frustrum. Args: pos, frustrum, partialTickTime
       */
@@ -135,7 +140,7 @@
      {
          int pass = 0;
  
-@@ -573,12 +593,12 @@
+@@ -573,12 +594,12 @@
          }
          else
          {
@@ -153,7 +158,7 @@
  
              if (pass == 0)
              {
-@@ -587,9 +607,9 @@
+@@ -587,9 +608,9 @@
                  this.countEntitiesHidden = 0;
                  this.countTileEntitiesRendered = 0;
                  EntityLivingBase var17 = this.mc.renderViewEntity;
@@ -166,7 +171,7 @@
                  TileEntityRendererDispatcher.staticPlayerX = var18;
                  TileEntityRendererDispatcher.staticPlayerY = oldFancyGraphics;
                  TileEntityRendererDispatcher.staticPlayerZ = aabb;
-@@ -613,7 +633,7 @@
+@@ -613,7 +634,7 @@
                  RenderManager.renderPosZ = aabb;
              }
  
@@ -175,7 +180,7 @@
              this.theWorld.theProfiler.endStartSection("global");
              List var24 = this.theWorld.getLoadedEntityList();
  
-@@ -640,15 +660,23 @@
+@@ -640,15 +661,23 @@
  
                      if (var19.isInRangeToRender3d(var4, var6, var8))
                      {
@@ -201,7 +206,7 @@
              for (var25 = 0; var25 < var24.size(); ++var25)
              {
                  var19 = (Entity)var24.get(var25);
-@@ -668,24 +696,51 @@
+@@ -668,24 +697,51 @@
                          }
                      }
  
@@ -258,7 +263,7 @@
              RenderHelper.enableStandardItemLighting();
  
              for (var25 = 0; var25 < this.tileEntities.size(); ++var25)
-@@ -709,7 +764,7 @@
+@@ -709,7 +765,7 @@
                              {
                                  FontRenderer fr = TileEntityRendererDispatcher.instance.getFontRenderer();
                                  fr.enabled = false;
@@ -267,7 +272,7 @@
                                  ++this.countTileEntitiesRendered;
                                  fr.enabled = true;
                                  continue;
-@@ -726,14 +781,55 @@
+@@ -726,14 +782,55 @@
                              }
                          }
  
@@ -325,7 +330,7 @@
          }
      }
  
-@@ -1023,7 +1119,9 @@
+@@ -1023,7 +1120,9 @@
  
          if (this.mc.gameSettings.ofSmoothFps && renderPass == 0)
          {
@@ -336,7 +341,7 @@
          }
  
          byte var35 = 0;
-@@ -1076,14 +1174,27 @@
+@@ -1076,14 +1175,27 @@
                      endIndex = this.countSortedWorldRenderers;
                  }
  
@@ -361,13 +366,13 @@
 -                this.checkOcclusionQueryResult(startIndex, endIndex, player.posX, player.posY, player.posZ);
 +                profiler.startSection("check"); ///should this use the camera???? I think so
 +                //VIVECRAFT USE CAM POS
-+                	Vec3 cam = mc.entityRenderer.getEyeRenderPos(mc.currentEye);
++                	Vec3 cam = mc.entityRenderer.getEyeRenderPos(mc.currentPass);
 +                	this.checkOcclusionQueryResult(startIndex, endIndex, cam.xCoord, cam.yCoord, cam.zCoord);
 +                //END VIVECRAFT
                  profiler.endSection();
                  GL11.glPushMatrix();
                  float sumTX = 0.0F;
-@@ -1145,9 +1256,9 @@
+@@ -1145,9 +1257,9 @@
                                  }
  
                                  profiler.startSection("bb");
@@ -380,7 +385,7 @@
                                  profiler.endSection();
                                  wr.isWaitingOnOcclusionQuery = true;
                                  ++var37;
-@@ -1177,12 +1288,21 @@
+@@ -1177,12 +1289,21 @@
                  {
                      GL11.glColorMask(true, true, true, true);
                  }
@@ -403,7 +408,7 @@
              }
          }
          else
-@@ -1422,13 +1542,13 @@
+@@ -1422,13 +1543,13 @@
  
              this.glListBuffer.flip();
              EntityLivingBase var18 = this.mc.renderViewEntity;
@@ -420,7 +425,7 @@
              this.mc.entityRenderer.disableLightmap(partialTicks);
              return l;
          }
-@@ -1475,7 +1595,11 @@
+@@ -1475,7 +1596,11 @@
       */
      public void renderSky(float par1)
      {
@@ -433,7 +438,7 @@
          {
              WorldProvider var2 = this.mc.theWorld.provider;
              Object var3 = Reflector.call(var2, Reflector.ForgeWorldProvider_getSkyRenderer, new Object[0]);
-@@ -1487,7 +1611,7 @@
+@@ -1487,7 +1612,7 @@
              }
          }
  
@@ -442,7 +447,7 @@
          {
              if (!Config.isSkyEnabled())
              {
-@@ -1495,6 +1619,10 @@
+@@ -1495,6 +1620,10 @@
              }
  
              GL11.glDisable(GL11.GL_FOG);
@@ -453,7 +458,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glEnable(GL11.GL_BLEND);
              OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-@@ -1544,13 +1672,24 @@
+@@ -1544,13 +1673,24 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -479,7 +484,7 @@
              float var231 = (float)var21.xCoord;
              float var4 = (float)var21.yCoord;
              float var5 = (float)var21.zCoord;
-@@ -1570,186 +1709,242 @@
+@@ -1570,186 +1710,243 @@
              Tessellator var241 = Tessellator.instance;
              GL11.glDepthMask(false);
              GL11.glEnable(GL11.GL_FOG);
@@ -667,11 +672,12 @@
 -            GL11.glEnable(GL11.GL_TEXTURE_2D);
 +            GL11.glPushMatrix(); //VIVECRAFT render sky at infinity
 +            
-+	            Vec3 offsetEye = mc.entityRenderer.getEyeRenderPos(mc.currentEye).subtract(mc.entityRenderer.getEyeRenderPos(EyeType.ovrEye_Center));
++	            Vec3 offsetEye = mc.entityRenderer.getEyeRenderPos(mc.currentPass).subtract(mc.entityRenderer.getEyeRenderPos(renderPass.Center));
 +	            
 +	            Vec3 offsetRoom = mc.roomScale.getRoomOriginPos_World().subtract(mc.roomScale.getHMDPos_World());
-+	            
-+	            GL11.glTranslated(-offsetEye.xCoord, -offsetEye.yCoord, -offsetEye.zCoord); //undo depth
++	           
++	            if(mc.currentPass != renderPass.Third)
++	            	GL11.glTranslated(-offsetEye.xCoord, -offsetEye.yCoord, -offsetEye.zCoord); //undo depth
 +
 +	            if (Config.isSkyEnabled())
 +	            {
@@ -899,7 +905,7 @@
          }
      }
  
-@@ -1781,6 +1976,7 @@
+@@ -1781,6 +1978,7 @@
                      par1 = 0.0F;
                      GL11.glDisable(GL11.GL_CULL_FACE);
                      float var21 = (float)(this.mc.renderViewEntity.lastTickPosY + (this.mc.renderViewEntity.posY - this.mc.renderViewEntity.lastTickPosY) * (double)par1);
@@ -907,7 +913,7 @@
                      byte var3 = 32;
                      int var4 = 256 / var3;
                      Tessellator var5 = Tessellator.instance;
-@@ -1788,7 +1984,7 @@
+@@ -1788,7 +1986,7 @@
                      GL11.glEnable(GL11.GL_BLEND);
                      OpenGlHelper.glBlendFunc(770, 771, 1, 0);
                      double dc;
@@ -916,7 +922,7 @@
  
                      if (this.isFancyGlListClouds || this.cloudTickCounter >= this.cloudTickCounterGlList + 20)
                      {
-@@ -1810,8 +2006,8 @@
+@@ -1810,8 +2008,8 @@
                          }
  
                          var10 = 4.8828125E-4F;
@@ -927,7 +933,7 @@
                          double cdx = this.mc.renderViewEntity.prevPosZ + (this.mc.renderViewEntity.posZ - this.mc.renderViewEntity.prevPosZ) * (double)par1;
                          int cdz = MathHelper.floor_double(dc / 2048.0D);
                          int var18 = MathHelper.floor_double(cdx / 2048.0D);
-@@ -1839,16 +2035,17 @@
+@@ -1839,16 +2037,17 @@
                          GL11.glEndList();
                          this.isFancyGlListClouds = false;
                          this.cloudTickCounterGlList = this.cloudTickCounter;
@@ -949,7 +955,7 @@
                      float cdx1 = (float)(exactPlayerX1 - this.cloudPlayerX + dc * 0.03D);
                      float cdy = (float)(exactPlayerY1 - this.cloudPlayerY);
                      float cdz1 = (float)(exactPlayerZ1 - this.cloudPlayerZ);
-@@ -1879,7 +2076,9 @@
+@@ -1879,7 +2078,9 @@
          float partialTicks = par1;
          par1 = 0.0F;
          GL11.glDisable(GL11.GL_CULL_FACE);
@@ -960,7 +966,7 @@
          Tessellator var3 = Tessellator.instance;
          float var4 = 12.0F;
          float var5 = 4.0F;
-@@ -1900,29 +2099,29 @@
+@@ -1900,29 +2101,29 @@
          if (!this.isFancyGlListClouds || this.cloudTickCounter >= this.cloudTickCounterGlList + 20)
          {
              GL11.glNewList(this.glListClouds, GL11.GL_COMPILE);
@@ -1008,7 +1014,7 @@
              float dc = (float)(var8 - (double)MathHelper.floor_double(var8));
              float var23 = (float)(var10 - (double)MathHelper.floor_double(var10));
              byte cdx = 8;
-@@ -1964,25 +2163,25 @@
+@@ -1964,25 +2165,25 @@
  
                          if (var12 > -var5 - 1.0F)
                          {
@@ -1045,7 +1051,7 @@
                          int var34;
  
                          if (var28 > -1)
-@@ -1991,10 +2190,10 @@
+@@ -1991,10 +2192,10 @@
  
                              for (var34 = 0; var34 < cdx; ++var34)
                              {
@@ -1060,7 +1066,7 @@
                              }
                          }
  
-@@ -2004,14 +2203,14 @@
+@@ -2004,14 +2205,14 @@
  
                              for (var34 = 0; var34 < cdx; ++var34)
                              {
@@ -1080,7 +1086,7 @@
  
                          if (var29 > -1)
                          {
-@@ -2019,10 +2218,10 @@
+@@ -2019,10 +2220,10 @@
  
                              for (var34 = 0; var34 < cdx; ++var34)
                              {
@@ -1095,7 +1101,7 @@
                              }
                          }
  
-@@ -2032,10 +2231,10 @@
+@@ -2032,10 +2233,10 @@
  
                              for (var34 = 0; var34 < cdx; ++var34)
                              {
@@ -1110,7 +1116,7 @@
                              }
                          }
  
-@@ -2047,15 +2246,18 @@
+@@ -2047,15 +2248,18 @@
              GL11.glEndList();
              this.isFancyGlListClouds = true;
              this.cloudTickCounterGlList = this.cloudTickCounter;
@@ -1136,7 +1142,7 @@
          double var40 = (double)((float)(this.cloudTickCounter - this.cloudTickCounterGlList) + partialTicks);
          float var41 = (float)(var37 - this.cloudPlayerX + var40 * 0.03D);
          float var42 = (float)(var38 - this.cloudPlayerY);
-@@ -2075,7 +2277,9 @@
+@@ -2075,7 +2279,9 @@
      {
          this.renderViewEntity = entityliving;
  
@@ -1147,7 +1153,7 @@
          {
              return WrUpdates.updateRenderers(this, entityliving, flag);
          }
-@@ -2202,6 +2406,8 @@
+@@ -2202,6 +2408,8 @@
  
      public void drawBlockDamageTexture(Tessellator par1Tessellator, EntityLivingBase par2EntityPlayer, float par3)
      {
@@ -1156,7 +1162,7 @@
          double var4 = par2EntityPlayer.lastTickPosX + (par2EntityPlayer.posX - par2EntityPlayer.lastTickPosX) * (double)par3;
          double var6 = par2EntityPlayer.lastTickPosY + (par2EntityPlayer.posY - par2EntityPlayer.lastTickPosY) * (double)par3;
          double var8 = par2EntityPlayer.lastTickPosZ + (par2EntityPlayer.posZ - par2EntityPlayer.lastTickPosZ) * (double)par3;
-@@ -2216,6 +2422,10 @@
+@@ -2216,6 +2424,10 @@
              GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
              GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
              GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -1167,7 +1173,7 @@
              par1Tessellator.startDrawingQuads();
              par1Tessellator.setTranslation(-var4, -var6, -var8);
              par1Tessellator.disableColor();
-@@ -2245,6 +2455,10 @@
+@@ -2245,6 +2457,10 @@
  
              par1Tessellator.draw();
              par1Tessellator.setTranslation(0.0D, 0.0D, 0.0D);
@@ -1178,7 +1184,7 @@
              GL11.glDisable(GL11.GL_ALPHA_TEST);
              GL11.glPolygonOffset(0.0F, 0.0F);
              GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
-@@ -2252,6 +2466,7 @@
+@@ -2252,6 +2468,7 @@
              GL11.glDepthMask(true);
              GL11.glPopMatrix();
          }
@@ -1186,7 +1192,7 @@
      }
  
      /**
-@@ -2259,6 +2474,8 @@
+@@ -2259,6 +2476,8 @@
       */
      public void drawSelectionBox(EntityPlayer par1EntityPlayer, MovingObjectPosition par2MovingObjectPosition, int par3, float par4)
      {
@@ -1195,7 +1201,7 @@
          if (par3 == 0 && par2MovingObjectPosition.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
          {
              GL11.glEnable(GL11.GL_BLEND);
-@@ -2266,6 +2483,10 @@
+@@ -2266,6 +2485,10 @@
              GL11.glColor4f(0.0F, 0.0F, 0.0F, 0.4F);
              GL11.glLineWidth(2.0F);
              GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -1206,7 +1212,7 @@
              GL11.glDepthMask(false);
              float var5 = 0.002F;
              Block var6 = this.theWorld.getBlock(par2MovingObjectPosition.blockX, par2MovingObjectPosition.blockY, par2MovingObjectPosition.blockZ);
-@@ -2281,8 +2502,13 @@
+@@ -2281,8 +2504,13 @@
  
              GL11.glDepthMask(true);
              GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -1220,7 +1226,7 @@
      }
  
      /**
-@@ -2932,7 +3158,7 @@
+@@ -2932,7 +3160,7 @@
                  {
                      this.theWorld.playSound((double)par3 + 0.5D, (double)par4 + 0.5D, (double)par5 + 0.5D, "random.door_close", 1.0F, this.theWorld.rand.nextFloat() * 0.1F + 0.9F, false);
                  }
@@ -1229,7 +1235,7 @@
                  break;
  
              case 1004:
-@@ -3026,12 +3252,13 @@
+@@ -3026,12 +3254,13 @@
  
              case 2001:
                  var8 = Block.getBlockById(par6 & 4095);
@@ -1245,7 +1251,7 @@
                  this.mc.effectRenderer.addBlockDestroyEffects(par3, par4, par5, var8, par6 >> 12 & 255);
                  break;
  
-@@ -3128,6 +3355,9 @@
+@@ -3128,6 +3357,9 @@
  
                      for (int var24 = 0; var24 < var23; ++var24)
                      {

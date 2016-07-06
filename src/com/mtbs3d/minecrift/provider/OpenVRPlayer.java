@@ -13,6 +13,7 @@ import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Minecraft.renderPass;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -1167,7 +1168,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	}
 	
 	@Override //always interpolated
-	public Vec3 getEyePos_World(EyeType eye) {
+	public Vec3 getEyePos_World(renderPass eye) {
 		Vec3 out = vecMult(MCOpenVR.getEyePosition(eye),worldScale);
 		out.rotateAroundY(worldRotationRadians);
 		return out.addVector(roomOrigin.xCoord, roomOrigin.yCoord, roomOrigin.zCoord);
@@ -1208,7 +1209,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	}
 	
 	@Override
-	public Vec3 getEyePos_Room(EyeType eye) {
+	public Vec3 getEyePos_Room(renderPass eye) {
 		return vecMult(MCOpenVR.getEyePosition(eye),worldScale);
 	}
 

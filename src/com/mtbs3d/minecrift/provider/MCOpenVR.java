@@ -21,6 +21,7 @@ import de.fruitfly.ovr.structs.Vector2f;
 import de.fruitfly.ovr.structs.Vector3f;
 import de.fruitfly.ovr.util.BufferUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Minecraft.renderPass;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.GuiEnchantment;
 import net.minecraft.client.gui.GuiHopper;
@@ -108,7 +109,8 @@ public class MCOpenVR
 	private int LeftEyeTextureId;
 
 	final static VRTextureBounds_t texBounds = new VRTextureBounds_t();
-	final static Texture_t texType = new Texture_t();
+	final static Texture_t texType0 = new Texture_t();
+	final static Texture_t texType1 = new Texture_t();
 
 	// aiming
 	static float aimYaw = 0;
@@ -198,7 +200,7 @@ public class MCOpenVR
 	static KeyBinding rotateLeft = new KeyBinding("Rotate Left", 203, "key.categories.movement");
 	static KeyBinding rotateRight = new KeyBinding("Rotate Right", 205, "key.categories.movement");
 	static KeyBinding walkabout = new KeyBinding("Walkabout", 207, "key.categories.movement");
-	static KeyBinding rotateFree = new KeyBinding("Rotate Free", 999, "key.categories.movement");
+	static KeyBinding rotateFree = new KeyBinding("Rotate Free", 199, "key.categories.movement");
 	static KeyBinding quickTorch = new KeyBinding("Quick Torch", 210, "key.categories.gameplay");
 
 	public MCOpenVR()
@@ -432,14 +434,24 @@ public class MCOpenVR
 
 
 		// texture type
-		texType.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
-		texType.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
-		texType.setAutoSynch(false);
-		texType.setAutoRead(false);
-		texType.setAutoWrite(false);
-		texType.handle = -1;
-		texType.write();
+		texType0.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
+		texType0.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
+		texType0.setAutoSynch(false);
+		texType0.setAutoRead(false);
+		texType0.setAutoWrite(false);
+		texType0.handle = -1;
+		texType0.write();
 
+		
+		// texture type
+		texType1.eColorSpace = JOpenVRLibrary.EColorSpace.EColorSpace_ColorSpace_Gamma;
+		texType1.eType = JOpenVRLibrary.EGraphicsAPIConvention.EGraphicsAPIConvention_API_OpenGL;
+		texType1.setAutoSynch(false);
+		texType1.setAutoRead(false);
+		texType1.setAutoWrite(false);
+		texType1.handle = -1;
+		texType1.write();
+		
 		System.out.println("OpenVR Compositor initialized OK.");
 
 	}
@@ -909,7 +921,7 @@ public class MCOpenVR
 			{
 				// controller not connected, clear state
 				lastControllerState[c].ulButtonPressed = 0;
-				lastControllerState[c].ulButtonPressed = 0;
+				lastControllerState[c].ulButtonTouched = 0;
 
 				for (int i = 0; i < 5; i++)
 				{
@@ -1490,13 +1502,13 @@ public class MCOpenVR
 	 * @return The coordinate of the left or right eye position relative to the head yaw plane
 	 */
 	
-	static Vec3 getEyePosition(EyeType eye)
+	static Vec3 getEyePosition(renderPass eye)
 	{
 		Matrix4f hmdToEye = hmdPoseRightEye;
-		if ( eye == EyeType.ovrEye_Left )
+		if ( eye == renderPass.Left )
 		{
 			hmdToEye = hmdPoseLeftEye;
-		} else if ( eye == EyeType.ovrEye_Right )
+		} else if ( eye == renderPass.Right)
 		{
 			hmdToEye = hmdPoseRightEye;
 		} else {
@@ -1547,7 +1559,7 @@ public class MCOpenVR
 	 * @return The Head Yaw, in degrees
 	 */
 	
-	static float getHeadYawDegrees(EyeType eye)
+	static float getHeadYawDegrees()
 	{
 		Quatf quat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
 
@@ -1562,7 +1574,7 @@ public class MCOpenVR
 	 * @return The Head Pitch, in degrees
 	 */
 	
-	static float getHeadPitchDegrees(EyeType eye)
+	static float getHeadPitchDegrees()
 	{
 		Quatf quat = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
 
@@ -1658,7 +1670,7 @@ public class MCOpenVR
 					guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);						
 			}				
 			else{
-				guiRotationPose = Matrix4f.rotationY((float) Math.toRadians( getHeadYawDegrees(mc.currentEye) + mc.vrSettings.vrWorldRotation));
+				guiRotationPose = Matrix4f.rotationY((float) Math.toRadians( getHeadYawDegrees() + mc.vrSettings.vrWorldRotation));
 				Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.toRadians(mc.roomScale.getHMDPitch_World()));	
 				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);		
 				
@@ -1864,12 +1876,12 @@ public class MCOpenVR
 	
 	
 	
-	public static boolean applyGUIModelView(EyeType eyeType)
+	public static boolean applyGUIModelView(renderPass currentPass)
 	{
    		mc.mcProfiler.startSection("applyGUIModelView");
 	
 			Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
-			Vec3 eye =mc.entityRenderer.getEyeRenderPos(eyeType);
+			Vec3 eye =mc.entityRenderer.getEyeRenderPos(currentPass);
 			
 			if(mc.theWorld == null)
 				mc.vrSettings.vrWorldRotation = 0;
@@ -1919,7 +1931,7 @@ public class MCOpenVR
 			// HUD view - attach to head or controller
 			else if (mc.theWorld!=null && (mc.currentScreen==null || mc.vrSettings.floatInventory == false))
 			{
-				eye = mc.roomScale.getEyePos_World(eyeType); //dont need interpolation.
+				eye = mc.roomScale.getEyePos_World(currentPass); //dont need interpolation.
 				guiScale = mc.vrSettings.vrWorldScale;
 				if (mc.vrSettings.hudLockToHead)
 				{

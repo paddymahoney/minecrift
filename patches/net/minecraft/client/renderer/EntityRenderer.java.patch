@@ -1,12 +1,14 @@
 --- a/net/minecraft/client/renderer/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/EntityRenderer.java
-@@ -1,27 +1,51 @@
+@@ -1,27 +1,57 @@
  package net.minecraft.client.renderer;
  
 -import com.google.gson.JsonSyntaxException;
  import java.io.IOException;
  import java.lang.reflect.Field;
++import java.nio.ByteBuffer;
  import java.nio.FloatBuffer;
++import java.nio.IntBuffer;
 +import java.util.ArrayList;
  import java.util.Calendar;
  import java.util.Date;
@@ -20,9 +22,11 @@
 +import org.apache.logging.log4j.Logger;
 +import org.lwjgl.input.Keyboard;
 +import org.lwjgl.input.Mouse;
++import org.lwjgl.opengl.EXTFramebufferObject;
 +import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 +import org.lwjgl.opengl.GL11;
 +import org.lwjgl.opengl.GL12;
++import org.lwjgl.opengl.GL30;
 +import org.lwjgl.opengl.GLContext;
 +import org.lwjgl.util.glu.Project;
 +
@@ -34,11 +38,13 @@
 +
 +import de.fruitfly.ovr.enums.EyeType;
 +import de.fruitfly.ovr.structs.EulerOrient;
++import de.fruitfly.ovr.structs.Matrix4f;
 +import de.fruitfly.ovr.structs.Vector3f;
  import net.minecraft.block.Block;
 +import net.minecraft.block.BlockLiquid;
  import net.minecraft.block.material.Material;
  import net.minecraft.client.Minecraft;
++import net.minecraft.client.Minecraft.renderPass;
  import net.minecraft.client.entity.EntityPlayerSP;
 +import net.minecraft.client.gui.Gui;
  import net.minecraft.client.gui.GuiDownloadTerrain;
@@ -54,7 +60,7 @@
  import net.minecraft.client.renderer.culling.Frustrum;
  import net.minecraft.client.renderer.entity.RenderManager;
  import net.minecraft.client.renderer.texture.DynamicTexture;
-@@ -29,10 +53,12 @@
+@@ -29,10 +59,12 @@
  import net.minecraft.client.resources.I18n;
  import net.minecraft.client.resources.IResourceManager;
  import net.minecraft.client.resources.IResourceManagerReloadListener;
@@ -67,7 +73,7 @@
  import net.minecraft.enchantment.EnchantmentHelper;
  import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLivingBase;
-@@ -40,6 +66,9 @@
+@@ -40,6 +72,9 @@
  import net.minecraft.entity.item.EntityItemFrame;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.init.Blocks;
@@ -77,7 +83,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +90,4554 @@
+@@ -61,2593 +96,4608 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -875,7 +881,7 @@
 +	public boolean inWorldGuiScreenShowingThisFrame = false;
 +	public float inGameMenuHeadYaw = 0.0f; //Not including mouse
 +	public Vec3 interpolatedPlayerPos = Vec3.createVectorHelper(0, 0, 0);
-+    private Vec3 interPolatedRoomOrigin = Vec3.createVectorHelper(0,0,0);
++    public Vec3 interPolatedRoomOrigin = Vec3.createVectorHelper(0,0,0);
 +	public double cameraRoll;
 +	public float headYaw = 0.0F; //relative to head tracker reference frame, absolute
 +	public float headPitch = 0.0F;
@@ -1377,7 +1383,7 @@
 +					var21 *= 0.1F;
 +					var22 *= 0.1F;
 +					var23 *= 0.1F;
-+					Vec3 f = getEyeRenderPos(mc.currentEye);
++					Vec3 f = getEyeRenderPos(mc.currentPass);
 +					MovingObjectPosition var24 = this.mc.theWorld.rayTraceBlocks(Vec3.createVectorHelper(f.xCoord + (double)var21, f.yCoord + (double)var22, f.zCoord
 +							+ (double)var23), Vec3.createVectorHelper(f.xCoord - var14 + (double)var21 + (double)var23, f.yCoord - var18 + (double)var22, f.zCoord - var16 + (double)var23));
 +
@@ -1402,22 +1408,32 @@
 +				GL11.glTranslatef(0.0F, 0.0F, (float)(-var271));
 +				GL11.glRotatef(var28 - var2.rotationYaw, 0.0F, 1.0F, 0.0F);
 +				GL11.glRotatef(var281 - var2.rotationPitch, 1.0F, 0.0F, 0.0F);
++				
 +			}
 +		}
-+		else
-+		{
-+			/** MINECRIFT */    
++		else if(mc.currentPass == renderPass.Third){
 +			
-+			// Rotation
-+			if (this.mc.gameSettings.thirdPersonView == 2)	{ //3rd person looking at yourself from the front
-+				GL11.glRotatef((float) -this.headRoll, 0.0F, 0.0F, 1.0F);
-+			}
-+			else{ // do proper 1st person camera orientation.
-+				GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
-+			}
++			Vector3f eye = new Vector3f((float)mc.renderViewEntity.posX, 
++				(float)mc.renderViewEntity.posY,
++				(float)mc.renderViewEntity.posZ);
++			
++			Vector3f pos = new Vector3f((float)interPolatedRoomOrigin.xCoord,
++					(float)interPolatedRoomOrigin.yCoord + 1.5f,
++					(float)interPolatedRoomOrigin.zCoord);
++			
++				Matrix4f m=	Matrix4f.lookAtRH(eye, pos, new Vector3f(0,1,0));
++			
++				//GL11.glMultMatrix(m.transposed().toFloatBuffer());
++			
++		} else 	{
++			/** MINECRIFT */    
++
++			 // do proper 1st person camera orientation.
++			GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
++			
 +				
 +			// Position
-+			Vec3 campos =  this.getEyeRenderPos(mc.currentEye).subtract(mc.renderViewEntity.getPosition(1));
++			Vec3 campos =  this.getEyeRenderPos(mc.currentPass).subtract(mc.renderViewEntity.getPosition(1));
 +			float x = (float) (campos.xCoord );
 +			float y = (float) (campos.yCoord);
 +			float z = (float) (campos.zCoord );
@@ -1456,7 +1472,9 @@
 +
 +		if (this.mc.stereoProvider.isStereo())
 +		{
-+			GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
++			int i = mc.currentPass.value();
++			if(i>1) i = 0;
++			GL11.glMultMatrix(mc.eyeproj[i]);
 +		}
 +		else
 +		{
@@ -1473,7 +1491,6 @@
 +
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glLoadIdentity();
-+
 +
 +		var4 = this.mc.thePlayer.prevTimeInPortal + (this.mc.thePlayer.timeInPortal - this.mc.thePlayer.prevTimeInPortal) * par1;
 +
@@ -1615,7 +1632,7 @@
 +							interpolatedPlayerPos.yCoord - mc.renderViewEntity.yOffset,
 +							(float) interpolatedPlayerPos.zCoord);
 +					
-+					Vec3 pos = getEyeRenderPos(EyeType.ovrEye_Center).subtract(feets).addVector(0, 0.02, 0);
++					Vec3 pos = getEyeRenderPos(renderPass.Center ).subtract(feets).addVector(0, 0.02, 0);
 +					
 +					setupPolyRendering(true);
 +					
@@ -1914,7 +1931,7 @@
 +	public void updateCameraAndRender(float par1)
 +	{// called each eye
 +
-+		if(mc.currentEye == EyeType.ovrEye_Left) //contains all the stuff that was in this method that only needs to be called once per frame.
++		if(mc.currentPass == renderPass.Left) //contains all the stuff that was in this method that only needs to be called once per frame.
 +			updateCameraAndRender_OnePass(par1);
 +
 +		if (!this.mc.skipRenderWorld)
@@ -1984,7 +2001,6 @@
 +					}
 +				}
 +				/** END MINECRIFT */
-+				this.mc.mcProfiler.endSection(); //level
 +			}//END RENDER WORLD
 +			
 +	
@@ -2015,6 +2031,9 @@
 +
 +	}
 +
++	
++	private Field smcdFb, dfbDepthTextures;
++	
 +	private void updateCameraAndRender_OnePass(float par1) {
 +		if (!this.initialized)
 +		{
@@ -2128,6 +2147,7 @@
 +
 +	Frustrum currentFrustum = new Frustrum();
 +	
++	
 +	public void renderWorld(float par1, long par2)
 +	{
 +		boolean hasForge = Reflector.ForgeHooksClient.exists();
@@ -2161,7 +2181,11 @@
 +		if(!shadersMod || !shadersModShadowPass) 
 +			cacheRVEPos(); //hacks because beginRender and setcamera looks at rve.
 +		
-+		Vec3 f = getEyeRenderPos(EyeType.ovrEye_Center);
++		Vec3 f; 
++		if(mc.currentPass == renderPass.Third)
++			f = getEyeRenderPos(renderPass.Third);
++		else
++			f = getEyeRenderPos(renderPass.Center);
 +		
 +		mc.renderViewEntity.posX = f.xCoord;
 +		mc.renderViewEntity.posY = f.yCoord;
@@ -2175,12 +2199,16 @@
 +		
 +		/** MINECRIFT SHADERS MOD **/
 +		if (shadersMod) {
++			
++			int dfb = (Integer) Reflector.getFieldValue(Reflector.ShadersMod_Shaders_dfb);
++			
 +			if(!shadersModShadowPass){ //not really needed, beginRender does nothing on the shadow pass.
 +				this.mc.mcProfiler.startSection("shadersModBeginRender");	
 +				//hack to give shadersmod the correct size.
 +				this.mc.displayWidth = this.mc.displayFBWidth;
 +				this.mc.displayHeight = this.mc.displayFBHeight;
 +			}
++
 +				//This actually calls renderWorld again recursivly for the shadow pass 
 +				//returns immediately on shadow pass.
 +				//regular pass starts again from here.
@@ -2188,12 +2216,34 @@
 +				
 +				shadersModShadowPass = (Boolean)Reflector.getFieldValue(Reflector.ShadersMod_Shaders_isShadowPass);
 +				
-+			if(!shadersModShadowPass){
-+				this.mc.displayWidth = mc.tempDisplayWidth;
-+				this.mc.displayHeight = mc.tempDisplayHeight;
-+				
-+				this.mc.mcProfiler.endSection();
-+			} else GL11.glFlush(); //temp remove me
++				if(!shadersModShadowPass){
++					this.mc.displayWidth = mc.tempDisplayWidth;
++					this.mc.displayHeight = mc.tempDisplayHeight;
++
++					int dfb2 = (Integer) Reflector.getFieldValue(Reflector.ShadersMod_Shaders_dfb);
++
++					if(dfb2 != dfb){ //replace shadersmod depth buffers with depth+stencil buffers.
++						//cross your fingers and pray
++						IntBuffer bufs = (IntBuffer) Reflector.getFieldValue(Reflector.ShadersMod_Shaders_dfbDepthTextures);
++
++						int newtex = GL11.glGenTextures();
++						GL11.glBindTexture((int)3553, newtex );
++						GL11.glTexParameteri((int)3553, (int)10242, (int)10496);
++						GL11.glTexParameteri((int)3553, (int)10243, (int)10496);
++						GL11.glTexParameteri((int)3553, (int)10241, (int)9728);
++						GL11.glTexParameteri((int)3553, (int)10240, (int)9728);
++						GL11.glTexParameteri((int)3553, (int)34891, (int)6409);
++						GL11.glTexImage2D(GL11.GL_TEXTURE_2D, (int)0, GL30.GL_DEPTH24_STENCIL8, (int)mc.displayFBWidth, (int)mc.displayFBHeight, (int)0, GL30.GL_DEPTH_STENCIL,  GL30.GL_UNSIGNED_INT_24_8, (ByteBuffer)null);
++						GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_STENCIL_ATTACHMENT, GL11.GL_TEXTURE_2D, newtex, (int)0);
++						bufs.put(0, newtex);
++						int ok = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
++						System.out.println("hack stencil into SMC " + dfb + " " + dfb2 + " " +ok);
++						mc.checkGLError("hack smc stencil");
++					}
++
++
++					this.mc.mcProfiler.endSection();
++				} 
 +	
 +		}
 +		/** END MINECRIFT SHADERS MOD **/
@@ -2216,12 +2266,12 @@
 +
 +			if( this.mc.currentScreen == null )
 +			{
-+				if(mc.currentEye == EyeType.ovrEye_Left)	
++				if(mc.currentPass == renderPass.Left)	
 +					getPointedBlock(par1);   
 +					
 +					// Set up crosshair position
 +					float SLIGHTLY_CLOSER = 0.001f;
-+					Vec3 centerEyePosToCrossDirection =  getEyeRenderPos(mc.currentEye).subtract(crossVec).normalize();   // VIVE use camerapos
++					Vec3 centerEyePosToCrossDirection =  getEyeRenderPos(mc.currentPass).subtract(crossVec).normalize();   // VIVE use camerapos
 +					crossX = (float)(crossVec.xCoord - (centerEyePosToCrossDirection.xCoord*SLIGHTLY_CLOSER) - mc.renderViewEntity.posX);
 +					crossY = (float)(crossVec.yCoord - (centerEyePosToCrossDirection.yCoord*SLIGHTLY_CLOSER) - mc.renderViewEntity.posY);
 +					crossZ = (float)(crossVec.zCoord - (centerEyePosToCrossDirection.zCoord*SLIGHTLY_CLOSER) - mc.renderViewEntity.posZ);
@@ -2252,8 +2302,8 @@
 +			
 +		this.mc.mcProfiler.endStartSection("stencil");	
 +		
-+			if(!shadersMod && mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.vrPlayer.isHMDTracking()){
-+				mc.doStencilForEye(mc.currentEye == EyeType.ovrEye_Left ? 0 : 1); //TODO: dont render this every damn frame.				
++			if(mc.currentPass != renderPass.Third && mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.vrPlayer.isHMDTracking()){
++				mc.doStencilForEye(mc.currentPass == renderPass.Left? 0 : 1); //TODO: dont render this every damn frame.				
 +			}
 +			else{
 +				GL11.glDisable(GL11.GL_STENCIL_TEST);
@@ -2302,44 +2352,44 @@
 +				GL11.glShadeModel(GL11.GL_SMOOTH);
 +			}
 +		
-+				this.mc.mcProfiler.endStartSection("frustrum");
-+					currentFrustum = new Frustrum();	
-+				this.mc.mcProfiler.endStartSection("culling");
++			this.mc.mcProfiler.endStartSection("frustrum");
++				currentFrustum = new Frustrum();	
++			this.mc.mcProfiler.endStartSection("culling");
++			
++				if (shadersMod) { // need to do this for both passes cause shadows.
++					Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {currentFrustum, f.xCoord, f.yCoord, f.zCoord});
++					Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, currentFrustum, par1});
++				}
++				else {			
++					currentFrustum.setPosition(f.xCoord, f.yCoord, f.zCoord);
++					this.mc.renderGlobal.clipRenderersByFrustum(currentFrustum, par1);
++				}
 +				
-+					if (shadersMod) { // need to do this for both passes cause shadows.
-+						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_setFrustrumPosition, new Object[] {currentFrustum, f.xCoord, f.yCoord, f.zCoord});
-+						Reflector.callVoid(Reflector.ShadersMod_ShadersRender_clipRenderersByFrustrum, new Object[] {this.mc.renderGlobal, currentFrustum, par1});
-+					}
-+					else {			
-+						currentFrustum.setPosition(f.xCoord, f.yCoord, f.zCoord);
-+						this.mc.renderGlobal.clipRenderersByFrustum(currentFrustum, par1);
-+					}
-+					
-+					if( !shadersMod  || !shadersModShadowPass) 	{//dont do updatechunks for both shadersmod passes. gg Karyonix.
-+						if ( mc.currentEye == EyeType.ovrEye_Left)  //once per render
-+						{
-+							this.mc.mcProfiler.endStartSection("updatechunks");			
++				if( !shadersMod  || !shadersModShadowPass) 	{//dont do updatechunks for both shadersmod passes. gg Karyonix.
++					if ( mc.currentPass == renderPass.Left)  //once per render
++					{
++						this.mc.mcProfiler.endStartSection("updatechunks");			
 +
-+							if (shadersMod) {
-+								Reflector.callVoid(Reflector.ShadersMod_Shaders_beginUpdateChunks, new Object[] {});
-+							}
-+
-+							while (!this.mc.renderGlobal.updateRenderers(player, false) && par2 != 0L)
-+							{
-+								long var17 = par2 - System.nanoTime();
-+
-+								if (var17 < 0L || var17 > 1000000000L)
-+								{
-+									break;
-+								}
-+							}
-+
-+							if (shadersMod) {
-+								Reflector.callVoid(Reflector.ShadersMod_Shaders_endUpdateChunks, new Object[] {});
-+							}
-+							/** END MINECRIFT SHADERS MOD **/
++						if (shadersMod) {
++							Reflector.callVoid(Reflector.ShadersMod_Shaders_beginUpdateChunks, new Object[] {});
 +						}
++
++						while (!this.mc.renderGlobal.updateRenderers(player, false) && par2 != 0L)
++						{
++							long var17 = par2 - System.nanoTime();
++
++							if (var17 < 0L || var17 > 1000000000L)
++							{
++								break;
++							}
++						}
++
++						if (shadersMod) {
++							Reflector.callVoid(Reflector.ShadersMod_Shaders_endUpdateChunks, new Object[] {});
++						}
++						/** END MINECRIFT SHADERS MOD **/
 +					}
++				}
 +					
 +		this.mc.mcProfiler.endStartSection("renderCloudsCheck");
 +			if (player.posY < 128.0D)
@@ -2519,7 +2569,7 @@
 +			Reflector.callVoid(Reflector.ForgeHooksClient_dispatchRenderLast, new Object[] {rg, Float.valueOf(par1)});
 +		}          
 +
-+		eyeCollisionBlock = getEyeCollisionBlock(mc.currentEye);
++		eyeCollisionBlock = getEyeCollisionBlock(mc.currentPass);
 +
 +		eyeCollision = (eyeCollisionBlock != null && eyeCollisionBlock.isNormalCube());
 +		
@@ -3154,10 +3204,10 @@
 +
 +			//jrbudda override for cam pos           
 +			//Block var5 = ActiveRenderInfo.getBlockAtEntityViewpoint(this.mc.theWorld, var3, par2);
-+			Block var5 = getEyeCollisionBlock(this.mc.currentEye);
++			Block var5 = getEyeCollisionBlock(this.mc.currentPass);
 +
 +			if(var5==null) {
-+				Vec3 L = this.getEyeBlock(this.mc.currentEye);
++				Vec3 L = this.getEyeBlock(this.mc.currentPass);
 +				var5 = var3.worldObj.getBlock((int) L.xCoord, (int) L.yCoord, (int) L.zCoord);
 +				if (var5.getMaterial() == Material.water) { var5 = Blocks.air;} //if we were in water it wouldnt be null to begin with.
 +			}
@@ -3939,7 +3989,9 @@
 +			GL11.glLoadIdentity();
 +			if (isStereo)
 +			{
-+				GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
++				int i = mc.currentPass.value();
++				if(i>1) i = 0;
++				GL11.glMultMatrix(mc.eyeproj[i]);
 +			}
 +			else
 +			{
@@ -3956,7 +4008,7 @@
 +				float rows = wrapped.size();
 +				float shift = rows / 2f;
 +		
-+				float x = isGuiOrtho ? 0f : -this.mc.vrSettings.getHalfIPD(this.mc.currentEye);
++				float x = isGuiOrtho ? 0f : -this.mc.vrSettings.getHalfIPD(EyeType.ovrEye_Center);
 +				float y = shift * COLUMN_GAP * 0.003f; // Move up
 +				float z = -0.6f;
 +		
@@ -4192,15 +4244,17 @@
 +		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 +	}
 +	
-+	public Vec3 getEyeRenderPos(EyeType eye){
-+		if (eye == EyeType.ovrEye_Center){
++	public Vec3 getEyeRenderPos(renderPass currentPass){
++		if (currentPass == renderPass.Center){
 +			Vec3 out = mc.roomScale.getHMDPos_Room();
 +			out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
 +			return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
++		} else if (currentPass == renderPass.Third){
++			return interPolatedRoomOrigin.addVector(0.5f, 1.5f, 3f);
 +		} else {
-+			Vec3 out = mc.roomScale.getEyePos_Room(eye);
++			Vec3 out = mc.roomScale.getEyePos_Room(currentPass);
 +			out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
-+			return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);			
++			return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);	
 +		}
 +
 +	}
@@ -4218,8 +4272,10 @@
 +		
 +				// Minecrift - use correct projection
 +				if (this.mc.stereoProvider.isStereo())
-+				{
-+					GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
++				{			
++					int i = mc.currentPass.value();
++					if(i > 1) i = 0;
++					GL11.glMultMatrix(mc.eyeproj[i]);
 +				}
 +				else
 +				{
@@ -4229,7 +4285,7 @@
 +				GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +				GL11.glLoadIdentity();
 +				// VIVE START - custom GUI position
-+				MCOpenVR.applyGUIModelView(this.mc.currentEye); //MCOpenVR.java, pushes.
++				MCOpenVR.applyGUIModelView(this.mc.currentPass); //MCOpenVR.java, pushes.
 +					///JRBUDDA MAIN MENU ROOM            
 +					if(mc.theWorld == null || mc.currentScreen instanceof GuiWinGame){		
 +						rendserJrbuddasAwesomeMainMenuRoom();			
@@ -4775,7 +4831,9 @@
 +			GL11.glLoadIdentity();
 +			if (this.mc.stereoProvider.isStereo())
 +			{
-+				GL11.glMultMatrix(mc.eyeproj[mc.currentEye.value()]);
++				int i = mc.currentPass.value();
++				if(i>1) i = 0;
++				GL11.glMultMatrix(mc.eyeproj[i]);
 +			}
 +			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +			GL11.glPushMatrix();
@@ -4801,7 +4859,7 @@
 +		
 +					tes.setColorRGBA(255 - 127 * c,255 - 127 * c,255 - 127 * c,255);
 +					
-+					Vec3 controllerPos = this.getEyeRenderPos(mc.currentEye).subtract(this.getControllerRenderPos(c));
++					Vec3 controllerPos = this.getEyeRenderPos(mc.currentPass).subtract(this.getControllerRenderPos(c));
 +					
 +					GL11.glPushMatrix();
 +						GL11.glTranslatef(
@@ -5196,8 +5254,10 @@
 +	}
 +
 +	//checks around the eye position for an opaque block or water block so we can render fog and overlays for that eye
-+	public Block getEyeCollisionBlock(EyeType eye){
-+		Vec3 exact = mc.roomScale.getEyePos_World(eye);
++	public Block getEyeCollisionBlock(renderPass currentPass){
++		if(currentPass == renderPass.Third) return null;
++		Vec3 exact = mc.roomScale.getEyePos_World(currentPass);
++		
 +		int var2 = (int) Math.floor(exact.xCoord);
 +		int var3 = (int) Math.floor(exact.yCoord);
 +		int var4 = (int) Math.floor(exact.zCoord);
@@ -5238,8 +5298,8 @@
 +	
 +	}
 +
-+	public Vec3 getEyeBlock(EyeType eye){
-+		Vec3 cam = mc.roomScale.getEyePos_World(eye);
++	public Vec3 getEyeBlock(renderPass currentPass){
++		Vec3 cam = mc.roomScale.getEyePos_World(currentPass);
 +		return Vec3.createVectorHelper(Math.floor(cam.xCoord), Math.floor(cam.yCoord), Math.floor(cam.zCoord));
 +	}
 +
