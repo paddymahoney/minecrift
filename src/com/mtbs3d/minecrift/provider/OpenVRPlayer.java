@@ -11,6 +11,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import jopenvr.OpenVRUtil;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Minecraft.renderPass;
@@ -23,10 +24,12 @@ import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityHorse;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemAxe;
+import net.minecraft.item.ItemBucket;
 import net.minecraft.item.ItemHoe;
 import net.minecraft.item.ItemSpade;
 import net.minecraft.item.ItemStack;
@@ -880,17 +883,21 @@ public class OpenVRPlayer implements IRoomscaleAdapter
       
         if(is!=null )item = is.getItem();
         
+        boolean tool = false;
+        
         if (item instanceof ItemSword){
         		entityReachAdd = 2.5f;
         		weaponLength = 0.3f;
+        		tool = true;
         } else if (item instanceof ItemTool ||
         		item instanceof ItemHoe
         		){
         	entityReachAdd = 1.8f;
         	weaponLength = 0.3f;
+    		tool = true;
         } else if (item !=null){
         	weaponLength = 0.1f;
-        	entityReachAdd = 0.4f;
+        	entityReachAdd = 0.3f;
         } else {
         	weaponLength = 0.0f;
         	entityReachAdd = 0.3f;
@@ -942,9 +949,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
                 handPos.zCoord + handDirection.zCoord * (weaponLength + entityReachAdd));
         
         	//Check EntityCollisions first
-        	{
-
-        		//experiment.
+        	//experiment.
         		AxisAlignedBB weaponBB = AxisAlignedBB.getBoundingBox(
         				handPos.xCoord < extWeapon.xCoord ? handPos.xCoord : extWeapon.xCoord  ,
         						handPos.yCoord < extWeapon.yCoord ? handPos.yCoord : extWeapon.yCoord  ,
@@ -961,15 +966,21 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         			Entity hitEntity = (Entity) entities.get(e);
         			if (hitEntity.canBeCollidedWith() && !(hitEntity == mc.renderViewEntity.ridingEntity))
         			{
-        				if(canact){
-        					mc.playerController.attackEntity(player, hitEntity);
-        					this.triggerHapticPulse(0, 1000);
-           					lastWeaponSolid = true;
+        				if(hitEntity instanceof EntityAnimal && !tool && !lastWeaponSolid){
+        					mc.playerController.interactWithEntitySendPacket(player, hitEntity);
+        				} 
+        				else 
+        				{
+        					if(canact){
+        						mc.playerController.attackEntity(player, hitEntity);
+        						this.triggerHapticPulse(0, 1000);
+        						lastWeaponSolid = true;
+        					}
+        					inAnEntity = true;
         				}
-         				inAnEntity = true;
-         			}
+        			}
         		}
-
+        		
         	if(!inAnEntity){
         		Block block = mc.theWorld.getBlock(bx, by, bz);
         		Material material = block.getMaterial();
@@ -977,44 +988,53 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         		// every time end of weapon enters a solid for the first time, trace from our previous air position
         		// and damage the block it collides with... 
 
-        		MovingObjectPosition col = mc.theWorld.rayTraceBlocks(lastWeaponEndAir, weaponEnd, false, false, true);
+        		MovingObjectPosition col = mc.theWorld.rayTraceBlocks(lastWeaponEndAir, weaponEnd, true, false, true);
         		if (col != null && col.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
         		{
-        			if (!(block.getMaterial() == material.air) && !block.getMaterial().isLiquid())
+        			if (!(block.getMaterial() == material.air))
         			{
-        				if(canact){       					
+        				if (block.getMaterial().isLiquid()) {
+        					if(item == Items.bucket) {       						
+        						//mc.playerController.onPlayerRightClick(player, player.worldObj,is, col.blockX, col.blockY, col.blockZ, col.sideHit,col.hitVec);
+        						if (mc.playerController.sendUseItem(player, player.worldObj, is))
+        						{
+        							mc.entityRenderer.itemRenderer.resetEquippedProgress2();
+        						}
+        					}
+        				} else {
+        					if(canact){       					
         						for (int i = 0; i < 4; i++)
         						{
         							//set delay to 0
-            						clearBlockHitDelay();			
-            						
-            						//all this comes from plaeyrControllerMP clickMouse and friends.
-            						
-            						//all this does is sets the blocking you're currently hitting, has no effect in survival mode after that.
-            						//but if in creaive mode will clickCreative on the block
+        							clearBlockHitDelay();			
+
+        							//all this comes from plaeyrControllerMP clickMouse and friends.
+
+        							//all this does is sets the blocking you're currently hitting, has no effect in survival mode after that.
+        							//but if in creaive mode will clickCreative on the block
         							mc.playerController.clickBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
 
         							if(!getIsHittingBlock()) //seems to be the only way to tell it broke.
         								break;
-        							
+
         							//apply destruction for survival only
         							mc.playerController.onPlayerDamageBlock(col.blockX, col.blockY, col.blockZ, col.sideHit);
 
         							if(!getIsHittingBlock()) //seems to be the only way to tell it broke.
         								break;
-        							
+
         							//something effects
         							mc.effectRenderer.addBlockHitEffects(col.blockX, col.blockY, col.blockZ, col.sideHit);
-   
+
         						}
-        				
-             				this.triggerHapticPulse(0, 1000);
-            			//   System.out.println("Hit block speed =" + speed + " mot " + mot + " thresh " + speedthresh) ;            				
-            				lastWeaponSolid = true;
+
+        						this.triggerHapticPulse(0, 1000);
+        						//   System.out.println("Hit block speed =" + speed + " mot " + mot + " thresh " + speedthresh) ;            				
+        						lastWeaponSolid = true;
+        					}
+        					insolidBlock = true;
         				}
-           				insolidBlock = true;
         			}
-        		}
         	}
         }
                	
@@ -1297,6 +1317,5 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	}
     // VIVE END - function to allow damaging blocks immediately
 
-	
 }
 

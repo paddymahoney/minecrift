@@ -1,10 +1,16 @@
 package com.mtbs3d.minecrift.gameplay;
 
+import java.nio.ByteBuffer;
+
 import com.mtbs3d.minecrift.api.IRoomscaleAdapter;
+import com.mtbs3d.minecrift.api.NetworkHelper;
+import com.mtbs3d.minecrift.api.NetworkHelper.PacketDiscriminators;
 import com.mtbs3d.minecrift.provider.MCOpenVR;
 
 import de.fruitfly.ovr.structs.Matrix4f;
 import de.fruitfly.ovr.structs.Vector3f;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.enchantment.Enchantment;
@@ -130,6 +136,7 @@ public class BowTracker {
 			//fire!
 			provider.triggerHapticPulse(0, 500); 	
 			provider.triggerHapticPulse(1, 3000); 	
+			NetworkHelper.getVivecraftClientPacket(PacketDiscriminators.DRAW, ByteBuffer.allocate(4).putFloat((float) getDrawPercent()).array());
 			Minecraft.getMinecraft().playerController.onStoppedUsingItem(player); //server
 			isDrawing = false;     	
 		}

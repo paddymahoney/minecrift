@@ -83,7 +83,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +96,4608 @@
+@@ -61,2593 +96,4616 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -3864,7 +3864,8 @@
 +							entity.rotationYawHead =  (float)yaw;
 +							entity.rotationPitch = (float)pitch;
 +
-+						}	 else if(i.getItem() == Items.snowball ||
++						}
++						else if(i.getItem() == Items.snowball ||
 +								i.getItem() == Items.egg  ||
 +								i.getItem() == Items.spawn_egg  ||
 +								i.getItem() == Items.potionitem  
@@ -3873,11 +3874,18 @@
 +							entity.rotationYaw = entity.rotationYawHead = -mc.roomScale.getControllerMainYaw_World();
 +							entity.rotationPitch = -mc.roomScale.getControllerMainPitch_World();
 +						}
++						else if(i.getItem() == Items.bucket ){
++							Vec3 playerToMain = interpolatedPlayerPos.subtract(mc.roomScale.getControllerPos_World(0)); //backwards
++							float pitch = - (float)Math.toDegrees(Math.asin(playerToMain.yCoord/playerToMain.lengthVector()));
++							float yaw = - (float)Math.toDegrees(Math.atan2(playerToMain.xCoord, playerToMain.zCoord));    
++							entity.rotationYaw = yaw;
++							entity.rotationYawHead = yaw;
++							entity.rotationPitch = pitch;
++						}
 +					}
 +				}
 +			}
 +		}
-+
 +	
 +	}
 +

@@ -26,7 +26,7 @@ public class NetworkHelper {
 		CONTROLLER0DATA,
 		CONTROLLER1DATA,
 		WORLDSCALE,
-		DAMAGE	
+		DRAW	
 	}
 
 	private final static String channel = "Vivecraft";
