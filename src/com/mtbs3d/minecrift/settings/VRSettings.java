@@ -189,7 +189,6 @@ public class VRSettings
     public float vrFixedCamrotYaw = 0;
     public float vrFixedCamrotPitch = 0;
     public float vrFixedCamrotRoll = 0;
-   
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -1629,6 +1628,7 @@ public class VRSettings
             var5.println("vrFixedCamrotPitch:" + this.vrFixedCamrotPitch);
             var5.println("vrFixedCamrotYaw:" + this.vrFixedCamrotYaw);
             var5.println("vrFixedCamrotRoll:" + this.vrFixedCamrotRoll);
+
 
             if (vrQuickCommands == null) vrQuickCommands = getQuickCommandsDefaults(); //defaults
             

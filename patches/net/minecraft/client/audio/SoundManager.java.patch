@@ -1,0 +1,20 @@
+--- a/net/minecraft/client/audio/SoundManager.java
++++ b/net/minecraft/client/audio/SoundManager.java
+@@ -354,7 +354,7 @@
+ 
+                 if (var2 == null)
+                 {
+-                    logger.warn(LOG_MARKER, "Unable to play unknown soundEvent: {}", new Object[] {p_148611_1_.getSoundLocation()});
++                    //logger.warn(LOG_MARKER, "Unable to play unknown soundEvent: {}", new Object[] {p_148611_1_.getSoundLocation()});
+                 }
+                 else
+                 {
+@@ -362,7 +362,7 @@
+ 
+                     if (var3 == SoundHandler.missing_sound)
+                     {
+-                        logger.warn(LOG_MARKER, "Unable to play empty soundEvent: {}", new Object[] {var2.getSoundEventLocation()});
++                        //logger.warn(LOG_MARKER, "Unable to play empty soundEvent: {}", new Object[] {var2.getSoundEventLocation()});
+                     }
+                     else
+                     {

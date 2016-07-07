@@ -151,8 +151,7 @@ public class VRHotkeys {
 			
 			gotKey = true;
 		}
-		// VIVE END - hotkeys
-
+		
 		
 		if (Keyboard.getEventKey() == Keyboard.KEY_LEFT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
@@ -206,6 +205,8 @@ public class VRHotkeys {
 		
 		
 		
+		// VIVE END - hotkeys
+
 		
 		if (gotKey) {
 			nextRead = System.currentTimeMillis() + COOLOFF_PERIOD_MILLIS;

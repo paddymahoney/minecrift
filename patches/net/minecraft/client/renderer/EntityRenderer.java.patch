@@ -83,7 +83,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +96,4619 @@
+@@ -61,2593 +96,4610 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -1417,18 +1417,6 @@
 +			GL11.glRotatef(mc.vrSettings.vrFixedCamrotYaw, 0.0F, 1.0F, 0.0F);
 +			GL11.glRotatef(mc.vrSettings.vrFixedCamrotRoll, 0.0F, 0.0F, 1.0F);
 +			
-+//			Vector3f eye = new Vector3f((float)mc.renderViewEntity.posX, 
-+//				(float)mc.renderViewEntity.posY,
-+//				(float)mc.renderViewEntity.posZ);
-+//			
-+//			Vector3f pos = new Vector3f((float)interPolatedRoomOrigin.xCoord,
-+//					(float)interPolatedRoomOrigin.yCoord + 1.5f,
-+//					(float)interPolatedRoomOrigin.zCoord);
-+//			
-+//				Matrix4f m=	Matrix4f.lookAtRH(eye, pos, new Vector3f(0,1,0));
-+			
-+				//GL11.glMultMatrix(m.transposed().toFloatBuffer());
-+			
 +		} else 	{
 +			/** MINECRIFT */    
 +
@@ -2315,7 +2303,10 @@
 +			
 +		this.mc.mcProfiler.endStartSection("camera");	
 +	
-+			this.setupCameraTransform(par1, 0);		
++			this.setupCameraTransform(par1, 0);	
++			if(mc.currentPass == renderPass.Third) {
++				this.mc.updatePlayerDepth();
++			}
 +		
 +			if (shadersMod) { 			
 +					Reflector.callVoid(Reflector.ShadersMod_Shaders_setCamera, new Object[] {par1});
