@@ -153,6 +153,60 @@ public class VRHotkeys {
 		}
 		// VIVE END - hotkeys
 
+		
+		if (Keyboard.getEventKey() == Keyboard.KEY_LEFT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+		{
+			mc.vrSettings.vrFixedCamposX -= 0.01;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_RIGHT&& Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+		{
+			mc.vrSettings.vrFixedCamposX += 0.01;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_UP&& Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+		{
+			mc.vrSettings.vrFixedCamposZ -= 0.01;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_DOWN && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+		{
+			mc.vrSettings.vrFixedCamposZ += 0.01;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_PRIOR && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+		{
+			mc.vrSettings.vrFixedCamposY += 0.01;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_NEXT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+		{
+			mc.vrSettings.vrFixedCamposY -= 0.01;
+		}
+		
+		if (Keyboard.getEventKey() == Keyboard.KEY_UP && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+		{
+			mc.vrSettings.vrFixedCamrotPitch -= 0.5;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_DOWN && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+		{
+			mc.vrSettings.vrFixedCamrotPitch += 0.5;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_LEFT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+		{
+			mc.vrSettings.vrFixedCamrotYaw -= 0.5;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_RIGHT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+		{
+			mc.vrSettings.vrFixedCamrotYaw += 0.5;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_PRIOR && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+		{
+			mc.vrSettings.vrFixedCamrotRoll -= 0.05;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_NEXT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
+		{
+			mc.vrSettings.vrFixedCamrotRoll += 0.05;
+		}
+		
+		
+		
+		
 		if (gotKey) {
 			nextRead = System.currentTimeMillis() + COOLOFF_PERIOD_MILLIS;
 		}

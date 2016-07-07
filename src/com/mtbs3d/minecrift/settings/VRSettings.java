@@ -183,6 +183,13 @@ public class VRSettings
     public float vrWorldRotation = 0f;
     public float vrWorldRotationIncrement = 45f;
     public String[] vrQuickCommands;
+    public float vrFixedCamposX = 0;
+    public float vrFixedCamposY = 0;
+    public float vrFixedCamposZ = 0;
+    public float vrFixedCamrotYaw = 0;
+    public float vrFixedCamrotPitch = 0;
+    public float vrFixedCamrotRoll = 0;
+   
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -723,6 +730,30 @@ public class VRSettings
                     if (optionTokens[0].equals("vrWorldRotationIncrement"))
                     {
                         this.vrWorldRotationIncrement =  this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("vrFixedCamposX"))
+                    {
+                        this.vrFixedCamposX =  this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("vrFixedCamposY"))
+                    {
+                        this.vrFixedCamposY =  this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("vrFixedCamposZ"))
+                    {
+                        this.vrFixedCamposZ =  this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("vrFixedCamrotPitch"))
+                    {
+                        this.vrFixedCamrotPitch =this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("vrFixedCamrotYaw"))
+                    {
+                        this.vrFixedCamrotYaw =this.parseFloat(optionTokens[1]);
+                    }
+                    if (optionTokens[0].equals("vrFixedCamrotRoll"))
+                    {
+                        this.vrFixedCamrotRoll =this.parseFloat(optionTokens[1]);
                     }
                     if (optionTokens[0].startsWith("BUTTON_"))
                     {
@@ -1592,6 +1623,12 @@ public class VRSettings
             var5.println("worldScale:" + this.vrWorldScale);
             var5.println("worldRotation:" + this.vrWorldRotation);
             var5.println("worldRotationIncrement:" + this.vrWorldRotationIncrement);
+            var5.println("vrFixedCamposX:" + this.vrFixedCamposX);
+            var5.println("vrFixedCamposY:" + this.vrFixedCamposY);
+            var5.println("vrFixedCamposZ:" + this.vrFixedCamposZ);
+            var5.println("vrFixedCamrotPitch:" + this.vrFixedCamrotPitch);
+            var5.println("vrFixedCamrotYaw:" + this.vrFixedCamrotYaw);
+            var5.println("vrFixedCamrotRoll:" + this.vrFixedCamrotRoll);
 
             if (vrQuickCommands == null) vrQuickCommands = getQuickCommandsDefaults(); //defaults
             

@@ -83,7 +83,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +96,4616 @@
+@@ -61,2593 +96,4619 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -1413,15 +1413,19 @@
 +		}
 +		else if(mc.currentPass == renderPass.Third){
 +			
-+			Vector3f eye = new Vector3f((float)mc.renderViewEntity.posX, 
-+				(float)mc.renderViewEntity.posY,
-+				(float)mc.renderViewEntity.posZ);
++			GL11.glRotatef(mc.vrSettings.vrFixedCamrotPitch, 1.0F, 0.0F, 0.0F);
++			GL11.glRotatef(mc.vrSettings.vrFixedCamrotYaw, 0.0F, 1.0F, 0.0F);
++			GL11.glRotatef(mc.vrSettings.vrFixedCamrotRoll, 0.0F, 0.0F, 1.0F);
 +			
-+			Vector3f pos = new Vector3f((float)interPolatedRoomOrigin.xCoord,
-+					(float)interPolatedRoomOrigin.yCoord + 1.5f,
-+					(float)interPolatedRoomOrigin.zCoord);
-+			
-+				Matrix4f m=	Matrix4f.lookAtRH(eye, pos, new Vector3f(0,1,0));
++//			Vector3f eye = new Vector3f((float)mc.renderViewEntity.posX, 
++//				(float)mc.renderViewEntity.posY,
++//				(float)mc.renderViewEntity.posZ);
++//			
++//			Vector3f pos = new Vector3f((float)interPolatedRoomOrigin.xCoord,
++//					(float)interPolatedRoomOrigin.yCoord + 1.5f,
++//					(float)interPolatedRoomOrigin.zCoord);
++//			
++//				Matrix4f m=	Matrix4f.lookAtRH(eye, pos, new Vector3f(0,1,0));
 +			
 +				//GL11.glMultMatrix(m.transposed().toFloatBuffer());
 +			
@@ -4258,13 +4262,12 @@
 +			out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
 +			return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 +		} else if (currentPass == renderPass.Third){
-+			return interPolatedRoomOrigin.addVector(0.5f, 1.5f, 3f);
++			return interPolatedRoomOrigin.addVector(mc.vrSettings.vrFixedCamposX, mc.vrSettings.vrFixedCamposY, mc.vrSettings.vrFixedCamposZ);
 +		} else {
 +			Vec3 out = mc.roomScale.getEyePos_Room(currentPass);
 +			out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
 +			return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);	
 +		}
-+
 +	}
 +	
 +	/** Renders the pre-generated 2-d framebuffer into the world at the appropriate location..
