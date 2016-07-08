@@ -365,7 +365,7 @@
          }
      }
  
-@@ -211,42 +330,52 @@
+@@ -211,8 +330,15 @@
          this.framebufferColor[3] = p_147604_4_;
      }
  
@@ -382,7 +382,7 @@
          if (OpenGlHelper.isFramebufferEnabled())
          {
              GL11.glColorMask(true, true, true, false);
--            GL11.glDisable(GL11.GL_DEPTH_TEST);
+@@ -220,33 +346,37 @@
              GL11.glDepthMask(false);
              GL11.glMatrixMode(GL11.GL_PROJECTION);
              GL11.glLoadIdentity();
@@ -445,7 +445,7 @@
          }
      }
  
-@@ -265,4 +394,69 @@
+@@ -265,4 +395,69 @@
          GL11.glClear(var1);
          this.unbindFramebuffer();
      }

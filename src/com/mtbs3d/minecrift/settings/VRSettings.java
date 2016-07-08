@@ -70,6 +70,11 @@ public class VRSettings
     public static final int MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW = 4;
     public static final int MIRROR_MIXED_REALITY= 5;
     
+    public static final int HUD_LOCK_HEAD= 1;
+    public static final int HUD_LOCK_HAND= 2;
+    public static final int HUD_LOCK_WRIST= 3;
+
+    
     public static final int NO_SHADER = -1;
 
     public int version = UNKNOWN_VERSION;
@@ -124,7 +129,6 @@ public class VRSettings
     public float hudDistance = 1.25f;
     public float hudPitchOffset = -2f;
     public float hudYawOffset = 0.0f;
-    public boolean hudLockToHead = false;
     public boolean floatInventory = true; //false not working yet, have to account for rotation and tilt in MCOpenVR>processGui()
     public float fovChange = 0f;
     public float lensSeparationScaleFactor = 1.0f;
@@ -189,6 +193,7 @@ public class VRSettings
     public float vrFixedCamrotYaw = 0;
     public float vrFixedCamrotPitch = 0;
     public float vrFixedCamrotRoll = 0;
+    public int vrHudLockMode = HUD_LOCK_WRIST;
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -437,9 +442,9 @@ public class VRSettings
                         this.allowMousePitchInput = optionTokens[1].equals("true");
                     }
 
-                    if (optionTokens[0].equals("hudLockToHead"))
+                    if (optionTokens[0].equals("vrHudLockMode"))
                     {
-                        this.hudLockToHead = optionTokens[1].equals("true");
+                        this.vrHudLockMode =  Integer.parseInt(optionTokens[1]);
                     }
 
                     if (optionTokens[0].equals("hudDistance"))
@@ -924,7 +929,7 @@ public class VRSettings
                     case MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW:
                         return var4 + "SINGLE (Full)";
                     case MIRROR_MIXED_REALITY:
-                        return var4 + "MIXED REALITY CAM";
+                        return var4 + "MIXED REALITY";
                 }
             case POS_TRACK_HIDE_COLLISION:
                 return this.posTrackBlankOnCollision ? var4 + "YES" : var4 + "NO";
@@ -958,7 +963,15 @@ public class VRSettings
 	        case PITCH_AFFECTS_CAMERA:
 	            return this.allowMousePitchInput ? var4 + "ON" : var4 + "OFF";
             case HUD_LOCK_TO:
-                return this.hudLockToHead ? var4 + "Head" : var4 + "Hand";      // VIVE - lock to hand instead of body
+                switch (this.vrHudLockMode) {
+                // VIVE - lock to hand instead of body
+                case HUD_LOCK_HAND:
+                	return var4 + " hand";
+                case HUD_LOCK_HEAD:
+                	return var4 + " head";
+                case HUD_LOCK_WRIST:
+                	return var4 + " wrist";
+                }
 	        case HUD_DISTANCE:
 	            return var4 + String.format("%.2f", new Object[] { Float.valueOf(this.hudDistance) });
 	        case HUD_PITCH:
@@ -1262,8 +1275,18 @@ public class VRSettings
 	            this.allowMousePitchInput = !this.allowMousePitchInput;
 	            break;
             case HUD_LOCK_TO:
-                this.hudLockToHead = !this.hudLockToHead;
-                break;
+                switch (this.vrHudLockMode) {
+                // VIVE - lock to hand instead of body
+                case HUD_LOCK_HAND:
+                	this.vrHudLockMode = HUD_LOCK_HEAD;
+                	break;
+                case HUD_LOCK_HEAD:
+                   	this.vrHudLockMode = HUD_LOCK_WRIST;
+                	break;
+                case HUD_LOCK_WRIST:
+                   	this.vrHudLockMode = HUD_LOCK_HAND;
+                	break;
+                }
 	        case FSAA:
 	            this.useFsaa = !this.useFsaa;
 	            break;
@@ -1560,7 +1583,7 @@ public class VRSettings
             var5.println("renderPlayerOffset:" + this.renderPlayerOffset);
             var5.println("renderScaleFactor:" + this.renderScaleFactor);
             var5.println("allowMousePitchInput:" + this.allowMousePitchInput);
-            var5.println("hudLockToHead:" + this.hudLockToHead);
+            var5.println("vrHudLockMode:" + this.vrHudLockMode);
             var5.println("hudDistance:" + this.hudDistance);
             var5.println("hudPitchOffset:" + this.hudPitchOffset);
             var5.println("hudYawOffset:" + this.hudYawOffset);

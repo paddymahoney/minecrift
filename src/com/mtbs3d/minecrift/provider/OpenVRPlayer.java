@@ -1062,7 +1062,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	//================= IROOMSCALEADAPTER =============================
 	
 	
-	float worldScale =  Minecraft.getMinecraft().vrSettings.vrWorldScale;
+	public float worldScale =  Minecraft.getMinecraft().vrSettings.vrWorldScale;
 	public float worldRotationRadians;
 	
 	@Override

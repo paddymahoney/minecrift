@@ -108,6 +108,10 @@ public class Utils
 		return new Vector3((float)vector.xCoord, (float)vector.yCoord, (float)vector.zCoord);
 	}
 
+	public static Vector3f convertToVector3f(Vec3 vector) {
+		return new Vector3f((float)vector.xCoord, (float)vector.yCoord, (float)vector.zCoord);
+	}
+
 	public static Quaternion quatLerp(Quaternion start, Quaternion end, float fraction) {
 		Quaternion quat = new Quaternion();
 		quat.w = start.w + (end.w - start.w) * fraction;

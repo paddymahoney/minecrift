@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/renderer/EntityRenderer.java
 +++ b/net/minecraft/client/renderer/EntityRenderer.java
-@@ -1,27 +1,57 @@
+@@ -1,27 +1,59 @@
  package net.minecraft.client.renderer;
  
 -import com.google.gson.JsonSyntaxException;
@@ -39,7 +39,9 @@
 +import de.fruitfly.ovr.enums.EyeType;
 +import de.fruitfly.ovr.structs.EulerOrient;
 +import de.fruitfly.ovr.structs.Matrix4f;
++import de.fruitfly.ovr.structs.Quatf;
 +import de.fruitfly.ovr.structs.Vector3f;
++import jopenvr.OpenVRUtil;
  import net.minecraft.block.Block;
 +import net.minecraft.block.BlockLiquid;
  import net.minecraft.block.material.Material;
@@ -60,7 +62,7 @@
  import net.minecraft.client.renderer.culling.Frustrum;
  import net.minecraft.client.renderer.entity.RenderManager;
  import net.minecraft.client.renderer.texture.DynamicTexture;
-@@ -29,10 +59,12 @@
+@@ -29,10 +61,12 @@
  import net.minecraft.client.resources.I18n;
  import net.minecraft.client.resources.IResourceManager;
  import net.minecraft.client.resources.IResourceManagerReloadListener;
@@ -73,7 +75,7 @@
  import net.minecraft.enchantment.EnchantmentHelper;
  import net.minecraft.entity.Entity;
  import net.minecraft.entity.EntityLivingBase;
-@@ -40,6 +72,9 @@
+@@ -40,6 +74,9 @@
  import net.minecraft.entity.item.EntityItemFrame;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.init.Blocks;
@@ -83,7 +85,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +96,4610 @@
+@@ -61,2593 +98,4773 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -1462,7 +1464,7 @@
 +			GL11.glScaled(this.cameraZoom, this.cameraZoom, 1.0D);
 +		}
 +
-+		if (this.mc.stereoProvider.isStereo())
++		if (this.mc.stereoProvider.isStereo() && mc.currentPass != renderPass.Third)
 +		{
 +			int i = mc.currentPass.value();
 +			if(i>1) i = 0;
@@ -1470,7 +1472,8 @@
 +		}
 +		else
 +		{
-+			Project.gluPerspective(this.getFOVModifier(par1, true), (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
++			Project.gluPerspective(mc.currentPass == renderPass.Third ? this.mc.gameSettings.fovSetting : this.getFOVModifier(par1, true),
++					(float) (this.mc.displayWidth/2) / (float) this.mc.displayHeight, minClipDistance, clipDistance);
 +		}
 +
 +		float var4;
@@ -1624,10 +1627,12 @@
 +							interpolatedPlayerPos.yCoord - mc.renderViewEntity.yOffset,
 +							(float) interpolatedPlayerPos.zCoord);
 +					
-+					Vec3 pos = getEyeRenderPos(renderPass.Center ).subtract(feets).addVector(0, 0.02, 0);
++					Vec3 o = getEyeRenderPos(renderPass.Center );
++					if (mc.currentPass == renderPass.Third) o =getEyeRenderPos(renderPass.Third);
 +					
++					Vec3 pos = o.subtract(feets).addVector(0, 0.02, 0);
++					Vec3 pos2 = o.subtract(mc.roomScale.getHMDPos_World());
 +					setupPolyRendering(true);
-+					
 +						if(eyeCollision ){
 +							int was = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
 +							GL11.glDepthFunc(GL11.GL_ALWAYS);
@@ -2253,7 +2258,7 @@
 +			GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
 +	
 +			
-+		this.mc.mcProfiler.endStartSection("getPointedBLock");
++		this.mc.mcProfiler.endStartSection("getPointedBlock");
 +			this.getMouseOver(par1);
 +
 +			if( this.mc.currentScreen == null )
@@ -2291,10 +2296,10 @@
 +			}
 +			
 +			GL11.glEnable(GL11.GL_CULL_FACE);
-+			
-+		this.mc.mcProfiler.endStartSection("stencil");	
++				
 +		
 +			if(mc.currentPass != renderPass.Third && mc.vrSettings.vrUseStencil && mc.stereoProvider.isStereo() && mc.vrPlayer.isHMDTracking()){
++				this.mc.mcProfiler.endStartSection("stencil");
 +				mc.doStencilForEye(mc.currentPass == renderPass.Left? 0 : 1); //TODO: dont render this every damn frame.				
 +			}
 +			else{
@@ -2303,10 +2308,7 @@
 +			
 +		this.mc.mcProfiler.endStartSection("camera");	
 +	
-+			this.setupCameraTransform(par1, 0);	
-+			if(mc.currentPass == renderPass.Third) {
-+				this.mc.updatePlayerDepth();
-+			}
++			this.setupCameraTransform(par1, 0);
 +		
 +			if (shadersMod) { 			
 +					Reflector.callVoid(Reflector.ShadersMod_Shaders_setCamera, new Object[] {par1});
@@ -2349,6 +2351,9 @@
 +		
 +			this.mc.mcProfiler.endStartSection("frustrum");
 +				currentFrustum = new Frustrum();	
++				if(mc.currentPass == renderPass.Third) {
++					this.mc.updatePlayerDepth();
++				}
 +			this.mc.mcProfiler.endStartSection("culling");
 +			
 +				if (shadersMod) { // need to do this for both passes cause shadows.
@@ -4261,11 +4266,164 @@
 +		}
 +	}
 +	
++		
++	private  void applyGUIModelView(renderPass currentPass)
++	{
++   		mc.mcProfiler.startSection("applyGUIModelView");
++	
++   		
++   			if(mc.theWorld == null)	mc.vrPlayer.worldRotationRadians = 0;
++		
++		
++			Vec3 eye =mc.entityRenderer.getEyeRenderPos(currentPass);
++			
++			Vector3f guipos = MCOpenVR.guiPos_World;
++			Matrix4f guirot = MCOpenVR.guiRotationPose; 
++			Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
++			MCOpenVR.hudVisible = true;
++			
++	
++			if(guipos == null){
++				guipos = new Vector3f();
++				guirot = new Matrix4f();
++							
++				// i am dead view / now uses main menu room
++//				if (mc.thePlayer!=null && !mc.thePlayer.isEntityAlive())
++//				{
++//					Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
++//					Matrix4f max = Matrix4f.multiply(rot, MCOpenVR.hmdRotation);
++//
++//					Vec3 v = mc.roomScale.getHMDPos_World();
++//					Vec3 d = mc.roomScale.getHMDDir_World();
++//					guipos.x = (float) (v.xCoord + d.xCoord*mc.vrSettings.vrWorldScale);
++//					guipos.y = (float) (v.yCoord + d.yCoord*mc.vrSettings.vrWorldScale);
++//					guipos.z = (float) (v.zCoord + d.zCoord*mc.vrSettings.vrWorldScale);
++//
++//					Quatf orientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(max);
++//
++//					guirot = new Matrix4f(orientationQuat);
++//
++//					//float pitchOffset = (float) Math.toRadians( -mc.vrSettings.hudPitchOffset );
++//					//float yawOffset = (float) Math.toRadians( -mc.vrSettings.hudYawOffset );
++//					//guiRotationPose = Matrix4f.multiply(guiRotationPose, OpenVRUtil.rotationXMatrix(yawOffset));
++//					//guiRotationPose = Matrix4f.multiply(guiRotationPose, Matrix4f.rotationY(pitchOffset));
++//					guirot.M[3][3] = 1.0f;
++//				}
++
++				// HUD view - attach to head or controller
++				if (mc.theWorld!=null && (mc.currentScreen==null || mc.vrSettings.floatInventory == false))
++				{
++					eye = mc.roomScale.getEyePos_World(currentPass); //dont need interpolation.
++					MCOpenVR.guiScale = mc.vrSettings.vrWorldScale;
++					if (mc.vrSettings.vrHudLockMode == mc.vrSettings.HUD_LOCK_HEAD)
++					{
++						Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
++						Matrix4f max = Matrix4f.multiply(rot, MCOpenVR.hmdRotation);
++
++						Vec3 v = mc.vrPlayer.getHMDPos_World();
++						Vec3 d = mc.vrPlayer.getHMDDir_World();
++						guipos.x = (float) (v.xCoord + d.xCoord*mc.vrSettings.vrWorldScale);
++						guipos.y = (float) (v.yCoord + d.yCoord*mc.vrSettings.vrWorldScale);
++						guipos.z = (float) (v.zCoord + d.zCoord*mc.vrSettings.vrWorldScale);
++
++						Quatf orientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(max);
++
++						guirot = new Matrix4f(orientationQuat);
++
++						//float pitchOffset = (float) Math.toRadians( -mc.vrSettings.hudPitchOffset );
++						//float yawOffset = (float) Math.toRadians( -mc.vrSettings.hudYawOffset );
++						//guiRotationPose = Matrix4f.multiply(guiRotationPose, OpenVRUtil.rotationXMatrix(yawOffset));
++						//guiRotationPose = Matrix4f.multiply(guiRotationPose, Matrix4f.rotationY(pitchOffset));
++						guirot.M[3][3] = 1.0f;
++
++					}
++					else if (mc.vrSettings.vrHudLockMode == mc.vrSettings.HUD_LOCK_HAND)//hud on hand
++					{
++
++						Matrix4f out = MCOpenVR.getAimRotation(1);
++						Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
++						Matrix4f MguiRotationPose =  Matrix4f.multiply(rot,out);
++						//	MguiRotationPose.M[1][3] = 0.5f;
++						//guiRotationPose = mc.vrPlayer.getControllerMatrix_World(1);
++						guirot = Matrix4f.multiply(MguiRotationPose, OpenVRUtil.rotationXMatrix((float) Math.PI * -0.2F));
++						guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY((float) Math.PI * 0.1F));
++						guirot.M[3][3] = 1.7f;
++
++						guiLocal.yCoord = 0.5*mc.vrSettings.vrWorldScale;
++
++						Vec3 v =mc.vrPlayer.getControllerPos_World(1);
++						guipos.x = (float) v.xCoord;
++						guipos.y = (float) v.yCoord;
++						guipos.z = (float) v.zCoord;
++					}
++					else if (mc.vrSettings.vrHudLockMode == mc.vrSettings.HUD_LOCK_WRIST)//hud on wrist
++					{
++												
++						Matrix4f out = MCOpenVR.getAimRotation(1);
++						Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
++						 guirot =  Matrix4f.multiply(rot,out);
++						//	MguiRotationPose.M[1][3] = 0.5f;
++						//guiRotationPose = mc.vrPlayer.getControllerMatrix_World(1);
++
++						guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY((float) Math.PI * 0.4f));
++					//	guirot.M[3][3] = 1f;
++					
++						
++						Vector3f forward = new Vector3f(0,0,1);
++						Vector3f guiNormal = guirot.transform(forward);
++						
++						Vec3 facev = mc.roomScale.getHMDDir_World();
++						Vector3f face = new Vector3f((float)facev.xCoord, (float)facev.yCoord, (float)facev.zCoord);
++						
++						float dot = face.dot(guiNormal);
++										
++						guiLocal.yCoord = 0.38*mc.vrSettings.vrWorldScale;
++						guiLocal.zCoord = 0.16*mc.vrSettings.vrWorldScale;
++
++						Vec3 v =mc.vrPlayer.getControllerPos_World(1);
++						guipos.x = (float) v.xCoord;
++						guipos.y = (float) v.yCoord;
++						guipos.z = (float) v.zCoord;
++						
++						Vec3 head = mc.roomScale.getHMDPos_World();
++						Vector3f headv = guipos.subtract(new Vector3f((float)head.xCoord, (float)head.yCoord, (float)head.zCoord)).normalised();
++						float dot2 = (float) headv.dot(guiNormal);
++						
++						MCOpenVR.hudVisible = Math.abs(dot2) > 0.8 &&  dot < -0.8;
++						
++					}
++				} 
++			}
++			// otherwise, looking at inventory screen. use pose calculated when screen was opened
++			//where is this set up... should be here....
++	
++			// counter head rotation
++			GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
++		
++			// offset from eye to gui pos
++			//eye.rotateAroundY((float) Math.toRadians(-mc.vrSettings.vrWorldRotation));
++			GL11.glTranslatef((float) (guipos.x - eye.xCoord), (float)(guipos.y - eye.yCoord), (float)(guipos.z - eye.zCoord));
++			GL11.glMultMatrix(guirot.transposed().toFloatBuffer());	
++			GL11.glTranslatef((float)guiLocal.xCoord, (float) guiLocal.yCoord, (float)guiLocal.zCoord);
++				
++				//double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
++	
++	
++				//		if (timeOpen < 1.5) {
++				//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
++				//		}
++	
++			mc.mcProfiler.endSection();
++	
++	} 
++	
 +	/** Renders the pre-generated 2-d framebuffer into the world at the appropriate location..
 +	 * @param par1
 +	 */
 +	private void renderGuiLayer(float par1)
 +	{
++		
++		
 +		if (this.guiScreenShowingThisFrame || this.inWorldGuiScreenShowingThisFrame || this.mc.showSplashScreen)
 +			{
 +				// Pass matrici on to OpenGL...
@@ -4273,7 +4431,7 @@
 +				GL11.glLoadIdentity();
 +		
 +				// Minecrift - use correct projection
-+				if (this.mc.stereoProvider.isStereo())
++				if (this.mc.stereoProvider.isStereo() && mc.currentPass != renderPass.Third)
 +				{			
 +					int i = mc.currentPass.value();
 +					if(i > 1) i = 0;
@@ -4281,68 +4439,73 @@
 +				}
 +				else
 +				{
-+					Project.gluPerspective(this.mc.renderViewEntity == null ? 90f : this.getFOVModifier(par1, true), (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
++					Project.gluPerspective(this.mc.renderViewEntity == null ? 90f : this.getFOVModifier(par1, true), (float) this.mc.displayWidth /2 / (float) this.mc.displayHeight, minClipDistance, clipDistance);
 +				}
 +			
 +				GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +				GL11.glLoadIdentity();
 +				// VIVE START - custom GUI position
-+				MCOpenVR.applyGUIModelView(this.mc.currentPass); //MCOpenVR.java, pushes.
-+					///JRBUDDA MAIN MENU ROOM            
-+					if(mc.theWorld == null || mc.currentScreen instanceof GuiWinGame){		
-+						rendserJrbuddasAwesomeMainMenuRoom();			
-+					}
-+				
-+					//END JRBUDDA'S AWESOME MAIN MENU ROOM       
-+					this.mc.guiFramebuffer.bindFramebufferTexture();
-+		
-+					GL11.glDisable(GL11.GL_CULL_FACE);
-+					GL11.glEnable(GL11.GL_TEXTURE_2D);
-+					RenderHelper.disableStandardItemLighting();    
++				GL11.glPushMatrix();
++					applyGUIModelView(this.mc.currentPass); //MCOpenVR.java, pushes.
 +					
-+					// Prevent black border at top / bottom of GUI
-+					GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
-+					GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
-+		
-+					// Set texture filtering
-+					GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
-+					GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-+					GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
-+		
-+					if (this.mc.theWorld != null && !( mc.currentScreen instanceof GuiWinGame))
-+					{
-+						GL11.glColor4f(1, 1, 1, this.mc.vrSettings.hudOpacity);
-+						GL11.glEnable(GL11.GL_ALPHA_TEST);
++					if(MCOpenVR.hudVisible){
++
++						///JRBUDDA MAIN MENU ROOM            
++						if(mc.theWorld == null || mc.currentScreen instanceof GuiWinGame){		
++							rendserJrbuddasAwesomeMainMenuRoom();			
++						}
++
++						//END JRBUDDA'S AWESOME MAIN MENU ROOM       
++						this.mc.guiFramebuffer.bindFramebufferTexture();
++
++						GL11.glDisable(GL11.GL_CULL_FACE);
++						GL11.glEnable(GL11.GL_TEXTURE_2D);
++						RenderHelper.disableStandardItemLighting();    
++
++						// Prevent black border at top / bottom of GUI
++						GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL12.GL_CLAMP_TO_EDGE);
++						GL11.glTexParameterf(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL12.GL_CLAMP_TO_EDGE);
++
++						// Set texture filtering
++						GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR_MIPMAP_LINEAR);
++						GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
++						GL11.glTexParameterf(GL11.GL_TEXTURE_2D, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, 16.0f);
++
++						if (this.mc.theWorld != null && !( mc.currentScreen instanceof GuiWinGame))
++						{
++							GL11.glColor4f(1, 1, 1, this.mc.vrSettings.hudOpacity);
++							GL11.glEnable(GL11.GL_ALPHA_TEST);
++						}
++						else{
++							GL11.glColor4f(1, 1, 1, 0.5f);
++							GL11.glDisable(GL11.GL_ALPHA_TEST);
++						}
++
++						if (this.mc.vrSettings.hudOcclusion == false || this.mc.currentScreen != null){
++							// Never use depth test for in game menu - so you can always see it!
++							GL11.glDisable(GL11.GL_DEPTH_TEST);			
++						}
++
++						//the framebuffer has to be drawn with color blending transparency to support non-alpha cursors. Always has a black background.	
++						GL11.glDisable(GL11.GL_BLEND);	
++
++						GL11.glAlphaFunc(GL11.GL_GREATER, 0.01f);
++						//	OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0); //color blend for corsshair transparency
++						//	OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ZERO,0,1);
++						float scale = MCOpenVR.guiScale; // * this.mc.vroptions.hudscale
++
++						GL11.glScalef(scale, scale, scale);
++
++						//Render framebuffer onto world projection
++						ScaledResolution s = new ScaledResolution(mc, this.mc.guiFramebuffer.framebufferWidth, this.mc.guiFramebuffer.framebufferHeight);
++						drawSizedQuad(s.getScaledWidth(), s.getScaledHeight(), 1.5f); //this.mc.vrSettings.hudScale);
++
++						//		OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0); 
++
++						GL11.glDisable(GL11.GL_BLEND);
++						GL11.glEnable(GL11.GL_DEPTH_TEST);
++						GL11.glEnable(GL11.GL_CULL_FACE);
 +					}
-+					else{
-+						GL11.glColor4f(1, 1, 1, 0.5f);
-+						GL11.glDisable(GL11.GL_ALPHA_TEST);
-+					}
-+		
-+					if (this.mc.vrSettings.hudOcclusion == false || this.mc.currentScreen != null){
-+						// Never use depth test for in game menu - so you can always see it!
-+						GL11.glDisable(GL11.GL_DEPTH_TEST);			
-+					}
-+		
-+					//the framebuffer has to be drawn with color blending transparency to support non-alpha cursors. Always has a black background.	
-+					GL11.glDisable(GL11.GL_BLEND);	
-+		
-+					GL11.glAlphaFunc(GL11.GL_GREATER, 0.01f);
-+				//	OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_COLOR, 1, 0); //color blend for corsshair transparency
-+				//	OpenGlHelper.glBlendFunc(GL11.GL_ONE, GL11.GL_ZERO,0,1);
-+					float scale = MCOpenVR.guiScale; // * this.mc.vroptions.hudscale
-+					
-+					GL11.glScalef(scale, scale, scale);
-+										
-+					//Render framebuffer onto world projection
-+					drawSizedQuad(this.mc.guiFramebuffer.framebufferWidth, this.mc.guiFramebuffer.framebufferHeight, 1.5f); //this.mc.vrSettings.hudScale);
-+					
-+			//		OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0); 
-+		
-+					GL11.glDisable(GL11.GL_BLEND);
-+					GL11.glEnable(GL11.GL_DEPTH_TEST);
-+					GL11.glEnable(GL11.GL_CULL_FACE);
-+					
 +				GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +				GL11.glPopMatrix();// undo extra push in applyguithing
 +
@@ -4831,11 +4994,13 @@
 +		GL11.glMatrixMode(GL11.GL_PROJECTION);
 +		GL11.glPushMatrix();
 +			GL11.glLoadIdentity();
-+			if (this.mc.stereoProvider.isStereo())
++			if (this.mc.stereoProvider.isStereo() && mc.currentPass != renderPass.Third)
 +			{
 +				int i = mc.currentPass.value();
 +				if(i>1) i = 0;
 +				GL11.glMultMatrix(mc.eyeproj[i]);
++			} else {
++				Project.gluPerspective(90f, (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
 +			}
 +			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +			GL11.glPushMatrix();

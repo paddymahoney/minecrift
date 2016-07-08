@@ -6,21 +6,27 @@ package com.mtbs3d.minecrift.settings;
 
 import com.mtbs3d.minecrift.provider.OpenVRPlayer;
 import com.mtbs3d.minecrift.settings.VRSettings;
+import com.mtbs3d.minecrift.utils.Quaternion;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiWinGame;
+import net.minecraft.util.Vec3;
+
+import java.nio.FloatBuffer;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.util.vector.Matrix4f;
 
 public class VRHotkeys {
 
 	static long nextRead = 0;
 	static final long COOLOFF_PERIOD_MILLIS = 500;
 
-	public static void handleKeyboardInputs(Minecraft mc)
+	public static boolean handleKeyboardInputs(Minecraft mc)
 	{
 		// Support cool-off period for key presses - otherwise keys can get spammed...
 		if (nextRead != 0 && System.currentTimeMillis() < nextRead)
-		return;
+		return false;
 
 		// Capture Minecrift key events
 		boolean gotKey = false;
@@ -53,7 +59,6 @@ public class VRHotkeys {
 		if (Keyboard.getEventKey() == Keyboard.KEY_B && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			mc.vrSettings.walkUpBlocks = !mc.vrSettings.walkUpBlocks;
-			mc.vrSettings.saveOptions();
 			mc.printChatMessage("Walk up blocks (RCTRL+B): " + (mc.vrSettings.walkUpBlocks ? "YES" : "NO"));
 			gotKey = true;
 		}
@@ -64,7 +69,6 @@ public class VRHotkeys {
 			mc.vrSettings.inertiaFactor += 1;
 			if (mc.vrSettings.inertiaFactor > VRSettings.INERTIA_MASSIVE)
 			mc.vrSettings.inertiaFactor = VRSettings.INERTIA_NONE;
-			mc.vrSettings.saveOptions();
 			switch (mc.vrSettings.inertiaFactor)
 			{
 			case VRSettings.INERTIA_NONE:
@@ -90,8 +94,7 @@ public class VRHotkeys {
 			if (mc.vrSettings.renderFullFirstPersonModelMode > VRSettings.RENDER_FIRST_PERSON_NONE)
 			mc.vrSettings.renderFullFirstPersonModelMode = VRSettings.RENDER_FIRST_PERSON_FULL;
 
-			mc.vrSettings.saveOptions();
-			switch (mc.vrSettings.renderFullFirstPersonModelMode)
+				switch (mc.vrSettings.renderFullFirstPersonModelMode)
 			{
 			case VRSettings.RENDER_FIRST_PERSON_FULL:
 				mc.printChatMessage("First person model (RCTRL-H): Full");
@@ -156,60 +159,84 @@ public class VRHotkeys {
 		if (Keyboard.getEventKey() == Keyboard.KEY_LEFT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			mc.vrSettings.vrFixedCamposX -= 0.01;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_RIGHT&& Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			mc.vrSettings.vrFixedCamposX += 0.01;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_UP&& Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			mc.vrSettings.vrFixedCamposZ -= 0.01;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_DOWN && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			mc.vrSettings.vrFixedCamposZ += 0.01;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_PRIOR && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			mc.vrSettings.vrFixedCamposY += 0.01;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_NEXT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			mc.vrSettings.vrFixedCamposY -= 0.01;
+			gotKey = true;
 		}
 		
 		if (Keyboard.getEventKey() == Keyboard.KEY_UP && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
 		{
 			mc.vrSettings.vrFixedCamrotPitch -= 0.5;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_DOWN && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
 		{
-			mc.vrSettings.vrFixedCamrotPitch += 0.5;
+			mc.vrSettings.vrFixedCamrotPitch += 0.5;	
+			gotKey = true;
+		
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_LEFT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
 		{
 			mc.vrSettings.vrFixedCamrotYaw -= 0.5;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_RIGHT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
 		{
 			mc.vrSettings.vrFixedCamrotYaw += 0.5;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_PRIOR && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
 		{
 			mc.vrSettings.vrFixedCamrotRoll -= 0.05;
+			gotKey = true;
 		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_NEXT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL) && Keyboard.isKeyDown(Keyboard.KEY_RSHIFT))
 		{
-			mc.vrSettings.vrFixedCamrotRoll += 0.05;
+			mc.vrSettings.vrFixedCamrotRoll += 0.05;	
+			gotKey = true;
 		}
 		
-		
+		if (Keyboard.getEventKey() == Keyboard.KEY_HOME && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+		{
+			Vec3 pos = Minecraft.getMinecraft().roomScale.getControllerPos_Room(0);
+			mc.vrSettings.vrFixedCamposX = (float) pos.xCoord;
+			mc.vrSettings.vrFixedCamposY = (float) pos.yCoord;
+			mc.vrSettings.vrFixedCamposZ = (float) pos.zCoord;
+
+			mc.vrSettings.vrFixedCamrotPitch = -Minecraft.getMinecraft().roomScale.getControllerMainPitch_World();
+			mc.vrSettings.vrFixedCamrotYaw = 180- Minecraft.getMinecraft().roomScale.getControllerMainYaw_World();
+			gotKey = true;
+		}
 		
 		// VIVE END - hotkeys
-
-		
+	
 		if (gotKey) {
-			nextRead = System.currentTimeMillis() + COOLOFF_PERIOD_MILLIS;
+			mc.vrSettings.saveOptions();
 		}
+
+		return gotKey;
 	}
 }

@@ -36,6 +36,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.C16PacketClientStatus;
+import net.minecraft.src.VertexData;
 import net.minecraft.util.Vec3;
 import optifine.Utils;
 
@@ -89,7 +90,7 @@ public class MCOpenVR
 
 	// position/orientation of headset and eye offsets
 	static final Matrix4f hmdPose = new Matrix4f();
-	static final Matrix4f hmdRotation = new Matrix4f();
+	public static final Matrix4f hmdRotation = new Matrix4f();
 	static Matrix4f hmdProjectionLeftEye;
 	static Matrix4f hmdProjectionRightEye;
 	static Matrix4f hmdPoseLeftEye = new Matrix4f();
@@ -153,10 +154,7 @@ public class MCOpenVR
 
 	private static float triggerThreshold = .25f;
 
-	public static Vector3f guiPos_World = new Vector3f();
-	private static Matrix4f guiRotationPose = new Matrix4f();
-	public static float guiScale = 1.0f;
-	public static double startedOpeningInventory = 0;
+
 
 	// For mouse menu emulation
 	private static float controllerMouseX = -1.0f;
@@ -491,9 +489,60 @@ public class MCOpenVR
 			processGui();
 		}
 
+		if(mc.vrSettings.vrHudLockMode == mc.vrSettings.HUD_LOCK_WRIST && hudVisible){
+			processHotbar();
+		}
+		
 		Minecraft.getMinecraft().mcProfiler.endStartSection("updatePose");
 		updatePose();
 		Minecraft.getMinecraft().mcProfiler.endSection();
+	}
+
+
+	private static Vec3 vecFromVector(Vector3f in){
+		return Vec3.createVectorHelper(in.x, in.y, in.z);
+	}
+	
+	private static void processHotbar() {
+	
+		if(mc.thePlayer == null) return;
+		if(mc.thePlayer.inventory == null) return;
+		
+		Vec3 main = getAimSource(0);
+		Vec3 off = getAimSource(1);
+		Vec3 barStartos = vecFromVector( getAimRotation(1).transform(new Vector3f(0.07f,0,0.38f)));
+		Vec3 barStart = off.addVector(barStartos.xCoord, barStartos.yCoord, barStartos.zCoord);
+		
+		Vec3 barEndos = vecFromVector( getAimRotation(1).transform(new Vector3f(0.24f,0,-0.3f)));
+		Vec3 barEnd = off.addVector(barEndos.xCoord, barEndos.yCoord, barEndos.zCoord);
+
+		Vec3 u = barEnd.subtract(barStart);
+		Vec3 pq = main.subtract(barStart);
+		float dist = (float) (pq.crossProduct(u).lengthVector() / u.lengthVector());
+
+		if(dist > 0.06) return;
+		
+		float fact = (float) (pq.dotProduct(u) / (u.xCoord*u.xCoord + u.yCoord*u.yCoord + u.zCoord*u.zCoord));
+		Vec3 w2 = pq.subtract(Vec3.createVectorHelper(u.xCoord*fact, u.yCoord*fact, u.zCoord*fact));
+	
+		Vec3 point = w2.subtract(main);
+		float linelen = (float) barStart.subtract(barEnd).lengthVector();
+		float ilen = (float) barStart.subtract(point).lengthVector();
+
+		
+		float pos = ilen / linelen * 9; 
+		
+		int box = (int) Math.floor(pos);
+		if(pos - Math.floor(pos) < 0.2) return;
+		
+		if(box > 8) return;
+		if(box < 0) return;
+		//all that maths for this.
+		if(box != mc.thePlayer.inventory.currentItem){
+		mc.thePlayer.inventory.currentItem = box;	
+		vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[0], 0, (short) 750);
+		}
+		
 	}
 
 	static GuiTextField keyboardGui;
@@ -540,9 +589,18 @@ public class MCOpenVR
 		return keyboardShowing;
 	}
 
+	public static Vector3f guiPos_World = new Vector3f();
+	public static Matrix4f guiRotationPose = new Matrix4f();
+	public static  float guiScale = 1.0f;
+	public static double startedOpeningInventory = 0;
+	public static boolean hudVisible = true;
+	
 	//TODO: to hell with all these conversions.
 	//sets mouse position for currentscreen
 	private static void processGui() {
+		
+		if(guiRotationPose == null) return;
+		
 		Vector3f controllerPos = new Vector3f();
 		//OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
 		Vec3 con = mc.vrPlayer.getControllerPos_World(0);
@@ -1154,6 +1212,8 @@ public class MCOpenVR
 		//VIVE SPECIFIC FUNCTIONALITY
 		//TODO: Find a better home for these in Minecraft.java		
 
+		if(	Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)) return;
+		
 		//no jump key if cant.Not a good place for this check.
 		if(mc.gameSettings.keyBindJump.isPressed()) {
 			if(!mc.vrPlayer.getFreeMoveMode() && !mc.vrSettings.simulateFalling) {
@@ -1620,8 +1680,38 @@ public class MCOpenVR
 		KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
 		KeyboardSimulator.robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
 		KeyboardSimulator.robot.keyRelease(KeyEvent.VK_SHIFT);
-		if (previousScreen==null && newScreen != null
-				|| (newScreen != null && newScreen instanceof GuiContainerCreative) || newScreen instanceof GuiChat) {			
+		
+		if(newScreen == null ){
+			guiPos_World = null;
+			guiRotationPose = null;
+		}
+		
+		// main menu/win game/dead view
+		if (mc.theWorld==null || mc.currentScreen instanceof GuiWinGame || (mc.thePlayer!=null && !mc.thePlayer.isEntityAlive())) {
+			//TODO reset scale things
+			MCOpenVR.guiScale = 2.0f;
+			mc.vrPlayer.worldScale = 1;
+			mc.vrPlayer.worldRotationRadians = (float) Math.toRadians( mc.vrSettings.vrWorldRotation);
+			guiPos_World = new Vector3f(
+					(float) (0 + mc.vrPlayer.getRoomOriginPos_World().xCoord),
+					(float) (1.3f + mc.vrPlayer.getRoomOriginPos_World().yCoord),
+					(float) (-1.3f + mc.vrPlayer.getRoomOriginPos_World().zCoord));
+			guiRotationPose = new Matrix4f();
+			guiRotationPose.M[0][0] = guiRotationPose.M[1][1] = guiRotationPose.M[2][2] = guiRotationPose.M[3][3] = 1.0F;
+			guiRotationPose.M[0][1] = guiRotationPose.M[1][0] = guiRotationPose.M[2][3] = guiRotationPose.M[3][1] = 0.0F;
+			guiRotationPose.M[0][2] = guiRotationPose.M[1][2] = guiRotationPose.M[2][0] = guiRotationPose.M[3][2] = 0.0F;
+			guiRotationPose.M[0][3] = guiRotationPose.M[1][3] = guiRotationPose.M[2][1] = guiRotationPose.M[3][0] = 0.0F;
+			return;
+		} else { //these dont update when screen open.
+			if (mc.currentScreen != null){
+				mc.vrPlayer.checkandUpdateRotateScale();
+			}
+		}		
+		
+		
+		if ( previousScreen==null && newScreen != null	|| 
+				newScreen instanceof GuiContainerCreative 
+				|| newScreen instanceof GuiChat) {			
 
 			Quatf controllerOrientationQuat;
 			boolean appearOverBlock = (newScreen instanceof GuiCrafting)
@@ -1635,45 +1725,47 @@ public class MCOpenVR
 					|| (newScreen instanceof GuiRepair)
 					;
 
-			Vec3 v = mc.vrPlayer.getHMDPos_World();
-			Vec3 e = mc.vrPlayer.getHMDDir_World();
-			guiPos_World.x = (float) (e.xCoord * mc.vrSettings.vrWorldScale / 2 + v.xCoord);
-			guiPos_World.y = (float) (e.yCoord* mc.vrSettings.vrWorldScale / 2 + v.yCoord);
-			guiPos_World.z = (float) (e.zCoord* mc.vrSettings.vrWorldScale / 2 + v.zCoord);
-
-			Matrix4f hmd = hmdRotation;
-			Matrix4f cont = controllerRotation[0];
-			Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
-			hmd = Matrix4f.multiply(hmd, rot);
-			cont = Matrix4f.multiply(cont, rot);
-			
-			guiScale = mc.vrSettings.vrWorldScale;
-			if(mc.theWorld == null) guiScale = 2.0f;
-			
 			if(appearOverBlock && mc.objectMouseOver !=null){	
 
 				guiScale =(float) (Math.sqrt(mc.vrSettings.vrWorldScale) * 2);
 				guiPos_World =new Vector3f((float) mc.objectMouseOver.blockX + 0.5f,
 						(float) mc.objectMouseOver.blockY + 1.7f,
 						(float) mc.objectMouseOver.blockZ + 0.5f);
-				
+
 				Vec3 pos = mc.roomScale.getHMDPos_World();
 				Vector3f look = new Vector3f();
 				look.x = (float) (guiPos_World.x - pos.xCoord);
 				look.y = (float) (guiPos_World.y - pos.yCoord);
 				look.z = (float) (guiPos_World.z - pos.zCoord);
-				
+
 				float pitch = (float) Math.asin(look.y/look.length());
 				float yaw = (float) ((float) Math.PI + Math.atan2(look.x, look.z));    
-					guiRotationPose = Matrix4f.rotationY((float) yaw);
-					Matrix4f tilt = OpenVRUtil.rotationXMatrix(pitch);	
-					guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);						
+				guiRotationPose = Matrix4f.rotationY((float) yaw);
+				Matrix4f tilt = OpenVRUtil.rotationXMatrix(pitch);	
+				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);						
 			}				
 			else{
+				
+				Vec3 v = mc.vrPlayer.getHMDPos_World();
+				Vec3 e = mc.vrPlayer.getHMDDir_World();
+				guiPos_World = new Vector3f(
+						(float) (e.xCoord * mc.vrSettings.vrWorldScale / 2 + v.xCoord),
+						(float) (e.yCoord* mc.vrSettings.vrWorldScale / 2 + v.yCoord),
+						(float) (e.zCoord* mc.vrSettings.vrWorldScale / 2 + v.zCoord));
+
+				Matrix4f hmd = hmdRotation;
+				Matrix4f cont = controllerRotation[0];
+				Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
+				hmd = Matrix4f.multiply(hmd, rot);
+				cont = Matrix4f.multiply(cont, rot);
+
+				guiScale = mc.vrSettings.vrWorldScale;
+				if(mc.theWorld == null) guiScale = 2.0f;
+							
 				guiRotationPose = Matrix4f.rotationY((float) Math.toRadians( getHeadYawDegrees() + mc.vrSettings.vrWorldRotation));
 				Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.toRadians(mc.roomScale.getHMDPitch_World()));	
 				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);		
-				
+
 				if (newScreen instanceof GuiChat){
 					Vector3f forward = new Vector3f(-0.3f,- 1f,1f);
 					Vector3f controllerForward = hmd.transform(forward);
@@ -1717,7 +1809,7 @@ public class MCOpenVR
 	}
 	
 	
-	static Matrix4f getAimRotation( int controller ) {
+	public static Matrix4f getAimRotation( int controller ) {
 		return controller == 0 ? controllerRotation[0]: controllerRotation[1];
 	}
 	
@@ -1872,137 +1964,6 @@ public class MCOpenVR
 		laimYaw = (float)Math.toDegrees(Math.atan2(lcontrollerDirection.x, lcontrollerDirection.z));
 
 	}
-
-	
-	
-	
-	public static boolean applyGUIModelView(renderPass currentPass)
-	{
-   		mc.mcProfiler.startSection("applyGUIModelView");
-	
-			Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);
-			Vec3 eye =mc.entityRenderer.getEyeRenderPos(currentPass);
-			
-			if(mc.theWorld == null)
-				mc.vrSettings.vrWorldRotation = 0;
-			
-			// main menu view
-			if (mc.theWorld==null || mc.currentScreen instanceof GuiWinGame) {
-				//TODO reset scale things
-				guiScale = 2.0f;
-				mc.vrPlayer.worldScale = 1;
-				mc.vrPlayer.worldRotationRadians = (float) Math.toRadians( mc.vrSettings.vrWorldRotation);
-				guiPos_World.x = (float) (0 + mc.vrPlayer.getRoomOriginPos_World().xCoord);
-				guiPos_World.y = (float) (1.3f + mc.vrPlayer.getRoomOriginPos_World().yCoord);
-				guiPos_World.z = (float) (-1.3f + mc.vrPlayer.getRoomOriginPos_World().zCoord);
-				guiRotationPose.M[0][0] = guiRotationPose.M[1][1] = guiRotationPose.M[2][2] = guiRotationPose.M[3][3] = 1.0F;
-				guiRotationPose.M[0][1] = guiRotationPose.M[1][0] = guiRotationPose.M[2][3] = guiRotationPose.M[3][1] = 0.0F;
-				guiRotationPose.M[0][2] = guiRotationPose.M[1][2] = guiRotationPose.M[2][0] = guiRotationPose.M[3][2] = 0.0F;
-				guiRotationPose.M[0][3] = guiRotationPose.M[1][3] = guiRotationPose.M[2][1] = guiRotationPose.M[3][0] = 0.0F;
-			} else { //these dont update when screen open.
-				if (mc.currentScreen != null){
-					mc.vrPlayer.checkandUpdateRotateScale();
-				}
-			}
-			
-			// i am dead view
-		 if (mc.thePlayer!=null && !mc.thePlayer.isEntityAlive())
-			{
-				Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
-				Matrix4f max = Matrix4f.multiply(rot, hmdRotation);
-				
-				Vec3 v = mc.roomScale.getHMDPos_World();
-				Vec3 d = mc.roomScale.getHMDDir_World();
-				guiPos_World.x = (float) (v.xCoord + d.xCoord*mc.vrSettings.vrWorldScale);
-				guiPos_World.y = (float) (v.yCoord + d.yCoord*mc.vrSettings.vrWorldScale);
-				guiPos_World.z = (float) (v.zCoord + d.zCoord*mc.vrSettings.vrWorldScale);
-					
-				Quatf orientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(max);
-				
-				guiRotationPose = new Matrix4f(orientationQuat);
-	
-				//float pitchOffset = (float) Math.toRadians( -mc.vrSettings.hudPitchOffset );
-				//float yawOffset = (float) Math.toRadians( -mc.vrSettings.hudYawOffset );
-				//guiRotationPose = Matrix4f.multiply(guiRotationPose, OpenVRUtil.rotationXMatrix(yawOffset));
-				//guiRotationPose = Matrix4f.multiply(guiRotationPose, Matrix4f.rotationY(pitchOffset));
-				guiRotationPose.M[3][3] = 1.0f;
-			}
-	
-			// HUD view - attach to head or controller
-			else if (mc.theWorld!=null && (mc.currentScreen==null || mc.vrSettings.floatInventory == false))
-			{
-				eye = mc.roomScale.getEyePos_World(currentPass); //dont need interpolation.
-				guiScale = mc.vrSettings.vrWorldScale;
-				if (mc.vrSettings.hudLockToHead)
-				{
-					Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
-					Matrix4f max = Matrix4f.multiply(rot, hmdRotation);
-					
-					Vec3 v = mc.vrPlayer.getHMDPos_World();
-					Vec3 d = mc.vrPlayer.getHMDDir_World();
-					guiPos_World.x = (float) (v.xCoord + d.xCoord*mc.vrSettings.vrWorldScale);
-					guiPos_World.y = (float) (v.yCoord + d.yCoord*mc.vrSettings.vrWorldScale);
-					guiPos_World.z = (float) (v.zCoord + d.zCoord*mc.vrSettings.vrWorldScale);
-	  				
-					Quatf orientationQuat = OpenVRUtil.convertMatrix4ftoRotationQuat(max);
-					
-					guiRotationPose = new Matrix4f(orientationQuat);
-	
-					//float pitchOffset = (float) Math.toRadians( -mc.vrSettings.hudPitchOffset );
-					//float yawOffset = (float) Math.toRadians( -mc.vrSettings.hudYawOffset );
-					//guiRotationPose = Matrix4f.multiply(guiRotationPose, OpenVRUtil.rotationXMatrix(yawOffset));
-					//guiRotationPose = Matrix4f.multiply(guiRotationPose, Matrix4f.rotationY(pitchOffset));
-					guiRotationPose.M[3][3] = 1.0f;
-	
-				}
-				else //hud on hand
-				{
-
-					Matrix4f out = MCOpenVR.getAimRotation(1);
-					Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
-					Matrix4f MguiRotationPose =  Matrix4f.multiply(rot,out);
-				//	MguiRotationPose.M[1][3] = 0.5f;
-					//guiRotationPose = mc.vrPlayer.getControllerMatrix_World(1);
-					guiRotationPose = Matrix4f.multiply(MguiRotationPose, OpenVRUtil.rotationXMatrix((float) Math.PI * -0.2F));
-					guiRotationPose = Matrix4f.multiply(guiRotationPose, Matrix4f.rotationY((float) Math.PI * 0.1F));
-					guiRotationPose.M[3][3] = 1.7f;
-				
-					guiLocal.yCoord = 0.5*mc.vrSettings.vrWorldScale;
-					
-					Vec3 v =mc.vrPlayer.getControllerPos_World(1);
-					guiPos_World.x = (float) v.xCoord;
-					guiPos_World.y = (float) v.yCoord;
-					guiPos_World.z = (float) v.zCoord;
-					
-				}
-			} 
-
-			// otherwise, looking at inventory screen. use pose calculated when screen was opened
-			//where is this set up... should be here....
-	
-			// counter head rotation
-			GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
-		
-			// offset from eye to gui pos
-			//eye.rotateAroundY((float) Math.toRadians(-mc.vrSettings.vrWorldRotation));
-			GL11.glTranslatef((float) (guiPos_World.x - eye.xCoord), (float)(guiPos_World.y - eye.yCoord), (float)(guiPos_World.z - eye.zCoord));
-			GL11.glPushMatrix();
-				GL11.glMultMatrix(guiRotationPose.transposed().toFloatBuffer());	
-	
-				GL11.glTranslatef((float)guiLocal.xCoord, (float) guiLocal.yCoord, (float)guiLocal.zCoord);
-				
-				double timeOpen = getCurrentTimeSecs() - startedOpeningInventory;
-	
-	
-				//		if (timeOpen < 1.5) {
-				//			scale = (float)(Math.sin(Math.PI*0.5*timeOpen/1.5));
-				//		}
-	
-			mc.mcProfiler.endSection();
-	
-			return true;
-	} //note returns with matrix pushed
-
 
 	public static double getCurrentTimeSecs()
 	{
