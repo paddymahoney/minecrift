@@ -20,13 +20,14 @@ Using this Repository
  
 The install process (install.py) does a number of things:
  - It downloads MCP (Minecraft coder's pack) and extracts it to the \mcp908\ directory.
+ - It downloads a ton of dependencies.
  - It merges Optifine into vanilla minecraft jar.
  - It decompiles and deobfuscates the combined minecraft/optifine into \mcp908\src\.minecraft_orig_nofix\
- - It applies any patches found in \mcppacthes\ and copies the result to\mcp908\src\.minecraft_orig\
+ - It applies any patches found in \mcppatches\ and copies the result to\mcp908\src\.minecraft_orig\
  - It applies all the patches found in \patches\ and copies the result to \mcp908\src\minecraft\. 
  - It copies all code files found in \src\ to \mcp908\src\minecraft\. This directory is now the full 'Vivecraft' codebase.
  
-IF you use Eclipse you can open the workspace found in \mcp908\eclipse. You may have to redirect some build path jar's to the correct location
+IF you use Eclipse you can open the workspace found in \mcp908\eclipse. You may have to redirect some build path jar's to the correct location. To run the game form eclipse you have to attach natives to lwjgl jar.
 
 Make all changes to the game in the \mcp908\src\minecraft directory.
 
