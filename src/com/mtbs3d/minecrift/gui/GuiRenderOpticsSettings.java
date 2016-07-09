@@ -19,6 +19,8 @@ import net.minecraft.client.settings.GameSettings;
 
 import java.util.List;
 
+import org.lwjgl.util.Color;
+
 public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEventEx
 {
     protected boolean reinit = false;
@@ -37,6 +39,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
             VRSettings.VrOptions.RENDER_SCALEFACTOR,
             VRSettings.VrOptions.MIRROR_DISPLAY,     
             VRSettings.VrOptions.FSAA,
+            VRSettings.VrOptions.MIXED_REALITY_KEY_COLOR,
             VRSettings.VrOptions.STENCIL_ON,
             
             /*VRSettings.VrOptions.WORLD_SCALE,
@@ -166,6 +169,7 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                 minecraft.vrSettings.useDynamicPrediction = true;
                 minecraft.vrSettings.renderScaleFactor = 1.0f;
                 minecraft.vrSettings.displayMirrorMode = VRSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE;
+                minecraft.vrSettings.mixedRealityKeyColor = new Color();
                 minecraft.vrSettings.useDisplayOverdrive = true;
                 minecraft.vrSettings.useHighQualityDistortion = true;
                 minecraft.vrSettings.useFsaa = false;
@@ -281,28 +285,28 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
     	if( e != null )
     	switch(e)
     	{
-        case FSAA:
-            return new String[] {
-                    "Uses a fancier method of resampling the",
-                    "game before sending it to the HMD. Works best",
-                    "at high render scales. "};
-    	case CHROM_AB_CORRECTION:
-    		return new String[] {
-    				"Chromatic aberration correction", 
-    				"Corrects for color distortion due to lenses", 
-    				"  OFF - no correction",
-    				"  ON - correction applied"} ;
-        case TIMEWARP:
-            return new String[] {
-                    "Reduces perceived head track latency by sampling sensor",
-                    "position just before the view is presented to your eyes,",
-                    "and rotating the rendered view subtly to match the new",
-                    "sensor orientation.",
-                    "  ON  - Timewarp applied. Some ghosting may be observed",
-                    "        during fast changes of head position.",
-                    "  OFF - No timewarp applied, higher latency head",
-                    "        tracking."
-            };
+	        case FSAA:
+	            return new String[] {
+	                    "Uses a fancier method of resampling the",
+	                    "game before sending it to the HMD. Works best",
+	                    "at high render scales. "};
+	    	case CHROM_AB_CORRECTION:
+	    		return new String[] {
+	    				"Chromatic aberration correction", 
+	    				"Corrects for color distortion due to lenses", 
+	    				"  OFF - no correction",
+	    				"  ON - correction applied"} ;
+	        case TIMEWARP:
+	            return new String[] {
+	                    "Reduces perceived head track latency by sampling sensor",
+	                    "position just before the view is presented to your eyes,",
+	                    "and rotating the rendered view subtly to match the new",
+	                    "sensor orientation.",
+	                    "  ON  - Timewarp applied. Some ghosting may be observed",
+	                    "        during fast changes of head position.",
+	                    "  OFF - No timewarp applied, higher latency head",
+	                    "        tracking."
+	            };
             case TIMEWARP_JIT_DELAY:
                 return new String[] {
                         "Enables a spin-wait that tries to push time-warp to",
@@ -324,6 +328,13 @@ public class GuiRenderOpticsSettings  extends BaseGuiSettings implements GuiEven
                         "Mirrors image on HMD to separate desktop window.",
                         "Can be set to OFF, single or dual view at 1/3 or",
                         "full framerate."
+                };
+            case MIXED_REALITY_KEY_COLOR:
+                return new String[] {
+                        "The color drawn to the \"transparent\" areas of the",
+                        "mixed reality view. Other colors in-game will be",
+                        "prevented from matching this so it doesn't cause",
+                        "weirdness."
                 };
             case DYNAMIC_PREDICTION:
                 return new String[]{

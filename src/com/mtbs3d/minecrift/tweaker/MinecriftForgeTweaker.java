@@ -9,29 +9,25 @@ import java.util.List;
 
 public class MinecriftForgeTweaker implements ITweaker
 {
-		
-	public MinecriftForgeTweaker() {
-
-	}
-	
     public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile)
     {	
-		
+        dbg("MinecriftForgeTweaker: acceptOptions");
     }
 
     public void injectIntoClassLoader(LaunchClassLoader classLoader)
     {
-    	
+        dbg("MinecriftForgeTweaker: injectIntoClassLoader");
     }
 
     public String getLaunchTarget()
     {
+        dbg("MinecriftForgeTweaker: getLaunchTarget");
         return "com.mtbs3d.minecrift.main.VivecraftMain";
     }
 
     public String[] getLaunchArguments()
     {
-
+        dbg("MinecriftForgeTweaker: getLaunchArguments");
         return new String[0];
     }
 

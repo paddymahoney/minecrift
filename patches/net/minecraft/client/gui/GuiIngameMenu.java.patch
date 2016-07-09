@@ -15,7 +15,7 @@
  
  public class GuiIngameMenu extends GuiScreen
  {
-@@ -11,29 +16,37 @@
+@@ -11,29 +16,39 @@
      private int field_146444_f;
      private static final String __OBFID = "CL_00000703";
  
@@ -36,7 +36,7 @@
 +    	byte var1 = -16;
 +    	boolean var2 = true;
 +
-+    	this.buttonList.add(new GuiButton(1, this.width / 2 - 100, this.height / 4 + 120 + var1, I18n.format("menu.returnToMenu", new Object[0])));
++    	this.buttonList.add(new GuiButton(1, this.width / 2 - 100, this.height / 4 + 144 + var1, I18n.format("menu.returnToMenu", new Object[0])));
 +
 +    	if (!this.mc.isIntegratedServerRunning())
 +    	{
@@ -47,6 +47,8 @@
 +    	this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height / 4 + 96 + var1, 98, 20, I18n.format("menu.options", new Object[0])));
 +    	this.buttonList.add(new GuiButton(100, this.width / 2 -100, this.height / 4 + 72 + var1,98,20, "Chat"));
 +    	this.buttonList.add(new GuiButton(101, this.width / 2 + 2, this.height / 4 + 72 + var1, 98, 20, "Commands"));
++      	this.buttonList.add(new GuiButton(102, this.width / 2 - 100,this.height / 4 + 120 + var1, 48, 20, "Overlay"));
++      	this.buttonList.add(new GuiButton(103, this.width / 2 - 48,this.height / 4 + 120 + var1, 48, 20, "Profiler"));
 +
 +    	GuiButton var3;
 +    	this.buttonList.add(var3 = new GuiButton(7, this.width / 2 + 2, this.height / 4 + 96 + var1, 98, 20, I18n.format("menu.shareToLan", new Object[0])));
@@ -69,7 +71,7 @@
      }
  
      protected void actionPerformed(GuiButton button)
-@@ -52,24 +65,32 @@
+@@ -52,24 +67,42 @@
  
              case 2:
              case 3:
@@ -102,7 +104,17 @@
 +            	this.mc.displayGuiScreen(new GuiQuickCommandsInGame());
 +            	this.initGui();
 +            	break;
-+
++            case 102:
++            	mc.gameSettings.showDebugInfo = !mc.gameSettings.showDebugInfo;
++            	this.mc.displayGuiScreen((GuiScreen)null);
++            	break;
++            case 103:
++            	mc.gameSettings.showDebugProfilerChart = !mc.gameSettings.showDebugProfilerChart;
++            	mc.gameSettings.showDebugInfo = mc.gameSettings.showDebugProfilerChart;
++            	
++            	//this.mc.displayGuiScreen((GuiScreen)null);
++            	
++            	break;
 +            default:
 +
          }

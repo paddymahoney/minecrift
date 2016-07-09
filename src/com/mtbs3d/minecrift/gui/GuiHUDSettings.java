@@ -22,6 +22,7 @@ public class GuiHUDSettings extends BaseGuiSettings
             VRSettings.VrOptions.HUD_YAW,
             VRSettings.VrOptions.HUD_OPACITY,
             VRSettings.VrOptions.RENDER_MENU_BACKGROUND,
+            VRSettings.VrOptions.TOUCH_HOTBAR,
     };
 
     public GuiHUDSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
@@ -200,6 +201,11 @@ public class GuiHUDSettings extends BaseGuiSettings
                 case OTHER_HUD_SETTINGS:
                     return new String[] {
                             "Configure Crosshair and overlay settings."
+                    };
+                case TOUCH_HOTBAR:
+                    return new String[] {
+                            "If enabled allow you to touch the hotbar with",
+                            "your main hand to select an item."
                     };
                 default:
                     return null;

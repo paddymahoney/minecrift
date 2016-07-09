@@ -1,5 +1,7 @@
 package com.mtbs3d.minecrift.gui;
 
+import javax.swing.plaf.ToolBarUI;
+
 import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
 import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
 import com.mtbs3d.minecrift.gui.framework.GuiSliderEx;
@@ -106,6 +108,7 @@ public class GuiOtherHUDSettings extends BaseGuiSettings
                 this.guivrSettings.chatOffsetX = 0;
                 this.guivrSettings.chatOffsetY = 0.4f;
                 this.guivrSettings.chatFadeAway = true;
+                this.guivrSettings.vrTouchHotbar = true;
 
                 Minecraft.getMinecraft().vrSettings.saveOptions();
                 this.reinit = true;
@@ -176,6 +179,7 @@ public class GuiOtherHUDSettings extends BaseGuiSettings
                         "  Stays: A number of the latest chat lines will always",
                         "         be visible."
                 };
+
             default:
                 return null;
             }

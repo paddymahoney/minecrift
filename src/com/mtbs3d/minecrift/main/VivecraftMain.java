@@ -9,11 +9,14 @@ import java.util.List;
 
 import com.mtbs3d.minecrift.tweaker.MinecriftClassTransformer;
 import com.mtbs3d.minecrift.tweaker.MinecriftClassTransformer.Stage;
+import com.mtbs3d.minecrift.tweaker.MinecriftForgeClassTransformer;
+import com.mtbs3d.minecrift.tweaker.MinecriftForgeLateClassTransformer;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.launchwrapper.LaunchClassLoader;
+import net.minecraft.src.Reflector;
 
 public class VivecraftMain
 {
@@ -50,6 +53,11 @@ public class VivecraftMain
 			}
 				
 			transformers.add(2,new MinecriftClassTransformer(Stage.main));
+//			try {
+//				Class.forName("cpw.mods.fml.common.API"); // don't ask
+//				transformers.add(3, new MinecriftForgeClassTransformer());
+//				transformers.add(transformers.size() - 1, new MinecriftForgeLateClassTransformer());
+//			} catch (ClassNotFoundException e) {}
 	
 			if(encapsulate.size() > 0){ //Dirty Harry Potter.
 				transformers.add(new MinecriftClassTransformer(Stage.cache));

@@ -146,7 +146,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +217,4882 @@
+@@ -150,2988 +217,4886 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1925,6 +1925,7 @@
 +	public int _DepthMask_zFarUniform = -1;
 +	public int _DepthMask_playerDepthUniform = -1;
 +	public int _DepthMask_passUniform = -1;
++	public int _DepthMask_keyColorUniform = -1;
 +	private FloatBuffer projectionMatrixBuf = GLAllocation.createDirectFloatBuffer(16);
 +	private FloatBuffer modelViewMatrixBuf = GLAllocation.createDirectFloatBuffer(16);
 +	private Framebuffer mirrorFB = null;
@@ -2891,7 +2892,18 @@
 +			
 +			/** MINECRIFT */ // setup the display, render buffers, shaders etc.
 +			this.frameIndex++;
-+			setupRenderConfiguration();
++			
++			try {
++				setupRenderConfiguration();
++			} catch (RenderConfigException e) {
++				GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
++				GL11.glClearColor(0, 0, 0, 1);
++				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
++				entityRenderer.displayNotificationText("Render Setup Failed " + " " + e.error, "", "", this.displayWidth, this.displayHeight, false, true);
++				Display.update();
++				return;
++			}
++
 +			/** END MINECRIFT */
 +			
 +			if (this.isGamePaused && this.theWorld != null)
@@ -2995,14 +3007,14 @@
 +			
 +			int v = viewPortCount;
 +			
-+			if(viewPortCount == 2 && this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY && this.renderViewEntity != null){
++			if(viewPortCount == 2 && (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY || this.vrSettings.displayMirrorMode == VRSettings.MIRROR_FIRST_PERSON)){
 +				v = 3;
 +			}
 +			
 +			/** Minecrift - main stereo render loop **/
 +			for (int i = 0; this.visible && i < v; i++)
 +			{
-+				this.currentPass = i==0 ? renderPass.Left : i == 1 ? renderPass.Right : renderPass.Third;
++				this.currentPass = i==0 ? renderPass.Left : i == 1 ? renderPass.Right : (this.vrSettings.displayMirrorMode == VRSettings.MIRROR_FIRST_PERSON ? renderPass.Center : renderPass.Third);
 +				
 +				this.mcProfiler.startSection("Eye:" + currentPass.ordinal());
 +				
@@ -3132,29 +3144,29 @@
 +				checkGLError("postpostprocess " + eye);
 +			this.mcProfiler.endSection();
 +
-+			this.mcProfiler.startSection("framebufferDraw");
++			if (currentPass != renderPass.Center) {
++				this.mcProfiler.startSection("framebufferDraw");
++				
++					if(!vrSettings.useFsaa){
++						if(currentPass == renderPass.Left)	
++							framebufferEye0.bindFramebuffer(true); //draw to L eye tex
++						else
++							framebufferEye1.bindFramebuffer(true); //draw to R eye tex
++						framebuffer.framebufferRender(framebufferEye0.framebufferWidth, framebufferEye0.framebufferHeight);
++					}
++				this.mcProfiler.endSection();
 +			
-+				if(!vrSettings.useFsaa){
-+					if(currentPass == renderPass.Left)	
-+						framebufferEye0.bindFramebuffer(true); //draw to L eye tex
++				//this.mcProfiler.startSection("OpenGL Finish");
++				//	GL11.glFinish();//DO NOT LEAVE THIS UNCOMMENTED
++				//this.mcProfiler.endSection();
++						
++				this.mcProfiler.startSection("compositorSubmit");
++					if(this.stereoProvider.isStereo())
++						this.stereoProvider.endFrame(this.currentPass);
 +					else
-+						framebufferEye1.bindFramebuffer(true); //draw to R eye tex
-+					framebuffer.framebufferRender(framebufferEye0.framebufferWidth, framebufferEye0.framebufferHeight);
-+				}
-+			this.mcProfiler.endSection();
-+		
-+	
-+			
-+			this.mcProfiler.startSection("OpenGL Finish");
-+			//	GL11.glFinish();//DO NOT LEAVE THIS UNCOMMENTED
-+			this.mcProfiler.endSection();
-+					
-+			this.mcProfiler.startSection("compositorSubmit");
-+				if(this.stereoProvider.isStereo())
-+					this.stereoProvider.endFrame(this.currentPass);
-+				else
-+					this.stereoProvider.endFrame();
-+			this.mcProfiler.endSection();
++						this.stereoProvider.endFrame();
++				this.mcProfiler.endSection();
++			}
 +	
 +		}
 +			
@@ -3422,7 +3434,7 @@
 +			if (!this.inGameHasFocus)
 +			{
 +				this.inGameHasFocus = true;
-+				this.mouseHelper.grabMouseCursor();
++				//this.mouseHelper.grabMouseCursor(); // NO. BAD.
 +				this.displayGuiScreen((GuiScreen)null);
 +				this.leftClickCounter = 10000;
 +			}
@@ -6772,7 +6784,7 @@
 +		{
 +			if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF &&  this.vrPlayer.isHMDTracking()){
 +				return false;
-+			}else if( this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY && renderViewEntity != null) {
++			}else if( this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY /*&& renderViewEntity != null*/) {
 +				
 +				if(currentPass2 != renderPass.Third) return false;
 +				//heres where the magic lives
@@ -6802,7 +6814,7 @@
 +
 +				GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
 +				GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, framebuffer.framebufferObject);
-+				GL11.glClearColor(0, 0, 0, 1);
++				GL11.glClearColor(vrSettings.mixedRealityKeyColor.getRed() / 255F, vrSettings.mixedRealityKeyColor.getGreen() / 255F, vrSettings.mixedRealityKeyColor.getBlue() / 255F, 1);
 +				GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 +				for(int i = 0; i < 2; i++) {
 +
@@ -6816,6 +6828,7 @@
 +					ARBShaderObjects.glUniform1fARB(_DepthMask_zFarUniform, entityRenderer.clipDistance);
 +					ARBShaderObjects.glUniform1fARB(_DepthMask_playerDepthUniform, dist ); // TODO
 +					ARBShaderObjects.glUniform1iARB(_DepthMask_passUniform, i);
++					ARBShaderObjects.glUniform3fARB(_DepthMask_keyColorUniform, vrSettings.mixedRealityKeyColor.getRed() / 255F, vrSettings.mixedRealityKeyColor.getGreen() / 255F, vrSettings.mixedRealityKeyColor.getBlue() / 255F);
 +					GL13.glActiveTexture(GL13.GL_TEXTURE1);
 +					framebuffer.bindFramebufferTexture();
 +					//ARBSamplerObjects.glBindSampler(1, _DepthMask_colorTexUniform);
@@ -6824,7 +6837,7 @@
 +					//ARBSamplerObjects.glBindSampler(2, _DepthMask_depthTexUniform);
 +					
 +					GL13.glActiveTexture(GL13.GL_TEXTURE0);
-+					framebufferMc.framebufferRender((displayWidth / 2) * i, displayWidth / 2, displayHeight , 0);
++					framebufferMc.framebufferRender((displayWidth / 2) * i, displayWidth / 2, displayHeight, 0);
 +				
 +					OpenGlHelper.glUseProgram(0);
 +				}
@@ -6833,26 +6846,26 @@
 +				int every = 1;
 +				int ports = 2;
 +
-+				if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE || this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY ){
++				boolean thirdPass = this.vrSettings.displayMirrorMode == vrSettings.MIRROR_MIXED_REALITY || this.vrSettings.displayMirrorMode == vrSettings.MIRROR_FIRST_PERSON;
++				if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE){
 +					//ok
-+				} else if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW){
++				} else if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW || thirdPass){
 +					ports = 1;
-+				}if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE){
++				} if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE){
 +					every = 3;
-+				}if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW){
++				} if(this.vrSettings.displayMirrorMode == vrSettings.MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW){
 +					every = 3;
 +					ports = 1;
 +				}
 +
-+				if(ports == 2 || currentPass2 == renderPass.Right){
++				if(ports == 2 || (thirdPass && (currentPass2 == renderPass.Third || currentPass2 == renderPass.Center)) || (!thirdPass && currentPass2 == renderPass.Right)){
 +					if((frameIndex % every) == 0){
 +
 +						int i = currentPass2 == renderPass.Left? 0 : 1;
 +						if(ports==1) i = 0;
 +											
 +						this.framebufferMc.unbindFramebuffer();	//draw directly to window
-+						framebuffer.framebufferRender((int)(0 + (displayWidth *i)*0.5f),
-+							displayWidth/ports, displayHeight,0 );
++						framebuffer.framebufferRender((displayWidth / 2) * i, displayWidth / ports, displayHeight, 0);
 +
 +						return true;
 +					}
@@ -6870,7 +6883,7 @@
 +	/**
 +	 * Probably kind of expensive, don't call often
 +	 */
-+	public float getDepthOfPosition(Vec3 pos) {
++	/*public float getDepthOfPosition(Vec3 pos) {
 +		Matrix4f projectionMatrix = new Matrix4f();
 +		Matrix4f modelViewMatrix = new Matrix4f();
 +		ClippingHelper clip = ClippingHelperImpl.getInstance();
@@ -6892,12 +6905,7 @@
 +		float len = tPos.length() - entityRenderer.minClipDistance;
 +		//System.out.println(len);
 +		return len; 
-+	}
-+	
-+	public void updatePlayerDepth() {
-+		Vec3 playerv = roomScale.getHMDPos_World();
-+		mixedRealityPlayerDepth = getDepthOfPosition(playerv);
-+	}
++	}*/
 +
 +	private int tex0, tex1;
 +	
@@ -7132,6 +7140,7 @@
 +			_DepthMask_zFarUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "zFar");
 +			_DepthMask_playerDepthUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "playerDepth");
 +			_DepthMask_passUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "pass");
++			_DepthMask_keyColorUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "keyColor");
 +			
 +			checkGLError("post select");
 +			entityRenderer.setupClipPlanes();
@@ -7218,13 +7227,6 @@
 +			this.lastEnableVsync = this.gameSettings.enableVsync;
 +			this.reinitFramebuffers = false;
 +
-+			if (this.firstInit)
-+			{
-+//				// Workaround for bad init of Oculus SDK
-+//				this.firstInit = false;
-+//				this.reinitFramebuffers = true;
-+//				System.out.println("[Minecrift] Now re-init for Oculus SDK weirdness...");
-+			}
 +		}
 +
 +		if (changeNonDestructiveRenderConfig || this.reinitFramebuffers)
@@ -7474,8 +7476,7 @@
 +	}
 +
 +	private void doPostProcessing(long frameIndex, float nano)
-+	{
-+			
++	{	
 +		// VIVE start - screen flash when hurt instead of view tilt
 +		EntityLivingBase player = renderViewEntity;
 +		if (player!=null && player.getHealth() > 0.0f)
@@ -7497,7 +7498,7 @@
 +		//	this.entityRenderer.renderFadeBlend(rgb, splashFadeAlpha);
 +		}
 +	
-+		if (this.vrSettings.useFsaa )
++		if (this.vrSettings.useFsaa && currentPass != renderPass.Center)
 +		{
 +			if (this.fsaaFirstPassResultFBO == null){
 +				this.reinitFramebuffers = true;
@@ -7814,40 +7815,43 @@
 +	}
 +	
 +	public static final String DEPTH_MASK_VERTEX_SHADER = 
-+			"#version 110\n" +
-+			//"layout(location = 0) in vec4 in_position;\n" +
-+			"void main() {\n" +
-+			    "gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n" +
-+			"}\n" ;
++					"#version 110\n" +
++					//"layout(location = 0) in vec4 in_position;\n" +
++					"void main() {\n" +
++					    "gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n" +
++					"}\n";
 +
 +	public static final String DEPTH_MASK_FRAGMENT_SHADER = 
-+			"#version 330\n" +
-+			"uniform vec2 resolution;\n"+
-+			"uniform vec2 position;\n"+
-+			"uniform sampler2D colorTex;\n"+
-+			"uniform sampler2D depthTex;\n"+
-+			"uniform float zNear;\n"+
-+			"uniform float zFar;\n"+
-+			"uniform float playerDepth;\n"+
-+			"uniform int pass;\n"+
-+			"out vec4 out_Color;\n"+
-+			"void main (void) {\n" + 
-+				"vec2 pos = (gl_FragCoord.xy - position.xy) / resolution.xy;\n" +
-+				"float rawDepth = texture(depthTex, pos).x * 2.0 - 1.0;\n"+
-+				"float depth = (2 * zFar * zNear) / (zFar + zNear - rawDepth * (zFar - zNear));\n"+
-+			    "if ((pass == 0 && playerDepth >= depth) || (pass == 1 && playerDepth <= depth)) {\n"+
-+			    	"vec4 color = texture(colorTex, pos);\n"+
-+			    	"if (color.x < 0.005 && color.y < 0.005 && color.z < 0.005) {\n"+
-+			    		"color = vec4(0.005, 0.005, 0.005, 1);\n"+ // Prevent absolute black so people can color key and not have it look weird sometimes
-+			    	"}\n"+
-+					"out_Color = color;\n" +
-+					//"out_Color = vec4(vec3(depth / zFar), 1);\n"+ // Draw depth buffer
-+				"} else {\n"+
-+					"discard;\n"+ // Throw out the fragment to save some GPU processing
-+					//"out_Color = vec4(1, 0, 1, 1);\n"+
-+				"}\n"+
-+			"}\n"
-+		;
++					"#version 330\n" +
++					"uniform vec2 resolution;\n"+
++					"uniform vec2 position;\n"+
++					"uniform sampler2D colorTex;\n"+
++					"uniform sampler2D depthTex;\n"+
++					"uniform float zNear;\n"+
++					"uniform float zFar;\n"+
++					"uniform float playerDepth;\n"+
++					"uniform int pass;\n"+
++					"uniform vec3 keyColor;\n"+
++					"out vec4 out_Color;\n"+
++					"void main (void) {\n" + 
++						"vec2 pos = (gl_FragCoord.xy - position) / resolution;\n" +
++						"float rawDepth = texture(depthTex, pos).x * 2.0 - 1.0;\n"+
++						"float depth = (2 * zFar * zNear) / (zFar + zNear - rawDepth * (zFar - zNear));\n"+
++					    "if ((pass == 0 && playerDepth >= depth) || (pass == 1 && playerDepth <= depth)) {\n"+
++					    	"vec4 color = texture(colorTex, pos);\n"+
++					    	"vec3 diff = color.rgb - keyColor;\n"+ // The following code prevents actual colors from matching the key color and looking weird
++					    	"if (keyColor.r < 0.004 && keyColor.g < 0.004 && keyColor.b < 0.004 && color.r < 0.004 && color.g < 0.004 && color.b < 0.004) {\n"+
++				    			"color = vec4(0.004, 0.004, 0.004, 1);\n"+
++					    	"} else if (diff.r < 0.004 && diff.g < 0.004 && diff.b < 0.004) {\n"+
++				    			"color = vec4(color.r - 0.004, color.g - 0.004, color.b - 0.004, color.a);\n"+
++					    	"}\n"+
++							"out_Color = color;\n" +
++							//"out_Color = vec4(vec3(depth / zFar), 1);\n"+ // Draw depth buffer
++						"} else {\n"+
++							"discard;\n"+ // Throw out the fragment to save some GPU processing
++							//"out_Color = vec4(1, 0, 1, 1);\n"+
++						"}\n"+
++					"}\n";
 +	
 +	public static final String LANCZOS_SAMPLER_VERTEX_SHADER =
 +			"#version 120\n" +

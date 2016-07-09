@@ -22,11 +22,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
+import org.lwjgl.util.Color;
 
 public class VRSettings
 {
@@ -68,7 +70,8 @@ public class VRSettings
     public static final int MIRROR_ON_FULL_FRAME_RATE = 2;
     public static final int MIRROR_ON_ONE_THIRD_FRAME_RATE_SINGLE_VIEW = 3;
     public static final int MIRROR_ON_FULL_FRAME_RATE_SINGLE_VIEW = 4;
-    public static final int MIRROR_MIXED_REALITY= 5;
+    public static final int MIRROR_MIXED_REALITY = 5;
+    public static final int MIRROR_FIRST_PERSON = 6;
     
     public static final int HUD_LOCK_HEAD= 1;
     public static final int HUD_LOCK_HAND= 2;
@@ -193,7 +196,10 @@ public class VRSettings
     public float vrFixedCamrotYaw = 0;
     public float vrFixedCamrotPitch = 0;
     public float vrFixedCamrotRoll = 0;
-    public int vrHudLockMode = HUD_LOCK_WRIST;
+    public int vrHudLockMode = HUD_LOCK_HAND;
+    public Color mixedRealityKeyColor = new Color();
+    public float mixedRealityAspectRatio = 16F / 9F;
+    public boolean vrTouchHotbar = true;
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -410,6 +416,12 @@ public class VRSettings
                     if (optionTokens[0].equals("displayMirrorMode"))
                     {
                         this.displayMirrorMode = Integer.parseInt(optionTokens[1]);
+                    }
+
+                    if (optionTokens[0].equals("mixedRealityKeyColor"))
+                    {
+                        String[] split = optionTokens[1].split(",");
+                        this.mixedRealityKeyColor = new Color(Integer.parseInt(split[0]), Integer.parseInt(split[1]), Integer.parseInt(split[2]));
                     }
 
                     if (optionTokens[0].equals("useDistortionTextureLookupOptimisation"))
@@ -759,6 +771,10 @@ public class VRSettings
                     {
                         this.vrFixedCamrotRoll =this.parseFloat(optionTokens[1]);
                     }
+                    if (optionTokens[0].equals("vrTouchHotbar"))
+                    {
+                    	  this.vrTouchHotbar = optionTokens[1].equals("true");
+                    }
                     if (optionTokens[0].startsWith("BUTTON_"))
                     {
                        VRControllerButtonMapping vb = new VRControllerButtonMapping(
@@ -930,7 +946,26 @@ public class VRSettings
                         return var4 + "SINGLE (Full)";
                     case MIRROR_MIXED_REALITY:
                         return var4 + "MIXED REALITY";
+                    case MIRROR_FIRST_PERSON:
+                        return var4 + "FP THIRD CAM";
                 }
+            case MIXED_REALITY_KEY_COLOR:
+                if (this.mixedRealityKeyColor.equals(new Color(0, 0, 0))) {
+                	return var4 + "BLACK";
+                } else if (this.mixedRealityKeyColor.equals(new Color(255, 0, 0))) {
+                	return var4 + "RED";
+                } else if (this.mixedRealityKeyColor.equals(new Color(255, 255, 0))) {
+                	return var4 + "YELLOW";
+                } else if (this.mixedRealityKeyColor.equals(new Color(0, 255, 0))) {
+                	return var4 + "GREEN";
+                } else if (this.mixedRealityKeyColor.equals(new Color(0, 255, 255))) {
+                	return var4 + "CYAN";
+                } else if (this.mixedRealityKeyColor.equals(new Color(0, 0, 255))) {
+                	return var4 + "BLUE";
+                } else if (this.mixedRealityKeyColor.equals(new Color(255, 0, 255))) {
+                	return var4 + "MAGENTA";
+                }
+                return var4 + this.mixedRealityKeyColor.getRed() + " " + this.mixedRealityKeyColor.getGreen() + " " + this.mixedRealityKeyColor.getBlue();
             case POS_TRACK_HIDE_COLLISION:
                 return this.posTrackBlankOnCollision ? var4 + "YES" : var4 + "NO";
             case WALK_UP_BLOCKS:
@@ -1106,6 +1141,8 @@ public class VRSettings
 	            return var4 + String.format("%.0f", new Object[] { Float.valueOf(this.vrWorldRotation) });
             case WORLD_ROTATION_INCREMENT:
 	            return var4 + String.format("%.0f", new Object[] { Float.valueOf(this.vrWorldRotationIncrement) });
+            case TOUCH_HOTBAR:
+            	return this.vrTouchHotbar ? var4 + "ON" : var4 + "OFF";
                 //END JRBUDDA
  	        default:
 	        	return "";
@@ -1250,8 +1287,27 @@ public class VRSettings
                 break;
             case MIRROR_DISPLAY:
                 this.displayMirrorMode++;
-                if (this.displayMirrorMode > MIRROR_MIXED_REALITY)
+                if (this.displayMirrorMode > MIRROR_FIRST_PERSON)
                     this.displayMirrorMode = MIRROR_OFF;
+                break;
+            case MIXED_REALITY_KEY_COLOR:
+            	if (this.mixedRealityKeyColor.equals(new Color(0, 0, 0))) {
+            		this.mixedRealityKeyColor = new Color(255, 0, 0);
+	            } else if (this.mixedRealityKeyColor.equals(new Color(255, 0, 0))) {
+	            	this.mixedRealityKeyColor = new Color(255, 255, 0);
+	            } else if (this.mixedRealityKeyColor.equals(new Color(255, 255, 0))) {
+	            	this.mixedRealityKeyColor = new Color(0, 255, 0);
+	            } else if (this.mixedRealityKeyColor.equals(new Color(0, 255, 0))) {
+	            	this.mixedRealityKeyColor = new Color(0, 255, 255);
+	            } else if (this.mixedRealityKeyColor.equals(new Color(0, 255, 255))) {
+	            	this.mixedRealityKeyColor = new Color(0, 0, 255);
+	            } else if (this.mixedRealityKeyColor.equals(new Color(0, 0, 255))) {
+	            	this.mixedRealityKeyColor = new Color(255, 0, 255);
+	            } else if (this.mixedRealityKeyColor.equals(new Color(255, 0, 255))) {
+	            	this.mixedRealityKeyColor = new Color(0, 0, 0);
+	            } else {
+	            	this.mixedRealityKeyColor = new Color(0, 0, 0);
+	            }
                 break;
             case POS_TRACK_HIDE_COLLISION:
                 this.posTrackBlankOnCollision = !this.posTrackBlankOnCollision;
@@ -1396,6 +1452,9 @@ public class VRSettings
                 break;
             case BCB_ON:
                 this.vrShowBlueCircleBuddy = !this.vrShowBlueCircleBuddy;
+                break;
+            case TOUCH_HOTBAR:
+                this.vrTouchHotbar = !this.vrTouchHotbar;
                 break;
                 //JRBUDDA
                 
@@ -1574,6 +1633,7 @@ public class VRSettings
             var5.println("useDynamicPrediction:" + this.useDynamicPrediction);
             var5.println("useDisplayOverdrive:" + this.useDisplayOverdrive);
             var5.println("displayMirrorMode:" + this.displayMirrorMode);
+            var5.println("mixedRealityKeyColor:" + this.mixedRealityKeyColor.getRed() + "," + this.mixedRealityKeyColor.getGreen() + "," + this.mixedRealityKeyColor.getBlue());
             var5.println("posTrackBlankOnCollision:" + this.posTrackBlankOnCollision);
             var5.println("walkUpBlocks:" + this.walkUpBlocks);
             var5.println("allowPitchAffectsHeightWhileFlying:" + this.allowPitchAffectsHeightWhileFlying);
@@ -1651,7 +1711,7 @@ public class VRSettings
             var5.println("vrFixedCamrotPitch:" + this.vrFixedCamrotPitch);
             var5.println("vrFixedCamrotYaw:" + this.vrFixedCamrotYaw);
             var5.println("vrFixedCamrotRoll:" + this.vrFixedCamrotRoll);
-
+            var5.println("vrTouchHotbar:" + this.vrTouchHotbar);
 
             if (vrQuickCommands == null) vrQuickCommands = getQuickCommandsDefaults(); //defaults
             
@@ -1926,6 +1986,7 @@ public class VRSettings
         RENDER_SCALEFACTOR("Render Scale", true, false),
         //ENABLE_DIRECT("Render Mode", false, true),
         MIRROR_DISPLAY("Mirror Display", false, true),
+        MIXED_REALITY_KEY_COLOR("MR Key Color", false, false),
         LOW_PERSISTENCE("Low Persistence", false, true),
         DYNAMIC_PREDICTION("Dynamic Prediction", false, true),
         OVERDRIVE_DISPLAY("Overdrive Display", false, true),
@@ -1976,6 +2037,7 @@ public class VRSettings
         WORLD_SCALE("World Scale", true, false),
         WORLD_ROTATION("World Rotation", true, false),
         WORLD_ROTATION_INCREMENT("Rotation Increment", true, false),
+        TOUCH_HOTBAR("Touch Hotbar Enabled", false, true),
         //END JRBUDDA
         
         // OTher buttons

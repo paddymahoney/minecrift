@@ -221,13 +221,7 @@ public class VRHotkeys {
 		
 		if (Keyboard.getEventKey() == Keyboard.KEY_HOME && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
-			Vec3 pos = Minecraft.getMinecraft().roomScale.getControllerPos_Room(0);
-			mc.vrSettings.vrFixedCamposX = (float) pos.xCoord;
-			mc.vrSettings.vrFixedCamposY = (float) pos.yCoord;
-			mc.vrSettings.vrFixedCamposZ = (float) pos.zCoord;
-
-			mc.vrSettings.vrFixedCamrotPitch = -Minecraft.getMinecraft().roomScale.getControllerMainPitch_World();
-			mc.vrSettings.vrFixedCamrotYaw = 180- Minecraft.getMinecraft().roomScale.getControllerMainYaw_World();
+			snapMRCam(mc);
 			gotKey = true;
 		}
 		
@@ -238,5 +232,16 @@ public class VRHotkeys {
 		}
 
 		return gotKey;
+	}
+
+	public static void snapMRCam(Minecraft mc) {
+		Vec3 pos = Minecraft.getMinecraft().roomScale.getControllerPos_Room(0);
+		mc.vrSettings.vrFixedCamposX = (float) pos.xCoord;
+		mc.vrSettings.vrFixedCamposY = (float) pos.yCoord;
+		mc.vrSettings.vrFixedCamposZ = (float) pos.zCoord;
+
+		mc.vrSettings.vrFixedCamrotPitch = -Minecraft.getMinecraft().roomScale.getControllerMainPitch_World();
+		mc.vrSettings.vrFixedCamrotYaw = 180- Minecraft.getMinecraft().roomScale.getControllerMainYaw_World();
+		mc.vrSettings.saveOptions();
 	}
 }
