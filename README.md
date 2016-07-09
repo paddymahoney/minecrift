@@ -19,7 +19,7 @@ Using this Repository
  - Run install.bat
  
 The install process (install.py) does a number of things:
- - It downloads MCP (Minecraft coder's pack) and extracts it up to the \mcp908\ directory.
+ - It downloads MCP (Minecraft coder's pack) and extracts it to the \mcp908\ directory.
  - It merges Optifine into vanilla minecraft jar.
  - It decompiles and deobfuscates the combined minecraft/optifine into \mcp908\src\.minecraft_orig_nofix\
  - It applies any patches found in \mcppacthes\ and copies the result to\mcp908\src\.minecraft_orig\
