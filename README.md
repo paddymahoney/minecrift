@@ -5,7 +5,7 @@ Minecrift Vive (jrbudda revision)
 This readme is intended for developers. For downloads and gameplay instructions please see the [official website](http://www.vivecraft.org/)
 
 
- ## Using this Repository
+ == Using this Repository ==
  
  Vivecraft uses a system of patches to avoid distributing Minecraft code. This complicates the build process a little bit.
  
