@@ -5,8 +5,8 @@ Minecrift Vive (jrbudda revision)
 This readme is intended for developers. For downloads and gameplay instructions please see the [official website](http://www.vivecraft.org/)
 
 
- Using this Repository
- ========
+Using this Repository
+========
  
  Vivecraft uses a system of patches to avoid distributing Minecraft code. This complicates the build process a little bit.
  
@@ -35,8 +35,8 @@ To build an installer:
  - run getchanges.bat. This compares mcp908\src\minecraft to mcp908\src\minecraft_orig. patches are generated for modified files and copied to \patches\. Whole new files are copied to \src\.
  - run build.bat. This takes the new files and patches and creates a jar. It then uses the code and jsons found in \installer\ to make an installer.exe.
 
- To update code from github
- ========
+To update code from github
+========
   - After pulling changes from github run applychanges.bat. This backs up mcp908\src\minecraft to mcp908\src\minecraft_bak, and starts over by applying all patches in \patches\ to mcp908\src\minecraft_orig, and copies the result o mcp908\src\minecraft
   
  
