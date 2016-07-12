@@ -163,6 +163,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     	if(!player.initFromServer) return;
         updateSwingAttack();
         
+        if(mc.vrSettings.seated) freeMoveMode = true;
+        
         this.checkandUpdateRotateScale(false);
 
 		/** MINECRIFT */
@@ -181,8 +183,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
        } else {
     	  // player.height = 1.8f;
        }
-      
-       
+             
         if (getFreeMoveMode()) {
         		if(player.movementInput.moveForward ==0) doPlayerMoveInRoom(player);
         	      NetworkHelper.sendVRPlayerPositions(this);

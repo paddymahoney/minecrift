@@ -561,6 +561,7 @@ public class MCOpenVR
 
 	public static boolean setKeyboardOverlayShowing(boolean showingState, GuiTextField gui) {
 		try {
+			if(mc.vrSettings.seated) showingState = false;
 			keyboardGui = gui;
 			int ret = 1;
 			if (showingState) {
@@ -1978,12 +1979,12 @@ public class MCOpenVR
 			double v = Mouse.getY() / (double) mc.displayHeight * 180 - 90;
 			
 			if(Display.isActive()){
-			if(h < -54){
+			if(h < -30){
 				mc.vrSettings.vrWorldRotation +=1;
 				hmdForwardYaw = (float)Math.toDegrees(Math.atan2(headDirection.x, headDirection.z));    
 				mc.vrPlayer.checkandUpdateRotateScale(true);
 			}
-			if(h > 54){
+			if(h > 30){
 				mc.vrSettings.vrWorldRotation -=1;
 				hmdForwardYaw = (float)Math.toDegrees(Math.atan2(headDirection.x, headDirection.z));    
 				mc.vrPlayer.checkandUpdateRotateScale(true);
