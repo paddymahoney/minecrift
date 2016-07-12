@@ -34,7 +34,8 @@ public class GuiMinecriftSettings extends BaseGuiSettings implements GuiEventEx
             new VROption(209,                                      VROption.Position.POS_LEFT,   2f, VROption.ENABLED, "Locomotion Settings..."),
             new VROption(210, 							           VROption.Position.POS_RIGHT,  3f, VROption.ENABLED, "Chat/Crosshair Settings..."),
             new VROption(220, 							           VROption.Position.POS_LEFT,   3f, VROption.ENABLED, "Controller Buttons..."),
-            new VROption(VRSettings.VrOptions.REVERSE_HANDS,       VROption.Position.POS_CENTER,   4.5f, VROption.ENABLED, null),
+            new VROption(VRSettings.VrOptions.PLAY_MODE_SEATED,       VROption.Position.POS_LEFT,   4.5f, VROption.ENABLED, null),
+            new VROption(VRSettings.VrOptions.REVERSE_HANDS,       VROption.Position.POS_RIGHT,   4.5f, VROption.ENABLED, null),
             new VROption(VRSettings.VrOptions.WORLD_SCALE,       	VROption.Position.POS_LEFT,   6f, VROption.ENABLED, null),
             new VROption(VRSettings.VrOptions.WORLD_ROTATION,       VROption.Position.POS_RIGHT,   6f, VROption.ENABLED, null),
             new VROption(VRSettings.VrOptions.WORLD_ROTATION_INCREMENT,VROption.Position.POS_RIGHT,   7f, VROption.ENABLED, null),
@@ -196,7 +197,7 @@ public class GuiMinecriftSettings extends BaseGuiSettings implements GuiEventEx
                 mc.vrSettings.vrWorldRotation = 0;
                 mc.vrSettings.vrWorldScale = 1;
                 mc.vrSettings.vrWorldRotationIncrement = 45f;
-                
+                mc.vrSettings.seated = false;
                 this.guivrSettings.saveOptions();
                 this.initGui();
             }
@@ -257,6 +258,12 @@ public class GuiMinecriftSettings extends BaseGuiSettings implements GuiEventEx
             return new String[] {
                     "How many degrees to rotate when",
                     "rotating the world."
+                    
+            };
+        case PLAY_MODE_SEATED:
+            return new String[] {
+                    "Standing or seated play mode",
+                    "Standing is vastly superior."
                     
             };
             default:

@@ -199,7 +199,10 @@ public class VRSettings
     public int vrHudLockMode = HUD_LOCK_HAND;
     public Color mixedRealityKeyColor = new Color();
     public float mixedRealityAspectRatio = 16F / 9F;
+    public boolean mixedRealityRenderHands = false;
+    public boolean insideBlockSolidColor = false;
     public boolean vrTouchHotbar = true;
+    public boolean seated = false;
     private Minecraft mc;
 
     private File optionsVRFile;
@@ -422,6 +425,16 @@ public class VRSettings
                     {
                         String[] split = optionTokens[1].split(",");
                         this.mixedRealityKeyColor = new Color(Integer.parseInt(split[0]), Integer.parseInt(split[1]), Integer.parseInt(split[2]));
+                    }
+
+                    if (optionTokens[0].equals("mixedRealityRenderHands"))
+                    {
+                        this.mixedRealityRenderHands = optionTokens[1].equals("true");
+                    }
+
+                    if (optionTokens[0].equals("insideBlockSolidColor"))
+                    {
+                        this.insideBlockSolidColor = optionTokens[1].equals("true");
                     }
 
                     if (optionTokens[0].equals("useDistortionTextureLookupOptimisation"))
@@ -775,6 +788,10 @@ public class VRSettings
                     {
                     	  this.vrTouchHotbar = optionTokens[1].equals("true");
                     }
+                    if (optionTokens[0].equals("seated"))
+                    {
+                    	  this.seated = optionTokens[1].equals("true");
+                    }
                     if (optionTokens[0].startsWith("BUTTON_"))
                     {
                        VRControllerButtonMapping vb = new VRControllerButtonMapping(
@@ -947,7 +964,7 @@ public class VRSettings
                     case MIRROR_MIXED_REALITY:
                         return var4 + "MIXED REALITY";
                     case MIRROR_FIRST_PERSON:
-                        return var4 + "FP THIRD CAM";
+                        return var4 + "UNDISTORTED";
                 }
             case MIXED_REALITY_KEY_COLOR:
                 if (this.mixedRealityKeyColor.equals(new Color(0, 0, 0))) {
@@ -968,6 +985,10 @@ public class VRSettings
                 return var4 + this.mixedRealityKeyColor.getRed() + " " + this.mixedRealityKeyColor.getGreen() + " " + this.mixedRealityKeyColor.getBlue();
             case POS_TRACK_HIDE_COLLISION:
                 return this.posTrackBlankOnCollision ? var4 + "YES" : var4 + "NO";
+            case MIXED_REALITY_RENDER_HANDS:
+                return this.mixedRealityRenderHands ? var4 + "YES" : var4 + "NO";
+            case INSIDE_BLOCK_SOLID_COLOR:
+            	return this.insideBlockSolidColor ? var4 + "SOLID COLOR" : var4 + "TEXTURE";
             case WALK_UP_BLOCKS:
                 return this.walkUpBlocks ? var4 + "YES" : var4 + "NO";
             case PITCH_AFFECTS_FLYING:
@@ -989,12 +1010,12 @@ public class VRSettings
 	            else
 	                return var4 + String.format("%.2fcm", new Object[] { Float.valueOf(this.renderPlayerOffset) });
             case MONO_FOV:
-                if(this.mc.gameSettings.fovSetting==110f)
+                /*if(this.mc.gameSettings.fovSetting==110f)
                     return var4 + "Quake Pro";
                 else if(this.mc.gameSettings.fovSetting==70f)
                     return var4 + "Normal";
-                else
-                    return var4 + String.format("%.0f°", new Object[] { Float.valueOf(this.mc.gameSettings.fovSetting) });
+                else*/
+                    return var4 + String.format("%.0f\u00B0", new Object[] { Float.valueOf(this.mc.gameSettings.fovSetting) });
 	        case PITCH_AFFECTS_CAMERA:
 	            return this.allowMousePitchInput ? var4 + "ON" : var4 + "OFF";
             case HUD_LOCK_TO:
@@ -1143,6 +1164,8 @@ public class VRSettings
 	            return var4 + String.format("%.0f", new Object[] { Float.valueOf(this.vrWorldRotationIncrement) });
             case TOUCH_HOTBAR:
             	return this.vrTouchHotbar ? var4 + "ON" : var4 + "OFF";
+            case PLAY_MODE_SEATED:
+            	return this.seated ? var4 + "SEATED" : var4 + "STANDING";
                 //END JRBUDDA
  	        default:
 	        	return "";
@@ -1309,6 +1332,12 @@ public class VRSettings
 	            	this.mixedRealityKeyColor = new Color(0, 0, 0);
 	            }
                 break;
+            case MIXED_REALITY_RENDER_HANDS:
+            	this.mixedRealityRenderHands = !this.mixedRealityRenderHands;
+            	break;
+            case INSIDE_BLOCK_SOLID_COLOR:
+            	this.insideBlockSolidColor = !this.insideBlockSolidColor;
+            	break;
             case POS_TRACK_HIDE_COLLISION:
                 this.posTrackBlankOnCollision = !this.posTrackBlankOnCollision;
                 break;
@@ -1455,6 +1484,9 @@ public class VRSettings
                 break;
             case TOUCH_HOTBAR:
                 this.vrTouchHotbar = !this.vrTouchHotbar;
+                break;
+            case PLAY_MODE_SEATED:
+                this.seated = !this.seated;
                 break;
                 //JRBUDDA
                 
@@ -1634,6 +1666,8 @@ public class VRSettings
             var5.println("useDisplayOverdrive:" + this.useDisplayOverdrive);
             var5.println("displayMirrorMode:" + this.displayMirrorMode);
             var5.println("mixedRealityKeyColor:" + this.mixedRealityKeyColor.getRed() + "," + this.mixedRealityKeyColor.getGreen() + "," + this.mixedRealityKeyColor.getBlue());
+            var5.println("mixedRealityRenderHands:" + this.mixedRealityRenderHands);
+            var5.println("insideBlockSolidColor:" + this.insideBlockSolidColor);
             var5.println("posTrackBlankOnCollision:" + this.posTrackBlankOnCollision);
             var5.println("walkUpBlocks:" + this.walkUpBlocks);
             var5.println("allowPitchAffectsHeightWhileFlying:" + this.allowPitchAffectsHeightWhileFlying);
@@ -1712,6 +1746,7 @@ public class VRSettings
             var5.println("vrFixedCamrotYaw:" + this.vrFixedCamrotYaw);
             var5.println("vrFixedCamrotRoll:" + this.vrFixedCamrotRoll);
             var5.println("vrTouchHotbar:" + this.vrTouchHotbar);
+            var5.println("seated:" + this.seated);
 
             if (vrQuickCommands == null) vrQuickCommands = getQuickCommandsDefaults(); //defaults
             
@@ -1955,7 +1990,7 @@ public class VRSettings
         RENDER_OWN_HEADWEAR("Render Own Headwear", false, true),
         RENDER_FULL_FIRST_PERSON_MODEL_MODE("First Person Model", false, true),
         RENDER_PLAYER_OFFSET("View Body Offset", true, false),
-        MONO_FOV("FOV", true, false),
+        MONO_FOV("Mirror/MR FOV", true, false),
         CONFIG_IPD_MODE("Set IPD", false, true),
         USE_PROFILE_PLAYER_HEIGHT("Use Height from", false, true),
         USE_PROFILE_IPD("Use IPD from", false, true),
@@ -1987,6 +2022,8 @@ public class VRSettings
         //ENABLE_DIRECT("Render Mode", false, true),
         MIRROR_DISPLAY("Mirror Display", false, true),
         MIXED_REALITY_KEY_COLOR("MR Key Color", false, false),
+        MIXED_REALITY_RENDER_HANDS("MR Show Hands", false, true),
+        INSIDE_BLOCK_SOLID_COLOR("Inside Block", false, true),
         LOW_PERSISTENCE("Low Persistence", false, true),
         DYNAMIC_PREDICTION("Dynamic Prediction", false, true),
         OVERDRIVE_DISPLAY("Overdrive Display", false, true),
@@ -2038,6 +2075,7 @@ public class VRSettings
         WORLD_ROTATION("World Rotation", true, false),
         WORLD_ROTATION_INCREMENT("Rotation Increment", true, false),
         TOUCH_HOTBAR("Touch Hotbar Enabled", false, true),
+        PLAY_MODE_SEATED("Play Mode", false, true),
         //END JRBUDDA
         
         // OTher buttons

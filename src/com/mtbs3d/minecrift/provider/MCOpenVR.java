@@ -474,6 +474,8 @@ public class MCOpenVR
 	public static void poll(long frameIndex)
 	{
 		Minecraft.getMinecraft().mcProfiler.startSection("input");
+		
+	if(!mc.vrSettings.seated){
 		pollInputEvents();
 
 		updateControllerButtonState();
@@ -493,7 +495,8 @@ public class MCOpenVR
 		if(mc.vrSettings.vrTouchHotbar && mc.vrSettings.vrHudLockMode != mc.vrSettings.HUD_LOCK_HEAD && hudPopup){
 			processHotbar();
 		}
-		
+	}
+	
 		Minecraft.getMinecraft().mcProfiler.endStartSection("updatePose");
 		updatePose();
 		Minecraft.getMinecraft().mcProfiler.endSection();
@@ -1260,7 +1263,7 @@ public class MCOpenVR
 				}
 				else {
 					mc.vrSettings.vrWorldRotation = walkaboutYawStart - yaw;
-					mc.vrPlayer.checkandUpdateRotateScale();
+					mc.vrPlayer.checkandUpdateRotateScale(true);
 				}
 			} else {
 				isWalkingAbout = false;
@@ -1287,7 +1290,7 @@ public class MCOpenVR
 				}
 				else {
 					mc.vrSettings.vrWorldRotation = walkaboutYawStart + yaw;
-					mc.vrPlayer.checkandUpdateRotateScale();
+					mc.vrPlayer.checkandUpdateRotateScale(true);
 				}
 			} else {
 				isFreeRotate = false;
@@ -1518,6 +1521,7 @@ public class MCOpenVR
 
 		Minecraft.getMinecraft().mcProfiler.startSection("waitForPoses");
 		vrCompositor.WaitGetPoses.apply(hmdTrackedDevicePoseReference, JOpenVRLibrary.k_unMaxTrackedDeviceCount, null, 0);
+		//vrsystem.GetDeviceToAbsoluteTrackingPose.apply(jopenvr.JOpenVRLibrary.ETrackingUniverseOrigin.ETrackingUniverseOrigin_TrackingUniverseStanding,0,hmdTrackedDevicePoseReference,JOpenVRLibrary.k_unMaxTrackedDeviceCount);
 		Minecraft.getMinecraft().mcProfiler.endSection();
 
 		for (int nDevice = 0; nDevice < JOpenVRLibrary.k_unMaxTrackedDeviceCount; ++nDevice )
@@ -1710,15 +1714,18 @@ public class MCOpenVR
 					(float) (0 + mc.vrPlayer.getRoomOriginPos_World().xCoord),
 					(float) (1.3f + mc.vrPlayer.getRoomOriginPos_World().yCoord),
 					(float) (-1.3f + mc.vrPlayer.getRoomOriginPos_World().zCoord));
+			
+			
 			guiRotationPose = new Matrix4f();
 			guiRotationPose.M[0][0] = guiRotationPose.M[1][1] = guiRotationPose.M[2][2] = guiRotationPose.M[3][3] = 1.0F;
 			guiRotationPose.M[0][1] = guiRotationPose.M[1][0] = guiRotationPose.M[2][3] = guiRotationPose.M[3][1] = 0.0F;
 			guiRotationPose.M[0][2] = guiRotationPose.M[1][2] = guiRotationPose.M[2][0] = guiRotationPose.M[3][2] = 0.0F;
 			guiRotationPose.M[0][3] = guiRotationPose.M[1][3] = guiRotationPose.M[2][1] = guiRotationPose.M[3][0] = 0.0F;
+			
 			return;
 		} else { //these dont update when screen open.
 			if (mc.currentScreen != null){
-				mc.vrPlayer.checkandUpdateRotateScale();
+				mc.vrPlayer.checkandUpdateRotateScale(false);
 			}
 		}		
 		
@@ -1909,42 +1916,13 @@ public class MCOpenVR
 	}
 
 	
+	private static float hmdForwardYaw;
+	
 	private static void updateAim() {
 		if (mc==null)
 			return;
-
-		// grab controller position in tracker space, scaled to minecraft units
-		Vector3f controllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
-		aimSource[0].xCoord = controllerPos.x;
-		aimSource[0].yCoord = controllerPos.y;
-		aimSource[0].zCoord = controllerPos.z;
-
 		Vector3f forward = new Vector3f(0,0,-1);
 		
-		// build matrix describing controller rotation
-		controllerRotation[0].M[0][0] = controllerPose[0].M[0][0];
-		controllerRotation[0].M[0][1] = controllerPose[0].M[0][1];
-		controllerRotation[0].M[0][2] = controllerPose[0].M[0][2];
-		controllerRotation[0].M[0][3] = 0.0F;
-		controllerRotation[0].M[1][0] = controllerPose[0].M[1][0];
-		controllerRotation[0].M[1][1] = controllerPose[0].M[1][1];
-		controllerRotation[0].M[1][2] = controllerPose[0].M[1][2];
-		controllerRotation[0].M[1][3] = 0.0F;
-		controllerRotation[0].M[2][0] = controllerPose[0].M[2][0];
-		controllerRotation[0].M[2][1] = controllerPose[0].M[2][1];
-		controllerRotation[0].M[2][2] = controllerPose[0].M[2][2];
-		controllerRotation[0].M[2][3] = 0.0F;
-		controllerRotation[0].M[3][0] = 0.0F;
-		controllerRotation[0].M[3][1] = 0.0F;
-		controllerRotation[0].M[3][2] = 0.0F;
-		controllerRotation[0].M[3][3] = 1.0F;
-
-		// Calculate aim angles from controller orientation
-		// Minecraft entities don't have a roll, so just base it on a direction
-		controllerDirection = controllerRotation[0].transform(forward);
-		aimPitch = (float)Math.toDegrees(Math.asin(controllerDirection.y/controllerDirection.length()));
-		aimYaw = (float)Math.toDegrees(Math.atan2(controllerDirection.x, controllerDirection.z));
-
 		hmdRotation.M[0][0] = hmdPose.M[0][0];
 		hmdRotation.M[0][1] = hmdPose.M[0][1];
 		hmdRotation.M[0][2] = hmdPose.M[0][2];
@@ -1964,6 +1942,77 @@ public class MCOpenVR
 		
 		headDirection = hmdRotation.transform(forward);
 		
+		if(mc.vrSettings.seated){
+			controllerPose[0] = hmdPose.inverted().inverted();
+			controllerPose[1] = hmdPose.inverted().inverted();
+		}
+		
+		// grab controller position in tracker space, scaled to minecraft units
+		Vector3f controllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[0]);
+		aimSource[0].xCoord = controllerPos.x;
+		aimSource[0].yCoord = controllerPos.y;
+		aimSource[0].zCoord = controllerPos.z;
+
+		// build matrix describing controller rotation
+		controllerRotation[0].M[0][0] = controllerPose[0].M[0][0];
+		controllerRotation[0].M[0][1] = controllerPose[0].M[0][1];
+		controllerRotation[0].M[0][2] = controllerPose[0].M[0][2];
+		controllerRotation[0].M[0][3] = 0.0F;
+		controllerRotation[0].M[1][0] = controllerPose[0].M[1][0];
+		controllerRotation[0].M[1][1] = controllerPose[0].M[1][1];
+		controllerRotation[0].M[1][2] = controllerPose[0].M[1][2];
+		controllerRotation[0].M[1][3] = 0.0F;
+		controllerRotation[0].M[2][0] = controllerPose[0].M[2][0];
+		controllerRotation[0].M[2][1] = controllerPose[0].M[2][1];
+		controllerRotation[0].M[2][2] = controllerPose[0].M[2][2];
+		controllerRotation[0].M[2][3] = 0.0F;
+		controllerRotation[0].M[3][0] = 0.0F;
+		controllerRotation[0].M[3][1] = 0.0F;
+		controllerRotation[0].M[3][2] = 0.0F;
+		controllerRotation[0].M[3][3] = 1.0F;
+
+		if(mc.vrSettings.seated){
+			org.lwjgl.util.vector.Matrix4f temp = new org.lwjgl.util.vector.Matrix4f();
+			
+			double h = Mouse.getX() / (double) mc.displayWidth * 110 - 55;
+			double v = Mouse.getY() / (double) mc.displayHeight * 180 - 90;
+			
+			if(Display.isActive()){
+			if(h < -54){
+				mc.vrSettings.vrWorldRotation +=1;
+				hmdForwardYaw = (float)Math.toDegrees(Math.atan2(headDirection.x, headDirection.z));    
+				mc.vrPlayer.checkandUpdateRotateScale(true);
+			}
+			if(h > 54){
+				mc.vrSettings.vrWorldRotation -=1;
+				hmdForwardYaw = (float)Math.toDegrees(Math.atan2(headDirection.x, headDirection.z));    
+				mc.vrPlayer.checkandUpdateRotateScale(true);
+			}
+			}
+			temp.rotate((float) Math.toRadians(-v), new org.lwjgl.util.vector.Vector3f(1,0,0));
+			
+			temp.rotate((float) Math.toRadians(-180 + h - hmdForwardYaw), new org.lwjgl.util.vector.Vector3f(0,1,0));
+			
+			controllerRotation[0].M[0][0] = temp.m00;
+			controllerRotation[0].M[0][1] = temp.m01;
+			controllerRotation[0].M[0][2] = temp.m02;
+			
+			controllerRotation[0].M[1][0] = temp.m10;
+			controllerRotation[0].M[1][1] = temp.m11;
+			controllerRotation[0].M[1][2] = temp.m12;
+			
+			controllerRotation[0].M[2][0] = temp.m20;
+			controllerRotation[0].M[2][1] = temp.m21;
+			controllerRotation[0].M[2][2] = temp.m22;
+		}
+		
+		// Calculate aim angles from controller orientation
+		// Minecraft entities don't have a roll, so just base it on a direction
+		controllerDirection = controllerRotation[0].transform(forward);
+		aimPitch = (float)Math.toDegrees(Math.asin(controllerDirection.y/controllerDirection.length()));
+		aimYaw = (float)Math.toDegrees(Math.atan2(controllerDirection.x, controllerDirection.z));
+
+	
 		// update off hand aim
 		Vector3f leftControllerPos = OpenVRUtil.convertMatrix4ftoTranslationVector(controllerPose[1]);
 		aimSource[1].xCoord = leftControllerPos.x;
@@ -1988,6 +2037,11 @@ public class MCOpenVR
 		controllerRotation[1].M[3][2] = 0.0F;
 		controllerRotation[1].M[3][3] = 1.0F;
 
+		if(mc.vrSettings.seated){
+			aimSource[1] = getCenterEyePosition();
+			aimSource[0] = getCenterEyePosition();
+		}
+		
 		lcontrollerDirection = controllerRotation[1].transform(forward);
 		laimPitch = (float)Math.toDegrees(Math.asin(lcontrollerDirection.y/lcontrollerDirection.length()));
 		laimYaw = (float)Math.toDegrees(Math.atan2(lcontrollerDirection.x, lcontrollerDirection.z));

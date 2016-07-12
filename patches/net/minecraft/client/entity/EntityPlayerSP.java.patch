@@ -603,7 +603,7 @@
 +    {
 +        super.setPositionAndRotation(x, y, z, yaw, pitch);
 +		
-+        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this, true);
++        OpenVRPlayer.get().snapRoomOriginToPlayerEntity(this, true, false);
 +      
 +		if(initFromServer == false){
 +            initFromServer = true;    
@@ -630,7 +630,7 @@
 +    	
 +    	if(!initFromServer) return;
 +    	else { //still init.
-+            mc.vrPlayer.snapRoomOriginToPlayerEntity(this, true);
++            mc.vrPlayer.snapRoomOriginToPlayerEntity(this, true, false);
 +            
 +//    		OpenVRPlayer.get().setRoomOrigin(
 +//    				posX + ox, 
@@ -650,7 +650,7 @@
 +    		OpenVRPlayer.get().setRoomOrigin(
 +    				posX + ox, 
 +    				this.ridingEntity.boundingBox.minY, 
-+    				posZ  + oz, false);
++    				posZ  + oz, false, false);
 +
 +    	} else
 +    		super.setPosition(x, y, z);
@@ -678,7 +678,7 @@
 +    			OpenVRPlayer.get().setRoomOrigin(
 +    					posX + ox, 
 +    					oy, 
-+    					posZ  + oz, false);
++    					posZ  + oz, false, false);
 +    					}
 +    	} else {
 +    		if(doY) {      	 
@@ -687,7 +687,7 @@
 +    				OpenVRPlayer.get().setRoomOrigin(
 +    					OpenVRPlayer.get().getRoomOriginPos_World().xCoord, 
 +    					this.boundingBox.minY, 
-+    					OpenVRPlayer.get().getRoomOriginPos_World().zCoord, false);
++    					OpenVRPlayer.get().getRoomOriginPos_World().zCoord, false, false);
 +    			}
 +
 +    		} else {

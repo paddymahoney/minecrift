@@ -85,7 +85,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +98,4779 @@
+@@ -61,2593 +98,4867 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -908,6 +908,8 @@
 +	public int callCount = 0;
 +	public boolean warningsEnabled = false;
 +	public Vec3 crossVec;
++	private FloatBuffer matrixBuffer = GLAllocation.createDirectFloatBuffer(16);
++	public org.lwjgl.util.vector.Matrix4f thirdPassProjectionMatrix = new org.lwjgl.util.vector.Matrix4f();
 +	/** END MINECRIFT */
 +
 +	public EntityRenderer(Minecraft p_i45076_1_, IResourceManager p_i45076_2_)
@@ -1416,7 +1418,7 @@
 +		else if(mc.currentPass == renderPass.Third){
 +			
 +			GL11.glRotatef(mc.vrSettings.vrFixedCamrotPitch, 1.0F, 0.0F, 0.0F);
-+			GL11.glRotatef(mc.vrSettings.vrFixedCamrotYaw, 0.0F, 1.0F, 0.0F);
++			GL11.glRotatef(mc.vrSettings.vrFixedCamrotYaw - mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
 +			GL11.glRotatef(mc.vrSettings.vrFixedCamrotRoll, 0.0F, 0.0F, 1.0F);
 +			
 +		} else 	{
@@ -1473,6 +1475,12 @@
 +		else
 +		{
 +			Project.gluPerspective(this.mc.gameSettings.fovSetting, this.mc.vrSettings.displayMirrorMode == VRSettings.MIRROR_MIXED_REALITY ? this.mc.vrSettings.mixedRealityAspectRatio : (float)this.mc.displayWidth / (float)this.mc.displayHeight, minClipDistance, clipDistance);
++		}
++		if (mc.currentPass == renderPass.Third) {
++			GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, matrixBuffer);
++			matrixBuffer.rewind();
++			this.thirdPassProjectionMatrix.load(matrixBuffer);
++			matrixBuffer.rewind();
 +		}
 +
 +		float var4;
@@ -1632,6 +1640,7 @@
 +					Vec3 pos = o.subtract(feets).addVector(0, 0.02, 0);
 +					Vec3 pos2 = o.subtract(mc.roomScale.getHMDPos_World());
 +					setupPolyRendering(true);
++					//renderCircle(pos2, 0.1f * mc.vrSettings.vrWorldScale, 32, 255, 255, 0, 255, 1);
 +						if(eyeCollision ){
 +							int was = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
 +							GL11.glDepthFunc(GL11.GL_ALWAYS);
@@ -1648,6 +1657,38 @@
 +					GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +					GL11.glPopMatrix();
 +			}
++		}
++		
++		
++		if((mc.currentPass == renderPass.Left || mc.currentPass == renderPass.Right) && mc.vrSettings.displayMirrorMode == mc.vrSettings.MIRROR_MIXED_REALITY){
++			//render the camera
++			GL11.glMatrixMode(GL11.GL_PROJECTION);
++			GL11.glPushMatrix();
++			GL11.glMatrixMode(GL11.GL_MODELVIEW);
++			GL11.glPushMatrix();
++				setupCameraTransform(par1, 0);
++			
++				Vec3 cam = getEyeRenderPos(renderPass.Third);
++				
++				Vec3 o = getEyeRenderPos(renderPass.Center );
++				
++				Vec3 pos = o.subtract(cam).addVector(0, 0.02, 0);
++				
++				GL11.glTranslated(pos.xCoord, pos.yCoord, pos.zCoord);
++				
++				GL11.glRotatef(-mc.vrSettings.vrFixedCamrotRoll, 0.0F, 0.0F, 1.0F);
++				GL11.glRotatef(180-mc.vrSettings.vrFixedCamrotYaw + mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
++				GL11.glRotatef(mc.vrSettings.vrFixedCamrotPitch, 1.0F, 0.0F, 0.0F);
++				
++				setupPolyRendering(true);
++					renderDebugAxes(0, 0, 0, 0.08f * mc.vrSettings.vrWorldScale); //TODO: camera model?
++				setupPolyRendering(false);
++					
++				GL11.glMatrixMode(GL11.GL_PROJECTION);
++				GL11.glPopMatrix();
++				GL11.glMatrixMode(GL11.GL_MODELVIEW);
++				GL11.glPopMatrix();
++			
 +		}
 +		
 +		if (shadersMod) {
@@ -2006,15 +2047,19 @@
 +			GL11.glDisable(GL11.GL_ALPHA_TEST);
 +			GL11.glEnable(GL11.GL_DEPTH_TEST);
 +
-+			this.mc.mcProfiler.startSection("renderGui");
-+				if(!mc.bowTracker.isDrawing)
-+					renderGuiLayer(par1);
-+			this.mc.mcProfiler.endSection();
++			if (this.mc.theWorld == null || mc.currentScreen instanceof GuiWinGame) {
++				this.mc.mcProfiler.startSection("renderGui");
++					if(!mc.bowTracker.isDrawing)
++						renderGuiLayer(par1);
++				this.mc.mcProfiler.endSection();
++			}
 +			
 +			
-+			if(mc.theWorld == null || mc.currentScreen instanceof GuiWinGame){
++			if((mc.theWorld == null || mc.currentScreen instanceof GuiWinGame) && (mc.currentPass != renderPass.Third || mc.vrSettings.mixedRealityRenderHands)){
 +				// VIVE START - render controllers in main menu
++				this.mc.mcProfiler.startSection("mainMenuHands");
 +				renderMainMenuHands();
++				this.mc.mcProfiler.endSection();
 +			}
 +			
 +			
@@ -2142,7 +2187,9 @@
 +	}
 +
 +	Frustrum currentFrustum = new Frustrum();
++	public int smcDepthBuffer;
 +	
++	public boolean irpUpdatedThisFrame = false;
 +	
 +	public void renderWorld(float par1, long par2)
 +	{
@@ -2168,9 +2215,16 @@
 +			interpolatedPlayerPos.yCoord = player.lastTickPosY + (player.posY - player.lastTickPosY) * (double)par1;
 +			interpolatedPlayerPos.zCoord = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * (double)par1;
 +	
-+			interPolatedRoomOrigin.xCoord = mc.vrPlayer.lastroomOrigin.xCoord + (mc.vrPlayer.roomOrigin.xCoord - mc.vrPlayer.lastroomOrigin.xCoord ) * (double)par1;
-+			interPolatedRoomOrigin.yCoord = mc.vrPlayer.lastroomOrigin.yCoord + (mc.vrPlayer.roomOrigin.yCoord - mc.vrPlayer.lastroomOrigin.yCoord ) * (double)par1;		
-+			interPolatedRoomOrigin.zCoord = mc.vrPlayer.lastroomOrigin.zCoord + (mc.vrPlayer.roomOrigin.zCoord - mc.vrPlayer.lastroomOrigin.zCoord ) * (double)par1;
++			if(irpUpdatedThisFrame){
++				interPolatedRoomOrigin.xCoord = mc.vrPlayer.roomOrigin.xCoord;	
++				interPolatedRoomOrigin.yCoord = mc.vrPlayer.roomOrigin.yCoord;		
++				interPolatedRoomOrigin.zCoord = mc.vrPlayer.roomOrigin.zCoord;		
++			}else{
++				interPolatedRoomOrigin.xCoord = mc.vrPlayer.lastroomOrigin.xCoord + (mc.vrPlayer.roomOrigin.xCoord - mc.vrPlayer.lastroomOrigin.xCoord ) * (double)par1;
++				interPolatedRoomOrigin.yCoord = mc.vrPlayer.lastroomOrigin.yCoord + (mc.vrPlayer.roomOrigin.yCoord - mc.vrPlayer.lastroomOrigin.yCoord ) * (double)par1;		
++				interPolatedRoomOrigin.zCoord = mc.vrPlayer.lastroomOrigin.zCoord + (mc.vrPlayer.roomOrigin.zCoord - mc.vrPlayer.lastroomOrigin.zCoord ) * (double)par1;
++				
++			}
 +		}
 +		
 +		
@@ -2222,16 +2276,16 @@
 +						//cross your fingers and pray
 +						IntBuffer bufs = (IntBuffer) Reflector.getFieldValue(Reflector.ShadersMod_Shaders_dfbDepthTextures);
 +
-+						int newtex = GL11.glGenTextures();
-+						GL11.glBindTexture((int)3553, newtex );
++						smcDepthBuffer = GL11.glGenTextures();
++						GL11.glBindTexture((int)3553, smcDepthBuffer );
 +						GL11.glTexParameteri((int)3553, (int)10242, (int)10496);
 +						GL11.glTexParameteri((int)3553, (int)10243, (int)10496);
 +						GL11.glTexParameteri((int)3553, (int)10241, (int)9728);
 +						GL11.glTexParameteri((int)3553, (int)10240, (int)9728);
 +						GL11.glTexParameteri((int)3553, (int)34891, (int)6409);
 +						GL11.glTexImage2D(GL11.GL_TEXTURE_2D, (int)0, GL30.GL_DEPTH24_STENCIL8, (int)mc.displayFBWidth, (int)mc.displayFBHeight, (int)0, GL30.GL_DEPTH_STENCIL,  GL30.GL_UNSIGNED_INT_24_8, (ByteBuffer)null);
-+						GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_STENCIL_ATTACHMENT, GL11.GL_TEXTURE_2D, newtex, (int)0);
-+						bufs.put(0, newtex);
++						GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_STENCIL_ATTACHMENT, GL11.GL_TEXTURE_2D, smcDepthBuffer, (int)0);
++						bufs.put(0, smcDepthBuffer);
 +						int ok = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
 +						System.out.println("hack stencil into SMC " + dfb + " " + dfb2 + " " +ok);
 +						mc.checkGLError("hack smc stencil");
@@ -2267,10 +2321,12 @@
 +					
 +					// Set up crosshair position
 +					float SLIGHTLY_CLOSER = 0.001f;
-+					Vec3 centerEyePosToCrossDirection =  getEyeRenderPos(mc.currentPass).subtract(crossVec).normalize();   // VIVE use camerapos
-+					crossX = (float)(crossVec.xCoord - (centerEyePosToCrossDirection.xCoord*SLIGHTLY_CLOSER) - mc.renderViewEntity.posX);
-+					crossY = (float)(crossVec.yCoord - (centerEyePosToCrossDirection.yCoord*SLIGHTLY_CLOSER) - mc.renderViewEntity.posY);
-+					crossZ = (float)(crossVec.zCoord - (centerEyePosToCrossDirection.zCoord*SLIGHTLY_CLOSER) - mc.renderViewEntity.posZ);
++					Vec3 eye = getEyeRenderPos(mc.currentPass);
++					Vec3 pos = mc.roomScale.getHMDPos_World();
++					Vec3 centerEyePosToCrossDirection = eye.subtract(crossVec).normalize();   // VIVE use camerapos
++					crossX = (float)(crossVec.xCoord - (centerEyePosToCrossDirection.xCoord*SLIGHTLY_CLOSER) -  pos.xCoord);
++					crossY = (float)(crossVec.yCoord - (centerEyePosToCrossDirection.yCoord*SLIGHTLY_CLOSER) -  pos.yCoord);
++					crossZ = (float)(crossVec.zCoord - (centerEyePosToCrossDirection.zCoord*SLIGHTLY_CLOSER) -  pos.zCoord);
 +				// information for the entire frame, not individual eye pos camRelX, Y, Z
 +			}
 +			/** END MINECRIFT */
@@ -2595,6 +2651,10 @@
 +					this.renderFPOverlay(par1);
 +				}
 +			}
++			
++		this.mc.mcProfiler.endStartSection("renderGui");
++			if(!mc.bowTracker.isDrawing)
++				renderGuiLayer(par1);
 +			
 +			/** END MINECRIFT */
 +			if (shadersMod) {
@@ -3816,10 +3876,10 @@
 +
 +
 +		float PIOVER180 = (float)(Math.PI/180);
-+		EntityLivingBase entity = this.mc.renderViewEntity;
++		EntityLivingBase entity = this.mc.thePlayer;
 +
 +
-+		if( entity != null )
++		if( entity != null ) //TODO: do this only once per tick?
 +		{		//now we decide what direction vector to set our 'entity' at.
 +			//This is used for all sorts of things both client and server side.
 +
@@ -3871,7 +3931,7 @@
 +							entity.rotationYaw = entity.rotationYawHead = -mc.roomScale.getControllerMainYaw_World();
 +							entity.rotationPitch = -mc.roomScale.getControllerMainPitch_World();
 +						}
-+						else if(i.getItem() == Items.bucket ){
++						else if(mc.vrPlayer.shouldIlookatMyHand){
 +							Vec3 playerToMain = interpolatedPlayerPos.subtract(mc.roomScale.getControllerPos_World(0)); //backwards
 +							float pitch = - (float)Math.toDegrees(Math.asin(playerToMain.yCoord/playerToMain.lengthVector()));
 +							float yaw = - (float)Math.toDegrees(Math.atan2(playerToMain.xCoord, playerToMain.zCoord));    
@@ -4244,8 +4304,24 @@
 +
 +
 +	private Vec3 getControllerRenderPos(int c){
-+		Vec3 out = mc.roomScale.getControllerPos_Room(c);
-+		out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
++		Vec3 out ;
++
++		if(mc.vrSettings.seated){	
++			Vec3 dir = mc.roomScale.getHMDDir_World();
++			dir.rotateAroundY((float) Math.toRadians(c==0?-35:35));
++			dir.yCoord = 0;
++			dir =dir.normalize();
++			if(mc.renderViewEntity != null && mc.theWorld != null){
++				out = mc.renderViewEntity.getPosition(0).addVector(dir.xCoord*0.3 * mc.vrSettings.vrWorldScale, -0.4* mc.vrSettings.vrWorldScale ,dir.zCoord*0.3* mc.vrSettings.vrWorldScale);
++			} else {
++				out = mc.roomScale.getHMDPos_World().addVector(dir.xCoord*0.3 * mc.vrSettings.vrWorldScale, -0.4* mc.vrSettings.vrWorldScale ,dir.zCoord*0.3* mc.vrSettings.vrWorldScale);
++			}
++			return out;
++		} else {
++			out= mc.roomScale.getControllerPos_Room(c);
++			out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
++		}
++		
 +		return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 +	}
 +	
@@ -4255,7 +4331,9 @@
 +			out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
 +			return out.addVector(interPolatedRoomOrigin.xCoord, interPolatedRoomOrigin.yCoord, interPolatedRoomOrigin.zCoord);
 +		} else if (currentPass == renderPass.Third){
-+			return interPolatedRoomOrigin.addVector(mc.vrSettings.vrFixedCamposX, mc.vrSettings.vrFixedCamposY, mc.vrSettings.vrFixedCamposZ);
++			Vec3 out = Vec3.createVectorHelper(mc.vrSettings.vrFixedCamposX *mc.vrSettings.vrWorldScale, mc.vrSettings.vrFixedCamposY *mc.vrSettings.vrWorldScale, mc.vrSettings.vrFixedCamposZ *mc.vrSettings.vrWorldScale);
++			out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
++			return interPolatedRoomOrigin.addVector(out.xCoord, out.yCoord, out.zCoord);
 +		} else {
 +			Vec3 out = mc.roomScale.getEyePos_Room(currentPass);
 +			out.rotateAroundY(mc.vrPlayer.worldRotationRadians);
@@ -4285,10 +4363,14 @@
 +				{
 +					if(mc.currentPass != renderPass.Third)
 +						eye = mc.roomScale.getEyePos_World(currentPass); //dont need interpolation.
-+					else 
-+						eye = mc.roomScale.getRoomOriginPos_World().addVector(mc.vrSettings.vrFixedCamposX, mc.vrSettings.vrFixedCamposY, mc.vrSettings.vrFixedCamposZ);
++					else {
++						eye = Vec3.createVectorHelper(mc.vrSettings.vrFixedCamposX *mc.vrSettings.vrWorldScale , mc.vrSettings.vrFixedCamposY *mc.vrSettings.vrWorldScale, mc.vrSettings.vrFixedCamposZ *mc.vrSettings.vrWorldScale);
++						eye.rotateAroundY(mc.vrPlayer.worldRotationRadians);
++						eye = mc.roomScale.getRoomOriginPos_World().addVector(eye.xCoord, eye.yCoord, eye.zCoord);
++					}
++					
 +					MCOpenVR.guiScale = mc.vrSettings.vrWorldScale;
-+					if (mc.vrSettings.vrHudLockMode == mc.vrSettings.HUD_LOCK_HEAD)
++					if (mc.vrSettings.seated || mc.vrSettings.vrHudLockMode == mc.vrSettings.HUD_LOCK_HEAD)
 +					{
 +						Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
 +						Matrix4f max = Matrix4f.multiply(rot, MCOpenVR.hmdRotation);
@@ -4392,7 +4474,7 @@
 +					GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
 +			} else {
 +				GL11.glRotatef(mc.vrSettings.vrFixedCamrotPitch, 1.0F, 0.0F, 0.0F);
-+				GL11.glRotatef(mc.vrSettings.vrFixedCamrotYaw, 0.0F, 1.0F, 0.0F);
++				GL11.glRotatef(mc.vrSettings.vrFixedCamrotYaw - mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
 +				GL11.glRotatef(mc.vrSettings.vrFixedCamrotRoll, 0.0F, 0.0F, 1.0F);
 +			}
 +
@@ -4435,12 +4517,13 @@
 +				}
 +				else
 +				{
-+					Project.gluPerspective(this.mc.gameSettings.fovSetting, 
-+							this.mc.vrSettings.displayMirrorMode == VRSettings.MIRROR_MIXED_REALITY ? 
-+									this.mc.vrSettings.mixedRealityAspectRatio : 
-+										(float)this.mc.displayWidth / (float) this.mc.displayHeight, 
-+										minClipDistance,
-+										clipDistance);
++					Project.gluPerspective(this.mc.gameSettings.fovSetting, this.mc.vrSettings.displayMirrorMode == VRSettings.MIRROR_MIXED_REALITY ? this.mc.vrSettings.mixedRealityAspectRatio : (float)this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
++				}
++				if (mc.currentPass == renderPass.Third && this.mc.theWorld == null) {
++					GL11.glGetFloat(GL11.GL_PROJECTION_MATRIX, matrixBuffer);
++					matrixBuffer.rewind();
++					this.thirdPassProjectionMatrix.load(matrixBuffer);
++					matrixBuffer.rewind();
 +				}
 +			
 +		
@@ -5005,7 +5088,7 @@
 +				if(i>1) i = 0;
 +				GL11.glMultMatrix(mc.eyeproj[i]);
 +			} else {
-+				Project.gluPerspective(this.mc.gameSettings.fovSetting, (float) this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
++				Project.gluPerspective(this.mc.gameSettings.fovSetting, this.mc.vrSettings.displayMirrorMode == VRSettings.MIRROR_MIXED_REALITY ? this.mc.vrSettings.mixedRealityAspectRatio : (float)this.mc.displayWidth / (float) this.mc.displayHeight, minClipDistance, clipDistance);
 +			}
 +			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +			GL11.glPushMatrix();
@@ -5013,11 +5096,16 @@
 +		
 +				GL11.glDisable(GL11.GL_TEXTURE_2D);
 +				GL11.glDisable(GL11.GL_ALPHA_TEST);
-+				GL11.glDisable(GL11.GL_DEPTH_TEST);
++				//GL11.glDisable(GL11.GL_DEPTH_TEST);
++				GL11.glDepthFunc(GL11.GL_ALWAYS);
 +		
 +				// counter head rotation
 +				if (mc.currentPass != renderPass.Third) {
 +					GL11.glMultMatrix(mc.roomScale.getHMDMatrix_World());
++				} else {
++					GL11.glRotatef(mc.vrSettings.vrFixedCamrotPitch, 1.0F, 0.0F, 0.0F);
++					GL11.glRotatef(mc.vrSettings.vrFixedCamrotYaw - mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
++					GL11.glRotatef(mc.vrSettings.vrFixedCamrotRoll, 0.0F, 0.0F, 1.0F);
 +				}
 +
 +				
@@ -5061,7 +5149,7 @@
 +				}
 +		
 +			
-+				
++				GL11.glDepthFunc(GL11.GL_LEQUAL);
 +				GL11.glEnable(GL11.GL_TEXTURE_2D);
 +
 +			GL11.glPopMatrix();

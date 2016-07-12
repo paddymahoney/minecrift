@@ -53,11 +53,11 @@ public class VivecraftMain
 			}
 				
 			transformers.add(2,new MinecriftClassTransformer(Stage.main));
-//			try {
-//				Class.forName("cpw.mods.fml.common.API"); // don't ask
-//				transformers.add(3, new MinecriftForgeClassTransformer());
-//				transformers.add(transformers.size() - 1, new MinecriftForgeLateClassTransformer());
-//			} catch (ClassNotFoundException e) {}
+			try {
+				Class.forName("cpw.mods.fml.common.API"); // don't ask
+				transformers.add(3, new MinecriftForgeClassTransformer());
+				transformers.add(transformers.size() - 1, new MinecriftForgeLateClassTransformer());
+			} catch (ClassNotFoundException e) {}
 	
 			if(encapsulate.size() > 0){ //Dirty Harry Potter.
 				transformers.add(new MinecriftClassTransformer(Stage.cache));

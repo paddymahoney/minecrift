@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/gui/GuiIngameMenu.java
 +++ b/net/minecraft/client/gui/GuiIngameMenu.java
-@@ -1,9 +1,14 @@
+@@ -1,9 +1,15 @@
  package net.minecraft.client.gui;
  
 +import com.google.common.base.Enums;
@@ -12,10 +12,11 @@
  import net.minecraft.client.multiplayer.WorldClient;
  import net.minecraft.client.resources.I18n;
 +import net.minecraft.client.settings.KeyBinding;
++import net.minecraft.util.ScreenShotHelper;
  
  public class GuiIngameMenu extends GuiScreen
  {
-@@ -11,29 +16,39 @@
+@@ -11,29 +17,40 @@
      private int field_146444_f;
      private static final String __OBFID = "CL_00000703";
  
@@ -47,8 +48,9 @@
 +    	this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height / 4 + 96 + var1, 98, 20, I18n.format("menu.options", new Object[0])));
 +    	this.buttonList.add(new GuiButton(100, this.width / 2 -100, this.height / 4 + 72 + var1,98,20, "Chat"));
 +    	this.buttonList.add(new GuiButton(101, this.width / 2 + 2, this.height / 4 + 72 + var1, 98, 20, "Commands"));
-+      	this.buttonList.add(new GuiButton(102, this.width / 2 - 100,this.height / 4 + 120 + var1, 48, 20, "Overlay"));
-+      	this.buttonList.add(new GuiButton(103, this.width / 2 - 48,this.height / 4 + 120 + var1, 48, 20, "Profiler"));
++      	this.buttonList.add(new GuiButton(102, this.width / 2 - 100,this.height / 4 + 120 + var1, 49, 20, "Overlay"));
++      	this.buttonList.add(new GuiButton(103, this.width / 2 - 50,this.height / 4 + 120 + var1, 49, 20, "Profiler"));
++      	this.buttonList.add(new GuiButton(104, this.width / 2 + 2,this.height / 4 + 120 + var1, 98,	 20, "Screenshot"));
 +
 +    	GuiButton var3;
 +    	this.buttonList.add(var3 = new GuiButton(7, this.width / 2 + 2, this.height / 4 + 96 + var1, 98, 20, I18n.format("menu.shareToLan", new Object[0])));
@@ -71,7 +73,7 @@
      }
  
      protected void actionPerformed(GuiButton button)
-@@ -52,24 +67,42 @@
+@@ -52,24 +69,42 @@
  
              case 2:
              case 3:
@@ -111,9 +113,9 @@
 +            case 103:
 +            	mc.gameSettings.showDebugProfilerChart = !mc.gameSettings.showDebugProfilerChart;
 +            	mc.gameSettings.showDebugInfo = mc.gameSettings.showDebugProfilerChart;
-+            	
-+            	//this.mc.displayGuiScreen((GuiScreen)null);
-+            	
++            case 104:
++            	this.mc.displayGuiScreen((GuiScreen)null);
++            	this.mc.ingameGUI.getChatGUI().printChatMessage(ScreenShotHelper.saveScreenshot(this.mc.mcDataDir, this.mc.displayWidth, this.mc.displayHeight, this.mc.getFramebuffer()));
 +            	break;
 +            default:
 +

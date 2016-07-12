@@ -68,10 +68,10 @@
 +            spawnPosition.yCoord = aimSource.yCoord + controllerDirection.yCoord * 0.1f;
 +            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.zCoord * 0.1f;
 +      	
-+            damage_ = (float) (Minecraft.getMinecraft().bowTracker.getDrawPercent() * 1.4f);
-+            
-+            this.setDamage(4f);
-+            
++            if(!Minecraft.getMinecraft().vrSettings.seated){
++            	damage_ = (float) (Minecraft.getMinecraft().bowTracker.getDrawPercent() * 1.4f);
++           	   this.setDamage(4f);
++            }
 +        }
 +    
 +        this.setLocationAndAngles(spawnPosition.xCoord, spawnPosition.yCoord ,spawnPosition.zCoord, yaw, pitch);

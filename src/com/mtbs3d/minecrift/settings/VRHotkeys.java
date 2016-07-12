@@ -218,15 +218,25 @@ public class VRHotkeys {
 			mc.vrSettings.vrFixedCamrotRoll += 0.05;	
 			gotKey = true;
 		}
-		
+		if (Keyboard.getEventKey() == Keyboard.KEY_INSERT && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+		{
+			mc.gameSettings.fovSetting +=1 ;
+			gotKey = true;
+		}
+		if (Keyboard.getEventKey() == Keyboard.KEY_DELETE && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
+
+		{
+			mc.gameSettings.fovSetting -=1 ;
+			gotKey = true;
+		}
 		if (Keyboard.getEventKey() == Keyboard.KEY_HOME && Keyboard.isKeyDown(Keyboard.KEY_RCONTROL))
 		{
 			snapMRCam(mc);
 			gotKey = true;
 		}
-		
+
 		// VIVE END - hotkeys
-	
+
 		if (gotKey) {
 			mc.vrSettings.saveOptions();
 		}
@@ -236,12 +246,12 @@ public class VRHotkeys {
 
 	public static void snapMRCam(Minecraft mc) {
 		Vec3 pos = Minecraft.getMinecraft().roomScale.getControllerPos_Room(0);
-		mc.vrSettings.vrFixedCamposX = (float) pos.xCoord;
-		mc.vrSettings.vrFixedCamposY = (float) pos.yCoord;
-		mc.vrSettings.vrFixedCamposZ = (float) pos.zCoord;
+		mc.vrSettings.vrFixedCamposX = (float) pos.xCoord /mc.vrSettings.vrWorldScale;
+		mc.vrSettings.vrFixedCamposY = (float) pos.yCoord /mc.vrSettings.vrWorldScale;
+		mc.vrSettings.vrFixedCamposZ = (float) pos.zCoord /mc.vrSettings.vrWorldScale;
 
 		mc.vrSettings.vrFixedCamrotPitch = -Minecraft.getMinecraft().roomScale.getControllerMainPitch_World();
-		mc.vrSettings.vrFixedCamrotYaw = 180- Minecraft.getMinecraft().roomScale.getControllerMainYaw_World();
+		mc.vrSettings.vrFixedCamrotYaw = 180- Minecraft.getMinecraft().roomScale.getControllerMainYaw_World() + mc.vrSettings.vrWorldRotation;
 		mc.vrSettings.saveOptions();
 	}
 }

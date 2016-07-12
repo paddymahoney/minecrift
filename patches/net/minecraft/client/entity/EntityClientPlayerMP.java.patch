@@ -131,7 +131,7 @@
          {
              this.oldPosX = this.posX;
              this.oldMinY = this.boundingBox.minY;
-@@ -193,7 +246,7 @@
+@@ -193,11 +246,14 @@
              this.ticksSinceMovePacket = 0;
          }
  
@@ -140,7 +140,14 @@
          {
              this.oldRotationYaw = this.rotationYaw;
              this.oldRotationPitch = this.rotationPitch;
-@@ -213,7 +266,9 @@
+         }
++        
++        mc.vrPlayer.IAmLookingAtMyHand = mc.vrPlayer.shouldIlookatMyHand;
++        
+     }
+ 
+     /**
+@@ -213,7 +269,9 @@
      /**
       * Joins the passed in entity item with the world. Args: entityItem
       */
@@ -151,7 +158,7 @@
  
      /**
       * Sends a chat message from the player. Args: chatMessage
-@@ -278,7 +333,7 @@
+@@ -278,7 +336,7 @@
          }
          else
          {

@@ -1,6 +1,6 @@
 --- a/net/minecraft/client/Minecraft.java
 +++ b/net/minecraft/client/Minecraft.java
-@@ -1,40 +1,101 @@
+@@ -1,40 +1,102 @@
  package net.minecraft.client;
  
 -import com.google.common.collect.Iterables;
@@ -90,6 +90,7 @@
 +import com.mtbs3d.minecrift.provider.OpenVRStereoRenderer;
 +import com.mtbs3d.minecrift.render.RenderConfigException;
 +import com.mtbs3d.minecrift.render.ShaderHelper;
++import com.mtbs3d.minecrift.render.VRShaders;
 +import com.mtbs3d.minecrift.settings.VRHotkeys;
 +import com.mtbs3d.minecrift.settings.VRSettings;
 +import com.mtbs3d.minecrift.utils.TextureSelector;
@@ -112,7 +113,7 @@
  import net.minecraft.client.entity.EntityClientPlayerMP;
  import net.minecraft.client.gui.FontRenderer;
  import net.minecraft.client.gui.GuiChat;
-@@ -68,6 +129,8 @@
+@@ -68,6 +130,8 @@
  import net.minecraft.client.renderer.RenderGlobal;
  import net.minecraft.client.renderer.Tessellator;
  import net.minecraft.client.renderer.WorldRenderer;
@@ -121,7 +122,7 @@
  import net.minecraft.client.renderer.entity.RenderManager;
  import net.minecraft.client.renderer.texture.DynamicTexture;
  import net.minecraft.client.renderer.texture.TextureManager;
-@@ -97,6 +160,7 @@
+@@ -97,6 +161,7 @@
  import net.minecraft.client.settings.GameSettings;
  import net.minecraft.client.settings.KeyBinding;
  import net.minecraft.client.shader.Framebuffer;
@@ -129,7 +130,7 @@
  import net.minecraft.client.stream.IStream;
  import net.minecraft.client.stream.NullStream;
  import net.minecraft.client.stream.TwitchStream;
-@@ -127,6 +191,8 @@
+@@ -127,6 +192,8 @@
  import net.minecraft.profiler.Profiler;
  import net.minecraft.server.MinecraftServer;
  import net.minecraft.server.integrated.IntegratedServer;
@@ -138,7 +139,7 @@
  import net.minecraft.stats.AchievementList;
  import net.minecraft.stats.IStatStringFormat;
  import net.minecraft.stats.StatFileWriter;
-@@ -142,6 +208,7 @@
+@@ -142,6 +209,7 @@
  import net.minecraft.util.Session;
  import net.minecraft.util.Timer;
  import net.minecraft.util.Util;
@@ -146,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +217,4886 @@
+@@ -150,2988 +218,4769 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1921,13 +1922,13 @@
 +	public int _DepthMask_scaleUniform = -1;
 +	public int _DepthMask_colorTexUniform = -1;
 +	public int _DepthMask_depthTexUniform = -1;
-+	public int _DepthMask_zNearUniform = -1;
-+	public int _DepthMask_zFarUniform = -1;
-+	public int _DepthMask_playerDepthUniform = -1;
++	public int _DepthMask_hmdViewPosition = -1;
++	public int _DepthMask_hmdPlaneNormal = -1;
++	public int _DepthMask_projectionMatrix = -1;
++	public int _DepthMask_viewMatrix = -1;
 +	public int _DepthMask_passUniform = -1;
 +	public int _DepthMask_keyColorUniform = -1;
-+	private FloatBuffer projectionMatrixBuf = GLAllocation.createDirectFloatBuffer(16);
-+	private FloatBuffer modelViewMatrixBuf = GLAllocation.createDirectFloatBuffer(16);
++	private FloatBuffer matrixBuffer = GLAllocation.createDirectFloatBuffer(16);
 +	private Framebuffer mirrorFB = null;
 +	private Framebuffer fsaaFirstPassResultFBO;
 +	private final float OCULUS_RED_COLOUR_COMPONENT = (1f/255f)*61f;
@@ -1969,7 +1970,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda27";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda28";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -3136,10 +3137,11 @@
 +					}
 +					/** END MINECRIFT FORGE **/
 +				}
-+			
++			this.mcProfiler.endSection();
++				
 +		if(currentPass != renderPass.Third) {	
 +			
-+			this.mcProfiler.endStartSection("postProcessing");
++			this.mcProfiler.startSection("postProcessing");
 +				doPostProcessing(frameIndex, nano);
 +				checkGLError("postpostprocess " + eye);
 +			this.mcProfiler.endSection();
@@ -3434,7 +3436,7 @@
 +			if (!this.inGameHasFocus)
 +			{
 +				this.inGameHasFocus = true;
-+				//this.mouseHelper.grabMouseCursor(); // NO. BAD.
++				if(vrSettings.seated) this.mouseHelper.grabMouseCursor(); // NO. BAD.
 +				this.displayGuiScreen((GuiScreen)null);
 +				this.leftClickCounter = 10000;
 +			}
@@ -5555,7 +5557,7 @@
 +
 +		if (this.thePlayer.isUsingItem())
 +		{
-+			if (!this.gameSettings.keyBindUseItem.getIsKeyPressed() && bowTracker.isActive(thePlayer) == false)
++			if (!this.gameSettings.keyBindUseItem.getIsKeyPressed() && (bowTracker.isActive(thePlayer) == false || vrSettings.seated))
 +			{
 +				this.playerController.onStoppedUsingItem(this.thePlayer);
 +			}
@@ -6789,14 +6791,11 @@
 +				if(currentPass2 != renderPass.Third) return false;
 +				//heres where the magic lives
 +				
-+				//TODO lots of unnecessary variables.
++				boolean hasShaders = Reflector.shadersModExists();
 +				
 +				this.framebufferMc.unbindFramebuffer();	//draw directly to window
 +				
-+				Vec3 campos = entityRenderer.getEyeRenderPos(renderPass.Third);
-+				Vector3f eye = new Vector3f((float)campos.xCoord, (float)campos.yCoord, (float)campos.zCoord);
-+				
-+				float yaw = (float) (vrSettings.vrFixedCamrotYaw);
++				float yaw = (float)(vrSettings.vrFixedCamrotYaw - vrSettings.vrWorldRotation);
 +				float pitch = (float)(vrSettings.vrFixedCamrotPitch);
 +										
 +		        float f = MathHelper.cos(-yaw * 0.017453292F - (float)Math.PI);
@@ -6804,14 +6803,11 @@
 +		        float f2 = -MathHelper.cos(-pitch * 0.017453292F);
 +		        float f3 = MathHelper.sin(-pitch * 0.017453292F);	
 +				
-+				Vector3f CameraLook = new Vector3f(-(f1 * f2), f3,-f*f2);
++				Vector3f CameraLook = new Vector3f(-(f1 * f2), f3, -f * f2);
 +
-+				Vec3 playerv = entityRenderer.getEyeRenderPos(renderPass.Center);
-+				Vector3f player = new Vector3f((float) playerv.xCoord, (float) playerv.yCoord, (float)playerv.zCoord);
-+				Vector3f cam_player = player.subtract(eye);
-+
-+				float dist = Math.abs(cam_player.dot(CameraLook));
-+
++				Vec3 camplayer = entityRenderer.getEyeRenderPos(renderPass.Third).subtract(entityRenderer.getEyeRenderPos(renderPass.Center));
++						
++				
 +				GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
 +				GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, framebuffer.framebufferObject);
 +				GL11.glClearColor(vrSettings.mixedRealityKeyColor.getRed() / 255F, vrSettings.mixedRealityKeyColor.getGreen() / 255F, vrSettings.mixedRealityKeyColor.getBlue() / 255F, 1);
@@ -6819,26 +6815,44 @@
 +				for(int i = 0; i < 2; i++) {
 +
 +					OpenGlHelper.glUseProgram(_DepthMask_shaderProgramId);
-+			
-+					ARBShaderObjects.glUniform2fARB(_DepthMask_resolutionUniform, displayWidth / 2, displayHeight );
++
++					// set projection matrix
++					entityRenderer.thirdPassProjectionMatrix.store(matrixBuffer);
++					matrixBuffer.rewind();
++					ARBShaderObjects.glUniformMatrix4ARB(_DepthMask_projectionMatrix, false, matrixBuffer);
++
++					// create view matrix
++					org.lwjgl.util.vector.Matrix4f viewMatrix = new org.lwjgl.util.vector.Matrix4f();
++					viewMatrix.rotate((float)Math.toRadians(vrSettings.vrFixedCamrotPitch), new org.lwjgl.util.vector.Vector3f(1.0F, 0.0F, 0.0F));
++					viewMatrix.rotate((float)Math.toRadians(vrSettings.vrFixedCamrotYaw - vrSettings.vrWorldRotation), new org.lwjgl.util.vector.Vector3f(0.0F, 1.0F, 0.0F));
++					viewMatrix.rotate((float)Math.toRadians(vrSettings.vrFixedCamrotRoll), new org.lwjgl.util.vector.Vector3f(0.0F, 0.0F, 1.0F));
++
++					// set view matrix
++					viewMatrix.store(matrixBuffer);
++					matrixBuffer.rewind();
++					ARBShaderObjects.glUniformMatrix4ARB(_DepthMask_viewMatrix, false, matrixBuffer);
++					
++					// set other uniforms
++					ARBShaderObjects.glUniform2fARB(_DepthMask_resolutionUniform, displayWidth / 2, displayHeight);
 +					ARBShaderObjects.glUniform2fARB(_DepthMask_positionUniform, (displayWidth / 2) * i, 0);
 +					ARBShaderObjects.glUniform1iARB(_DepthMask_colorTexUniform, 1);
 +					ARBShaderObjects.glUniform1iARB(_DepthMask_depthTexUniform, 2);
-+					ARBShaderObjects.glUniform1fARB(_DepthMask_zNearUniform, entityRenderer.minClipDistance);
-+					ARBShaderObjects.glUniform1fARB(_DepthMask_zFarUniform, entityRenderer.clipDistance);
-+					ARBShaderObjects.glUniform1fARB(_DepthMask_playerDepthUniform, dist ); // TODO
++					ARBShaderObjects.glUniform3fARB(_DepthMask_hmdViewPosition, (float)camplayer.xCoord, (float)camplayer.yCoord, (float)camplayer.zCoord);
++					ARBShaderObjects.glUniform3fARB(_DepthMask_hmdPlaneNormal, -CameraLook.x, 0, -CameraLook.z);
 +					ARBShaderObjects.glUniform1iARB(_DepthMask_passUniform, i);
 +					ARBShaderObjects.glUniform3fARB(_DepthMask_keyColorUniform, vrSettings.mixedRealityKeyColor.getRed() / 255F, vrSettings.mixedRealityKeyColor.getGreen() / 255F, vrSettings.mixedRealityKeyColor.getBlue() / 255F);
++
++					// bind color and depth textures
 +					GL13.glActiveTexture(GL13.GL_TEXTURE1);
 +					framebuffer.bindFramebufferTexture();
-+					//ARBSamplerObjects.glBindSampler(1, _DepthMask_colorTexUniform);
 +					GL13.glActiveTexture(GL13.GL_TEXTURE2);
-+					GL11.glBindTexture(GL11.GL_TEXTURE_2D, framebuffer.depthBuffer);
-+					//ARBSamplerObjects.glBindSampler(2, _DepthMask_depthTexUniform);
-+					
++					if (hasShaders) GL11.glBindTexture(GL11.GL_TEXTURE_2D, entityRenderer.smcDepthBuffer); // shaders mod has it's own depth buffer
++					else GL11.glBindTexture(GL11.GL_TEXTURE_2D, framebuffer.depthBuffer);
 +					GL13.glActiveTexture(GL13.GL_TEXTURE0);
++
++					// draw framebuffer
 +					framebufferMc.framebufferRender((displayWidth / 2) * i, displayWidth / 2, displayHeight, 0);
-+				
++
 +					OpenGlHelper.glUseProgram(0);
 +				}
 +				return true;
@@ -6879,35 +6893,6 @@
 +
 +		return false;
 +	}
-+	
-+	/**
-+	 * Probably kind of expensive, don't call often
-+	 */
-+	/*public float getDepthOfPosition(Vec3 pos) {
-+		Matrix4f projectionMatrix = new Matrix4f();
-+		Matrix4f modelViewMatrix = new Matrix4f();
-+		ClippingHelper clip = ClippingHelperImpl.getInstance();
-+		projectionMatrixBuf.rewind();
-+		modelViewMatrixBuf.rewind();
-+		for (float f : clip.projectionMatrix) {
-+			projectionMatrixBuf.put(f);
-+		}
-+		for (float f : clip.modelviewMatrix) {
-+			modelViewMatrixBuf.put(f);
-+		}
-+		projectionMatrixBuf.rewind();
-+		modelViewMatrixBuf.rewind();
-+		projectionMatrix.load(projectionMatrixBuf);
-+		modelViewMatrix.load(modelViewMatrixBuf);
-+		modelViewMatrix.translate(Utils.convertToVector3f(entityRenderer.getEyeRenderPos(renderPass.Third)).negate(null));
-+		Matrix4f mvp = Matrix4f.mul(projectionMatrix, modelViewMatrix, null);
-+		Vector4f tPos = Matrix4f.transform(mvp, new Vector4f((float)pos.xCoord, (float)pos.yCoord, (float)pos.zCoord, 1), null);
-+		float len = tPos.length() - entityRenderer.minClipDistance;
-+		//System.out.println(len);
-+		return len; 
-+	}*/
-+
-+	private int tex0, tex1;
 +	
 +	private void setupRenderConfiguration() throws Exception 
 +	{
@@ -7076,6 +7061,8 @@
 +			
 +			this.checkGLError("Mirror framebuffer setup");
 +
++			int tex0 = -1, tex1 = -1;
++			
 +			if (this.stereoProvider.providesRenderTextures())
 +			{ //always true
 +				// Source render textures
@@ -7100,7 +7087,10 @@
 +			}
 +			this.checkGLError("Render Texture setup");
 +
-+
++			if (tex0 == -1 || tex1 == -1) {
++				throw new Exception("Failed to create eye textures");
++			}
++			
 +			this.framebufferEye0 = new Framebuffer("L Eye", EyeTextureSize.w, EyeTextureSize.h, false,  false, false, 0, tex0);
 +			print(this.framebufferEye0.toString());
 +			this.checkGLError("Left Eye framebuffer setup");
@@ -7121,12 +7111,14 @@
 +			this.checkGLError("GUI framebuffer setup");
 +
 +			this.framebuffer.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
-+			//this.framebufferEye0.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
-+			//this.framebufferEye1.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
++			this.framebufferEye0.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
++			this.framebufferEye1.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
 +			this.guiFramebuffer.setFramebufferColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 0.0F);
 +			checkGLError("post color");
 +
-+			_DepthMask_shaderProgramId = ShaderHelper.initShaders(DEPTH_MASK_VERTEX_SHADER, DEPTH_MASK_FRAGMENT_SHADER, true);
++
++			_DepthMask_shaderProgramId = ShaderHelper.initShaders(VRShaders.DEPTH_MASK_VERTEX_SHADER, VRShaders.DEPTH_MASK_FRAGMENT_SHADER, true);
++			
 +			if (_DepthMask_shaderProgramId == 0) {
 +				throw new Exception("Failed to validate depth mask shader!");
 +			}
@@ -7136,9 +7128,10 @@
 +			_DepthMask_positionUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "position");
 +			_DepthMask_colorTexUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "colorTex");
 +			_DepthMask_depthTexUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "depthTex");
-+			_DepthMask_zNearUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "zNear");
-+			_DepthMask_zFarUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "zFar");
-+			_DepthMask_playerDepthUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "playerDepth");
++			_DepthMask_hmdViewPosition = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "hmdViewPosition");
++			_DepthMask_hmdPlaneNormal = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "hmdPlaneNormal");
++			_DepthMask_projectionMatrix = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "projectionMatrix");
++			_DepthMask_viewMatrix = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "viewMatrix");
 +			_DepthMask_passUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "pass");
 +			_DepthMask_keyColorUniform = ARBShaderObjects.glGetUniformLocationARB(_DepthMask_shaderProgramId, "keyColor");
 +			
@@ -7159,16 +7152,14 @@
 +					// GL11.GL_RGBA8
 +					checkGLError("pre FSAA FBO creation");
 +					// Lanczos downsample FBOs
-+					//fsaaFirstPassResultFBO = new FBOParams("FSAA Pass1 FBO1 ", GL11.GL_TEXTURE_2D, GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, EyeTextureSize.w, displayFBHeight, null);
 +					fsaaFirstPassResultFBO = new Framebuffer("FSAA Pass1 FBO",EyeTextureSize.w, displayFBHeight,false, false,false, 0, -1);
-+					//fsaaSecondPassResultFBO = new FBOParams("FSAA Pass2 FBO1", GL11.GL_TEXTURE_2D, GL11.GL_RGBA8, GL11.GL_RGBA, GL11.GL_INT, EyeTextureSize.w, EyeTextureSize.h, renderTexProvider);
 +						//TODO: ugh, support multiple color attachments in Framebuffer....
 +							
 +					print(this.fsaaFirstPassResultFBO.toString());
 +					
 +					checkGLError("FSAA FBO creation");
 +
-+					_Lanczos_shaderProgramId = ShaderHelper.initShaders(LANCZOS_SAMPLER_VERTEX_SHADER, LANCZOS_SAMPLER_FRAGMENT_SHADER, true);
++					_Lanczos_shaderProgramId = ShaderHelper.initShaders(VRShaders.LANCZOS_SAMPLER_VERTEX_SHADER, VRShaders.LANCZOS_SAMPLER_FRAGMENT_SHADER, true);
 +					if (_Lanczos_shaderProgramId == 0) {
 +						throw new Exception("Failed to validate FSAA shader!");
 +					}
@@ -7284,9 +7275,7 @@
 +		{
 +			if (this.theWorld.provider.dimensionId != this.lastDimensionId)
 +			{
-+				//changed = true;   // TODO: Re-enable when Lib OVR doesn't crash all the bloody time. We
-+				// can't currently change render config in-game, without a crash in
-+				// nvgl.dll glDrawArrays
++				changed = true;
 +			}
 +		}
 +
@@ -7500,94 +7489,100 @@
 +	
 +		if (this.vrSettings.useFsaa && currentPass != renderPass.Center)
 +		{
-+			if (this.fsaaFirstPassResultFBO == null){
-+				this.reinitFramebuffers = true;
-+				return;
-+			} else {
++			doFSAA();
++		}
++		
++	}
++	
 +
-+				GL11.glDisable(GL11.GL_ALPHA_TEST);
-+				GL11.glDisable(GL11.GL_BLEND);
++	private void doFSAA() {
++		if (this.fsaaFirstPassResultFBO == null){
++			this.reinitFramebuffers = true;
++			return;
++		} else {
 +
-+				// Setup ortho projection
-+				GL11.glMatrixMode(GL11.GL_PROJECTION);
++			GL11.glDisable(GL11.GL_ALPHA_TEST);
++			GL11.glDisable(GL11.GL_BLEND);
++
++			// Setup ortho projection
++			GL11.glMatrixMode(GL11.GL_PROJECTION);
++			GL11.glPushMatrix();
++				GL11.glLoadIdentity();
++				GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +				GL11.glPushMatrix();
 +					GL11.glLoadIdentity();
-+					GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+					GL11.glPushMatrix();
-+						GL11.glLoadIdentity();
-+		
-+						GL11.glTranslatef(0.0f, 0.0f, -.7f);
-+						// Pass 1 - horizontal
-+						// Now switch to 1st pass FSAA result target framebuffer
-+						this.fsaaFirstPassResultFBO.bindFramebuffer(true);
-+		
-+						// Bind the FBO Texture
-+						this.framebuffer.bindFramebufferTexture();
-+		
-+						GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
-+						GL11.glClearDepth(1.0D);
-+						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer
-+		
-+						// Render onto the entire screen framebuffer
-+						GL11.glViewport(0, 0, fsaaFirstPassResultFBO.framebufferWidth, fsaaFirstPassResultFBO.framebufferHeight);
-+		
-+						// Set the downsampling shader as in use
-+						ARBShaderObjects.glUseProgramObjectARB(_Lanczos_shaderProgramId);
-+		
-+						// Set up the fragment shader uniforms
-+						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 1.0f / (3.0f * (float) fsaaFirstPassResultFBO.framebufferWidth));
-+						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 0.0f);
-+						ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
-+		
-+						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
-+		
-+						drawQuad();
-+		
-+						// checkGLError("After Lanczos Pass1");
-+		
-+						// Pass 2 - Vertial
-+						// Now switch to 2nd pass screen framebuffer
-+						Framebuffer curr = this.currentPass == renderPass.Left? this.framebufferEye0 : this.framebufferEye1;
-+						
-+						curr.bindFramebuffer(true);
-+						//curr.selectTexture(0); //this is our Eye tex!
-+						
-+						checkGLError("postselect");
-+						fsaaFirstPassResultFBO.bindFramebufferTexture();
-+						
-+						checkGLError("posttex");
-+						
-+						GL11.glViewport(0, 0,curr.framebufferWidth, curr.framebufferHeight);
-+						
-+						GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
-+						GL11.glClearDepth(1.0D);
-+						GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-+						checkGLError("postclear");
-+						// Bind the texture
-+						GL13.glActiveTexture(GL13.GL_TEXTURE0);
-+						checkGLError("postact");
-+						// Set up the fragment shader uniforms for pass 2
-+						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 0.0f);
-+						ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 1.0f / (3.0f * (float) framebufferEye0.framebufferHeight));
-+						ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
-+						
-+						drawQuad();
-+		
-+						checkGLError("postdraw");
-+						
-+						
-+						// Stop shader use
-+						ARBShaderObjects.glUseProgramObjectARB(0);
-+						// checkGLError("After Lanczos Pass2");
-+							
-+						GL11.glEnable(GL11.GL_ALPHA_TEST);
-+						GL11.glEnable(GL11.GL_BLEND);
 +
-+						GL11.glMatrixMode(GL11.GL_PROJECTION);
-+						GL11.glPopMatrix();		
-+					GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+					GL11.glPopMatrix();
-+			}
++					GL11.glTranslatef(0.0f, 0.0f, -.7f);
++					// Pass 1 - horizontal
++					// Now switch to 1st pass FSAA result target framebuffer
++					this.fsaaFirstPassResultFBO.bindFramebuffer(true);
++
++					// Bind the FBO Texture
++					this.framebuffer.bindFramebufferTexture();
++
++					GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
++					GL11.glClearDepth(1.0D);
++					GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);            // Clear Screen And Depth Buffer on the framebuffer
++
++					// Render onto the entire screen framebuffer
++					GL11.glViewport(0, 0, fsaaFirstPassResultFBO.framebufferWidth, fsaaFirstPassResultFBO.framebufferHeight);
++
++					// Set the downsampling shader as in use
++					ARBShaderObjects.glUseProgramObjectARB(_Lanczos_shaderProgramId);
++
++					// Set up the fragment shader uniforms
++					ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 1.0f / (3.0f * (float) fsaaFirstPassResultFBO.framebufferWidth));
++					ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 0.0f);
++					ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
++
++					GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
++
++					drawQuad();
++
++					// checkGLError("After Lanczos Pass1");
++
++					// Pass 2 - Vertial
++					// Now switch to 2nd pass screen framebuffer
++					Framebuffer curr = this.currentPass == renderPass.Left? this.framebufferEye0 : this.framebufferEye1;
++					
++					curr.bindFramebuffer(true);
++					//curr.selectTexture(0); //this is our Eye tex!
++					
++					checkGLError("postselect");
++					fsaaFirstPassResultFBO.bindFramebufferTexture();
++					
++					checkGLError("posttex");
++					
++					GL11.glViewport(0, 0,curr.framebufferWidth, curr.framebufferHeight);
++					
++					GL11.glClearColor(RED_COLOUR_COMPONENT, GREEN_COLOUR_COMPONENT, BLUE_COLOUR_COMPONENT, 1.0f);
++					GL11.glClearDepth(1.0D);
++					GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
++					checkGLError("postclear");
++					// Bind the texture
++					GL13.glActiveTexture(GL13.GL_TEXTURE0);
++					checkGLError("postact");
++					// Set up the fragment shader uniforms for pass 2
++					ARBShaderObjects.glUniform1fARB(_LanczosShader_texelWidthOffsetUniform, 0.0f);
++					ARBShaderObjects.glUniform1fARB(_LanczosShader_texelHeightOffsetUniform, 1.0f / (3.0f * (float) framebufferEye0.framebufferHeight));
++					ARBShaderObjects.glUniform1iARB(_LanczosShader_inputImageTextureUniform, 0);
++					
++					drawQuad();
++
++					checkGLError("postdraw");
++					
++					
++					// Stop shader use
++					ARBShaderObjects.glUseProgramObjectARB(0);
++					// checkGLError("After Lanczos Pass2");
++						
++					GL11.glEnable(GL11.GL_ALPHA_TEST);
++					GL11.glEnable(GL11.GL_BLEND);
++
++					GL11.glMatrixMode(GL11.GL_PROJECTION);
++					GL11.glPopMatrix();		
++				GL11.glMatrixMode(GL11.GL_MODELVIEW);
++				GL11.glPopMatrix();
 +		}
 +	}
 +
@@ -7814,119 +7809,8 @@
 +		}
 +	}
 +	
-+	public static final String DEPTH_MASK_VERTEX_SHADER = 
-+					"#version 110\n" +
-+					//"layout(location = 0) in vec4 in_position;\n" +
-+					"void main() {\n" +
-+					    "gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n" +
-+					"}\n";
-+
-+	public static final String DEPTH_MASK_FRAGMENT_SHADER = 
-+					"#version 330\n" +
-+					"uniform vec2 resolution;\n"+
-+					"uniform vec2 position;\n"+
-+					"uniform sampler2D colorTex;\n"+
-+					"uniform sampler2D depthTex;\n"+
-+					"uniform float zNear;\n"+
-+					"uniform float zFar;\n"+
-+					"uniform float playerDepth;\n"+
-+					"uniform int pass;\n"+
-+					"uniform vec3 keyColor;\n"+
-+					"out vec4 out_Color;\n"+
-+					"void main (void) {\n" + 
-+						"vec2 pos = (gl_FragCoord.xy - position) / resolution;\n" +
-+						"float rawDepth = texture(depthTex, pos).x * 2.0 - 1.0;\n"+
-+						"float depth = (2 * zFar * zNear) / (zFar + zNear - rawDepth * (zFar - zNear));\n"+
-+					    "if ((pass == 0 && playerDepth >= depth) || (pass == 1 && playerDepth <= depth)) {\n"+
-+					    	"vec4 color = texture(colorTex, pos);\n"+
-+					    	"vec3 diff = color.rgb - keyColor;\n"+ // The following code prevents actual colors from matching the key color and looking weird
-+					    	"if (keyColor.r < 0.004 && keyColor.g < 0.004 && keyColor.b < 0.004 && color.r < 0.004 && color.g < 0.004 && color.b < 0.004) {\n"+
-+				    			"color = vec4(0.004, 0.004, 0.004, 1);\n"+
-+					    	"} else if (diff.r < 0.004 && diff.g < 0.004 && diff.b < 0.004) {\n"+
-+				    			"color = vec4(color.r - 0.004, color.g - 0.004, color.b - 0.004, color.a);\n"+
-+					    	"}\n"+
-+							"out_Color = color;\n" +
-+							//"out_Color = vec4(vec3(depth / zFar), 1);\n"+ // Draw depth buffer
-+						"} else {\n"+
-+							"discard;\n"+ // Throw out the fragment to save some GPU processing
-+							//"out_Color = vec4(1, 0, 1, 1);\n"+
-+						"}\n"+
-+					"}\n";
 +	
-+	public static final String LANCZOS_SAMPLER_VERTEX_SHADER =
-+			"#version 120\n" +
-+					"\n" +
-+					" uniform float texelWidthOffset;\n" +
-+					" uniform float texelHeightOffset;\n" +
-+					"\n" +
-+					" varying vec2 centerTextureCoordinate;\n" +
-+					" varying vec2 oneStepLeftTextureCoordinate;\n" +
-+					" varying vec2 twoStepsLeftTextureCoordinate;\n" +
-+					" varying vec2 threeStepsLeftTextureCoordinate;\n" +
-+					" varying vec2 fourStepsLeftTextureCoordinate;\n" +
-+					" varying vec2 oneStepRightTextureCoordinate;\n" +
-+					" varying vec2 twoStepsRightTextureCoordinate;\n" +
-+					" varying vec2 threeStepsRightTextureCoordinate;\n" +
-+					" varying vec2 fourStepsRightTextureCoordinate;\n" +
-+					"\n" +
-+					" void main()\n" +
-+					" {\n" +
-+					"     gl_Position = ftransform();\n" +
-+					"\n" +
-+					"     vec2 firstOffset = vec2(texelWidthOffset, texelHeightOffset);\n" +
-+					"     vec2 secondOffset = vec2(2.0 * texelWidthOffset, 2.0 * texelHeightOffset);\n" +
-+					"     vec2 thirdOffset = vec2(3.0 * texelWidthOffset, 3.0 * texelHeightOffset);\n" +
-+					"     vec2 fourthOffset = vec2(4.0 * texelWidthOffset, 4.0 * texelHeightOffset);\n" +
-+					"\n" +
-+					"     vec2 textCoord = gl_MultiTexCoord0.xy;\n" +
-+					"     centerTextureCoordinate = textCoord;\n" +
-+					"     oneStepLeftTextureCoordinate = textCoord - firstOffset;\n" +
-+					"     twoStepsLeftTextureCoordinate = textCoord - secondOffset;\n" +
-+					"     threeStepsLeftTextureCoordinate = textCoord - thirdOffset;\n" +
-+					"     fourStepsLeftTextureCoordinate = textCoord - fourthOffset;\n" +
-+					"     oneStepRightTextureCoordinate = textCoord + firstOffset;\n" +
-+					"     twoStepsRightTextureCoordinate = textCoord + secondOffset;\n" +
-+					"     threeStepsRightTextureCoordinate = textCoord + thirdOffset;\n" +
-+					"     fourStepsRightTextureCoordinate = textCoord + fourthOffset;\n" +
-+					" }\n";
 +
-+	public static final String LANCZOS_SAMPLER_FRAGMENT_SHADER =
-+
-+			"#version 120\n" +
-+					"\n" +
-+					" uniform sampler2D inputImageTexture;\n" +
-+					"\n" +
-+					" varying vec2 centerTextureCoordinate;\n" +
-+					" varying vec2 oneStepLeftTextureCoordinate;\n" +
-+					" varying vec2 twoStepsLeftTextureCoordinate;\n" +
-+					" varying vec2 threeStepsLeftTextureCoordinate;\n" +
-+					" varying vec2 fourStepsLeftTextureCoordinate;\n" +
-+					" varying vec2 oneStepRightTextureCoordinate;\n" +
-+					" varying vec2 twoStepsRightTextureCoordinate;\n" +
-+					" varying vec2 threeStepsRightTextureCoordinate;\n" +
-+					" varying vec2 fourStepsRightTextureCoordinate;\n" +
-+					"\n" +
-+					" // sinc(x) * sinc(x/a) = (a * sin(pi * x) * sin(pi * x / a)) / (pi^2 * x^2)\n" +
-+					" // Assuming a Lanczos constant of 2.0, and scaling values to max out at x = +/- 1.5\n" +
-+					"\n" +
-+					" void main()\n" +
-+					" {\n" +
-+					"     vec4 fragmentColor = texture2D(inputImageTexture, centerTextureCoordinate) * 0.38026;\n" +
-+					"\n" +
-+					"     fragmentColor += texture2D(inputImageTexture, oneStepLeftTextureCoordinate) * 0.27667;\n" +
-+					"     fragmentColor += texture2D(inputImageTexture, oneStepRightTextureCoordinate) * 0.27667;\n" +
-+					"\n" +
-+					"     fragmentColor += texture2D(inputImageTexture, twoStepsLeftTextureCoordinate) * 0.08074;\n" +
-+					"     fragmentColor += texture2D(inputImageTexture, twoStepsRightTextureCoordinate) * 0.08074;\n" +
-+					"\n" +
-+					"     fragmentColor += texture2D(inputImageTexture, threeStepsLeftTextureCoordinate) * -0.02612;\n" +
-+					"     fragmentColor += texture2D(inputImageTexture, threeStepsRightTextureCoordinate) * -0.02612;\n" +
-+					"\n" +
-+					"     fragmentColor += texture2D(inputImageTexture, fourStepsLeftTextureCoordinate) * -0.02143;\n" +
-+					"     fragmentColor += texture2D(inputImageTexture, fourStepsRightTextureCoordinate) * -0.02143;\n" +
-+					"\n" +
-+					"     gl_FragColor = fragmentColor;\n" +
-+					" }\n";
 +	public FloatBuffer[] eyeproj = new FloatBuffer[2]; //i dislike you.
 +
 +

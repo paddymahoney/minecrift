@@ -90,24 +90,27 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         }
     }
     
-    public void setRoomOrigin(double x, double y, double z, boolean reset ) { 
-    	if (reset){
-    		//interPolatedRoomOrigin = Vec3.createVectorHelper(x, y, z);
-    		lastroomOrigin = Vec3.createVectorHelper(x, y, z);
-    	} else {
-        	this.lastroomOrigin.xCoord = roomOrigin.xCoord ;
-        	this.lastroomOrigin.yCoord = roomOrigin.yCoord ;
-        	this.lastroomOrigin.zCoord = roomOrigin.zCoord ;
-    	}
-    	    
+    public void setRoomOrigin(double x, double y, double z, boolean reset, boolean onframe ) { 
+	    if(!onframe){
+	    	if (reset){
+		    		//interPolatedRoomOrigin = Vec3.createVectorHelper(x, y, z);
+		    		lastroomOrigin = Vec3.createVectorHelper(x, y, z);
+		    	} else {
+		        	this.lastroomOrigin.xCoord = roomOrigin.xCoord ;
+		        	this.lastroomOrigin.yCoord = roomOrigin.yCoord ;
+		        	this.lastroomOrigin.zCoord = roomOrigin.zCoord ;
+		    	}
+	    }
+	    
     	this.roomOrigin.xCoord = x;
     	this.roomOrigin.yCoord = y;
     	this.roomOrigin.zCoord = z;
         lastRoomUpdateTime = Minecraft.getMinecraft().stereoProvider.getCurrentTimeSecs();
+        Minecraft.getMinecraft().entityRenderer.irpUpdatedThisFrame = onframe;
     }
     
     //set room 
-    public void snapRoomOriginToPlayerEntity(Entity player, boolean reset)
+    public void snapRoomOriginToPlayerEntity(Entity player, boolean reset, boolean onFrame)
     {
         if (Thread.currentThread().getName().equals("Server thread"))
             return;
@@ -120,31 +123,39 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         
         campos.rotateAroundY(worldRotationRadians);
                 
-        double x = player.posX - campos.xCoord;
-        double y = player.boundingBox.minY;
-        double z = player.posZ - campos.zCoord;
+        double x,y,z;
 
-        setRoomOrigin(x, y, z, reset);
+        if(onFrame){
+        	x = mc.entityRenderer.interpolatedPlayerPos.xCoord - campos.xCoord;
+        	y = mc.entityRenderer.interpolatedPlayerPos.yCoord - player.yOffset;
+          	z = mc.entityRenderer.interpolatedPlayerPos.zCoord - campos.zCoord;
+        } else {
+             x = player.posX - campos.xCoord;
+             y = player.boundingBox.minY;
+             z = player.posZ - campos.zCoord;
+        }
+        
+        setRoomOrigin(x, y, z, reset, onFrame);
         this.roomScaleMovementDelay = 3;
         
     }
     
     public  double topofhead = 1.62;
-    
-    
+        
     private float lastworldRotation= 0f;
 	private float lastWorldScale;
     
-	public void checkandUpdateRotateScale(){
+	public void checkandUpdateRotateScale(boolean onFrame){
 		Minecraft mc = Minecraft.getMinecraft();
-	    this.worldScale =  mc.vrSettings.vrWorldScale;
+	  if(!onFrame)  this.worldScale =  mc.vrSettings.vrWorldScale;
 	    this.worldRotationRadians = (float) Math.toRadians(mc.vrSettings.vrWorldRotation);
 	    
 	    if (worldRotationRadians!= lastworldRotation || worldScale != lastWorldScale) {
-	    	if(mc.thePlayer!=null)snapRoomOriginToPlayerEntity(mc.thePlayer, true);
+	    	if(mc.thePlayer!=null) 
+	    		snapRoomOriginToPlayerEntity(mc.thePlayer, true, onFrame);
 	    }
 	    lastworldRotation = worldRotationRadians;
-	    lastWorldScale = worldScale;		
+	    if(!onFrame)    lastWorldScale = worldScale;		
 	}
 	
     public void onLivingUpdate(EntityPlayerSP player, Minecraft mc, Random rand)
@@ -152,7 +163,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
     	if(!player.initFromServer) return;
         updateSwingAttack();
         
-        this.checkandUpdateRotateScale();
+        this.checkandUpdateRotateScale(false);
 
 		/** MINECRIFT */
 		mc.thePlayer.stepHeight = mc.vrSettings.walkUpBlocks ? 1f * mc.vrSettings.vrWorldScale : 0.5f;
@@ -861,6 +872,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	
     public int disableSwing = 3;
     
+    public boolean shouldIlookatMyHand, IAmLookingAtMyHand;
+    
     public void updateSwingAttack()
     {
         Minecraft mc = Minecraft.getMinecraft();
@@ -981,6 +994,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         			}
         		}
         		
+              		
         	if(!inAnEntity){
         		Block block = mc.theWorld.getBlock(bx, by, bz);
         		Material material = block.getMaterial();
@@ -989,16 +1003,19 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         		// and damage the block it collides with... 
 
         		MovingObjectPosition col = mc.theWorld.rayTraceBlocks(lastWeaponEndAir, weaponEnd, true, false, true);
-        		if (col != null && col.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
+        		if (shouldIlookatMyHand || (col != null && col.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK))
         		{
+        	  		this.shouldIlookatMyHand = false;
         			if (!(block.getMaterial() == material.air))
         			{
         				if (block.getMaterial().isLiquid()) {
         					if(item == Items.bucket) {       						
         						//mc.playerController.onPlayerRightClick(player, player.worldObj,is, col.blockX, col.blockY, col.blockZ, col.sideHit,col.hitVec);
-        						if (mc.playerController.sendUseItem(player, player.worldObj, is))
-        						{
-        							mc.entityRenderer.itemRenderer.resetEquippedProgress2();
+        						this.shouldIlookatMyHand = true;
+        						if (IAmLookingAtMyHand){
+        							if(mc.playerController.sendUseItem(player, player.worldObj, is)){
+        								mc.entityRenderer.itemRenderer.resetEquippedProgress2();
+        							}
         						}
         					}
         				} else {
@@ -1051,6 +1068,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	public boolean getFreeMoveMode() { return freeMoveMode; }
 	
 	public void setFreeMoveMode(boolean free) { 
+		if(Minecraft.getMinecraft().vrSettings.seated) free = true;
 		boolean was = freeMoveMode;
 		freeMoveMode = free;
 		if(free != was)
