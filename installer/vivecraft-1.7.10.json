@@ -29,78 +29,6 @@
    "name": "net.aib42.mumblelink:JMumble:1.11"
   }, 
   {
-   "extract": {
-    "exclude": [
-     "META-INF/"
-    ]
-   }, 
-   "name": "org.lwjgl.lwjgl:lwjgl-platform:2.9.1", 
-   "natives": {
-    "windows": "natives-windows", 
-    "osx": "natives-osx", 
-    "linux": "natives-linux"
-   }
-  }, 
-  {
-   "extract": {
-    "exclude": [
-     "META-INF/"
-    ]
-   }, 
-   "name": "net.java.jinput:jinput-platform:2.0.5", 
-   "natives": {
-    "windows": "natives-windows", 
-    "osx": "natives-osx", 
-    "linux": "natives-linux"
-   }
-  }, 
-  {
-   "name": "tv.twitch:twitch:5.16"
-  }, 
-  {
-   "rules": [
-    {
-     "action": "allow"
-    }, 
-    {
-     "action": "disallow", 
-     "os": {
-      "name": "linux"
-     }
-    }
-   ], 
-   "extract": {
-    "exclude": [
-     "META-INF/"
-    ]
-   }, 
-   "name": "tv.twitch:twitch-platform:5.16", 
-   "natives": {
-    "windows": "natives-windows-${arch}", 
-    "osx": "natives-osx", 
-    "linux": "natives-linux"
-   }
-  }, 
-  {
-   "rules": [
-    {
-     "action": "allow", 
-     "os": {
-      "name": "windows"
-     }
-    }
-   ], 
-   "extract": {
-    "exclude": [
-     "META-INF/"
-    ]
-   }, 
-   "name": "tv.twitch:twitch-external-platform:4.5", 
-   "natives": {
-    "windows": "natives-windows-${arch}"
-   }
-  }, 
-  {
    "url": "http://repo.minecraft-vr.com/", 
    "extract": {
     "exclude": [
@@ -122,20 +50,6 @@
     ]
    }, 
    "name": "net.aib42.mumblelink:JMumbleLibrary:1.11", 
-   "natives": {
-    "windows": "natives-windows", 
-    "osx": "natives-osx", 
-    "linux": "natives-linux"
-   }
-  }, 
-  {
-   "url": "http://repo.minecraft-vr.com/", 
-   "extract": {
-    "exclude": [
-     "META-INF/"
-    ]
-   }, 
-   "name": "com.sixense:SixenseJavaLibrary:062612.0", 
    "natives": {
     "windows": "natives-windows", 
     "osx": "natives-osx", 
