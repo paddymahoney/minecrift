@@ -1264,6 +1264,7 @@ public class MCOpenVR
 				}
 				else {
 					mc.vrSettings.vrWorldRotation = walkaboutYawStart - yaw;
+					mc.vrSettings.vrWorldRotation %= 360; // Prevent stupidly large values (can they even happen here?)
 					mc.vrPlayer.checkandUpdateRotateScale(true);
 				}
 			} else {
@@ -1975,20 +1976,27 @@ public class MCOpenVR
 		if(mc.vrSettings.seated){
 			org.lwjgl.util.vector.Matrix4f temp = new org.lwjgl.util.vector.Matrix4f();
 			
-			double h = Mouse.getX() / (double) mc.displayWidth * 110 - 55;
-			double v = Mouse.getY() / (double) mc.displayHeight * 180 - 90;
+			float hRange = 110;
+			float vRange = 180;
+			double h = Mouse.getX() / (double) mc.displayWidth * hRange - (hRange / 2);
+			double v = Mouse.getY() / (double) mc.displayHeight * vRange - (vRange / 2);
 			
 			if(Display.isActive()){
-			if(h < -30){
-				mc.vrSettings.vrWorldRotation +=1;
-				hmdForwardYaw = (float)Math.toDegrees(Math.atan2(headDirection.x, headDirection.z));    
-				mc.vrPlayer.checkandUpdateRotateScale(true);
-			}
-			if(h > 30){
-				mc.vrSettings.vrWorldRotation -=1;
-				hmdForwardYaw = (float)Math.toDegrees(Math.atan2(headDirection.x, headDirection.z));    
-				mc.vrPlayer.checkandUpdateRotateScale(true);
-			}
+				float rotStart = 30;
+				float rotSpeed = 180; // Degrees per second
+				float rotMul = ((float)Math.abs(h) - rotStart) / ((hRange / 2) - rotStart); // Scaled 0...1 from rotStart to FOV edge
+				if(h < -rotStart){
+					mc.vrSettings.vrWorldRotation += rotSpeed * rotMul * mc.getFrameDelta();
+					mc.vrSettings.vrWorldRotation %= 360; // Prevent stupidly large values
+					hmdForwardYaw = (float)Math.toDegrees(Math.atan2(headDirection.x, headDirection.z));    
+					mc.vrPlayer.checkandUpdateRotateScale(true);
+				}
+				if(h > rotStart){
+					mc.vrSettings.vrWorldRotation -= rotSpeed * rotMul * mc.getFrameDelta();
+					mc.vrSettings.vrWorldRotation %= 360; // Prevent stupidly large values
+					hmdForwardYaw = (float)Math.toDegrees(Math.atan2(headDirection.x, headDirection.z));    
+					mc.vrPlayer.checkandUpdateRotateScale(true);
+				}
 			}
 			temp.rotate((float) Math.toRadians(-v), new org.lwjgl.util.vector.Vector3f(1,0,0));
 			

@@ -147,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +218,4778 @@
+@@ -150,2988 +218,4788 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1860,7 +1860,8 @@
 +
 +	/** holds the current fps */
 +	int fpsCounter;
-+	long prevFrameTime = -1L;
++	long prevFrameTime = System.nanoTime();
++	float frameDelta;
 +
 +	/** Profiler currently displayed in the debug screen pie chart */
 +	private String debugProfilerName = "root";
@@ -1970,7 +1971,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda-classextractor";
++    public final String minecriftVerString = "Vivecraft 1.7.10 Vivecraft-jrbudda28r1";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -2873,10 +2874,15 @@
 +			else
 +			{
 +				this.mcProfiler.profilingEnabled = false;
-+				this.prevFrameTime = System.nanoTime();
 +			}
 +			
 +			this.mcProfiler.startSection("root");
++			
++		    {
++		        long time = System.nanoTime();
++		        this.frameDelta = (time - this.prevFrameTime) / 1000000000F;
++				this.prevFrameTime = System.nanoTime();
++		    }
 +
 +			if (Display.isCreated() && Display.isCloseRequested())
 +			{
@@ -7744,6 +7750,10 @@
 +	private long getMedianRunTickTimeNanos()
 +	{
 +		return medianRunTickTimeNanos;
++	}
++
++	public float getFrameDelta() {
++		return frameDelta;
 +	}
 +
 +	/**
