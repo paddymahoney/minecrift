@@ -124,7 +124,7 @@ public class MinecriftClassTransformer implements IClassTransformer
 			
 		   	byte[] minecriftClass = this.getMinecriftClass(name);
 
-			//writeToFile("original", transformedName, name, bytes);
+			//writeToFile("original", "", name, bytes);
 	    	
 	    	if (minecriftClass == null) {
 	    		//debug(String.format("Minecrift: Passthrough '%s' -> '%s'", name, transformedName));
@@ -173,7 +173,7 @@ public class MinecriftClassTransformer implements IClassTransformer
     {
         FileOutputStream stream = null;
         ;
-        String filepath = String.format("%s/%s/%s/%s_%s.%s", System.getProperty("user.home"), "minecrift_transformed_classes", dir, transformedName.replace(".", "/"), name, "class");
+        String filepath = String.format("%s/%s/%s/%s%s.%s", System.getProperty("user.home"), "minecrift_transformed_classes", dir, transformedName.replace(".", "/"), name, "class");
         File file = new File(filepath);
         debug("Writing to: " + filepath);
         try {

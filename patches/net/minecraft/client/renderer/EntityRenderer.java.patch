@@ -2187,6 +2187,7 @@
 +	}
 +
 +	Frustrum currentFrustum = new Frustrum();
++	
 +	public int smcDepthBuffer;
 +	
 +	public boolean irpUpdatedThisFrame = false;
@@ -2290,7 +2291,6 @@
 +						System.out.println("hack stencil into SMC " + dfb + " " + dfb2 + " " +ok);
 +						mc.checkGLError("hack smc stencil");
 +					}
-+
 +
 +					this.mc.mcProfiler.endSection();
 +				} 

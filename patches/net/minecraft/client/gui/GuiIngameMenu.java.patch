@@ -115,7 +115,7 @@
 +            	mc.gameSettings.showDebugInfo = mc.gameSettings.showDebugProfilerChart;
 +            case 104:
 +            	this.mc.displayGuiScreen((GuiScreen)null);
-+            	this.mc.ingameGUI.getChatGUI().printChatMessage(ScreenShotHelper.saveScreenshot(this.mc.mcDataDir, this.mc.displayWidth, this.mc.displayHeight, this.mc.getFramebuffer()));
++            	this.mc.grabScreenShot = 10;
 +            	break;
 +            default:
 +

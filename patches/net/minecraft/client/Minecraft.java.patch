@@ -147,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +218,4769 @@
+@@ -150,2988 +218,4778 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1898,7 +1898,7 @@
 +	public boolean integratedServerLaunchInProgress = false;
 +	public boolean lastEnableVsync = true;
 +	public int lastMirrorSetting = -1;
-+
++	public int grabScreenShot = 0;
 +	public Cursor nativeMouseCursor = null;
 +	public boolean lastShowMouseNative = true;
 +	public Cursor invisibleMouseCursor = null;
@@ -1970,7 +1970,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda28";
++    public final String minecriftVerString = "ViveCraft 1.7.10 Vivecraft-jrbudda-classextractor";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -3028,6 +3028,16 @@
 +				this.mcProfiler.endSection(); //eye
 +			} //end per eye rendering.
 +
++			if(grabScreenShot > 0){
++				grabScreenShot--;
++				if(grabScreenShot == 0){
++					this.framebufferMc.unbindFramebuffer();
++					OpenGlHelper.fbo = false;
++	            	this.ingameGUI.getChatGUI().printChatMessage(ScreenShotHelper.saveScreenshot(this.mcDataDir, this.displayWidth, this.displayHeight, this.getFramebuffer()));
++	            	OpenGlHelper.fbo = true;
++				}
++			}
++			
 +			if(this.stereoProvider.isStereo())
 +				if (this.vrSettings.displayMirrorMode == vrSettings.MIRROR_OFF && ( this.vrPlayer).isHMDTracking()){
 +					GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
@@ -7570,7 +7580,6 @@
 +					drawQuad();
 +
 +					checkGLError("postdraw");
-+					
 +					
 +					// Stop shader use
 +					ARBShaderObjects.glUseProgramObjectARB(0);
