@@ -269,16 +269,6 @@ public class Aim
 //        lastBodyYaw = bodyYaw;
     }
 
-    public void configureComfortMode()
-    {
-        boolean yawComfortOn = this.mc.vrSettings.useVrComfort == this.mc.vrSettings.VR_COMFORT_YAW || this.mc.vrSettings.useVrComfort == this.mc.vrSettings.VR_COMFORT_PITCHANDYAW;
-        boolean pitchComfortOn = this.mc.vrSettings.useVrComfort == this.mc.vrSettings.VR_COMFORT_PITCH || this.mc.vrSettings.useVrComfort == this.mc.vrSettings.VR_COMFORT_PITCHANDYAW;
-        discreteYaw.configure(yawComfortOn ? this.mc.vrSettings.vrComfortTransitionAngleDegs : 0,
-                this.mc.vrSettings.vrComfortTransitionTimeSecs, this.mc.vrSettings.vrComfortTransitionLinear);
-        discretePitch.configure(pitchComfortOn ? this.mc.vrSettings.vrComfortTransitionAngleDegs : 0,
-                this.mc.vrSettings.vrComfortTransitionTimeSecs, this.mc.vrSettings.vrComfortTransitionLinear);
-    }
-
     static public float getBodyYaw() {
         return bodyYaw;
     }

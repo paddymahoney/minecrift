@@ -147,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +218,4788 @@
+@@ -150,2988 +218,4783 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -5665,29 +5665,24 @@
 +
 +				if (var4 != 0)
 +				{
-+					/** MINECRIFT **/
-+					if (Minecraft.getMinecraft().vrSettings.isComfortYawTransitionKeyAllowed()) {
-+						this.triggerYawTransition(var4 > 0 ? false : true);
-+					}
-+					else {
-+						this.thePlayer.inventory.changeCurrentItem(var4);
 +
-+						if (this.gameSettings.noclip)
++					this.thePlayer.inventory.changeCurrentItem(var4);
++
++					if (this.gameSettings.noclip)
++					{
++						if (var4 > 0)
 +						{
-+							if (var4 > 0)
-+							{
-+								var4 = 1;
-+							}
-+
-+							if (var4 < 0)
-+							{
-+								var4 = -1;
-+							}
-+
-+							this.gameSettings.noclipRate += (float)var4 * 0.25F;
++							var4 = 1;
 +						}
++
++						if (var4 < 0)
++						{
++							var4 = -1;
++						}
++
++						this.gameSettings.noclipRate += (float)var4 * 0.25F;
 +					}
-+					/** END MINECRIFT **/
++
 +				}
 +
 +				if (this.currentScreen == null)

@@ -532,7 +532,7 @@
 +    		if(this.capabilities.isFlying || this.inWater)
 +            if (Minecraft.getMinecraft().vrSettings.allowPitchAffectsHeightWhileFlying) {
 +            	if (vr.useLControllerForRestricedMovement) {
-+            		directionVec.rotateAroundX(con.getControllerOffhandPitch_World() * PIOVER180);		      					 
++            			 directionVec.rotateAroundX(con.getControllerOffhandPitch_World() * PIOVER180);		   
 +            	} else {
 +            		directionVec.rotateAroundX(this.headPitch * PIOVER180);	
 +            	}		
@@ -540,7 +540,7 @@
 +    		
 +    		// Account for yaw
 +            if (vr.useLControllerForRestricedMovement) {
-+            	directionVec.rotateAroundY(con.getControllerOffhandYaw_World() * PIOVER180);		   
++            	directionVec.rotateAroundY(con.getControllerOffhandYaw_World() * PIOVER180);	
 +            } else {
 +    			directionVec.rotateAroundY(-this.rotationYaw * PIOVER180);
 +    		}

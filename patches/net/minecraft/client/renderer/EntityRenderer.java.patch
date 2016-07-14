@@ -3901,7 +3901,7 @@
 +
 +			if(entity instanceof EntityPlayerSP){ //isnt it always?
 +
-+				if(entity.moveForward > 0 && (mc.vrPlayer.getFreeMoveMode() || entity.isRiding())){
++				if(entity.moveForward + entity.moveStrafing > 0 && (mc.vrPlayer.getFreeMoveMode() || entity.isRiding())){
 +					//us laim, needed for server side movement.
 +					entity.rotationYaw = entity.rotationYawHead = -mc.roomScale.getControllerOffhandYaw_World();
 +					entity.rotationPitch = -mc.roomScale.getControllerOffhandPitch_World();

@@ -117,22 +117,6 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
 
         if(s==VRSettings.VrOptions.ALLOW_CRAWLING.getEnumString()) return false;
         
-        if (this.guivrSettings.useVrComfort == this.guivrSettings.VR_COMFORT_OFF &&
-               (s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_BLANKING_MODE.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW.getEnumString()))
-        {
-            return false;
-        }
-
-        if ((this.guivrSettings.useVrComfort != this.guivrSettings.VR_COMFORT_YAW &&
-             this.guivrSettings.useVrComfort != this.guivrSettings.VR_COMFORT_PITCHANDYAW) &&
-             s == VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW.getEnumString())
-        {
-            return false;
-        }
 
         return true;
     }
@@ -167,18 +151,10 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             }
             else if (par1GuiButton.id == ID_GENERIC_DEFAULTS)
             {
-                vr.useVrComfort = VRSettings.VR_COMFORT_YAW;
-                vr.allowForwardPlusStrafe = true;
-                vr.vrComfortTransitionLinear = false;
-                vr.movementAccelerationScaleFactor = 1f;
-                vr.vrComfortTransitionTimeSecs = 0.150f;
-                vr.vrComfortTransitionAngleDegs = 30f;
-                vr.vrComfortTransitionBlankingMode = VRSettings.VR_COMFORT_TRANS_BLANKING_MODE_OFF;
                 vr.inertiaFactor = VRSettings.INERTIA_NORMAL;
                 vr.allowPitchAffectsHeightWhileFlying = false;
                 vr.useKeyBindingForComfortYaw = false;
-                vr.movementSpeedMultiplier = 0.75f;
-                vr.strafeSpeedMultiplier = 0.33f;
+                vr.movementSpeedMultiplier = 1f;
                 vr.simulateFalling = false;
                 //jrbudda//
                 vr.vrAllowCrawling = false;

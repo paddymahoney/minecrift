@@ -32,7 +32,7 @@ public class VRShaders {
 				"vec2 pos = (gl_FragCoord.xy - position) / resolution;\n" +
 				"vec3 fragPos = getFragmentPosition(pos);\n"+
 				"float fragHmdDot = dot(fragPos - hmdViewPosition, hmdPlaneNormal);\n"+
-				"if ((pass == 0 && fragHmdDot >= 0) || (pass == 1 && fragHmdDot <= 0)) {\n"+
+				"if ((pass == 0 && fragHmdDot >= 0) || pass == 1) {\n"+
 			    	"vec4 color = texture(colorTex, pos);\n"+
 			    	"vec3 diff = color.rgb - keyColor;\n"+ // The following code prevents actual colors from matching the key color and looking weird
 			    	"if (keyColor.r < 0.004 && keyColor.g < 0.004 && keyColor.b < 0.004 && color.r < 0.004 && color.g < 0.004 && color.b < 0.004) {\n"+
