@@ -73,7 +73,7 @@
      }
  
      protected void actionPerformed(GuiButton button)
-@@ -52,24 +69,42 @@
+@@ -52,24 +69,43 @@
  
              case 2:
              case 3:
@@ -113,6 +113,7 @@
 +            case 103:
 +            	mc.gameSettings.showDebugProfilerChart = !mc.gameSettings.showDebugProfilerChart;
 +            	mc.gameSettings.showDebugInfo = mc.gameSettings.showDebugProfilerChart;
++            	break;
 +            case 104:
 +            	this.mc.displayGuiScreen((GuiScreen)null);
 +            	this.mc.grabScreenShot = 10;

@@ -1020,8 +1020,11 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         						}
         					}
         				} else {
-        					if(canact){       					
-        						for (int i = 0; i < 4; i++)
+        					if(canact){       	
+        						int p = 3;
+        						p += (speed - speedthresh) / 2;
+        						
+        						for (int i = 0; i < p; i++)
         						{
         							//set delay to 0
         							clearBlockHitDelay();			
@@ -1191,7 +1194,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	}
 	
 	public EulerOrient getHMDEuler_World(){ //TOTO: important place to add user rotation.
-		EulerOrient out = MCOpenVR.getOrientationEuler(EyeType.ovrEye_Center);
+		EulerOrient out = MCOpenVR.getOrientationEuler();
 		out.yaw += Math.toDegrees(this.worldRotationRadians);
 		return out;
 	}

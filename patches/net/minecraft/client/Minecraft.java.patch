@@ -147,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +218,4783 @@
+@@ -150,2988 +218,4781 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -3514,9 +3514,7 @@
 +		}
 +	}
 +
-+	/** MINECRIFT */
-+	public void clickMouse()
-+	/** END MINECRIFT */
++	private void clickMouse()
 +	{
 +		if (this.leftClickCounter <= 0)
 +		{
@@ -3529,12 +3527,12 @@
 +			}
 +			else
 +			{
-+				switch (Minecraft.SwitchMovingObjectType.field_152390_a[this.objectMouseOver.typeOfHit.ordinal()])
++				switch (this.objectMouseOver.typeOfHit)
 +				{
-+				case 1:
++				case ENTITY:
 +					this.playerController.attackEntity(this.thePlayer, this.objectMouseOver.entityHit);
 +					break;
-+				case 2:
++				case BLOCK:
 +					int var1 = this.objectMouseOver.blockX;
 +					int var2 = this.objectMouseOver.blockY;
 +					int var3 = this.objectMouseOver.blockZ;
@@ -5340,7 +5338,6 @@
 +					throw new ReportedException(var2);
 +				}
 +			}
-+
 +			this.mcProfiler.endStartSection("animateTick");
 +
 +			if (!this.isGamePaused && this.theWorld != null)
@@ -5429,6 +5426,7 @@
 +					if (Keyboard.getEventKey() == 1)
 +					{
 +						this.displayInGameMenu();
++						//VIVE
 +						MCOpenVR.setKeyboardOverlayShowing(false, null);
 +					}
 +

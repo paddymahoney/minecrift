@@ -669,7 +669,7 @@
              {
                  EXTBlendFuncSeparate.glBlendFuncSeparateEXT(p_148821_0_, p_148821_1_, p_148821_2_, p_148821_3_);
              }
-@@ -764,8 +750,11 @@
+@@ -764,8 +750,16 @@
          }
      }
  
@@ -681,4 +681,9 @@
 +    	return fbo;
 +       // return Config.isFastRender() ? false : framebufferSupported && Minecraft.getMinecraft().gameSettings.fboEnable;
      }
++
++	public static boolean func_153193_b() {
++		// TODO Auto-generated method stub
++		return isFramebufferEnabled();
++	}
  }
