@@ -3860,8 +3860,8 @@
 +			} else { //default to looking 'at' the crosshair position.
 +				if(crossVec != null){
 +					Vec3 playerToCrosshair = interpolatedPlayerPos.subtract(crossVec); //backwards
-+					float pitch =  (float)Math.toDegrees(Math.asin(playerToCrosshair.yCoord/playerToCrosshair.lengthVector()));
-+					float yaw =  (float)Math.toDegrees(Math.atan2(playerToCrosshair.xCoord, playerToCrosshair.zCoord));    
++					float pitch = -(float)Math.toDegrees(Math.asin(playerToCrosshair.yCoord/playerToCrosshair.lengthVector()));
++					float yaw = -(float)Math.toDegrees(Math.atan2(playerToCrosshair.xCoord, playerToCrosshair.zCoord));    
 +					entity.rotationYaw = yaw;
 +					entity.rotationYawHead = yaw;
 +					entity.rotationPitch = pitch;
