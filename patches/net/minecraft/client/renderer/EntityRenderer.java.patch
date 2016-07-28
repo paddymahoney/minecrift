@@ -85,7 +85,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +98,4843 @@
+@@ -61,2593 +98,4842 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -2468,6 +2468,24 @@
 +					Reflector.callVoid(Reflector.ForgeHooksClient_setRenderPass, new Object[] {Integer.valueOf(-1)});
 +				}
 +			
++		this.mc.mcProfiler.endStartSection("hands"); //our hands are really entity-ish after all
++				if (this.mc.gameSettings.thirdPersonView == 0) //Vivecraft ignore this setting -> && this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_HAND)
++				{
++
++					if (false){//Vivecraft nope leave my hands alone. shadersMod) , you're handled in the individual methods.
++						//ShadersRender.renderHand1(this, par1, var13);
++						//Shaders.renderCompositeFinal();
++						//GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);     // Minecrift - Don't clear depth buffer
++						//ShadersRender.renderFPOverlay(this, par1, var13);
++						Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand0, new Object[] {this, par1, 0});
++						Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand1, new Object[] {this, par1, 0});
++					}
++					else {
++						this.renderHand(par1, 0);
++						this.renderLeftHand(par1);
++					}
++				}
++				
 +				RenderHelper.disableStandardItemLighting();
 +				this.disableLightmap((double)par1);
 +			GL11.glPopMatrix();
@@ -2503,25 +2521,6 @@
 +			OpenGlHelper.glBlendFunc(770, 1, 1, 0);
 +			rg.drawBlockDamageTexture(Tessellator.instance, player, par1);
 +			GL11.glDisable(GL11.GL_BLEND);
-+			
-+		this.mc.mcProfiler.endStartSection("hands");
-+			if (this.mc.gameSettings.thirdPersonView == 0) //Vivecraft ignore this setting -> && this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_HAND)
-+			{
-+
-+				if (false){//Vivecraft nope leave my hands alone. shadersMod) , you're handled in the individual methods.
-+					//ShadersRender.renderHand1(this, par1, var13);
-+					//Shaders.renderCompositeFinal();
-+					//GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);     // Minecrift - Don't clear depth buffer
-+					//ShadersRender.renderFPOverlay(this, par1, var13);
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand0, new Object[] {this, par1, 0});
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand1, new Object[] {this, par1, 0});
-+				}
-+				else {
-+					this.renderHand(par1, 0);
-+					this.renderLeftHand(par1);
-+				}
-+			}
-+			
 +			
 +		this.mc.mcProfiler.endStartSection("litParticles");
 +			this.enableLightmap((double)par1);
