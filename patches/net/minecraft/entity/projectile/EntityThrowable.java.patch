@@ -47,7 +47,7 @@
 +            spawnPosition.zCoord = aimSource.zCoord + controllerDirection.zCoord * 0.28f;
 +      	
 +            yaw = Minecraft.getMinecraft().roomScale.getControllerMainYaw_World();
-+            pitch =Minecraft.getMinecraft().roomScale.getControllerMainPitch_World();
++            pitch =-Minecraft.getMinecraft().roomScale.getControllerMainPitch_World();
 +        }
 +    
 +        this.setLocationAndAngles(spawnPosition.xCoord, spawnPosition.yCoord ,spawnPosition.zCoord, yaw, pitch);

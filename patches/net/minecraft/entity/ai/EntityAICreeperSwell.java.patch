@@ -1,0 +1,19 @@
+--- a/net/minecraft/entity/ai/EntityAICreeperSwell.java
++++ b/net/minecraft/entity/ai/EntityAICreeperSwell.java
+@@ -20,13 +20,15 @@
+         this.setMutexBits(1);
+     }
+ 
++    float ignitedist = 1.75f;
++    
+     /**
+      * Returns whether the EntityAIBase should begin execution.
+      */
+     public boolean shouldExecute()
+     {
+         EntityLivingBase var1 = this.swellingCreeper.getAttackTarget();
+-        return this.swellingCreeper.getCreeperState() > 0 || var1 != null && this.swellingCreeper.getDistanceSqToEntity(var1) < 9.0D;
++        return this.swellingCreeper.getCreeperState() > 0 || var1 != null && this.swellingCreeper.getDistanceSqToEntity(var1) < ignitedist*ignitedist;
+     }
+ 
+     /**

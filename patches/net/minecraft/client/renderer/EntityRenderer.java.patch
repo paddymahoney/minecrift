@@ -85,7 +85,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +98,4833 @@
+@@ -61,2593 +98,4843 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -1414,7 +1414,7 @@
 +		else if(mc.currentPass == renderPass.Third){
 +			
 +			GL11.glRotatef(mc.vrSettings.vrFixedCamrotPitch, 1.0F, 0.0F, 0.0F);
-+			GL11.glRotatef(mc.vrSettings.vrFixedCamrotYaw - mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
++			GL11.glRotatef(180+mc.vrSettings.vrFixedCamrotYaw - mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
 +			GL11.glRotatef(mc.vrSettings.vrFixedCamrotRoll, 0.0F, 0.0F, 1.0F);
 +			
 +		} else 	{
@@ -1668,7 +1668,7 @@
 +				GL11.glTranslated(pos.xCoord, pos.yCoord, pos.zCoord);
 +				
 +				GL11.glRotatef(-mc.vrSettings.vrFixedCamrotRoll, 0.0F, 0.0F, 1.0F);
-+				GL11.glRotatef(180-mc.vrSettings.vrFixedCamrotYaw + mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
++				GL11.glRotatef(-mc.vrSettings.vrFixedCamrotYaw + mc.vrSettings.vrWorldRotation, 0.0F, 1.0F, 0.0F);
 +				GL11.glRotatef(mc.vrSettings.vrFixedCamrotPitch, 1.0F, 0.0F, 0.0F);
 +				
 +				setupPolyRendering(true);
@@ -2352,12 +2352,12 @@
 +		
 +			/** END MINECRIFT SHADERS MOD **/
 +			
-+			/** MINECRIFT */ // Save our projection and modelview matrices
-+			GL11.glMatrixMode(GL11.GL_PROJECTION);
-+			GL11.glPushMatrix();
-+			GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+			GL11.glPushMatrix();
-+			/** END MINECRIFT */
++//			/** MINECRIFT */ // Save our projection and modelview matrices
++//			GL11.glMatrixMode(GL11.GL_PROJECTION);
++//			GL11.glPushMatrix();
++//			GL11.glMatrixMode(GL11.GL_MODELVIEW);
++//			GL11.glPushMatrix();
++//			/** END MINECRIFT */
 +			ActiveRenderInfo.updateRenderInfo(this.mc.thePlayer, this.mc.gameSettings.thirdPersonView == 2);
 +						
 +		this.mc.mcProfiler.endStartSection("sky");
@@ -2503,6 +2503,26 @@
 +			OpenGlHelper.glBlendFunc(770, 1, 1, 0);
 +			rg.drawBlockDamageTexture(Tessellator.instance, player, par1);
 +			GL11.glDisable(GL11.GL_BLEND);
++			
++		this.mc.mcProfiler.endStartSection("hands");
++			if (this.mc.gameSettings.thirdPersonView == 0) //Vivecraft ignore this setting -> && this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_HAND)
++			{
++
++				if (false){//Vivecraft nope leave my hands alone. shadersMod) , you're handled in the individual methods.
++					//ShadersRender.renderHand1(this, par1, var13);
++					//Shaders.renderCompositeFinal();
++					//GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);     // Minecrift - Don't clear depth buffer
++					//ShadersRender.renderFPOverlay(this, par1, var13);
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand0, new Object[] {this, par1, 0});
++					Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand1, new Object[] {this, par1, 0});
++				}
++				else {
++					this.renderHand(par1, 0);
++					this.renderLeftHand(par1);
++				}
++			}
++			
++			
 +		this.mc.mcProfiler.endStartSection("litParticles");
 +			this.enableLightmap((double)par1);
 +			
@@ -2551,6 +2571,7 @@
 +			this.mc.getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
 +			WrUpdates.resumeBackgroundUpdates();           
 +
++			
 +		this.mc.mcProfiler.endStartSection("water");
 +		
 +			if (shadersMod) {
@@ -2606,34 +2627,18 @@
 +
 +		eyeCollision = (eyeCollisionBlock != null && eyeCollisionBlock.isNormalCube());
 +		
-+		/** MINECRIFT */ // restore our projection and modelview matrices
-+		GL11.glMatrixMode(GL11.GL_PROJECTION);
-+		GL11.glPopMatrix();
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
-+		GL11.glPopMatrix();
++//		/** MINECRIFT */ // restore our projection and modelview matrices
++//		GL11.glMatrixMode(GL11.GL_PROJECTION);
++//		GL11.glPopMatrix();
++//		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++//		GL11.glPopMatrix();
 +		
 +		////END WORLD RENDERING
 +
 +		////START LOCAL RENDERING
-+		this.mc.mcProfiler.endStartSection("hands");
-+			if (this.mc.gameSettings.thirdPersonView == 0) //Vivecraft ignore this setting -> && this.mc.vrSettings.renderFullFirstPersonModelMode == VRSettings.RENDER_FIRST_PERSON_HAND)
-+			{
-+
-+				if (false){//Vivecraft nope leave my hands alone. shadersMod) , you're handled in the individual methods.
-+					//ShadersRender.renderHand1(this, par1, var13);
-+					//Shaders.renderCompositeFinal();
-+					//GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);     // Minecrift - Don't clear depth buffer
-+					//ShadersRender.renderFPOverlay(this, par1, var13);
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand0, new Object[] {this, par1, 0});
-+					Reflector.callVoid(Reflector.ShadersMod_Shaders_renderHand1, new Object[] {this, par1, 0});
-+				}
-+				else {
-+					this.renderHand(par1, 0);
-+					this.renderLeftHand(par1);
-+					this.renderFPOverlay(par1);
-+				}
-+			}
-+						
++				
++		this.renderFPOverlay(par1);
++		
 +			/** END MINECRIFT */
 +			if (shadersMod) {
 +				this.mc.mcProfiler.endStartSection("shadersModComposite");
@@ -2648,7 +2653,7 @@
 +				
 +			}
 +			/** END MINECRIFT SHADERS MOD **/
-+
++			
 +			this.mc.mcProfiler.endStartSection("renderGui");
 +			if(!mc.bowTracker.isDrawing)
 +				renderGuiLayer(par1);
@@ -3847,7 +3852,6 @@
 +		float PIOVER180 = (float)(Math.PI/180);
 +		EntityLivingBase entity = this.mc.thePlayer;
 +
-+
 +		if( entity != null ) //TODO: do this only once per tick?
 +		{		//now we decide what direction vector to set our 'entity' at.
 +			//This is used for all sorts of things both client and server side.
@@ -3859,11 +3863,13 @@
 +//				entity.rotationPitch = (float)cameraPitch;
 +			} else { //default to looking 'at' the crosshair position.
 +				if(crossVec != null){
-+					Vec3 playerToCrosshair = interpolatedPlayerPos.subtract(crossVec); //backwards
-+					float pitch =  (float)Math.toDegrees(Math.asin(playerToCrosshair.yCoord/playerToCrosshair.lengthVector()));
-+					float yaw =  (float)Math.toDegrees(Math.atan2(playerToCrosshair.xCoord, playerToCrosshair.zCoord));    
-+					entity.rotationYaw = yaw;
-+					entity.rotationYawHead = yaw;
++					Vec3 playerToCrosshair = interpolatedPlayerPos.subtract(crossVec); //NOT backwards
++					double what = playerToCrosshair.yCoord/playerToCrosshair.lengthVector();
++					if(what > 1) what = 1;
++					if(what < -1) what = -1;
++					float pitch = - (float)Math.toDegrees(Math.asin(playerToCrosshair.yCoord/playerToCrosshair.lengthVector()));
++					float yaw =  (float)Math.toDegrees(Math.atan2(-playerToCrosshair.xCoord, playerToCrosshair.zCoord));    
++					entity.rotationYawHead = entity.rotationYaw = yaw;
 +					entity.rotationPitch = pitch;
 +				}
 +			}
@@ -3872,7 +3878,7 @@
 +
 +				if(entity.moveForward + entity.moveStrafing > 0 && (mc.vrPlayer.getFreeMoveMode() || entity.isRiding())){
 +					//us laim, needed for server side movement.
-+					entity.rotationYaw = entity.rotationYawHead = -mc.roomScale.getControllerOffhandYaw_World();
++					entity.rotationYaw = entity.rotationYawHead = mc.roomScale.getControllerOffhandYaw_World();
 +					entity.rotationPitch = -mc.roomScale.getControllerOffhandPitch_World();
 +				} else {
 +					ItemStack i = ((EntityPlayerSP) entity).inventory.getCurrentItem();
@@ -3880,16 +3886,14 @@
 +						if(i.getItem() instanceof ItemBow){
 +							//use bow aim
 +							Vec3 aim = mc.bowTracker.getAimVector();
-+
-+							if (aim != null) { //why???
-+								float pitch = -(float)Math.toDegrees(Math.asin(aim.yCoord/aim.lengthVector()));
-+								float yaw = -(float)Math.toDegrees(Math.atan2(aim.xCoord, aim.zCoord));   		
++							//not backwards in 1.7
++							if (aim != null) { //why null???
++								float pitch = - (float)Math.toDegrees(Math.asin(aim.yCoord/aim.lengthVector()));
++								float yaw = (float)Math.toDegrees(Math.atan2(aim.xCoord, aim.zCoord));   		
 +	
-+								entity.rotationYaw =  (float)yaw;
-+								entity.rotationYawHead =  (float)yaw;
++								entity.rotationYawHead =	entity.rotationYaw =  (float)yaw;
 +								entity.rotationPitch = (float)pitch;
 +							}
-+
 +						}
 +						else if(i.getItem() == Items.snowball ||
 +								i.getItem() == Items.egg  ||
@@ -3897,22 +3901,20 @@
 +								i.getItem() == Items.potionitem  
 +								) {
 +							//use r_hand aim
-+							entity.rotationYaw = entity.rotationYawHead = -mc.roomScale.getControllerMainYaw_World();
++							entity.rotationYaw = entity.rotationYawHead = mc.roomScale.getControllerMainYaw_World();
 +							entity.rotationPitch = -mc.roomScale.getControllerMainPitch_World();
 +						}
 +						else if(mc.vrPlayer.shouldIlookatMyHand){
 +							Vec3 playerToMain = interpolatedPlayerPos.subtract(mc.roomScale.getControllerPos_World(0)); //backwards
 +							float pitch = - (float)Math.toDegrees(Math.asin(playerToMain.yCoord/playerToMain.lengthVector()));
-+							float yaw = - (float)Math.toDegrees(Math.atan2(playerToMain.xCoord, playerToMain.zCoord));    
-+							entity.rotationYaw = yaw;
-+							entity.rotationYawHead = yaw;
++							float yaw =  (float)Math.toDegrees(Math.atan2(-playerToMain.xCoord, playerToMain.zCoord));    
++							entity.rotationYawHead = entity.rotationYaw = yaw;
 +							entity.rotationPitch = pitch;
 +						}
 +					}
 +				}
 +			}
 +		}
-+	
 +	}
 +
 +	private float checkCameraCollision(
@@ -4071,7 +4073,7 @@
 +	}
 +
 +	// Thanks to mhagain
-+	public void renderFadeBlend (Color3f rgb, float fadeAlpha, int left, int right, int bottom, int top)
++	public void renderFadeBlend (float r, float g, float b, float fadeAlpha, int left, int right, int bottom, int top)
 +	{
 +		GL11.glEnable(GL11.GL_BLEND);
 +		GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -4086,31 +4088,31 @@
 +
 +		// when laying out a 2D view, sometimes "top-left is the origin" makes more sense.
 +		// it is the direction i read in, after all.  live with it, weenies.
-+		GL11.glOrtho(0, this.mc.displayWidth, this.mc.displayHeight, 0, -1, 1);
++		GL11.glOrtho(0, this.mc.displayFBWidth, this.mc.displayFBHeight, 0, -1, 1);
 +
 +		GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glPushMatrix();
-+		GL11.glLoadIdentity();
-+
-+		GL11.glColor4f(rgb.x, rgb.y, rgb.z, fadeAlpha);
-+
-+		GL11.glBegin(GL11.GL_QUADS);
-+
-+		GL11.glVertex3f(left, top, 0);
-+		GL11.glVertex3f(right, top, 0);
-+		GL11.glVertex3f(right, bottom, 0);
-+		GL11.glVertex3f(left, bottom, 0);
-+
-+		GL11.glEnd();
-+
-+		GL11.glDisable(GL11.GL_BLEND);
-+		GL11.glEnable(GL11.GL_DEPTH_TEST);
-+		GL11.glEnable(GL11.GL_TEXTURE_2D);
-+
-+		GL11.glMatrixMode(GL11.GL_PROJECTION);
-+		GL11.glPopMatrix();
-+
-+		GL11.glMatrixMode(GL11.GL_MODELVIEW);
++			GL11.glLoadIdentity();
++	
++			GL11.glColor4f(r, g, b, fadeAlpha);
++	
++			GL11.glBegin(GL11.GL_QUADS);
++	
++			GL11.glVertex3f(left, top, 0);
++			GL11.glVertex3f(right, top, 0);
++			GL11.glVertex3f(right, bottom, 0);
++			GL11.glVertex3f(left, bottom, 0);
++	
++			GL11.glEnd();
++	
++			GL11.glDisable(GL11.GL_BLEND);
++			GL11.glEnable(GL11.GL_DEPTH_TEST);
++			GL11.glEnable(GL11.GL_TEXTURE_2D);
++	
++			GL11.glMatrixMode(GL11.GL_PROJECTION);
++			GL11.glPopMatrix();
++	
++			GL11.glMatrixMode(GL11.GL_MODELVIEW);
 +		GL11.glPopMatrix();
 +	}
 +
@@ -4330,6 +4332,9 @@
 +				if (mc.theWorld!=null && (mc.currentScreen==null || mc.vrSettings.floatInventory == false))
 +				// HUD view - attach to head or controller
 +				{
++					int i = 1;
++					if (mc.vrSettings.vrReverseHands) i = -1;
++					
 +					if(mc.currentPass != renderPass.Third)
 +						eye = mc.roomScale.getEyePos_World(currentPass); //dont need interpolation.
 +					else {
@@ -4369,7 +4374,7 @@
 +						//	MguiRotationPose.M[1][3] = 0.5f;
 +						//guiRotationPose = mc.vrPlayer.getControllerMatrix_World(1);
 +						guirot = Matrix4f.multiply(MguiRotationPose, OpenVRUtil.rotationXMatrix((float) Math.PI * -0.2F));
-+						guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY((float) Math.PI * 0.1F));
++						guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY((float) Math.PI * 0.1F * i));
 +						guirot.M[3][3] = 1.7f;
 +
 +						guiLocal.yCoord = 0.5*mc.vrSettings.vrWorldScale;
@@ -4389,7 +4394,7 @@
 +						Matrix4f rot = Matrix4f.rotationY((float) Math.toRadians(mc.vrSettings.vrWorldRotation));
 +						guirot =  Matrix4f.multiply(rot,out);
 +
-+						guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY((float) Math.PI * 0.3f));				
++						guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY((float) Math.PI * 0.3f * i));				
 +						
 +						Vector3f forward = new Vector3f(0,0,1);
 +						Vector3f guiNormal = guirot.transform(forward);
@@ -4426,14 +4431,19 @@
 +							MCOpenVR.guiScale = .5f*mc.vrSettings.vrWorldScale;
 +						}else {
 +							MCOpenVR.guiScale = 0.33f*mc.vrSettings.vrWorldScale;
-+							guiLocal.xCoord = -0.12f*mc.vrSettings.vrWorldScale;
++							guiLocal.xCoord = i*-0.12f*mc.vrSettings.vrWorldScale;
 +							guiLocal.yCoord = 0.1*mc.vrSettings.vrWorldScale;
 +							guiLocal.zCoord = 0.04*mc.vrSettings.vrWorldScale;
-+							guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY((float) Math.PI * 0.2f));		
++							guirot = Matrix4f.multiply(guirot, Matrix4f.rotationY((float) Math.PI * 0.2f*i));		
 +						}
 +					
 +					}
 +				} 
++			} else {
++				
++				guipos = guipos.add(new Vector3f((float)interPolatedRoomOrigin.xCoord,
++						(float) interPolatedRoomOrigin.yCoord, (float) interPolatedRoomOrigin.zCoord));
++				
 +			}
 +			// otherwise, looking at inventory screen. use pose calculated when screen was opened
 +			//where is this set up... should be here....
@@ -5558,7 +5568,7 @@
 +			GL11.glPushMatrix();
 +				setupCameraTransform(nano, 0);
 +					GL11.glTranslatef(crossX, crossY, crossZ);
-+					GL11.glRotatef(mc.vrPlayer.getControllerMainYaw_World(), 0.0F, 1.0F, 0.0F);
++					GL11.glRotatef(-mc.vrPlayer.getControllerMainYaw_World(), 0.0F, 1.0F, 0.0F);
 +					GL11.glRotatef(-mc.roomScale.getControllerMainPitch_World(), 1.0F, 0.0F, 0.0F);
 +					if (this.mc.vrSettings.crosshairRollsWithHead)
 +						GL11.glRotated(this.cameraRoll, 0.0F, 0.0F, 1.0F);
@@ -5649,9 +5659,9 @@
 +		cached = false;
 +	}
 +	
-+	public void renderFadeBlend(Color3f rgb, float fadeAlpha)
++	public void renderFadeBlend(float r, float g, float b,  float fadeAlpha)
 +	{
-+		renderFadeBlend(rgb, fadeAlpha, 0, this.mc.displayWidth, this.mc.displayHeight, 0);
++		renderFadeBlend(r, g, b, fadeAlpha, 0, this.mc.displayFBWidth, this.mc.displayFBHeight, 0);
 +	}
 +
 +	public void renderFadeEffects()

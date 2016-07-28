@@ -66,6 +66,7 @@ import java.nio.LongBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+
 public class MCOpenVR 
 {
 	static String initStatus;
@@ -182,7 +183,7 @@ public class MCOpenVR
 	
 	private static int moveModeSwitchcount = 0;
 
-	private static boolean isWalkingAbout;
+	public static boolean isWalkingAbout;
 	private static boolean isFreeRotate;
 	private static float walkaboutYawStart;
 	
@@ -526,9 +527,12 @@ public class MCOpenVR
 		
 		Vec3 barStartos = null,barEndos = null;
 		
+		int i = 1;
+		if(mc.vrSettings.vrReverseHands) i = -1;
+		
 		if (mc.vrSettings.vrHudLockMode == mc.vrSettings.HUD_LOCK_WRIST){
-			 barStartos = vecFromVector( getAimRotation(1).transform(new Vector3f(0.04f,-0.05f,0.24f)));
-			 barEndos = vecFromVector( getAimRotation(1).transform(new Vector3f(0.2f,-0.05f,-0.05f)));
+			 barStartos = vecFromVector( getAimRotation(1).transform(new Vector3f(i*0.04f,-0.05f,0.24f)));
+			 barEndos = vecFromVector( getAimRotation(1).transform(new Vector3f(i*0.2f,-0.05f,-0.05f)));
 		} else if (mc.vrSettings.vrHudLockMode == mc.vrSettings.HUD_LOCK_HAND){
 			 barStartos = vecFromVector( getAimRotation(1).transform(new Vector3f(-.18f,0.08f,-0.01f)));
 			 barEndos = vecFromVector( getAimRotation(1).transform(new Vector3f(0.19f,0.04f,-0.08f)));
@@ -545,6 +549,9 @@ public class MCOpenVR
 		if(dist > 0.06) return;
 		
 		float fact = (float) (pq.dotProduct(u) / (u.xCoord*u.xCoord + u.yCoord*u.yCoord + u.zCoord*u.zCoord));
+	
+		if(fact < 0) return;
+		
 		Vec3 w2 = pq.subtract(Vec3.createVectorHelper(u.xCoord*fact, u.yCoord*fact, u.zCoord*fact));
 	
 		Vec3 point = w2.subtract(main);
@@ -593,9 +600,7 @@ public class MCOpenVR
 
 			} else {
 				try {
-					if (keyboardShowing) {
 						vrOverlay.HideKeyboard.apply();				
-					}
 				} catch (Error e) {
 					// TODO: handle exception
 				}
@@ -640,12 +645,12 @@ public class MCOpenVR
 
 		Vector3f gp = new Vector3f();
 		
-		gp.x = (float) (guiPos_World.x ) ;
-		gp.y = (float) (guiPos_World.y );
-		gp.z = (float) (guiPos_World.z );
+		gp.x = (float) (guiPos_World.x + mc.entityRenderer.interPolatedRoomOrigin.xCoord ) ;
+		gp.y = (float) (guiPos_World.y + mc.entityRenderer.interPolatedRoomOrigin.yCoord ) ;
+		gp.z = (float) (guiPos_World.z + mc.entityRenderer.interPolatedRoomOrigin.zCoord ) ;
 					
-		Vector3f guiTopLeft = guiPos_World.subtract(guiUp.divide(1.0f / guiHalfHeight)).subtract(guiRight.divide(1.0f/guiHalfWidth));
-		Vector3f guiTopRight = guiPos_World.subtract(guiUp.divide(1.0f / guiHalfHeight)).add(guiRight.divide(1.0f / guiHalfWidth));
+		Vector3f guiTopLeft = gp.subtract(guiUp.divide(1.0f / guiHalfHeight)).subtract(guiRight.divide(1.0f/guiHalfWidth));
+		Vector3f guiTopRight = gp.subtract(guiUp.divide(1.0f / guiHalfHeight)).add(guiRight.divide(1.0f / guiHalfWidth));
 
 		//Vector3f guiBottomLeft = guiPos.add(guiUp.divide(1.0f / guiHalfHeight)).subtract(guiRight.divide(1.0f/guiHalfWidth));
 		//Vector3f guiBottomRight = guiPos.add(guiUp.divide(1.0f / guiHalfHeight)).add(guiRight.divide(1.0f/guiHalfWidth));
@@ -1549,6 +1554,7 @@ public class MCOpenVR
 		{
 			headIsTracking = false;
 			OpenVRUtil.Matrix4fSetIdentity(hmdPose);
+			hmdPose.M[1][3] = 1.62f;
 		}
 
 		findControllerDevices();
@@ -1671,11 +1677,6 @@ public class MCOpenVR
 	 * @return quaternion w, x, y & z components
 	 */
 	
-	static EulerOrient getOrientationEuler()
-	{
-		Quatf orient = OpenVRUtil.convertMatrix4ftoRotationQuat(hmdPose);
-		return OpenVRUtil.getEulerAnglesDegYXZ(orient);
-	}
 		
 	final String k_pch_SteamVR_Section = "steamvr";
 	final String k_pch_SteamVR_RenderTargetMultiplier_Float = "renderTargetMultiplier";
@@ -1797,6 +1798,10 @@ public class MCOpenVR
 				Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.toRadians(mc.roomScale.getHMDPitch_World()));	
 				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);		
 
+				if(guiPos_World!=null)
+					guiPos_World = guiPos_World.subtract(new Vector3f((float)mc.entityRenderer.interPolatedRoomOrigin.xCoord,
+							(float) mc.entityRenderer.interPolatedRoomOrigin.yCoord, (float) mc.entityRenderer.interPolatedRoomOrigin.zCoord));
+				
 
 			}
 		}
@@ -1954,7 +1959,7 @@ public class MCOpenVR
 		controllerRotation[0].M[3][2] = 0.0F;
 		controllerRotation[0].M[3][3] = 1.0F;
 
-		if(mc.vrSettings.seated){
+		if(mc.vrSettings.seated && mc.currentScreen == null){
 			org.lwjgl.util.vector.Matrix4f temp = new org.lwjgl.util.vector.Matrix4f();
 			
 			float hRange = 110;
@@ -2042,5 +2047,11 @@ public class MCOpenVR
 	{
 		return System.nanoTime() / 1000000000d;
 	}
-
+//	public static void renderFade(float dur, float r, float g, float b, float a){
+//		vrCompositor.FadeToColor.apply(dur, r, g, b, a, (byte)0);
+//	}
+//	
+//	public static void renderGrid(Color4f color){
+//		vrCompositor.FadeGrid.apply(0.5f, (byte)0);
+//	}
 }

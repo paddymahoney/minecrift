@@ -23,7 +23,21 @@
  
          if (this.gameSettings.keyBindForward.getIsKeyPressed())
          {
-@@ -45,5 +51,18 @@
+@@ -37,13 +43,30 @@
+             --this.moveStrafe;
+         }
+ 
+-        this.jump = this.gameSettings.keyBindJump.getIsKeyPressed();
+-        this.sneak = this.gameSettings.keyBindSneak.getIsKeyPressed();
++        
++        boolean ok = Minecraft.getMinecraft().currentScreen==null;
++        
++        //VIVECRAFT DO ok.
++        this.jump = this.gameSettings.keyBindJump.getIsKeyPressed() && ok;
++        this.sneak = this.gameSettings.keyBindSneak.getIsKeyPressed() && ok;
+ 
+         if (this.sneak)
+         {
              this.moveStrafe = (float)((double)this.moveStrafe * 0.3D);
              this.moveForward = (float)((double)this.moveForward * 0.3D);
          }

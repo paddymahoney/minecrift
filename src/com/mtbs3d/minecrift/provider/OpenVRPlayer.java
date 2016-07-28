@@ -136,8 +136,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         }
         
         setRoomOrigin(x, y, z, reset, onFrame);
-        this.roomScaleMovementDelay = 3;
-        
+        this.roomScaleMovementDelay = 3;       
     }
     
     public  double topofhead = 1.62;
@@ -364,6 +363,17 @@ public class OpenVRPlayer implements IRoomscaleAdapter
             this.disableSwing = 3;
             
             //execute teleport      
+            
+      	   //execute teleport               
+            if(this.noTeleportClient){
+            	String tp = "/tp " + mc.thePlayer.getCommandSenderName() + " " + dest.xCoord + " " +dest.yCoord + " " + dest.zCoord;      
+            	mc.thePlayer.sendChatMessage(tp);
+            } else {
+                player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);
+            }
+            
+            doTeleportCallback(); //callback unreliable if not vanilla, so just do it and assume.
+                    
             player.setPositionAndUpdate(dest.xCoord, dest.yCoord, dest.zCoord);         
 
             if(mc.vrSettings.vrLimitedSurvivalTeleport){
@@ -402,6 +412,26 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         mc.mcProfiler.endSection();
     }
 
+    
+    public void doTeleportCallback(){
+        Minecraft mc = Minecraft.getMinecraft();
+
+        this.disableSwing = 3;
+
+        if(mc.vrSettings.vrLimitedSurvivalTeleport){
+          mc.thePlayer.addExhaustion((float) (movementTeleportDistance / 16 * 1.2f));    
+          
+          if (!mc.vrPlayer.getFreeMoveMode() && mc.playerController.isNotCreative() && mc.vrPlayer.vrMovementStyle.arcAiming){
+          	teleportEnergy -= movementTeleportDistance * 4;	
+          }       
+        }
+        
+        mc.thePlayer.fallDistance = 0.0F;
+
+        mc.thePlayer.movementTeleportTimer = -1;
+        
+    }
+    
     private int roomScaleMovementDelay = 0;
     
     private void doPlayerMoveInRoom(EntityPlayerSP player){
@@ -1114,7 +1144,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	@Override
 	public float getHMDYaw_World() {
 		Vec3 dir = getHMDDir_World();
-		 return (float)Math.toDegrees(Math.atan2(dir.xCoord, dir.zCoord));    
+		 return (float)Math.toDegrees(Math.atan2(-dir.xCoord, dir.zCoord));    
 	}
 
 	@Override
@@ -1145,7 +1175,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public float getControllerMainYaw_World() {
-		return (float) (MCOpenVR.aimYaw + Minecraft.getMinecraft().vrSettings.vrWorldRotation);
+		Vec3 dir = getControllerMainDir_World();
+		return (float)Math.toDegrees(Math.atan2(-dir.xCoord, dir.zCoord)); 
 	}
 
 	@Override
@@ -1175,7 +1206,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 
 	@Override
 	public float getControllerOffhandYaw_World() {
-		return  (float) (MCOpenVR.laimYaw + Minecraft.getMinecraft().vrSettings.vrWorldRotation);
+		Vec3 dir = getControllerOffhandDir_World();
+		return (float)Math.toDegrees(Math.atan2(-dir.xCoord, dir.zCoord)); 
 	}
 
 	@Override
@@ -1191,12 +1223,6 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	@Override
 	public Vec3 getRoomOriginUpDir_World() { //ummmm
 		return Vec3.createVectorHelper(0, 1, 0);
-	}
-	
-	public EulerOrient getHMDEuler_World(){ //TOTO: important place to add user rotation.
-		EulerOrient out = MCOpenVR.getOrientationEuler();
-		out.yaw += Math.toDegrees(this.worldRotationRadians);
-		return out;
 	}
 	
 

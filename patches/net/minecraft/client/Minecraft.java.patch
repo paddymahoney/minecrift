@@ -147,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +218,4781 @@
+@@ -150,2988 +218,4797 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1971,7 +1971,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "Vivecraft 1.7.10 Vivecraft-jrbudda28r1";
++    public final String minecriftVerString = "Vivecraft 1.7.10 Vivecraft-jrbudda30";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -3493,9 +3493,9 @@
 +	// VIVE END - only clear block counter on un-press, to support real life swinging attacks
 +	private int moveModeSwitchcount;
 +
-+	private void sendClickBlockToController(boolean leftClick)
++	private void sendClickBlockToController(boolean inGame)
 +	{
-+		if (leftClick && this.objectMouseOver != null && this.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
++		if (inGame && this.objectMouseOver != null && this.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
 +		{
 +			int var2 = this.objectMouseOver.blockX;
 +			int var3 = this.objectMouseOver.blockY;
@@ -7476,18 +7476,34 @@
 +	private void doPostProcessing(long frameIndex, float nano)
 +	{	
 +		// VIVE start - screen flash when hurt instead of view tilt
-+		EntityLivingBase player = renderViewEntity;
-+		if (player!=null && player.getHealth() > 0.0f)
-+		{
-+			float var3 = (float)player.hurtTime - nano;
-+			if (var3>0.0f)
++		float r = 0, g = 0, b = 0, a = 0;
++		
++		// VIVE start - screen flash when hurt instead of view tilt
++		EntityPlayer player = thePlayer;
++		if (player!=null) {
++			if( player.getHealth() > 0.0f)		
 +			{
-+				var3 /= (float) player.maxHurtTime;
-+				var3 = MathHelper.sin(var3 * var3 * var3 * var3 * (float) Math.PI) * 0.5f;
-+				final Color3f rgb = new Color3f(255.0f, 0f, 0f);
-+				this.entityRenderer.renderFadeBlend(rgb, var3);
++				float var3 = (float)player.hurtTime - nano;
++				if (var3>0.0f)
++				{
++					var3 /= (float) player.maxHurtTime;
++					var3 = MathHelper.sin(var3 * var3 * var3 * var3 * (float) Math.PI) * 0.5f;
++					r = 1;
++					a = var3;
++				} 
++			} 
++
++			if (player.isPlayerSleeping()){
++				a = .97f;
 +			}
++			
++			if (MCOpenVR.isWalkingAbout){
++				a = .97f;
++			}
++			if(r+g+b+a > 0)
++				this.entityRenderer.renderFadeBlend(r, g, b, a);
 +		}
++
 +		// VIVE end - screen flash when hurt instead of view tilt
 +
 +		if (showSplashScreen && splashFadeAlpha > 0)
