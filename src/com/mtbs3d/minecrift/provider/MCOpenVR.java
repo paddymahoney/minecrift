@@ -1735,6 +1735,10 @@ public class MCOpenVR
 			guiRotationPose = new Matrix4f(orientationQuat);
 
 			guiRotationPose.M[3][3] = 1.0f;
+			
+			guiPos_World = guiPos_World.subtract(new Vector3f((float)mc.entityRenderer.interPolatedRoomOrigin.xCoord,
+					(float) mc.entityRenderer.interPolatedRoomOrigin.yCoord, (float) mc.entityRenderer.interPolatedRoomOrigin.zCoord));
+		
 		}  else if ( previousScreen==null && newScreen != null	|| 
 				newScreen instanceof GuiContainerCreative 
 				|| newScreen instanceof GuiChat) {			
@@ -1768,7 +1772,11 @@ public class MCOpenVR
 				float yaw = (float) ((float) Math.PI + Math.atan2(look.x, look.z));    
 				guiRotationPose = Matrix4f.rotationY((float) yaw);
 				Matrix4f tilt = OpenVRUtil.rotationXMatrix(pitch);	
-				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);						
+				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);	
+				
+				guiPos_World = guiPos_World.subtract(new Vector3f((float)mc.entityRenderer.interPolatedRoomOrigin.xCoord,
+						(float) mc.entityRenderer.interPolatedRoomOrigin.yCoord, (float) mc.entityRenderer.interPolatedRoomOrigin.zCoord));
+			
 			}				
 			else{
 				Vec3 adj = Vec3.createVectorHelper(0,0,-2);
@@ -1798,13 +1806,15 @@ public class MCOpenVR
 				Matrix4f tilt = OpenVRUtil.rotationXMatrix((float)Math.toRadians(mc.roomScale.getHMDPitch_World()));	
 				guiRotationPose = Matrix4f.multiply(guiRotationPose,tilt);		
 
-				if(guiPos_World!=null)
-					guiPos_World = guiPos_World.subtract(new Vector3f((float)mc.entityRenderer.interPolatedRoomOrigin.xCoord,
-							(float) mc.entityRenderer.interPolatedRoomOrigin.yCoord, (float) mc.entityRenderer.interPolatedRoomOrigin.zCoord));
-				
-
+				guiPos_World = guiPos_World.subtract(new Vector3f((float)mc.entityRenderer.interPolatedRoomOrigin.xCoord,
+						(float) mc.entityRenderer.interPolatedRoomOrigin.yCoord, (float) mc.entityRenderer.interPolatedRoomOrigin.zCoord));
+			
 			}
 		}
+		
+
+
+
 	}
 
 	//-------------------------------------------------------

@@ -147,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +218,4797 @@
+@@ -150,2988 +218,4796 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -6814,8 +6814,7 @@
 +				
 +				Vector3f CameraLook = new Vector3f(-(f1 * f2), f3, -f * f2);
 +
-+				Vec3 camplayer = entityRenderer.getEyeRenderPos(renderPass.Third).subtract(entityRenderer.getEyeRenderPos(renderPass.Center));
-+						
++				Vec3 camplayer = entityRenderer.getEyeRenderPos(renderPass.Center).subtract(entityRenderer.getEyeRenderPos(renderPass.Third));				
 +				
 +				GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
 +				GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, framebuffer.framebufferObject);
