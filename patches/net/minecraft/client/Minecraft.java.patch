@@ -147,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +218,4796 @@
+@@ -150,2988 +218,4801 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -1971,7 +1971,7 @@
 +	 * The minecriftVerString will be automatically updated by the build scripts, do not modify here.
 +	 * Modify minecriftversion.py in root minecrift dir.
 +	 */
-+    public final String minecriftVerString = "Vivecraft 1.7.10 Vivecraft-jrbudda30";
++    public final String minecriftVerString = "Vivecraft 1.7.10 Vivecraft-jrbudda31";
 +	/* end version */
 +	/** END MINECRIFT */
 +
@@ -2969,6 +2969,8 @@
 +			
 +			this.mcProfiler.startSection("Gui");
 +			// Render GUI to FBO if necessary
++				GL11.glDepthMask(true);
++				GL11.glColorMask(true, true, true, true);
 +				this.framebufferMc = this.guiFramebuffer; //draw to 2d gui.
 +				this.framebufferMc.bindFramebuffer(true);
 +							
@@ -5836,6 +5838,9 @@
 +	 */
 +	public void loadWorld(WorldClient worldClientIn)
 +	{
++		// VIVE START - reset room origin
++		vrPlayer.setRoomOrigin(0, 0, 0, true, false);
++		// VIVE END - reset room origin
 +		this.loadWorld(worldClientIn, "");
 +	}
 +

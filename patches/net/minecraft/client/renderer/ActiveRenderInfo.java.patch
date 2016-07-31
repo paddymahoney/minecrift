@@ -14,7 +14,7 @@
          float var6 = p_74583_0_.rotationYaw;
 +        //VIVECRAFT
 +        var5 = -Minecraft.getMinecraft().roomScale.getHMDPitch_World();
-+        var6 = - Minecraft.getMinecraft().roomScale.getHMDYaw_World();
++        var6 = Minecraft.getMinecraft().roomScale.getHMDYaw_World();
 +        //////
          rotationX = MathHelper.cos(var6 * (float)Math.PI / 180.0F) * (float)(1 - var4 * 2);
          rotationZ = MathHelper.sin(var6 * (float)Math.PI / 180.0F) * (float)(1 - var4 * 2);

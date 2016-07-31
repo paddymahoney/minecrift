@@ -95,6 +95,8 @@ public class OpenVRPlayer implements IRoomscaleAdapter
 	    	if (reset){
 		    		//interPolatedRoomOrigin = Vec3.createVectorHelper(x, y, z);
 		    		lastroomOrigin = Vec3.createVectorHelper(x, y, z);
+		    		Minecraft.getMinecraft().entityRenderer.interPolatedRoomOrigin = Vec3.createVectorHelper(x, y, z);
+
 		    	} else {
 		        	this.lastroomOrigin.xCoord = roomOrigin.xCoord ;
 		        	this.lastroomOrigin.yCoord = roomOrigin.yCoord ;

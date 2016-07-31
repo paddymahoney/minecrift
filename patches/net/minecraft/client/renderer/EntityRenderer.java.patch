@@ -85,7 +85,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +98,4842 @@
+@@ -61,2593 +98,4848 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -1651,7 +1651,7 @@
 +		}
 +		
 +		
-+		if((mc.currentPass == renderPass.Left || mc.currentPass == renderPass.Right) && mc.vrSettings.displayMirrorMode == mc.vrSettings.MIRROR_MIXED_REALITY){
++		if(mc.vrSettings.displayMirrorMode == mc.vrSettings.MIRROR_MIXED_REALITY){
 +			//render the camera
 +			GL11.glMatrixMode(GL11.GL_PROJECTION);
 +			GL11.glPushMatrix();
@@ -2635,12 +2635,16 @@
 +		////END WORLD RENDERING
 +
 +		////START LOCAL RENDERING
-+				
-+		this.renderFPOverlay(par1);
++		
++		if(shadersMod && mc.currentPass == renderPass.Third && !mc.bowTracker.isDrawing)
++			renderGuiLayer(par1); //do this here just to get the depth info into the smc buffer. Will render again later.
++		
++		if (mc.currentPass != renderPass.Third) //no fp overlay for 3rd cam.
++			this.renderFPOverlay(par1);
 +		
 +			/** END MINECRIFT */
 +			if (shadersMod) {
-+				this.mc.mcProfiler.endStartSection("shadersModComposite");
++		this.mc.mcProfiler.endStartSection("shadersModComposite");
 +				//hack to give shadersmod the correct size.
 +				this.mc.displayWidth = this.mc.displayFBWidth;
 +				this.mc.displayHeight = this.mc.displayFBHeight;
@@ -2653,7 +2657,7 @@
 +			}
 +			/** END MINECRIFT SHADERS MOD **/
 +			
-+			this.mc.mcProfiler.endStartSection("renderGui");
++		this.mc.mcProfiler.endStartSection("renderGui");
 +			if(!mc.bowTracker.isDrawing)
 +				renderGuiLayer(par1);
 +			
@@ -3904,7 +3908,7 @@
 +							entity.rotationPitch = -mc.roomScale.getControllerMainPitch_World();
 +						}
 +						else if(mc.vrPlayer.shouldIlookatMyHand){
-+							Vec3 playerToMain = interpolatedPlayerPos.subtract(mc.roomScale.getControllerPos_World(0)); //backwards
++							Vec3 playerToMain = interpolatedPlayerPos.subtract(mc.roomScale.getControllerPos_World(0)); 
 +							float pitch = - (float)Math.toDegrees(Math.asin(playerToMain.yCoord/playerToMain.lengthVector()));
 +							float yaw =  (float)Math.toDegrees(Math.atan2(-playerToMain.xCoord, playerToMain.zCoord));    
 +							entity.rotationYawHead = entity.rotationYaw = yaw;
@@ -4319,7 +4323,9 @@
 +   			if(mc.theWorld == null)	mc.vrPlayer.worldRotationRadians = 0;
 +		
 +			Vec3 eye =mc.entityRenderer.getEyeRenderPos(currentPass);
-+						
++			if (mc.theWorld==null || mc.currentScreen instanceof GuiWinGame ) {
++				eye = mc.roomScale.getEyePos_Room(currentPass);
++			}
 +			Vector3f guipos = MCOpenVR.guiPos_World;
 +			Matrix4f guirot = MCOpenVR.guiRotationPose; 
 +			Vec3 guiLocal = Vec3.createVectorHelper(0, 0, 0);		
