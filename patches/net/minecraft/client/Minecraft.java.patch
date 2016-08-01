@@ -147,7 +147,7 @@
  import net.minecraft.world.EnumDifficulty;
  import net.minecraft.world.WorldProviderEnd;
  import net.minecraft.world.WorldProviderHell;
-@@ -150,2988 +218,4801 @@
+@@ -150,2988 +218,4803 @@
  import net.minecraft.world.storage.ISaveFormat;
  import net.minecraft.world.storage.ISaveHandler;
  import net.minecraft.world.storage.WorldInfo;
@@ -2971,7 +2971,9 @@
 +			// Render GUI to FBO if necessary
 +				GL11.glDepthMask(true);
 +				GL11.glColorMask(true, true, true, true);
++				GL11.glDisable(GL11.GL_DEPTH_TEST);
 +				this.framebufferMc = this.guiFramebuffer; //draw to 2d gui.
++				
 +				this.framebufferMc.bindFramebuffer(true);
 +							
 +				this.entityRenderer.drawFramebuffer(this.timer.renderPartialTicks, var6);   // VIVE - added param for debug info
@@ -3115,7 +3117,7 @@
 +	}
 +
 +	private boolean renderSingleView(int eye, float nano) {
-+		boolean shouldupdate;
++		boolean shouldupdate = false;
 +	
 +				if (this.entityRenderer != null)
 +				{

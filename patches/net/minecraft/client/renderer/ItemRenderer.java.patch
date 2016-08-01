@@ -51,7 +51,7 @@
  public class ItemRenderer
  {
      private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
-@@ -34,8 +48,9 @@
+@@ -34,8 +48,11 @@
  
      /** A reference to the Minecraft object. */
      private Minecraft mc;
@@ -59,11 +59,13 @@
 -
 +    ItemStack itemToRender;
 +    int controller = 0; 
++    public boolean isFP  = false;
++    
 +    
      /**
       * How far the current item has been equipped (0 disequipped and 1 fully up)
       */
-@@ -55,103 +70,103 @@
+@@ -55,103 +72,103 @@
      /**
       * Renders the item stack for being in an entity's hand Args: itemStack
       */
@@ -262,7 +264,7 @@
  
          GL11.glPopMatrix();
      }
-@@ -240,372 +255,587 @@
+@@ -240,372 +257,587 @@
  
          p_78439_0_.draw();
      }
@@ -867,7 +869,9 @@
 +		    		}
 +		    		else //single render go
 +		    		{
-+		    			this.renderItem(player, renderitem8, 0);
++		    			this.isFP = true;	
++		    			this.renderItem(player, renderitem8, 0);//this is in itemrendererOF!!
++		    			this.isFP = false;
 +		    		}
 +		
 +		    		
@@ -965,8 +969,6 @@
      }
  
 +
-+    
-+   
      /**
       * Renders all the overlays that are in first person mode. Args: partialTickTime
 +     * @param eye 
@@ -1187,7 +1189,7 @@
      }
  
      /**
-@@ -621,14 +851,17 @@
+@@ -621,14 +853,17 @@
          GL11.glEnable(GL11.GL_BLEND);
          OpenGlHelper.glBlendFunc(770, 771, 1, 0);
          GL11.glPushMatrix();

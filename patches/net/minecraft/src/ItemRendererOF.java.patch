@@ -21,7 +21,7 @@
  import org.lwjgl.opengl.GL11;
  import org.lwjgl.opengl.GL12;
  
-@@ -50,125 +54,127 @@
+@@ -50,125 +54,136 @@
       */
      public void renderItem(EntityLivingBase par1EntityLivingBase, ItemStack par2ItemStack, int par3)
      {
@@ -162,13 +162,22 @@
 +	        if (Reflector.MinecraftForgeClient_getItemRenderer.exists())
 +	        {
 +	            type = Reflector.getFieldValue(Reflector.ItemRenderType_EQUIPPED);
++	            if(this.isFP)  type = Reflector.getFieldValue(Reflector.ItemRenderType_EQUIPPED);
 +	            customRenderer = Reflector.call(Reflector.MinecraftForgeClient_getItemRenderer, new Object[] {par2ItemStack, type});
 +	        }
 +	
 +	        if (customRenderer != null)
 +	        {
-+	            var4.bindTexture(var4.getResourceLocation(par2ItemStack.getItemSpriteNumber()));
-+	            Reflector.callVoid(Reflector.ForgeHooksClient_renderEquippedItem, new Object[] {type, customRenderer, this.renderBlocksIr, par1EntityLivingBase, par2ItemStack});
++	          var4.bindTexture(var4.getResourceLocation(par2ItemStack.getItemSpriteNumber()));
++	      //      Reflector.callVoid(Reflector.ForgeHooksClient_renderEquippedItem, new Object[] {type, customRenderer, this.renderBlocksIr, par1EntityLivingBase, par2ItemStack});
++	          //basic forge transformations it applies to everythinbg
++	          if(!(par2ItemStack.getItem() instanceof ItemBlock)){
++	          	GL11.glTranslatef(-0.3F, .3F, -0.04F);
++	            GL11.glScalef(1.5F, 1.5F, 1.5F);
++	          }
++	          
++	            Reflector.callVoid(customRenderer, Reflector.IItemRenderer_renderItem, new Object[] {type, par2ItemStack,new Object[] { this.renderBlocksIr, par1EntityLivingBase}});
++ 
 +	        }
 +	        else if (par2ItemStack.getItemSpriteNumber() == 0 && var5 instanceof ItemBlock && RenderBlocks.renderItemIn3d(var6.getRenderType()))
 +	        {

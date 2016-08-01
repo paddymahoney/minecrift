@@ -319,7 +319,7 @@
 -            var8.drawStringWithShadow(this.mc.debugInfoEntities(), 2, 32, 16777215);
 -            var8.drawStringWithShadow(this.mc.getWorldProviderName(), 2, 42, 16777215);
 +			/** MINECRIFT **/
-+            var8.drawStringWithShadow(this.mc.minecriftVerString + ", " + "J/OpenVR 1.0.0" , 2, 2, 16777215);
++            var8.drawStringWithShadow(this.mc.minecriftVerString + ", " + "J/OpenVR 1.0.2" , 2, 2, 16777215);
 +			/** END MINECRIFT **/ 
 +			var8.drawStringWithShadow(this.mc.debug, 2, 12, 16777215);
 +            var8.drawStringWithShadow(this.mc.debugInfoRenders(), 2, 22, 16777215);
@@ -333,10 +333,10 @@
              String var20 = "Used memory: " + var45 * 100L / var36 + "% (" + var45 / 1024L / 1024L + "MB) of " + var36 / 1024L / 1024L + "MB";
              var21 = 14737632;
 -            this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 2, 14737632);
-+            this.drawString(var8, var20, width - var8.getStringWidth(var20) - 2, 2, 14737632);
++            this.drawString(var8, var20, width - var8.getStringWidth(var20) - 2, 12, 14737632);
              var20 = "Allocated memory: " + var41 * 100L / var36 + "% (" + var41 / 1024L / 1024L + "MB)";
 -            this.drawString(var8, var20, var6 - var8.getStringWidth(var20) - 2, 12, 14737632);
-+            this.drawString(var8, var20, width - var8.getStringWidth(var20) - 2, 12, 14737632);
++            this.drawString(var8, var20, width - var8.getStringWidth(var20) - 2, 22, 14737632);
 +        
 +            /** MINECRIFT FORGE **/
 +			Object fmlCommonHandler = null;
