@@ -85,7 +85,7 @@
  import net.minecraft.potion.Potion;
  import net.minecraft.server.integrated.IntegratedServer;
  import net.minecraft.src.Config;
-@@ -61,2593 +98,4850 @@
+@@ -61,2593 +98,4849 @@
  import net.minecraft.world.World;
  import net.minecraft.world.WorldProvider;
  import net.minecraft.world.biome.BiomeGenBase;
@@ -4705,20 +4705,19 @@
 +						if (!drawScreenHandled)
 +						{
 +							this.mc.currentScreen.drawScreen(mouseX, mouseY, renderPartialTicks);
-+
-+							if(mc.currentScreen !=null){ //wtf pixelmon?
-+							
-+							//	Draw GUI crosshair
-+							if (mc.stereoProvider.isStereo()){					
-+								if(MCOpenVR.controllerMouseValid){
-+									mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())		;				
-+								}
-+
-+							} else  mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())	;
-+							}
 +						}
-+
-+						Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Post_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(mouseX), Integer.valueOf(mouseY), Float.valueOf(renderPartialTicks)});
++						
++						if(mc.currentScreen !=null){ //wtf pixelmon?
++							
++						if(Reflector.EventBus_post.exists()) Reflector.postForgeBusEvent(Reflector.DrawScreenEvent_Post_Constructor, new Object[] {this.mc.currentScreen, Integer.valueOf(mouseX), Integer.valueOf(mouseY), Float.valueOf(renderPartialTicks)});
++						
++						//	Draw GUI crosshair
++						if (mc.stereoProvider.isStereo()){					
++							if(MCOpenVR.controllerMouseValid){
++								mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())		;				
++							}
++						} else  mc.ingameGUI.drawMouseMenuQuad(mc.currentScreen.getMouseX(),mc.currentScreen.getMouseY())	;
++						}
 +					}
 +					catch (Throwable throwable)
 +					{
