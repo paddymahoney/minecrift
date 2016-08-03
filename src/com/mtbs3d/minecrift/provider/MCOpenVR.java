@@ -162,8 +162,8 @@ public class MCOpenVR
 	public static boolean hudPopup = true;
 
 	// For mouse menu emulation
-	private static float controllerMouseX = -1.0f;
-	private static float controllerMouseY = -1.0f;
+	public static float controllerMouseX = -1.0f;
+	public static float controllerMouseY = -1.0f;
 	public static boolean controllerMouseValid;
 	public static int controllerMouseTicks;
 
@@ -741,18 +741,21 @@ public class MCOpenVR
 			}	
 			//end Shift
 		}
+		
 		if (controllerMouseX >= 0 && controllerMouseX < mc.displayWidth
 				&& controllerMouseY >=0 && controllerMouseY < mc.displayHeight)
 		{
 			// clamp to screen
-			int mouseX = Math.min(Math.max((int) controllerMouseX, 0), mc.displayWidth);
-			int mouseY = Math.min(Math.max((int) controllerMouseY, 0), mc.displayHeight);
+		int mouseX =(int) (controllerMouseX = Math.min(Math.max((int) controllerMouseX, 0), mc.displayWidth));
+		int mouseY =(int) (controllerMouseY = Math.min(Math.max((int) controllerMouseY, 0), mc.displayHeight));
 
 			if (controllerDeviceIndex[RIGHT_CONTROLLER] != -1)
 			{
-				Mouse.setCursorPosition(mouseX, mouseY);
+				
+				Mouse.setCursorPosition((int)controllerMouseX, (int)controllerMouseY);
 				controllerMouseValid = true;
 				//LMB
+				
 				if (mc.currentScreen != null &&
 						controllerStateReference[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x > triggerThreshold && 
 						lastControllerState[RIGHT_CONTROLLER].rAxis[k_EAxis_Trigger].x <= triggerThreshold 
@@ -1453,9 +1456,6 @@ public class MCOpenVR
 
 	private static void processTouchpadSampleBuffer()
 	{
-		if (mc.thePlayer == null)
-			return;
-
 		if (mc.currentScreen != null){
 		// right touchpad controls mousewheel
 			int c =0;
@@ -1487,7 +1487,7 @@ public class MCOpenVR
 					inventory_swipe[c] += swipeDistancePerInventorySlot;
 				}
 			}
-		} else 	{
+		} else if (mc.thePlayer != null)	{
 		// left touchpad controls inventory
 			int c =1;
 			boolean touchpadPressed = (controllerStateReference[c].ulButtonPressed & k_buttonTouchpad) > 0;
@@ -1506,11 +1506,21 @@ public class MCOpenVR
 				float swipeDistancePerInventorySlot = 0.4f;
 				if (inventory_swipe[c] > swipeDistancePerInventorySlot)
 				{
-					hotbarNext.pressKey();
+					if (Display.isActive()) {
+						KeyboardSimulator.robot.mouseWheel(25);
+						short duration = 250;
+						vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[1], 0, duration);
+					}
+					else hotbarNext.pressKey();
 					inventory_swipe[c] -= swipeDistancePerInventorySlot;
 				} else if (inventory_swipe[c] < -swipeDistancePerInventorySlot)
 				{
-					hotbarPrev.pressKey();
+					if (Display.isActive()) {
+						KeyboardSimulator.robot.mouseWheel(-25);
+						short duration = 250;
+						vrsystem.TriggerHapticPulse.apply(controllerDeviceIndex[1], 0, duration);
+					}
+					else hotbarPrev.pressKey();
 					inventory_swipe[c] += swipeDistancePerInventorySlot;
 				}
 			}
