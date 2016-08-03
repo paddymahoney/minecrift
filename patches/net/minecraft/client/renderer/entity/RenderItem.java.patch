@@ -93,20 +93,24 @@
              GL11.glEnable(GL11.GL_LIGHTING);
          }
          else
-@@ -520,7 +530,11 @@
+@@ -520,7 +530,15 @@
  
              try
              {
 -                this.renderItemIntoGUI(p_82406_1_, p_82406_2_, p_82406_3_, p_82406_4_, p_82406_5_);
 +                /** MINECRIFT FORGE **/
-+                if (!Reflector.forgeExists() || !Reflector.callBoolean(Reflector.ForgeHooksClient_renderInventoryItem, this.field_147909_c, p_82406_2_, p_82406_3_, renderWithColor, zLevel, (float)p_82406_4_, (float)p_82406_5_) /*!ForgeHooksClient.renderInventoryItem(this.field_147909_c, p_82406_2_, p_82406_3_, renderWithColor, zLevel, (float)p_82406_4_, (float)p_82406_5_)*/) {
++            	GL11.glColorMask(true, true, true, false); //VIVE experiment.
++                if (!Reflector.forgeExists() || 
++                		!Reflector.callBoolean(Reflector.ForgeHooksClient_renderInventoryItem, this.field_147909_c, p_82406_2_, p_82406_3_, renderWithColor, zLevel, (float)p_82406_4_, (float)p_82406_5_) /*!ForgeHooksClient.renderInventoryItem(this.field_147909_c, p_82406_2_, p_82406_3_, renderWithColor, zLevel, (float)p_82406_4_, (float)p_82406_5_)*/) {
++                	
 +                    this.renderItemIntoGUI(p_82406_1_, p_82406_2_, p_82406_3_, p_82406_4_, p_82406_5_, true);
 +                }
++                GL11.glColorMask(true, true, true, true);//VIVE experiment.
 +                /** END MINECRIFT FORGE **/
              }
              catch (Throwable var9)
              {
-@@ -566,13 +580,16 @@
+@@ -566,13 +584,16 @@
                  GL11.glDepthFunc(GL11.GL_EQUAL);
                  GL11.glDisable(GL11.GL_LIGHTING);
                  GL11.glDepthMask(false);
@@ -125,7 +129,7 @@
                  GL11.glEnable(GL11.GL_LIGHTING);
                  GL11.glDepthFunc(GL11.GL_LEQUAL);
              }
-@@ -581,32 +598,34 @@
+@@ -581,32 +602,34 @@
          }
      }
  
@@ -180,7 +184,7 @@
      /**
       * Renders the item's overlay information. Examples being stack count or damage on top of the item's image at the
       * specified position.
-@@ -673,6 +692,7 @@
+@@ -673,6 +696,7 @@
  
      public void renderIcon(int p_94149_1_, int p_94149_2_, IIcon p_94149_3_, int p_94149_4_, int p_94149_5_)
      {
@@ -188,7 +192,7 @@
          Tessellator var6 = Tessellator.instance;
          var6.startDrawingQuads();
          var6.addVertexWithUV((double)(p_94149_1_ + 0), (double)(p_94149_2_ + p_94149_5_), (double)this.zLevel, (double)p_94149_3_.getMinU(), (double)p_94149_3_.getMaxV());
-@@ -700,4 +720,55 @@
+@@ -700,4 +724,55 @@
      {
          this.doRender((EntityItem)p_76986_1_, p_76986_2_, p_76986_4_, p_76986_6_, p_76986_8_, p_76986_9_);
      }

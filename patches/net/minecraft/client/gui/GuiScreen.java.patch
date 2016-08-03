@@ -17,7 +17,7 @@
  import net.minecraft.util.EnumChatFormatting;
  import org.lwjgl.input.Keyboard;
  import org.lwjgl.input.Mouse;
-@@ -44,13 +49,20 @@
+@@ -44,13 +49,22 @@
      public boolean allowUserInput;
  
      /** The FontRenderer used by GuiScreen */
@@ -36,10 +36,12 @@
 +	
 +	public boolean pressShiftFake;
 +
++	public int mouseX, mouseY;
++	
      /**
       * Incremented when the game is in touchscreen mode and the screen is tapped, decremented if the screen isn't
       * tapped. Does not appear to be used.
-@@ -84,6 +96,10 @@
+@@ -84,6 +98,10 @@
      {
          if (keyCode == 1)
          {
@@ -50,7 +52,7 @@
              this.mc.displayGuiScreen((GuiScreen)null);
              this.mc.setIngameFocus();
          }
-@@ -142,21 +158,37 @@
+@@ -142,21 +160,37 @@
                  var4.set(var5, EnumChatFormatting.GRAY + (String)var4.get(var5));
              }
          }
@@ -92,7 +94,7 @@
          if (!textLines.isEmpty())
          {
              GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-@@ -169,7 +201,9 @@
+@@ -169,7 +203,9 @@
              while (var5.hasNext())
              {
                  String var6 = (String)var5.next();
@@ -103,7 +105,7 @@
  
                  if (var7 > var4)
                  {
-@@ -214,7 +248,9 @@
+@@ -214,7 +250,9 @@
              for (int var12 = 0; var12 < textLines.size(); ++var12)
              {
                  String var13 = (String)textLines.get(var12);
@@ -114,7 +116,7 @@
  
                  if (var12 == 0)
                  {
-@@ -246,10 +282,26 @@
+@@ -246,10 +284,26 @@
  
                  if (var5.mousePressed(this.mc, mouseX, mouseY))
                  {
@@ -145,7 +147,7 @@
              }
          }
      }
-@@ -285,8 +337,22 @@
+@@ -285,8 +339,22 @@
          this.fontRendererObj = mc.fontRendererObj;
          this.width = width;
          this.height = height;
@@ -170,7 +172,7 @@
      }
  
      /**
-@@ -302,7 +368,14 @@
+@@ -302,7 +370,14 @@
          if (Mouse.isCreated())
          {
              while (Mouse.next())
@@ -186,7 +188,7 @@
                  this.handleMouseInput();
              }
          }
-@@ -321,9 +394,23 @@
+@@ -321,9 +396,23 @@
       */
      public void handleMouseInput()
      {
@@ -205,14 +207,14 @@
 +        mouseOffsetX = -1;
 +        mouseOffsetY = -1;
 +
-+        int var1 = getMouseX();
-+        int var2 = getMouseY();
++        int var1 =mouseX = getMouseX();
++        int var2 = mouseY= getMouseY();
          int var3 = Mouse.getEventButton();
 +		/** END MINECRIFT */
  
          if (Mouse.getEventButtonState())
          {
-@@ -388,8 +475,17 @@
+@@ -388,8 +477,17 @@
      {
          if (this.mc.theWorld != null)
          {
@@ -230,7 +232,7 @@
          else
          {
              this.drawBackground(tint);
-@@ -441,4 +537,82 @@
+@@ -441,4 +539,82 @@
      {
          return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
      }
