@@ -3894,9 +3894,9 @@
 +							//use bow aim
 +							Vec3 aim = mc.bowTracker.getAimVector();
 +							//not backwards in 1.7
-+							if (aim != null) { //why null???
++							if (aim != null && aim.lengthVector() > 0) {
 +								float pitch = - (float)Math.toDegrees(Math.asin(aim.yCoord/aim.lengthVector()));
-+								float yaw = (float)Math.toDegrees(Math.atan2(aim.xCoord, aim.zCoord));   		
++								float yaw = (float)Math.toDegrees(Math.atan2(-aim.xCoord, aim.zCoord));   		
 +	
 +								entity.rotationYawHead =	entity.rotationYaw =  (float)yaw;
 +								entity.rotationPitch = (float)pitch;
