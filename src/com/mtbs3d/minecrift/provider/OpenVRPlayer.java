@@ -1091,7 +1091,7 @@ public class OpenVRPlayer implements IRoomscaleAdapter
         	}
         }
                	
-        if (!inAnEntity && !insolidBlock)
+        if ((!inAnEntity && !insolidBlock ) || lastWeaponEndAir.lengthVector() ==0)
         {
             lastWeaponEndAir.xCoord = weaponEnd.xCoord;
             lastWeaponEndAir.yCoord = weaponEnd.yCoord;
