@@ -1,6 +1,153 @@
 --- a/net/minecraft/client/entity/EntityClientPlayerMP.java
 +++ b/net/minecraft/client/entity/EntityClientPlayerMP.java
-@@ -213,7 +213,9 @@
+@@ -1,11 +1,14 @@
+ package net.minecraft.client.entity;
+ 
++import com.mtbs3d.minecrift.utils.Utils;
++
+ import net.minecraft.client.Minecraft;
+ import net.minecraft.client.audio.MovingSoundMinecartRiding;
+ import net.minecraft.client.network.NetHandlerPlayClient;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.entity.item.EntityItem;
+ import net.minecraft.entity.item.EntityMinecart;
++import net.minecraft.entity.player.EntityPlayer;
+ import net.minecraft.item.ItemStack;
+ import net.minecraft.network.play.client.C01PacketChatMessage;
+ import net.minecraft.network.play.client.C03PacketPlayer;
+@@ -65,13 +68,62 @@
+         super(p_i45064_1_, p_i45064_2_, p_i45064_3_, 0);
+         this.sendQueue = p_i45064_4_;
+         this.field_146108_bO = p_i45064_5_;
++        
++        //VIVECRAFT
++        hackSuperFields();
++        //END VIVECRAFT
++        
++        
++    }
++
++    //VIVECRAFT
++    private void hackSuperFields(){ //this will work, damnit.
++    	inuse = Utils.getDeclaredField( this.getClass().getSuperclass().getSuperclass().getSuperclass(), 
++    			"itemInUse", 
++    			"f", 
++    			"field_71074_e");
++    	
++     	inusedur = Utils.getDeclaredField( this.getClass().getSuperclass().getSuperclass().getSuperclass(), 
++    			"itemInUseCount", 
++    			"g", 
++    			"field_71072_f");
++    	
++    	if(inuse!=null){
++			inuse.setAccessible(true);
++    		inusedur.setAccessible(true);
++    	}
++    }
++    
++    
++    
++    /**
++     * Called when the mob's health reaches 0.
++     */
++    @Override
++    public void onDeath(DamageSource p_70645_1_){
++    	
++    	super.onDeath(p_70645_1_);
++        Minecraft.getMinecraft().vrPlayer.triggerHapticPulse(0, 2000);
++        Minecraft.getMinecraft().vrPlayer.triggerHapticPulse(1, 2000);    	
++    	
+     }
+-
++    //END VIVECRAFT
++    
+     /**
+      * Called when the entity is attacked.
+      */
+     public boolean attackEntityFrom(DamageSource source, float amount)
+     {
++    	//VIVECRAFT
++    	if(amount > 0){
++	    	int dur = 1000;
++	    	if(source.isExplosion())dur = 2000;
++	    	if(source.damageType == "cactus")dur = 200;
++	        	//Vivecraft trigger haptics
++	            Minecraft.getMinecraft().vrPlayer.triggerHapticPulse(0, dur);
++	            Minecraft.getMinecraft().vrPlayer.triggerHapticPulse(1, dur);    	
++    	}
++        //END VIVECRAFT
+         return false;
+     }
+ 
+@@ -98,6 +150,7 @@
+      */
+     public void onUpdate()
+     {
++   
+         if (this.worldObj.blockExists(MathHelper.floor_double(this.posX), 0, MathHelper.floor_double(this.posZ)))
+         {
+             super.onUpdate();
+@@ -156,23 +209,23 @@
+         double var7 = this.posZ - this.oldPosZ;
+         double var9 = (double)(this.rotationYaw - this.oldRotationYaw);
+         double var11 = (double)(this.rotationPitch - this.oldRotationPitch);
+-        boolean var13 = var3 * var3 + var5 * var5 + var7 * var7 > 9.0E-4D || this.ticksSinceMovePacket >= 20;
+-        boolean var14 = var9 != 0.0D || var11 != 0.0D;
++        boolean didMove = var3 * var3 + var5 * var5 + var7 * var7 > 9.0E-4D || this.ticksSinceMovePacket >= 20;
++        boolean didLook = var9 != 0.0D || var11 != 0.0D;
+ 
+         if (this.ridingEntity != null)
+         {
+             this.sendQueue.addToSendQueue(new C03PacketPlayer.C06PacketPlayerPosLook(this.motionX, -999.0D, -999.0D, this.motionZ, this.rotationYaw, this.rotationPitch, this.onGround));
+-            var13 = false;
++            didMove = false;
+         }
+-        else if (var13 && var14)
++        else if (didMove && didLook)
+         {
+             this.sendQueue.addToSendQueue(new C03PacketPlayer.C06PacketPlayerPosLook(this.posX, this.boundingBox.minY, this.posY, this.posZ, this.rotationYaw, this.rotationPitch, this.onGround));
+         }
+-        else if (var13)
++        else if (didMove)
+         {
+             this.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(this.posX, this.boundingBox.minY, this.posY, this.posZ, this.onGround));
+         }
+-        else if (var14)
++        else if (didLook)
+         {
+             this.sendQueue.addToSendQueue(new C03PacketPlayer.C05PacketPlayerLook(this.rotationYaw, this.rotationPitch, this.onGround));
+         }
+@@ -180,11 +233,11 @@
+         {
+             this.sendQueue.addToSendQueue(new C03PacketPlayer(this.onGround));
+         }
+-
++        
+         ++this.ticksSinceMovePacket;
+         this.wasOnGround = this.onGround;
+ 
+-        if (var13)
++        if (didMove)
+         {
+             this.oldPosX = this.posX;
+             this.oldMinY = this.boundingBox.minY;
+@@ -193,11 +246,14 @@
+             this.ticksSinceMovePacket = 0;
+         }
+ 
+-        if (var14)
++        if (didLook)
+         {
+             this.oldRotationYaw = this.rotationYaw;
+             this.oldRotationPitch = this.rotationPitch;
+         }
++        
++        mc.vrPlayer.IAmLookingAtMyHand = mc.vrPlayer.shouldIlookatMyHand;
++        
+     }
+ 
+     /**
+@@ -213,7 +269,9 @@
      /**
       * Joins the passed in entity item with the world. Args: entityItem
       */
@@ -11,3 +158,12 @@
  
      /**
       * Sends a chat message from the player. Args: chatMessage
+@@ -278,7 +336,7 @@
+         }
+         else
+         {
+-            this.setHealth(p_71150_1_);
++        	this.setHealth(p_71150_1_);
+             this.hasSetHealth = true;
+         }
+     }

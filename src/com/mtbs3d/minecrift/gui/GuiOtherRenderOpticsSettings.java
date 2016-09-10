@@ -18,7 +18,6 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.EYE_RELIEF_PLACEHOLDER,
             VRSettings.VrOptions.EYE_RELIEF_ADJUST,
-            VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.MAX_FOV,
             VRSettings.VrOptions.FOV_CHANGE,
     };
@@ -31,7 +30,6 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
             VRSettings.VrOptions.RIGHT_HALF_IPD,
             VRSettings.VrOptions.EYE_RELIEF_PLACEHOLDER,
             VRSettings.VrOptions.EYE_RELIEF_ADJUST,
-            VRSettings.VrOptions.WORLD_SCALE,
             VRSettings.VrOptions.DUMMY,
             VRSettings.VrOptions.MAX_FOV,
             VRSettings.VrOptions.FOV_CHANGE,
@@ -72,13 +70,7 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
                 float maxValue = 1.0f;
                 float increment = 0.01f;
 
-                if (var8 == VRSettings.VrOptions.WORLD_SCALE)
-                {
-                    minValue = -5.0f;
-                    maxValue = -0.1f;
-                    increment = 0.01f;
-                }
-                else if (var8 == VRSettings.VrOptions.EYE_RELIEF_ADJUST)
+                if (var8 == VRSettings.VrOptions.EYE_RELIEF_ADJUST)
                 {
                     minValue = -0.035f;
                     maxValue =  0.035f;
@@ -181,7 +173,6 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
                 this.guivrSettings.setMinecraftIpd(this.guivrSettings.getOculusProfileHalfIPD(EyeType.ovrEye_Left), this.guivrSettings.getOculusProfileHalfIPD(EyeType.ovrEye_Right));
                 this.guivrSettings.fovChange = 0f;
                 this.guivrSettings.useMaxFov = false;
-                this.guivrSettings.worldScale = 1f;
                 this.guivrSettings.eyeReliefAdjust = 0f;
 
                 Minecraft.getMinecraft().vrSettings.saveOptions();
@@ -200,8 +191,7 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
     public boolean event(int id, VRSettings.VrOptions enumm)
     {
         if (enumm == VRSettings.VrOptions.FOV_CHANGE ||
-            enumm == VRSettings.VrOptions.MAX_FOV ||
-            enumm == VRSettings.VrOptions.WORLD_SCALE)
+            enumm == VRSettings.VrOptions.MAX_FOV )
         {
             this.mc.reinitFramebuffers = true;
         }
@@ -227,17 +217,6 @@ public class GuiOtherRenderOpticsSettings extends BaseGuiSettings implements Gui
         if( e != null )
             switch(e)
             {
-            case WORLD_SCALE:
-                return new String[] {
-                        "Scales the size of the world.",
-                        " Adjust this if the blocks do not seem to be one metre",
-                        " in size (i.e change the perception of scale).",
-                        " Miniature world: This can be less nausea inducing.",
-                        " Giant world: A hard core VR experience!",
-                        "NOTE: When playing in a seated position, perceived",
-                        "scale can be improved with a world scale of 133%. Also,",
-                        "sit cross-legged on your chair. Really ;-)",
-                };
             case EYE_RELIEF_PLACEHOLDER:
                 return new String[] {
                         "The current un-adjusted eye relief value, as reported",

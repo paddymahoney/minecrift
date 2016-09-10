@@ -1,0 +1,66 @@
+{
+ "inheritsFrom": "1.7.10",
+ "assets": "1.7.10", 
+ "id": "1.7.10-Vivecraft-$VERSION",
+ "libraries": [
+  {
+   "name": "optifine:OptiFine:1.7.10_HD_U_D1"
+  }, 
+  {
+   "name": "org.ow2.asm:asm-all:5.0.3"
+  }, 
+  {
+   "url": "http://central.maven.org/maven2/", 
+   "name": "org.json:json:20140107"
+  }, 
+  {
+   "name": "net.minecraft:launchwrapper:1.12"
+  }, 
+  {
+   "url": "http://automat-gh.github.io/minecrift/", 
+   "name": "com.sun:jna:4.2.1"
+  }, 
+  {
+   "url": "http://vivecraft.org/jar/", 
+   "name": "de.fruitfly.ovr:JRift:0.8.0.0.1"
+  }, 
+  {
+   "url": "http://vivecraft.org/jar/", 
+   "name": "net.aib42.mumblelink:JMumble:1.11"
+  }, 
+  {
+   "url": "http://vivecraft.org/jar/", 
+   "extract": {
+    "exclude": [
+     "META-INF/"
+    ]
+   }, 
+   "name": "de.fruitfly.ovr:JRiftLibrary:0.8.0.0.1", 
+   "natives": {
+    "windows": "natives-windows", 
+    "osx": "natives-osx", 
+    "linux": "natives-linux"
+   }
+  }, 
+  {
+   "url": "http://vivecraft.org/jar/", 
+   "extract": {
+    "exclude": [
+     "META-INF/"
+    ]
+   }, 
+   "name": "net.aib42.mumblelink:JMumbleLibrary:1.11", 
+   "natives": {
+    "windows": "natives-windows", 
+    "osx": "natives-osx", 
+    "linux": "natives-linux"
+   }
+  }
+ ], 
+ "mainClass": "net.minecraft.launchwrapper.Launch", 
+ "minimumLauncherVersion": 13, 
+ "time": "1979-06-01T00:00:00-05:00", 
+ "type": "release", 
+ "minecraftArguments": "--username ${auth_player_name} --version ${version_name} --gameDir ${game_directory} --assetsDir ${assets_root} --assetIndex ${assets_index_name} --uuid ${auth_uuid} --accessToken ${auth_access_token} --userProperties ${user_properties} --userType ${user_type}  --tweakClass optifine.OptiFineTweaker", 
+ "releaseTime": "1979-06-01T00:00:00-05:00"
+}

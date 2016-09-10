@@ -10,8 +10,8 @@ import java.util.List;
  */
 public class VRControllerState_t extends Structure {
 	public int unPacketNum;
-	public NativeLong64 ulButtonPressed;
-	public NativeLong64 ulButtonTouched;
+	public long ulButtonPressed;
+	public long ulButtonTouched;
 	/**
 	 * struct vr::VRControllerAxis_t[5]<br>
 	 * C type : VRControllerAxis_t[5]
@@ -27,7 +27,7 @@ public class VRControllerState_t extends Structure {
 	 * @param rAxis struct vr::VRControllerAxis_t[5]<br>
 	 * C type : VRControllerAxis_t[5]
 	 */
-	public VRControllerState_t(int unPacketNum, NativeLong64 ulButtonPressed, NativeLong64 ulButtonTouched, VRControllerAxis_t rAxis[]) {
+	public VRControllerState_t(int unPacketNum, long ulButtonPressed, long ulButtonTouched, VRControllerAxis_t rAxis[]) {
 		super();
 		this.unPacketNum = unPacketNum;
 		this.ulButtonPressed = ulButtonPressed;

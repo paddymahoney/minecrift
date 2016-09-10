@@ -11,7 +11,18 @@
  import net.minecraft.client.gui.FontRenderer;
  import net.minecraft.client.model.ModelChicken;
  import net.minecraft.client.model.ModelCow;
-@@ -233,8 +236,12 @@
+@@ -93,8 +96,9 @@
+ 
+ public class RenderManager
+ {
++	
+     /** A map of entity classes and the associated renderer. */
+-    private Map entityRenderMap = new HashMap();
++    public Map entityRenderMap = new HashMap(); ///SHADERSMOD make public
+ 
+     /** The static instance of RenderManager. */
+     public static RenderManager instance = new RenderManager();
+@@ -233,8 +237,12 @@
          }
          else
          {
@@ -20,8 +31,8 @@
 +            // VIVE START - use hmd facing, not player
 +            //this.playerViewY = p_147938_4_.prevRotationYaw + (p_147938_4_.rotationYaw - p_147938_4_.prevRotationYaw) * p_147938_7_;
 +            //this.playerViewX = p_147938_4_.prevRotationPitch + (p_147938_4_.rotationPitch - p_147938_4_.prevRotationPitch) * p_147938_7_;
-+            this.playerViewY = Minecraft.getMinecraft().headTracker.getHeadYawDegrees(EyeType.ovrEye_Left);
-+            this.playerViewX = Minecraft.getMinecraft().headTracker.getHeadPitchDegrees(EyeType.ovrEye_Left);
++            this.playerViewY =  Minecraft.getMinecraft().roomScale.getHMDYaw_World();
++            this.playerViewX = -Minecraft.getMinecraft().roomScale.getHMDPitch_World();
 +            // VIVE END - use hmd facing not player
          }
  

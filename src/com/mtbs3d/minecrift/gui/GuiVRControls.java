@@ -4,80 +4,23 @@
  */
 package com.mtbs3d.minecrift.gui;
 
-import com.mtbs3d.minecrift.control.ControlBinding;
-import com.mtbs3d.minecrift.control.ControlBinding.ControlBindCallback;
+import com.mtbs3d.minecrift.control.VRControllerButtonMapping;
 import com.mtbs3d.minecrift.gui.framework.BaseGuiSettings;
 import com.mtbs3d.minecrift.gui.framework.GuiButtonEx;
 import com.mtbs3d.minecrift.settings.VRSettings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiKeyBindingList;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiSlot;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.EnumChatFormatting;
 
 public class GuiVRControls extends BaseGuiSettings {
 
-	ControlSlot slots;
-	class ControlSlot extends GuiSlot implements ControlBindCallback {
-
-		int currentlyBinding;
-		int selected;
-		public ControlSlot(GuiVRControls parent) {
-			super(parent.mc, parent.width, parent.height,32,parent.height - 64, 12 );
-			currentlyBinding = -1;
-			selected = -1;
-		}
-
-		@Override
-		protected int getSize() {
-			return ControlBinding.bindings.size();
-		}
-
-		@Override
-		protected void elementClicked(int controlIndex, boolean var2, int mousex, int mousey) {
-			if( currentlyBinding > -1 && currentlyBinding != controlIndex ) {
-				ControlBinding.bindings.get(currentlyBinding).doneBinding();
-                Minecraft.getMinecraft().lookaimController.mapBinding(null);
-			}
-			selected = controlIndex;
-			if( var2 ) {
-				currentlyBinding = controlIndex;
-				ControlBinding.bindings.get(currentlyBinding).setDoneBindingCallback(this);
-                Minecraft.getMinecraft().lookaimController.mapBinding(ControlBinding.bindings.get(currentlyBinding));
-			}
-			
-		}
-
-		@Override
-		protected boolean isSelected(int var1) {
-			return selected == var1;
-		}
-
-		@Override
-		protected void drawBackground() {
-			drawDefaultBackground();
-		}
-
-		@Override
-		protected void drawSlot(int index, int xPos, int yPos, int height, Tessellator var5, int mousex, int mousey) {
-			String display = "";
-			if( index == currentlyBinding ) {
-                ControlBinding binding = ControlBinding.bindings.get(index);
-				display = binding.getDescription()+": " + EnumChatFormatting.WHITE + "> " + EnumChatFormatting.YELLOW + "??? " + EnumChatFormatting.WHITE + "<";
-			} else { 
-				ControlBinding binding = ControlBinding.bindings.get(index);
-				display = (binding.isValid() ? "" : (""+ EnumChatFormatting.RED )) + binding.getDescription()+": "+binding.boundTo();
-			}
-			drawString(fontRendererObj,display, xPos, yPos, 8421504);
-		}
-
-		@Override
-		public void doneBinding() {
-			currentlyBinding = -1;
-		}
-		
-	}
+	private GuiVRControlsList guiList;
+	public VRControllerButtonMapping buttonId; 
 	
 	public GuiVRControls(GuiScreen par1GuiScreen, VRSettings par2vrSettings) {
 		super(par1GuiScreen, par2vrSettings);
@@ -85,28 +28,31 @@ public class GuiVRControls extends BaseGuiSettings {
 	}
 
     /**
-     * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+     * Fired when a key is typed (except F11 who toggle full screen). This is the equivalent of
+     * KeyListener.keyTyped(KeyEvent e). Args : character (character on the key), keyCode (lwjgl Keyboard key code)
      */
-    protected void keyTyped(char par1, int par2)
+    protected void keyTyped(char typedChar, int keyCode)
     {
-        if ( slots.currentlyBinding >= 0) {
-        	slots.doneBinding();
-        } else {
-            super.keyTyped(par1, par2);
+        if (this.buttonId != null)
+        {
+        	buttonId.FunctionExt = typedChar;
+            this.buttonId = null;
+        }
+        else
+        {
+            super.keyTyped(typedChar, keyCode);
         }
     }
-
 
     /**
      * Adds the buttons (and other controls) to the screen in question.
      */
     public void initGui() {
+    	this.guiList = new GuiVRControlsList(this, mc);
         this.buttonList.clear();
-        //this.buttonList.add(new GuiButtonEx(202, this.width / 2 - 100, this.height / 6 + 148, "Reset To Defaults"));
-        this.buttonList.add(new GuiButtonEx(200, this.width / 2 - 100, this.height / 6 + 168, "Done"));
-        
-        slots = new ControlSlot(this);
-        slots.registerScrollButtons(201, 202);
+        this.buttonList.add(new GuiButtonEx	(202, this.width / 2 , this.height -20,100,18, "Reset To Defaults"));
+        this.buttonList.add(new GuiButtonEx(200, this.width / 2 - 100, this.height -20,100,18, "Done"));
+
     }
 
     /**
@@ -117,7 +63,7 @@ public class GuiVRControls extends BaseGuiSettings {
             initGui();
             reinit = false;
         }
-        this.slots.drawScreen(par1,par2,par3);
+        this.guiList.drawScreen(par1, par2, par3);
         super.drawScreen(par1,par2,par3,false);
     }
 
@@ -128,6 +74,35 @@ public class GuiVRControls extends BaseGuiSettings {
     	if (par1GuiButton.id == 200) {
             this.guivrSettings.saveOptions();
             this.mc.displayGuiScreen(this.parentGuiScreen);
+        } else if (par1GuiButton.id == 202){
+        	mc.vrSettings.resetBindings();
+        	this.initGui();
         }
     }
+    
+    /**
+     * Called when the mouse is clicked. Args : mouseX, mouseY, clickedButton
+     */
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton)
+    {
+        this.buttonId = null;
+      if (mouseButton != 0 || !this.guiList.func_148179_a(mouseX, mouseY, mouseButton))
+        {
+            super.mouseClicked(mouseX, mouseY, mouseButton);
+        }
+    }
+
+    /**
+     * Called when a mouse button is released.  Args : mouseX, mouseY, releaseButton\n \n@param state Will be negative
+     * to indicate mouse move and will be either 0 or 1 to indicate mouse up.
+     */
+    protected void mouseReleased(int mouseX, int mouseY, int state)
+    {
+        if (state != 0 || !this.guiList.func_148181_b(mouseX, mouseY, state))
+        {
+            super.mouseReleased(mouseX, mouseY, state);
+        }
+    }
+
+    
 }

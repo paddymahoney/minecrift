@@ -19,17 +19,20 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             VRSettings.VrOptions.INERTIA_FACTOR,
             //VRSettings.VrOptions.VIEW_BOBBING,
             VRSettings.VrOptions.PITCH_AFFECTS_FLYING,
-            //VRSettings.VrOptions.DUMMY_SMALL,
-            //VRSettings.VrOptions.USE_VR_COMFORT,
-            //VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW,
-            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR,
-            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS,
-            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS,
-            //VRSettings.VrOptions.VR_COMFORT_TRANSITION_BLANKING_MODE,
-            VRSettings.VrOptions.CAMERA_UPDATE_INTERVAL,        // VIVE new option
             VRSettings.VrOptions.SIMULATE_FALLING,              // VIVE new option
             VRSettings.VrOptions.WEAPON_COLLISION,              // VIVE new option
             // VIVE END - hide options not relevant for standing
+            //JRBUDDA
+            VRSettings.VrOptions.ALLOW_CRAWLING,
+            VRSettings.VrOptions.FREE_MOVE_DEFAULT,
+            VRSettings.VrOptions.LIMIT_TELEPORT,
+            VRSettings.VrOptions.ALLOW_MODE_SWITCH,
+            VRSettings.VrOptions.BCB_ON,
+            
+            //END JRBUDDA
+            
+            
+            
     };
 
     public GuiLocomotionSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
@@ -93,14 +96,6 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                     increment = 0.005f;
                 }
                 // VIVE START - new options
-                else if ( var8 == VRSettings.VrOptions.CAMERA_UPDATE_INTERVAL)
-                {
-                    minValue = 0f;
-                    maxValue = 2.0f;
-                    increment = 0.1f;
-                }
-                // VIVE END - new options
-
                 GuiSliderEx slider = new GuiSliderEx(var8.returnEnumOrdinal(), width, height - 20, var8, this.guivrSettings.getKeyBinding(var8), minValue, maxValue, increment, this.guivrSettings.getOptionFloatValue(var8));
                 slider.setEventHandler(this);
                 slider.enabled = getEnabledState(var8);
@@ -120,22 +115,8 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
     {
         String s = var8.getEnumString();
 
-        if (this.guivrSettings.useVrComfort == this.guivrSettings.VR_COMFORT_OFF &&
-               (s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_ANGLE_DEGS.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_TIME_SECS.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_BLANKING_MODE.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_TRANSITION_LINEAR.getEnumString() ||
-                s == VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW.getEnumString()))
-        {
-            return false;
-        }
-
-        if ((this.guivrSettings.useVrComfort != this.guivrSettings.VR_COMFORT_YAW &&
-             this.guivrSettings.useVrComfort != this.guivrSettings.VR_COMFORT_PITCHANDYAW) &&
-             s == VRSettings.VrOptions.VR_COMFORT_USE_KEY_BINDING_FOR_YAW.getEnumString())
-        {
-            return false;
-        }
+        if(s==VRSettings.VrOptions.ALLOW_CRAWLING.getEnumString()) return false;
+        
 
         return true;
     }
@@ -170,19 +151,19 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
             }
             else if (par1GuiButton.id == ID_GENERIC_DEFAULTS)
             {
-                vr.useVrComfort = VRSettings.VR_COMFORT_YAW;
-                vr.allowForwardPlusStrafe = true;
-                vr.vrComfortTransitionLinear = false;
-                vr.movementAccelerationScaleFactor = 1f;
-                vr.vrComfortTransitionTimeSecs = 0.150f;
-                vr.vrComfortTransitionAngleDegs = 30f;
-                vr.vrComfortTransitionBlankingMode = VRSettings.VR_COMFORT_TRANS_BLANKING_MODE_OFF;
-                vr.movementQuantisation = 4;
                 vr.inertiaFactor = VRSettings.INERTIA_NORMAL;
                 vr.allowPitchAffectsHeightWhileFlying = false;
                 vr.useKeyBindingForComfortYaw = false;
-                vr.movementSpeedMultiplier = 0.75f;
-                vr.strafeSpeedMultiplier = 0.33f;
+                vr.movementSpeedMultiplier = 1f;
+                vr.simulateFalling = false;
+                //jrbudda//
+                vr.vrAllowCrawling = false;
+                vr.vrAllowLocoModeSwotch = true;
+                vr.vrFreeMove = true;
+                vr.vrLimitedSurvivalTeleport = true;
+                vr.vrShowBlueCircleBuddy = true;
+                //end jrbudda
+                
                 Minecraft.getMinecraft().gameSettings.viewBobbing = true;
 
                 Minecraft.getMinecraft().gameSettings.saveOptions();
@@ -228,7 +209,7 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "simulator sickness.",
                             "WARNING: May trigger anti-cheat warnings if on a",
                             "Multiplayer server!!",
-                            "Defaults to 0.75 (1.0 is standard Minecraft movement",
+                            "Defaults to standard Minecraft movement (1.0)",
                             "speed)."
                     } ;
                 case STRAFE_MULTIPLIER:
@@ -349,16 +330,10 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "             trigger a yaw transition."
                     };
                 // VIVE START - new options
-                case CAMERA_UPDATE_INTERVAL:
-                    return new String[] {
-                            "When connected to a server that doesn't support",
-                            "teleporting, this determines the time between",
-                            "camera updates, in seconds."
-                    } ;
                 case SIMULATE_FALLING:
                     return new String[] {
-                            "If enabled the player will teleport to the ground",
-                            "when standing above empty space."
+                            "If enabled the player will falls to the ground in TP mode",
+                            "when standing above empty space. Also allows jumping"
                     } ;
                 case WEAPON_COLLISION:
                     return new String[] {
@@ -366,6 +341,33 @@ public class GuiLocomotionSettings extends BaseGuiSettings implements GuiEventEx
                             "mine them, or your sword at enemies to hit them."
                     } ;
                 // VIVE END - new options
+                    //JRBUDDA
+                case ALLOW_MODE_SWITCH:
+                    return new String[] {
+                            "Allows the use of the Right Grip button to switch between",
+                            "Teleport and Free Move mode."
+                    } ;
+                case ALLOW_CRAWLING:
+                    return new String[] {
+                            "If enabled the player will be able to duck under block"
+                    } ;
+                case FREE_MOVE_DEFAULT:
+                    return new String[] {
+                            "Defaults to free move mode instead of teleport mode."
+                    } ;
+                case LIMIT_TELEPORT:
+                    return new String[] {
+                            "If enabled the arc teleporter will be have restrictions",
+                            "in survival mode. It will not be able to jump up the side", 
+                            "of blocks, it will consume food, and it will have an energy",
+                            "bar that refills over time."
+                    } ;
+                case BCB_ON:
+                    return new String[] {
+                            "Shows your body position as a blue dot on the gound.",
+                            "This is your Blue Circle Buddy (tm).",
+                            "Do not lose your Blue Circle Buddy."
+                    };
                 default:
                     return null;
             }

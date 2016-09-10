@@ -7,6 +7,7 @@ package com.mtbs3d.minecrift.api;
 
 import de.fruitfly.ovr.enums.EyeType;
 import de.fruitfly.ovr.structs.*;
+import net.minecraft.client.Minecraft.renderPass;
 import net.minecraft.client.gui.GuiScreen;
 
 /**
@@ -15,11 +16,8 @@ import net.minecraft.client.gui.GuiScreen;
  * @author StellaArtois
  *
  */
-public interface IStereoProvider extends IBasePlugin
+public interface IStereoProvider 
 {
-    public RenderTextureInfo getRenderTextureSizes(FovPort LeftFov,
-                                                   FovPort RightFov,
-                                                   float renderScaleFactor);
 
     public boolean providesMirrorTexture();
 
@@ -29,7 +27,11 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean providesRenderTextures();
 
-    public RenderTextureSet createRenderTextureSet(int lwidth, int lheight, int rwidth, int rheight);
+    public boolean providesStencilMask();
+    
+    public float[] getStencilMask(renderPass currentPass);
+    
+    public RenderTextureSet createRenderTexture(int width, int height);
 
     public void deleteRenderTextures();
 
@@ -39,12 +41,10 @@ public interface IStereoProvider extends IBasePlugin
 
     public boolean isStereo();
 
-    public boolean isGuiOrtho();
-
     public double getFrameTiming();
 
     public Matrix4f getProjectionMatrix(FovPort fov,
-                                        EyeType eyeType,  // VIVE added eyeType
+                                        int i,  // VIVE added eyeType
                                         float nearClip,
                                         float farClip);
 
@@ -59,4 +59,16 @@ public interface IStereoProvider extends IBasePlugin
     // VIVE START - new stereo provider functions
     public void onGuiScreenChanged(GuiScreen previousScreen, GuiScreen newScreen);
     // VIVE END - new stereo provider functions
+
+	boolean endFrame(renderPass currentPass);
+
+	RenderTextureInfo getRenderTextureSizes(float renderScaleFactor);
+
+	public void endFrame();
+
+	public String getName();
+
+	public boolean isInitialized();
+	
+	public String getinitError();
 }

@@ -108,12 +108,6 @@ public class GuiSelectSettingsProfile extends BaseGuiSettings implements GuiYesN
             else if (button.id == ID_SELECT_PROFILE_BUTTON)
             {
                 VRSettings.setCurrentProfile(profile);
-                try {
-                    this.mc.initPlugins();
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
                 this.mc.reinitFramebuffers = true;
                 this.mc.displayGuiScreen(this.parentGuiScreen);
             }
@@ -195,7 +189,7 @@ public class GuiSelectSettingsProfile extends BaseGuiSettings implements GuiYesN
      * Draws the screen and all the components in it. Args : mouseX, mouseY, renderPartialTicks
      */
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
-    {
+    {      
         this.profileListCtrl.drawScreen(mouseX, mouseY, partialTicks);
         super.drawScreen(mouseX, mouseY, partialTicks, false);
     }

@@ -171,11 +171,12 @@
          }
      }
  
-@@ -119,6 +233,16 @@
+@@ -119,6 +233,18 @@
       */
      public void setRotationAngles(float p_78087_1_, float p_78087_2_, float p_78087_3_, float p_78087_4_, float p_78087_5_, float p_78087_6_, Entity p_78087_7_)
      {
 +        /** MINECRIFT **/
++    	
 +        if (this.vrMode) {
 +            if (!initialisedForVr) {
 +                initForVr();
@@ -184,11 +185,12 @@
 +            this.bipedBody.rotateAngleX = 0;
 +            this.bipedBody.rotateAngleZ = 0;
 +        }
++        
 +        /** END MINECRIFT **/
          this.bipedHead.rotateAngleY = p_78087_4_ / (180F / (float)Math.PI);
          this.bipedHead.rotateAngleX = p_78087_5_ / (180F / (float)Math.PI);
          this.bipedHeadwear.rotateAngleY = this.bipedHead.rotateAngleY;
-@@ -142,6 +266,9 @@
+@@ -142,6 +268,9 @@
              this.bipedLeftLeg.rotateAngleY = -((float)Math.PI / 10F);
          }
  
@@ -198,7 +200,7 @@
          if (this.heldItemLeft != 0)
          {
              this.bipedLeftArm.rotateAngleX = this.bipedLeftArm.rotateAngleX * 0.5F - ((float)Math.PI / 10F) * (float)this.heldItemLeft;
-@@ -181,25 +308,75 @@
+@@ -181,25 +310,75 @@
  
          if (this.isSneak)
          {
@@ -244,10 +246,10 @@
 +                this.bipedHead.rotationPointY = 0.0F;
 +                this.bipedHeadwear.rotationPointY = 0.0F;
 +            }
-+            else {
-+                if (Minecraft.getMinecraft().positionTracker != null) {
-+                    centreEyePos = Minecraft.getMinecraft().positionTracker.getCenterEyePosition();
-+                    centreEyePos.yCoord += 1.2d; // Account for position of body rotation point
++            else { //what did this do.... oculus leftovers.
++                if (false){ // (Minecraft.getMinecraft().positionTracker != null) {
++                    //centreEyePos = Minecraft.getMinecraft().positionTracker.getCenterEyePosition();
++                    //centreEyePos.yCoord += 1.2d; // Account for position of body rotation point
 +                }
 +                else {
 +                    centreEyePos.xCoord = 0;
@@ -290,7 +292,7 @@
          }
  
          this.bipedRightArm.rotateAngleZ += MathHelper.cos(p_78087_3_ * 0.09F) * 0.05F + 0.05F;
-@@ -233,8 +410,12 @@
+@@ -233,8 +412,12 @@
      {
          this.bipedEars.rotateAngleY = this.bipedHead.rotateAngleY;
          this.bipedEars.rotateAngleX = this.bipedHead.rotateAngleX;
@@ -305,7 +307,7 @@
          this.bipedEars.render(p_78110_1_);
      }
  
-@@ -245,4 +426,18 @@
+@@ -245,4 +428,18 @@
      {
          this.bipedCloak.render(p_78111_1_);
      }

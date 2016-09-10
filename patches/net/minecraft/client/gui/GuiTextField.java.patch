@@ -1,0 +1,63 @@
+--- a/net/minecraft/client/gui/GuiTextField.java
++++ b/net/minecraft/client/gui/GuiTextField.java
+@@ -1,18 +1,21 @@
+ package net.minecraft.client.gui;
+ 
++import net.minecraft.client.Minecraft;
+ import net.minecraft.client.renderer.Tessellator;
+ import net.minecraft.util.ChatAllowedCharacters;
+ import org.lwjgl.opengl.GL11;
+ 
++import com.mtbs3d.minecrift.provider.MCOpenVR;
++
+ public class GuiTextField extends Gui
+ {
+     private final FontRenderer fontRendererInstance;
+-    private final int xPosition;
+-    private final int yPosition;
++    public int xPosition;
++    public int yPosition;
+ 
+     /** The width of this text field. */
+-    private final int width;
+-    private final int height;
++    public int width;
++    public int height;
+ 
+     /** Has the current text being edited on the textbox. */
+     private String text = "";
+@@ -473,6 +476,12 @@
+         if (this.canLoseFocus)
+         {
+             this.setFocused(var4);
++        }  else {
++       	
++           // VIVE START - show keyboard
++            MCOpenVR.setKeyboardOverlayShowing(true, this);
++          // VIVE END - show keyboard
++	
+         }
+ 
+         if (this.isFocused && p_146192_3_ == 0)
+@@ -486,7 +495,8 @@
+ 
+             String var6 = this.fontRendererInstance.trimStringToWidth(this.text.substring(this.lineScrollOffset), this.getWidth());
+             this.setCursorPosition(this.fontRendererInstance.trimStringToWidth(var6, var5).length() + this.lineScrollOffset);
+-        }
++            
++         }
+     }
+ 
+     /**
+@@ -673,6 +683,11 @@
+         }
+ 
+         this.isFocused = p_146195_1_;
++        
++        // VIVE START - show keyboard
++       if(p_146195_1_) MCOpenVR.setKeyboardOverlayShowing(p_146195_1_, this);
++        // VIVE END - show keyboard
++        
+     }
+ 
+     /**

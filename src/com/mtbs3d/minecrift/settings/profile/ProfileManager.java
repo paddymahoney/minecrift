@@ -52,10 +52,6 @@ public class ProfileManager
     static String currentProfileName = DEFAULT_PROFILE;
 
     static File vrProfileCfgFile = null;
-    static File legacyMcProfileCfgFile = null;
-    static File legacyOfProfileCfgFile = null;
-    static File legacyVrProfileCfgFile = null;
-    static File legacyControllerProfileCfgFile = null;
 
     static JSONObject jsonConfigRoot = null;
     static JSONObject profiles = null;
@@ -65,11 +61,6 @@ public class ProfileManager
     public static synchronized void init( File dataDir )
     {
         vrProfileCfgFile = new File(dataDir, "optionsviveprofiles.txt");        // VIVE - changed cfg file name to avoid conflicts
-        legacyMcProfileCfgFile = new File(dataDir, "options.txt");
-        legacyOfProfileCfgFile = new File(dataDir, "optionsof.txt");
-        legacyVrProfileCfgFile = new File(dataDir, VRSettings.LEGACY_OPTIONS_VR_FILENAME);
-        legacyControllerProfileCfgFile = new File(dataDir, "options_controller.txt");
-
         load();
     }
 

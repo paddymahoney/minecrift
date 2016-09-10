@@ -22,12 +22,12 @@ public class GuiHUDSettings extends BaseGuiSettings
             VRSettings.VrOptions.HUD_YAW,
             VRSettings.VrOptions.HUD_OPACITY,
             VRSettings.VrOptions.RENDER_MENU_BACKGROUND,
-            VRSettings.VrOptions.OTHER_HUD_SETTINGS,
+            VRSettings.VrOptions.TOUCH_HOTBAR,
     };
 
     public GuiHUDSettings(GuiScreen guiScreen, VRSettings guivrSettings) {
         super( guiScreen, guivrSettings );
-        screenTitle = "HUD / Overlay Settings";
+        screenTitle = "HUD Settings";
     }
 
     /**
@@ -103,12 +103,7 @@ public class GuiHUDSettings extends BaseGuiSettings
     {
         if (par1GuiButton.enabled)
         {
-            if (par1GuiButton.id == VRSettings.VrOptions.OTHER_HUD_SETTINGS.returnEnumOrdinal())
-            {
-                Minecraft.getMinecraft().vrSettings.saveOptions();
-                this.mc.displayGuiScreen(new GuiOtherHUDSettings(this, this.guivrSettings));
-            }
-            else if (par1GuiButton.id < 200 && par1GuiButton instanceof GuiSmallButtonEx)
+           if (par1GuiButton.id < 200 && par1GuiButton instanceof GuiSmallButtonEx)
             {
                 VRSettings.VrOptions num = VRSettings.VrOptions.getEnumOptions(par1GuiButton.id);
                 this.guivrSettings.setOptionValue(((GuiSmallButtonEx)par1GuiButton).returnVrEnumOptions(), 1);
@@ -128,7 +123,7 @@ public class GuiHUDSettings extends BaseGuiSettings
                 this.guivrSettings.hideGui = false;
                 this.guivrSettings.hudOpacity = 0.95f;
                 this.guivrSettings.menuBackground = false;
-                this.guivrSettings.hudLockToHead = false;
+                this.guivrSettings.vrHudLockMode = guivrSettings.HUD_LOCK_WRIST;
                 this.guivrSettings.hudOcclusion = false;
 
                 Minecraft.getMinecraft().vrSettings.saveOptions();
@@ -195,17 +190,20 @@ public class GuiHUDSettings extends BaseGuiSettings
                 case HUD_LOCK_TO:
                     return new String[] {
                             "Specifies to which orientation the HUD is locked to.",
-                            "  BODY:  The HUD when visible will appear locked",
-                            "         relative to your body orientation. This allows",
-							"         free look around the HUD.",
-                            "  HEAD:  The HUD appears locked to your head",
-                            "         orientation. The HUD may have to be scaled to",
-							"         fit within your visible field of view. Edges",
-							"         may be blurred!"
+                            "  HAND:  The HUD will appear just above your off-hand",
+                            "  HEAD:  The HUD will always appear in your field of view",
+                            "straight ahead",
+                            "  WRIST:  The HUD will appear on the inside of your off-hand",
+                            "arm. It will 'pop out' when looked at."
                     };
                 case OTHER_HUD_SETTINGS:
                     return new String[] {
                             "Configure Crosshair and overlay settings."
+                    };
+                case TOUCH_HOTBAR:
+                    return new String[] {
+                            "If enabled allow you to touch the hotbar with",
+                            "your main hand to select an item."
                     };
                 default:
                     return null;

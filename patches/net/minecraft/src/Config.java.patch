@@ -1,0 +1,21 @@
+--- a/net/minecraft/src/Config.java
++++ b/net/minecraft/src/Config.java
+@@ -100,14 +100,15 @@
+ 
+     public static void initGameSettings(GameSettings settings)
+     {
+-        if (gameSettings == null)
+-        {
++    	//VIVE WHY WOULD YOU DO THAT??
++  //      if (gameSettings == null)
++ //       {
+             gameSettings = settings;
+             minecraft = Minecraft.getMinecraft();
+             desktopDisplayMode = Display.getDesktopDisplayMode();
+             updateAvailableProcessors();
+             ReflectorForge.putLaunchBlackboard("optifine.ForgeSplashCompatible", Boolean.TRUE);
+-        }
++ //       }
+     }
+ 
+     public static void initDisplay()
